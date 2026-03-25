@@ -37,7 +37,7 @@
   <div class="header-section">
     <div class="header-logo"><i class="bi bi-shield-lock-fill"></i></div>
     <h4 class="fw-bold mb-1">Buayai I Care School</h4>
-    <p class="small opacity-75 mb-0" style="font-weight: 300;">ระบบดูแลช่วยเหลือนักเรียนดิจิทัล โรงเรียนบัวใหญ๋</p>
+    <p class="small opacity-75 mb-0" style="font-weight: 300;">ระบบดูแลช่วยเหลือนักเรียนดิจิทัล</p>
   </div>
 
   <div class="container-fluid px-0">
@@ -50,55 +50,63 @@
 
     <div class="tab-content mt-1" id="portalTabContent">
       
+      <!-- ============================================== -->
+      <!-- หมวดคณะครู (Teacher) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade show active tab-teacher" id="teacher" role="tabpanel">
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-clipboard-check-fill"></i> 1. การมาเรียน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-flag-fill"></i><p class="card-title">เข้าแถว</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-person-check-fill"></i><p class="card-title">เข้าห้องเรียน</p></a>
+          <!-- ใช้ this ส่ง Element ไปให้สคริปต์ แทนการส่ง event -->
+          <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-flag-fill"></i><p class="card-title">เข้าแถว</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-person-check-fill"></i><p class="card-title">เข้าห้องเรียน</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-search"></i> 2. ค้นหาบันทึกการเข้าเรียน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRWVYDGrsQeJ9h_jqV24X6BP6HjWq7h0lTUBwVcbfyILbLzW_Y1BMKdNdqRMphFshBNF8BDOblSYJww/pubhtml" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2567</p></a>
-          <a href="https://script.google.com/macros/u/1/s/AKfycbxw3Zx2zM8X4ZyjMhz4iu4bu_poCnkNWlmzQD_kWD3hJMWlkDyFPfIBBXOb-xsM99p-/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2568</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbwY7KMRq07VvE5YgxaTQPJbfEMmZ-RgFGfGeZpoijHf5kstPbENSrvyoJFPVPHPNbBHJg/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-folder-check"></i><p class="card-title">เวลา 2/2568</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-folder-plus"></i><p class="card-title">เวลา 1/2569</p></a>
+          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRWVYDGrsQeJ9h_jqV24X6BP6HjWq7h0lTUBwVcbfyILbLzW_Y1BMKdNdqRMphFshBNF8BDOblSYJww/pubhtml" target="_blank" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2567</p></a>
+          <a href="https://script.google.com/macros/u/1/s/AKfycbxw3Zx2zM8X4ZyjMhz4iu4bu_poCnkNWlmzQD_kWD3hJMWlkDyFPfIBBXOb-xsM99p-/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2568</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbwY7KMRq07VvE5YgxaTQPJbfEMmZ-RgFGfGeZpoijHf5kstPbENSrvyoJFPVPHPNbBHJg/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-folder-check"></i><p class="card-title">เวลา 2/2568</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-folder-plus"></i><p class="card-title">เวลา 1/2569</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-star-fill"></i> 3. E-Point พฤติกรรม <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-clock-history"></i><p class="card-title">บันทึกมาสาย</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-clipboard-heart-fill"></i><p class="card-title">หัก/เพิ่มคะแนน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.3)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.4)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.5)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-clock-history"></i><p class="card-title">บันทึกมาสาย</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-clipboard-heart-fill"></i><p class="card-title">หัก/เพิ่มคะแนน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.3)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.4)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (4.5)</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-heart-pulse-fill"></i> 4. ระบบดูแลช่วยเหลือ <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-person-bounding-box"></i><p class="card-title">อัพโหลดภาพ</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-bicycle"></i><p class="card-title">รถพาหนะ</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-file-person-fill"></i><p class="card-title">ประวัตินักเรียน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-clipboard2-pulse"></i><p class="card-title">น้ำหนักส่วนสูง</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-house-heart-fill"></i><p class="card-title">เยี่ยมบ้าน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-piggy-bank-fill"></i><p class="card-title">ประวัติให้ทุน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-award-fill"></i><p class="card-title">คนดี ศรีบัวใหญ่</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-journal-x"></i><p class="card-title">0 ร มส.</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'teacher');"><i class="bi bi-diagram-3-fill"></i><p class="card-title">เครือข่าย ผปค.</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-person-bounding-box"></i><p class="card-title">อัพโหลดภาพ</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-bicycle"></i><p class="card-title">รถพาหนะ</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-file-person-fill"></i><p class="card-title">ประวัตินักเรียน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-clipboard2-pulse"></i><p class="card-title">น้ำหนักส่วนสูง</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-house-heart-fill"></i><p class="card-title">เยี่ยมบ้าน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-piggy-bank-fill"></i><p class="card-title">ประวัติให้ทุน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-award-fill"></i><p class="card-title">คนดี ศรีบัวใหญ่</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-journal-x"></i><p class="card-title">0 ร มส.</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'teacher');"><i class="bi bi-diagram-3-fill"></i><p class="card-title">เครือข่าย ผปค.</p></a>
         </div>
       </div>
 
+      <!-- ============================================== -->
+      <!-- หมวดนักเรียน/ผู้ปกครอง (ไม่มีรหัสผ่าน) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-student" id="student" role="tabpanel">
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-mortarboard-fill"></i> 1. ผลการเรียน</h6></div>
         <div class="bento-grid">
-          <a href="https://www.buayai.ac.th/login" target="_blank" rel="noopener noreferrer" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-laptop"></i><p class="card-title">ดูผลการเรียน (SGS)</p></a>
+          <!-- ลบ noopener noreferrer ออก เพื่อให้เบราว์เซอร์เปิดลิงก์แบบปกติที่สุด -->
+          <a href="https://www.buayai.ac.th/login" target="_blank" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-laptop"></i><p class="card-title">ดูผลการเรียน (SGS)</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-star-fill"></i> 2. ระบบ E-Point</h6></div>
         <div class="bento-grid">
-          <a href="https://script.google.com/macros/s/AKfycby4lKE_rdjA_XXGJpJKrGfWKsyc9lmkl1IvPfOgBoSAwOKxbZkcGwoYjoTK1zVO5awu/exec" target="_blank" rel="noopener noreferrer" class="menu-card"><i class="bi bi-person-plus-fill"></i><p class="card-title">สมัคร E-Point</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbwfvdN82fXmyD8J9QtIktImEQIkZsHVLnvuMYEii3tqxttK9X2_4nvbOvaYde44NwSL/exec" target="_blank" rel="noopener noreferrer" class="menu-card"><i class="bi bi-box-arrow-in-right"></i><p class="card-title">ล็อกอิน</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" target="_blank" rel="noopener noreferrer" class="menu-card"><i class="bi bi-heart-fill"></i><p class="card-title">ทำดีออนไลน์</p></a>
+          <a href="https://script.google.com/macros/s/AKfycby4lKE_rdjA_XXGJpJKrGfWKsyc9lmkl1IvPfOgBoSAwOKxbZkcGwoYjoTK1zVO5awu/exec" target="_blank" class="menu-card"><i class="bi bi-person-plus-fill"></i><p class="card-title">สมัคร E-Point</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbwfvdN82fXmyD8J9QtIktImEQIkZsHVLnvuMYEii3tqxttK9X2_4nvbOvaYde44NwSL/exec" target="_blank" class="menu-card"><i class="bi bi-box-arrow-in-right"></i><p class="card-title">ล็อกอิน</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" target="_blank" class="menu-card"><i class="bi bi-heart-fill"></i><p class="card-title">ทำดีออนไลน์</p></a>
           <a href="javascript:void(0)" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (2.4)</p></a>
         </div>
 
@@ -113,7 +121,7 @@
         <div class="bento-grid">
           <a href="javascript:void(0)" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-chat-dots-fill"></i><p class="card-title">ติดต่อคุณครูที่ปรึกษา</p></a>
           <a href="javascript:void(0)" class="menu-card" style="background-color: #f0f9ff; border-color: #bae6fd;"><i class="bi bi-facebook" style="color: #0ea5e9;"></i><p class="card-title">เพจ รร.บัวใหญ่</p></a>
-          <a href="https://sites.google.com/bua-yai.ac.th/by-std-beh/home" target="_blank" rel="noopener noreferrer" class="menu-card" style="background-color: #fff1f2; border-color: #fecdd3;"><i class="bi bi-globe2" style="color: #e11d48;"></i><p class="card-title">แก้ไขพฤติกรรม</p></a>
+          <a href="https://sites.google.com/bua-yai.ac.th/by-std-beh/home" target="_blank" class="menu-card" style="background-color: #fff1f2; border-color: #fecdd3;"><i class="bi bi-globe2" style="color: #e11d48;"></i><p class="card-title">แก้ไขพฤติกรรม</p></a>
           <a href="javascript:void(0)" class="menu-card"><i class="bi bi-calculator-fill"></i><p class="card-title">คณิตศาสตร์</p></a>
           <a href="javascript:void(0)" class="menu-card"><i class="bi bi-chat-quote-fill"></i><p class="card-title">ภาษาอังกฤษ</p></a>
           <a href="javascript:void(0)" class="menu-card"><i class="bi bi-rocket-takeoff-fill"></i><p class="card-title">วิทยาศาสตร์</p></a>
@@ -122,65 +130,72 @@
         </div>
       </div>
 
+      <!-- ============================================== -->
+      <!-- หมวดหัวหน้าระดับ/งาน (Admin) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-admin" id="admin" role="tabpanel">
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-bar-chart-fill"></i> 1. สถิติมาเรียน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-pie-chart-fill"></i><p class="card-title">สถิติมาเรียนภาพรวม</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-pie-chart-fill"></i><p class="card-title">สถิติมาเรียนภาพรวม</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-clipboard-data-fill"></i> 2. สถิติพฤติกรรม <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-clock-history"></i><p class="card-title">สถิติมาสาย</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-door-open-fill"></i><p class="card-title">สถิติหนีเรียน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-scissors"></i><p class="card-title">สถิติทรงผม</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-capsule"></i><p class="card-title">สถิติสารเสพติด</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (2.5)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (2.6)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-clock-history"></i><p class="card-title">สถิติมาสาย</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-door-open-fill"></i><p class="card-title">สถิติหนีเรียน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-scissors"></i><p class="card-title">สถิติทรงผม</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-capsule"></i><p class="card-title">สถิติสารเสพติด</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (2.5)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (2.6)</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-search"></i> 3. ค้นหา/บันทึก (E-Point) <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="https://script.google.com/macros/s/AKfycbwwcK0fvvDMbuvRP4q-Th4ZwATRNWTE1lz_4R9s7CV_bj952csHJQGeDCKVvLQNDGrJ/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-x-circle-fill text-danger"></i><p class="card-title">3.1 ไม่ผ่านภาคเรียน</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-emoji-smile-fill text-success"></i><p class="card-title">3.2 ทำความดีทุกภาคเรียน</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbwwcK0fvvDMbuvRP4q-Th4ZwATRNWTE1lz_4R9s7CV_bj952csHJQGeDCKVvLQNDGrJ/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-x-circle-fill text-danger"></i><p class="card-title">3.1 ไม่ผ่านภาคเรียน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-emoji-smile-fill text-success"></i><p class="card-title">3.2 ทำความดีทุกภาคเรียน</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-book-half"></i> 4. กฏหมาย/ระเบียบ <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-journal-bookmark-fill"></i><p class="card-title">คู่มือนักเรียน 67</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-shield-check"></i><p class="card-title">พรบ.เด็ก</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-shield-lock-fill"></i><p class="card-title">PDPA</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-journal-bookmark-fill"></i><p class="card-title">คู่มือนักเรียน 67</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-shield-check"></i><p class="card-title">พรบ.เด็ก</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-shield-lock-fill"></i><p class="card-title">PDPA</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-send-exclamation-fill"></i> 5. ติดตาม/รายงาน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-envelope-exclamation-fill"></i><p class="card-title">แจ้ง ผปค. (1)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-envelope-paper-fill"></i><p class="card-title">แจ้ง ผปค. (2)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-houses-fill"></i><p class="card-title">เข้าค่าย (1)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (5.4)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.1)</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.2)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-envelope-exclamation-fill"></i><p class="card-title">แจ้ง ผปค. (1)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-envelope-paper-fill"></i><p class="card-title">แจ้ง ผปค. (2)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-houses-fill"></i><p class="card-title">เข้าค่าย (1)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (5.4)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.1)</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.2)</p></a>
         </div>
 
+        <!-- 7. Admin Panel -->
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-person-workspace"></i> 7. Admin Panel <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="https://script.google.com/macros/s/AKfycbxHy8BcRtFMEMfhgB_RKShilDnqXRic6FEeuDtrMuTxpqQNOG20XKOdvkcpBTNgZcb6/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลาง</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');"><i class="bi bi-dash-circle-fill text-danger"></i><p class="card-title">หักคะแนน</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbyOFEh0NfBROic2aq9AKn_calcR3axkDZSYuXafJGcpdOMzyllln2V2vW6MITsNEiwY/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');"><i class="bi bi-plus-circle-fill text-success"></i><p class="card-title">เพิ่มคะแนน</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');"><i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">พิจารณาความดี</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbxHy8BcRtFMEMfhgB_RKShilDnqXRic6FEeuDtrMuTxpqQNOG20XKOdvkcpBTNgZcb6/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลาง</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'superadmin');"><i class="bi bi-dash-circle-fill text-danger"></i><p class="card-title">หักคะแนน</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbyOFEh0NfBROic2aq9AKn_calcR3axkDZSYuXafJGcpdOMzyllln2V2vW6MITsNEiwY/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'superadmin');"><i class="bi bi-plus-circle-fill text-success"></i><p class="card-title">เพิ่มคะแนน</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'superadmin');"><i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">พิจารณาความดี</p></a>
           <div style="grid-column: span 3; padding: 5px 0 0px;"><span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-search"></i> 7.5 ค้นหาคะแนนพฤติกรรม</span></div>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2567</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2567</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2568</p></a>
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2568</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbxuddNzqzZjruNZYeD1arvuhvKsEify-bm8R_haRyZzQ-J_4wXVSXW8pET_kCLkfVDc/exec" class="menu-card" onclick="return requireAuth(event, this.href, 'superadmin');" style="grid-column: span 3; padding: 12px; background-color: #fef2f2; border-color: #fca5a5;"><i class="bi bi-key-fill text-danger"></i><p class="card-title text-danger">รีเซตรหัสผ่าน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2567</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2567</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2568</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2568</p></a>
+          <a href="https://script.google.com/macros/s/AKfycbxuddNzqzZjruNZYeD1arvuhvKsEify-bm8R_haRyZzQ-J_4wXVSXW8pET_kCLkfVDc/exec" target="_blank" class="menu-card" onclick="return requireAuth(this, 'superadmin');" style="grid-column: span 3; padding: 12px; background-color: #fef2f2; border-color: #fca5a5;"><i class="bi bi-key-fill text-danger"></i><p class="card-title text-danger">รีเซตรหัสผ่าน</p></a>
         </div>
 
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-cloud-arrow-up-fill"></i> 9. ข้อมูลระบบ <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6></div>
         <div class="bento-grid">
-          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(event, this.href, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-file-earmark-arrow-up-fill"></i><p class="card-title">อัพโหลดสมุดบันทึกเวลาเรียน</p></a>
+          <a href="javascript:void(0)" class="menu-card" onclick="return requireAuth(this, 'admin');" style="grid-column: span 3; padding: 12px;"><i class="bi bi-file-earmark-arrow-up-fill"></i><p class="card-title">อัพโหลดสมุดบันทึกเวลาเรียน</p></a>
         </div>
       </div>
 
+      <!-- ============================================== -->
+      <!-- หมวด กก.นักเรียน (Board) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-board" id="board" role="tabpanel">
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--board-purple);"><i class="bi bi-person-vcard-fill"></i> 8. แอพสำหรับกรรมการนักเรียน</h6></div>
         <div class="bento-grid">
@@ -198,6 +213,9 @@
 
   <div class="footer-watermark">&copy; 2026 Buayai School Digital System</div>
 
+  <!-- ============================================== -->
+  <!-- 🔒 Modal สำหรับกรอกรหัสผ่าน -->
+  <!-- ============================================== -->
   <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -218,42 +236,43 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    // ตัวแปรเก็บสถานะการปลดล็อก
-    let isTeacherUnlocked = false; 
-    let isAdminUnlocked = false; 
-    let isSuperAdminUnlocked = false;
-
     // ตัวแปรสำหรับทำงานร่วมกับ Modal
-    let pendingUrl = "";
+    let pendingAnchor = null;
     let currentAuthType = "";
 
-    // 1. ฟังก์ชันดักจับตอนคลิกปุ่ม
-    function requireAuth(event, url, authType) {
-      // ตรวจสอบว่าเคยปลดล็อกหมวดนี้ไว้แล้วหรือยัง
-      if (authType === 'teacher' && isTeacherUnlocked) return executeLink(event, url);
-      if (authType === 'admin' && isAdminUnlocked) return executeLink(event, url);
-      if (authType === 'superadmin' && isSuperAdminUnlocked) return executeLink(event, url);
+    // ฟังก์ชันนี้จะถูกเรียกเมื่อคลิกปุ่มต่างๆ บนหน้าจอ
+    function requireAuth(element, authType) {
+      const url = element.href;
 
-      // ถ้ายังไม่ปลดล็อก ให้ระงับการเปลี่ยนหน้าไว้ก่อน
-      event.preventDefault();
-      pendingUrl = url;
+      // 1. ตรวจสอบลิงก์ที่ยังไม่ได้พัฒนา
+      if (url.includes("javascript:void(0)") || url.endsWith("#")) {
+        alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา");
+        return false; // ห้ามเบราว์เซอร์ไปหน้าอื่น
+      }
+
+      // 2. ตรวจสอบว่าเคยใส่รหัสผ่านผ่านแล้วหรือยัง (เช็คจาก Session)
+      // ถ้าเคยปลดล็อกแล้ว ให้ Return true -> เบราว์เซอร์จะเปิดหน้าเว็บแบบธรรมชาติ 100% ไม่ติดบล็อกบนมือถือแน่นอน!
+      if (sessionStorage.getItem('auth_' + authType) === 'true') {
+        return true; 
+      }
+
+      // 3. ถ้ายังไม่เคยใส่รหัสผ่าน ให้หยุดการคลิกไว้ก่อน แล้วเปิดหน้าต่างใส่รหัส
+      pendingAnchor = element;
       currentAuthType = authType;
 
-      // จัดการข้อความอธิบายใน Modal ตามหมวดหมู่
       const desc = document.getElementById('passwordModalDesc');
       if (authType === 'teacher') desc.innerText = "หมวดนี้จำกัดสิทธิ์เฉพาะคณะครู (เช่น t01)";
       else if (authType === 'admin') desc.innerText = "หมวดนี้จำกัดสิทธิ์เฉพาะหัวหน้าระดับ/งาน";
       else if (authType === 'superadmin') desc.innerText = "หมวดนี้จำกัดสิทธิ์เฉพาะแอดมินส่วนกลาง";
 
-      // ล้างข้อมูลเก่าและแสดง Modal
       document.getElementById('modalPasswordInput').value = '';
       document.getElementById('password-error-msg').classList.add('d-none');
       new bootstrap.Modal(document.getElementById('passwordModal')).show();
 
-      return false; // บล็อกลิงก์อัตโนมัติ
+      return false; // หยุดการเปิดลิงก์ไว้ก่อน จนกว่าจะใส่รหัสถูก
     }
 
-    // 2. ฟังก์ชันตรวจสอบรหัสผ่านเมื่อกด "ยืนยัน" ใน Modal
+    // ฟังก์ชันตรวจสอบรหัสผ่าน
     function verifyPassword() {
       const pw = document.getElementById('modalPasswordInput').value.trim().toLowerCase();
       let isValid = false;
@@ -265,50 +284,37 @@
           "t41","t42","t43","t44","t45","t46","t47","t48","t49","t50","t51","t52","t53","t54","t55","t56","t57","t58","t59","t60",
           "t61","t62","t63","t64","t65","t66","t67","t68","t69","t210","t310","t410","t510","t610"
         ];
-        if (validTeacherPasswords.includes(pw)) { isValid = true; isTeacherUnlocked = true; }
+        if (validTeacherPasswords.includes(pw)) isValid = true;
       } 
       else if (currentAuthType === 'admin') {
         const validAdminPasswords = ["m1", "m2", "m3", "m4", "m5", "m6", "p"];
-        if (validAdminPasswords.includes(pw)) { isValid = true; isAdminUnlocked = true; }
+        if (validAdminPasswords.includes(pw)) isValid = true;
       } 
       else if (currentAuthType === 'superadmin') {
-        if (pw === "kkss") { isValid = true; isSuperAdminUnlocked = true; }
+        if (pw === "kkss") isValid = true;
       }
 
       if (isValid) {
-        // หากรหัสถูกต้อง ให้ปิด Modal และทำการเปิดลิงก์
+        // ✅ [สำคัญที่สุด] จำสถานะล็อกอินไว้ใน Session เบราว์เซอร์ 
+        // แปลว่ารอบหน้าถ้าครูกดปุ่มเดิม มันจะไม่ถามรหัสแล้ว และจะเปิดแท็บใหม่แบบธรรมชาติทันที
+        sessionStorage.setItem('auth_' + currentAuthType, 'true');
+        
+        // ปิดหน้าต่าง Modal
         bootstrap.Modal.getInstance(document.getElementById('passwordModal')).hide();
-        openPendingUrl();
+        
+        // เพื่อป้องกันมือถือบล็อก (Popup Blocker) เราจะสั่งเปลี่ยนหน้าในแท็บเดิมแทนการเปิดแท็บใหม่
+        // ครูจะได้ไม่ต้องเจอ Error บัญชีตีกัน
+        setTimeout(() => {
+          alert("✅ ปลดล็อกสำเร็จ! ระบบกำลังพาท่านเข้าสู่แอป");
+          window.location.href = pendingAnchor.href; 
+        }, 300);
+
       } else {
-        // หากผิด ให้โชว์ Error
         document.getElementById('password-error-msg').classList.remove('d-none');
       }
     }
 
-    // 3. ฟังก์ชันช่วยเปิดลิงก์ (ตรวจสอบลิงก์ที่ยังไม่ได้พัฒนา)
-    function executeLink(event, url) {
-      if (url.includes("javascript:void(0)") || url.endsWith("#")) {
-        event.preventDefault();
-        alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา");
-        return false;
-      }
-      
-      // ✅ ใช้เทคนิคเปิดแท็บใหม่แบบไร้ร่องรอย (Clean Session) ป้องกัน Error
-      event.preventDefault();
-      window.open(url, '_blank', 'noopener,noreferrer');
-      return false; 
-    }
-
-    function openPendingUrl() {
-      if (pendingUrl && !pendingUrl.includes("javascript:void(0)") && !pendingUrl.endsWith("#")) {
-        // ✅ ใช้ noopener,noreferrer เพื่อแก้ปัญหาบัญชีตีกัน (Multi-account Error)
-        setTimeout(() => { window.open(pendingUrl, '_blank', 'noopener,noreferrer'); }, 200);
-      } else {
-        setTimeout(() => { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); }, 300);
-      }
-    }
-
-    // ให้กดปุ่ม Enter จากคีย์บอร์ดใน Modal ได้เลย
+    // ให้กดปุ่ม Enter จากคีย์บอร์ดใน Modal ได้
     document.getElementById('modalPasswordInput').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
