@@ -202,7 +202,6 @@
           <h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-clipboard-check-fill"></i> 1. การมาเรียน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6>
         </div>
         <div class="bento-grid">
-          <!-- ลบ target="_blank" ออก เพื่อให้เปิดในหน้าเดิม ป้องกันมือถือบล็อก -->
           <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="menu-card" onclick="return checkTeacherPassword();"><i class="bi bi-flag-fill"></i><p class="card-title">เข้าแถว</p></a>
           <a href="#" class="menu-card" onclick="return checkTeacherPassword();"><i class="bi bi-person-check-fill"></i><p class="card-title">เข้าห้องเรียน</p></a>
         </div>
@@ -211,7 +210,6 @@
           <h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-search"></i> 2. ค้นหาบันทึกการเข้าเรียน <i class="bi bi-lock-fill text-muted ms-1" style="font-size: 0.85rem;"></i></h6>
         </div>
         <div class="bento-grid">
-          <!-- ลบ /u/1/ ออกให้คลีน -->
           <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRWVYDGrsQeJ9h_jqV24X6BP6HjWq7h0lTUBwVcbfyILbLzW_Y1BMKdNdqRMphFshBNF8BDOblSYJww/pubhtml" class="menu-card" onclick="return checkTeacherPassword();"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2567</p></a>
           <a href="https://script.google.com/macros/s/AKfycbxw3Zx2zM8X4ZyjMhz4iu4bu_poCnkNWlmzQD_kWD3hJMWlkDyFPfIBBXOb-xsM99p-/exec" class="menu-card" onclick="return checkTeacherPassword();"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2568</p></a>
           <a href="https://script.google.com/macros/s/AKfycbwY7KMRq07VvE5YgxaTQPJbfEMmZ-RgFGfGeZpoijHf5kstPbENSrvyoJFPVPHPNbBHJg/exec" class="menu-card" onclick="return checkTeacherPassword();"><i class="bi bi-folder-check"></i><p class="card-title">เวลา 2/2568</p></a>
@@ -452,7 +450,6 @@
         
         if (validTeacherPasswords.includes(pw.toLowerCase())) {
           isTeacherUnlocked = true;
-          // ลบ alert รบกวนออก เพื่อให้เปลี่ยนหน้าได้ทันที ไม่โดนมือถือบล็อก
           return true; 
         } else {
           alert("❌ รหัสผ่านไม่ถูกต้อง!");
@@ -494,7 +491,7 @@
       return false;
     }
 
-    // ลบสคริปต์ AccountChooser ตัวปัญหาทิ้งไปแล้ว
+    // ลบสคริปต์ดักจับลิงก์ออกทั้งหมดแล้ว โค้ดจะทำงานได้ปกติ 100%
   </script>
 </body>
 </html>
