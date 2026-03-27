@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกโฮมรูม - โรงเรียนบัวใหญ่</title>
+    
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        
+        /* Login Screen */
+        #login-view { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a, #1e3a8a); }
+        .login-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; }
+
+        /* Sidebar Navigation */
+        .sidebar { height: 100vh; width: 280px; position: fixed; top: 0; left: 0; background: #0f172a; color: white; z-index: 1050; padding: 20px; box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
+        .main-content { margin-left: 280px; padding: 30px; min-height: 100vh; }
+        
+        .nav-link { color: #94a3b8; margin-bottom: 10px; border-radius: 12px; padding: 12px 20px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; font-weight: 600; }
+        .nav-link:hover, .nav-link.active { background: #3b82f6; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .nav-link.active-head { background: #f59e0b; color: #0f172a; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+        .nav-link i { font-size: 1.2rem; margin-right: 15px; width: 20px; text-align: center; }
+
+        /* Card & Forms */
+        .content-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .section-title { font-weight: 700; color: #1e3a8a; border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 20px; margin-top: 10px; }
+        
+        .form-check-custom { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 15px 15px 45px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .form-check-custom:hover { border-color: #93c5fd; background: #eff6ff; }
+        .form-check-input:checked ~ .form-check-label { font-weight: 700; color: #2563eb; }
+        .hidden-input { display: none; margin-top: 10px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Stats Box */
+        .stat-box { text-align: center; padding: 10px; border-radius: 12px; font-weight: 700; }
+        .stat-total { background: #e0e7ff; color: #4338ca; }
+        .stat-present { background: #dcfce7; color: #15803d; }
+        .stat-late { background: #fef3c7; color: #b45309; }
+        .stat-absent { background: #fee2e2; color: #b91c1c; }
+
+        /* Mock Sheet Table */
+        .mock-sheet { border-collapse: collapse; width: 100%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .mock-sheet th { background: #1e293b; color: white; padding: 15px; font-weight: 600; text-align: center; border: 1px solid #334155; }
+        .mock-sheet td { padding: 15px; border: 1px solid #cbd5e1; vertical-align: top; }
+        .holiday-row { background-color: #fef2f2 !important; color: #dc2626; font-weight: bold; text-align: center; }
+
+        /* Submit UI */
+        .timeline-item { position: relative; padding-left: 40px; margin-bottom: 15px; }
+        .timeline-icon { position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .timeline-line { position: absolute; left: 14px; top: 30px; bottom: -15px; width: 2px; background-color: #e2e8f0; }
+        .timeline-item:last-child .timeline-line { display: none; }
+        .signature-box { border: 2px dashed #cbd5e1; border-radius: 15px; background: #f8fafc; padding: 20px; text-align: center; transition: all 0.3s ease; }
+        .signature-box.approved { border: 2px solid #22c55e; background: #f0fdf4; color: #15803d; }
+
+        /* Report Paper */
+        .a4-paper { background: white; width: 100%; max-width: 800px; margin: 0 auto; padding: 40px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 5px; }
+        .sign-area { display: flex; justify-content: space-around; margin-top: 40px; text-align: center; }
+        .sign-line { border-bottom: 1px dotted #1e293b; width: 150px; margin: 0 auto 5px; display: inline-block; }
+        
+        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; cursor: pointer; }
+        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+
+        .preview-sig-img { max-width: 150px; max-height: 80px; object-fit: contain; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================== -->
+    <!-- 1. LOGIN SCREEN -->
+    <!-- ============================================== -->
+    <div id="login-view">
+        <div class="login-card">
+            <i class="bi bi-shield-lock-fill text-primary" style="font-size: 4rem;"></i>
+            <h4 class="fw-bold mt-2 mb-1">ระบบโฮมรูมออนไลน์</h4>
+            <p class="text-muted small mb-4">โรงเรียนบัวใหญ่</p>
+            
+            <input type="text" id="login-username" class="form-control rounded-pill text-center mb-3 py-2 fw-bold" placeholder="รหัสผู้ใช้งาน (เช่น t21 หรือ m2)" autocomplete="off">
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="handleLogin()">เข้าสู่ระบบ</button>
+            <p id="login-error" class="text-danger small mt-2 mb-0" style="display: none;">ไม่พบรหัสผู้ใช้งานนี้ในระบบ</p>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 2. MAIN APP CONTAINER -->
+    <!-- ============================================== -->
+    <div id="app-view" style="display: none;">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="text-center mb-4 pb-3 border-bottom border-secondary">
+                <h4 class="fw-bold text-white mb-0">ระบบโฮมรูม</h4>
+                <small class="text-info">Buayai I-Care</small>
+            </div>
+            
+            <!-- เมนูครูที่ปรึกษา -->
+            <div id="menu-teacher" style="display: none;">
+                <div class="nav-link active" onclick="switchMenu('record', this)"><i class="bi bi-pencil-square"></i> บันทึกโฮมรูมวันนี้</div>
+                <div class="nav-link" onclick="switchMenu('submit', this)"><i class="bi bi-send-check"></i> เสนอหัวหน้าระดับ</div>
+                <div class="nav-link" onclick="switchMenu('print', this)"><i class="bi bi-printer"></i> พิมพ์รายงาน (รายเดือน)</div>
+            </div>
+
+            <!-- เมนูหัวหน้าระดับ -->
+            <div id="menu-head" style="display: none;">
+                <div class="nav-link active-head" onclick="switchMenu('head-dashboard', this)"><i class="bi bi-inboxes"></i> รายงานที่รอตรวจสอบ</div>
+            </div>
+            
+            <div class="position-absolute bottom-0 start-0 w-100 p-4">
+                <div class="small text-muted mb-2">เข้าใช้งานโดย:</div>
+                <div class="fw-bold text-white d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-4 me-2"></i> <span id="current-user-name"></span>
+                </div>
+                <button class="btn btn-sm btn-outline-danger w-100 rounded-pill mt-3" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            
+            <!-- --------------------------------------- -->
+            <!-- 📍 โซนครู: บันทึกโฮมรูมวันนี้ -->
+            <!-- --------------------------------------- -->
+            <div id="view-record" style="display: none;">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div>
+                        <h3 class="fw-bold text-dark m-0">บันทึกการจัดกิจกรรมโฮมรูม</h3>
+                        <p class="text-muted m-0">ประจำวันที่ <span class="today-date-text fw-bold text-primary"></span></p>
+                    </div>
+                    <span class="badge bg-white text-dark border p-2 px-3 shadow-sm rounded-pill fs-6 current-room-badge"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="content-card">
+                            <h5 class="section-title"><i class="bi bi-ui-checks-grid me-2"></i>หัวข้อการโฮมรูม</h5>
+                            <!-- ข้อ 1 -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-announce" onchange="toggleInput('input-announce', this)">
+                                <label class="form-check-label w-100" for="chk-announce">1. แจ้งข่าวประกาศ / อบรมหน้าเสาธง
+                                    <div id="input-announce" class="hidden-input"><input type="text" class="form-control" id="val-announce" placeholder="ระบุเรื่องที่แจ้งนักเรียน..."></div>
+                                </label>
+                            </div>
+                            <!-- ข้อ 2 -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-nail" onchange="toggleInput('input-nail', this)">
+                                <label class="form-check-label w-100" for="chk-nail">2. ติดตามการตรวจระเบียบ / ตรวจเล็บ
+                                    <div id="input-nail" class="hidden-input mt-2 d-flex align-items-center gap-2"><span>พบ:</span><input type="number" class="form-control w-25 text-center" id="val-nail" placeholder="0"><span>คน</span></div>
+                                </label>
+                            </div>
+                            <!-- ข้อ 3 -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-parent" onchange="toggleInput('input-parent', this)">
+                                <label class="form-check-label w-100" for="chk-parent">3. ประสานงานกับผู้ปกครอง
+                                    <div id="input-parent" class="hidden-input mt-2"><input type="text" class="form-control" id="val-parent-other" placeholder="เรื่องที่ประสานงาน..."></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="content-card bg-primary text-white" style="border: none;">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-down me-2"></i>สถิติวันนี้ (ดึงอัตโนมัติ)</h6>
+                            <div class="row g-2 mb-2 text-dark">
+                                <div class="col-6"><div class="stat-box stat-total">รวม<br><span class="fs-4">40</span></div></div>
+                                <div class="col-6"><div class="stat-box stat-present">มา<br><span class="fs-4">35</span></div></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-lg w-100 shadow-lg rounded-pill fw-bold py-3" onclick="saveRecord()">
+                            <i class="bi bi-save2-fill me-2"></i> บันทึกข้อมูลวันนี้
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------- -->
+            <!-- 📍 โซนครู: เสนอหัวหน้าระดับชั้น -->
+            <!-- --------------------------------------- -->
+            <div id="view-submit" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold text-dark m-0"><i class="bi bi-send-check-fill text-primary me-2"></i>เสนอหัวหน้าระดับชั้น</h3>
+                        <p class="text-muted m-0">สรุปรายงานโฮมรูมสัปดาห์นี้ เพื่อให้หัวหน้าเซ็นรับทราบ</p>
+                    </div>
+                    <span id="teacher-status-badge" class="badge bg-warning text-dark border p-2 px-3 shadow-sm rounded-pill fs-6">
+                        <i class="bi bi-hourglass-split"></i> สถานะ: ยังไม่เสนอรายงาน
+                    </span>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="content-card h-100">
+                            <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="bi bi-calendar-week text-primary me-2"></i>สรุปข้อมูล 1-5 มิ.ย. 69</h5>
+                            <!-- Timeline -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>
+                                <div class="timeline-line"></div><div class="mb-1 fw-bold text-success">จ. 1 มิ.ย.</div>
+                                <div class="p-2 bg-light rounded-3 small text-muted border border-success border-opacity-25">บันทึกเรียบร้อย</div>
+                            </div>
+                            <div class="timeline-item" id="tl-tue">
+                                <div class="timeline-icon bg-warning text-dark"><i class="bi bi-exclamation-lg"></i></div>
+                                <div class="timeline-line"></div><div class="mb-1 fw-bold text-warning">อ. 2 มิ.ย.</div>
+                                <div class="p-2 bg-light rounded-3 small text-muted border border-warning border-opacity-25">รอการบันทึกข้อมูล</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="content-card bg-primary text-white mb-3" style="border: none;" id="box-submit-action">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-envelope-paper me-2"></i>ส่งรายงานสัปดาห์นี้</h6>
+                            <textarea class="form-control mb-3" rows="2" placeholder="หมายเหตุถึงหัวหน้าระดับ (ถ้ามี)..." id="teacher-note"></textarea>
+                            <button class="btn btn-warning w-100 fw-bold py-2 shadow" id="btn-submit-head" onclick="teacherSubmitReport()">
+                                <i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน
+                            </button>
+                        </div>
+                        <div class="signature-box" id="teacher-sig-box">
+                            <i class="bi bi-file-earmark-lock fs-1 text-muted opacity-25"></i>
+                            <h6 class="fw-bold mt-2 mb-1 text-muted">ผลการพิจารณา</h6>
+                            <p class="small text-muted m-0">รอคุณครูกดเสนอรายงาน</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------- -->
+            <!-- 📍 โซนครู: พิมพ์รายงาน (Report Paper) -->
+            <!-- --------------------------------------- -->
+            <div id="view-print" style="display: none;">
+                <div class="text-end mb-3">
+                    <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i>พิมพ์เอกสาร PDF</button>
+                </div>
+                
+                <div class="a4-paper">
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold">รายงานการจัดกิจกรรมโฮมรูม (Homeroom)</h4>
+                        <p>ชั้นมัธยมศึกษาปีที่ <span class="current-room-text"></span> ภาคเรียนที่ 1/2569</p>
+                    </div>
+
+                    <table class="mock-sheet mb-4">
+                        <thead>
+                            <tr>
+                                <th width="15%">วันที่</th>
+                                <th width="55%">รายการบันทึกโฮมรูม</th>
+                                <th width="30%">สถิติ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center">จ. 1 มิ.ย. 69</td>
+                                <td>1. แจ้งข่าวประกาศ: การแต่งกาย<br>2. ตรวจระเบียบ/เล็บ: พบ 3 คน</td>
+                                <td class="small">มา 38 | สาย 0 | ลา 2 | ขาด 0</td>
+                            </tr>
+                            <tr id="print-tue-row" style="display: none;">
+                                <td class="text-center text-primary">อ. 2 มิ.ย. 69</td>
+                                <td id="print-tue-detail" class="text-primary"></td>
+                                <td class="small text-primary">มา 35 | สาย 2 | ลา 1 | ขาด 2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- พื้นที่เซ็นชื่อ (จะอัปเดตเมื่อหัวหน้ารับทราบ) -->
+                    <div class="sign-area">
+                        <div>
+                            <div class="sign-line"></div>
+                            <p class="mb-0">( <span id="print-teacher-name">นายครู สมมติ</span> )</p>
+                            <small class="text-muted">ครูที่ปรึกษา</small>
+                        </div>
+                        <div id="print-head-area">
+                            <!-- ถ้ายังไม่เซ็น -->
+                            <div id="print-head-pending">
+                                <div class="sign-line mt-3"></div>
+                                <p class="mb-0 text-muted">( รอหัวหน้าระดับรับทราบ )</p>
+                                <small class="text-muted">หัวหน้าระดับชั้น</small>
+                            </div>
+                            <!-- ถ้าเซ็นแล้ว -->
+                            <div id="print-head-approved" style="display: none;">
+                                <img id="print-head-sig-img" src="" class="preview-sig-img"><br>
+                                <p class="mb-0">( นายสมบูรณ์ เป็นผู้นำ )</p>
+                                <small class="text-muted">หัวหน้าระดับชั้น</small><br>
+                                <small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------- -->
+            <!-- 📍 โซนหัวหน้า: ตรวจสอบรายงาน (M2) -->
+            <!-- --------------------------------------- -->
+            <div id="view-head-dashboard" style="display: none;">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div>
+                        <h3 class="fw-bold text-dark m-0"><i class="bi bi-inboxes-fill text-warning me-2"></i>รายงานที่รอการตรวจสอบ</h3>
+                        <p class="text-muted m-0">ระดับชั้นมัธยมศึกษาปีที่ 2</p>
+                    </div>
+                </div>
+
+                <div class="content-card p-0 overflow-hidden">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3 px-4">ห้อง</th>
+                                <th>รอบสัปดาห์</th>
+                                <th>ผู้ส่ง (ครูที่ปรึกษา)</th>
+                                <th>สถานะ</th>
+                                <th class="text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="head-table-body">
+                            <!-- ข้อมูลจำลอง -->
+                            <tr>
+                                <td class="px-4 fw-bold">ม.2/1</td>
+                                <td>1 - 5 มิ.ย. 69</td>
+                                <td>ครูสมศรี</td>
+                                <td id="head-status-td"><span class="badge bg-secondary">ยังไม่ส่งรายงาน</span></td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3" id="btn-review-m21" disabled onclick="openReviewModal('ม.2/1')">ตรวจเอกสาร</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 fw-bold">ม.2/2</td>
+                                <td>1 - 5 มิ.ย. 69</td>
+                                <td>ครูสมชาย</td>
+                                <td><span class="badge bg-success">รับทราบแล้ว</span></td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="alert('รับทราบไปแล้วครับ')">ดูประวัติ</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> <!-- /main-content -->
+    </div> <!-- /app-view -->
+
+    <!-- ============================================== -->
+    <!-- MODAL: หน้าต่างรีวิวของหัวหน้าระดับ -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-warning border-0 px-4 py-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="bi bi-search me-2"></i>ตรวจสอบรายงานโฮมรูม: <span id="review-room"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- จำลองตารางที่ครูส่งมา -->
+                    <div class="bg-white p-3 rounded-3 border mb-3 shadow-sm">
+                        <h6 class="fw-bold text-primary mb-2">ข้อมูลสัปดาห์ที่ 1 - 5 มิ.ย. 69</h6>
+                        <table class="table table-sm table-bordered small mb-0">
+                            <tr class="table-light"><th width="20%">วันที่</th><th>รายการ</th></tr>
+                            <tr><td>จ. 1 มิ.ย.</td><td>แจ้งเรื่องแต่งกายพละ</td></tr>
+                            <tr><td class="text-primary fw-bold">อ. 2 มิ.ย.</td><td id="review-tue-detail" class="text-primary">...</td></tr>
+                            <tr class="table-secondary"><td colspan="2" class="text-center text-muted">พ. - ศ. ไม่มีบันทึก</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 mb-4">
+                        <b class="text-dark"><i class="bi bi-chat-left-text-fill text-primary"></i> หมายเหตุจากครูที่ปรึกษา:</b><br>
+                        <span id="review-teacher-note">ไม่มีหมายเหตุ</span>
+                    </div>
+
+                    <!-- ส่วนกรอกหมายเหตุและแนบลายเซ็นของหัวหน้า -->
+                    <div class="p-3 bg-white border rounded-3 shadow-sm">
+                        <label class="fw-bold text-dark mb-1">หมายเหตุกลับไปให้ครูที่ปรึกษา (ถ้ามี)</label>
+                        <input type="text" id="head-remark" class="form-control mb-3" placeholder="เช่น รับทราบเรียบร้อยครับ ขอบคุณมากครับ">
+                        
+                        <label class="fw-bold text-dark mb-1">อัปโหลดลายมือชื่อ (เพื่อเซ็นรับทราบ)</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="upload-btn-wrapper">
+                                <button class="btn btn-outline-primary"><i class="bi bi-upload me-1"></i> เลือกไฟล์รูปลายเซ็น</button>
+                                <input type="file" id="sig-upload" accept="image/*" onchange="previewSignature(event)" />
+                            </div>
+                            <img id="sig-preview" class="preview-sig-img border rounded" src="" style="display: none; background: #fff;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-white pb-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                    <button type="button" class="btn btn-success rounded-pill px-5 fw-bold shadow" onclick="headApproveReport()"><i class="bi bi-check2-all me-1"></i> รับทราบและอนุมัติ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ----------------------------------------------------
+        // ตัวแปรจำลองฐานข้อมูล (Global State)
+        // ----------------------------------------------------
+        let appState = {
+            role: null, // 'teacher' หรือ 'head'
+            room: null, // เช่น 'ม.2/1'
+            name: null,
+            // สถานะรายงานประจำสัปดาห์
+            reportDetails: "", // สิ่งที่ครูพิมพ์
+            teacherNote: "",   // โน้ตที่ครูส่งหาหัวหน้า
+            isSubmitted: false, // ครูส่งหรือยัง?
+            isApproved: false,  // หัวหน้าเซ็นหรือยัง?
+            headRemark: "",     // โน้ตจากหัวหน้า
+            headSignatureData: "" // รูป URL
+        };
+
+        // ตั้งวันที่
+        document.querySelectorAll('.today-date-text').forEach(el => el.innerText = new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+
+        // ----------------------------------------------------
+        // ระบบ Login
+        // ----------------------------------------------------
+        function handleLogin() {
+            const input = document.getElementById('login-username').value.trim().toLowerCase();
+            const err = document.getElementById('login-error');
+            
+            const teachers = ['t21','t22','t23','t24','t25','t26','t27','t28','t29','t210'];
+            
+            if (teachers.includes(input)) {
+                // เข้าสู่ระบบแบบครู
+                appState.role = 'teacher';
+                appState.room = 'ม.2/' + input.replace('t2', '');
+                appState.name = 'ครูประจำชั้น ' + appState.room;
+                setupUI();
+            } 
+            else if (input === 'm2') {
+                // เข้าสู่ระบบแบบหัวหน้าระดับ
+                appState.role = 'head';
+                appState.name = 'หัวหน้าระดับชั้น ม.2';
+                setupUI();
+            } 
+            else {
+                err.style.display = 'block';
+            }
+        }
+
+        function setupUI() {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('app-view').style.display = 'block';
+            document.getElementById('current-user-name').innerText = appState.name;
+            
+            if (appState.role === 'teacher') {
+                document.getElementById('menu-teacher').style.display = 'block';
+                document.getElementById('menu-head').style.display = 'none';
+                document.querySelectorAll('.current-room-badge').forEach(el => el.innerText = 'ห้อง ' + appState.room);
+                document.querySelectorAll('.current-room-text').forEach(el => el.innerText = appState.room);
+                document.getElementById('print-teacher-name').innerText = appState.name;
+                switchMenu('record');
+            } else {
+                document.getElementById('menu-teacher').style.display = 'none';
+                document.getElementById('menu-head').style.display = 'block';
+                switchMenu('head-dashboard');
+            }
+            updateSyncUI();
+        }
+
+        function logout() {
+            document.getElementById('login-view').style.display = 'flex';
+            document.getElementById('app-view').style.display = 'none';
+            document.getElementById('login-username').value = '';
+        }
+
+        function switchMenu(menuId, el) {
+            if(el) {
+                document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active', 'active-head'));
+                el.classList.add(appState.role === 'head' ? 'active-head' : 'active');
+            }
+            document.getElementById('view-record').style.display = 'none';
+            document.getElementById('view-submit').style.display = 'none';
+            document.getElementById('view-print').style.display = 'none';
+            document.getElementById('view-head-dashboard').style.display = 'none';
+            document.getElementById('view-' + menuId).style.display = 'block';
+            
+            updateSyncUI(); // โหลดหน้าใหม่ อัปเดตข้อมูลให้ตรงกับ state ล่าสุด
+        }
+
+        function toggleInput(id, cb) { document.getElementById(id).style.display = cb.checked ? 'block' : 'none'; }
+
+        // ----------------------------------------------------
+        // โซนครู: บันทึก และ ส่งรายงาน
+        // ----------------------------------------------------
+        function saveRecord() {
+            let details = [];
+            if(document.getElementById('chk-announce').checked) details.push(`1. ประกาศ: ${document.getElementById('val-announce').value}`);
+            if(document.getElementById('chk-nail').checked) details.push(`2. ตรวจระเบียบ: ${document.getElementById('val-nail').value} คน`);
+            if(document.getElementById('chk-parent').checked) details.push(`3. ติดต่อ ผปค.`);
+            
+            if(details.length === 0) return alert("กรุณากรอกข้อมูล");
+            
+            appState.reportDetails = details.join(', ');
+            alert("✅ บันทึกข้อมูลวันนี้สำเร็จ!\nกรุณาไปที่เมนู 'เสนอหัวหน้าระดับ' เพื่อส่งรายงานครับ");
+            
+            // อัปเดต UI วันอังคารว่ากรอกแล้ว
+            document.getElementById('tl-tue').innerHTML = `
+                <div class="timeline-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>
+                <div class="timeline-line"></div><div class="mb-1 fw-bold text-success">อ. 2 มิ.ย.</div>
+                <div class="p-2 bg-light rounded-3 small text-muted border border-success border-opacity-25">${appState.reportDetails}</div>`;
+            
+            document.getElementById('print-tue-row').style.display = 'table-row';
+            document.getElementById('print-tue-detail').innerText = appState.reportDetails;
+            
+            switchMenu('submit', document.querySelectorAll('.nav-link')[1]);
+        }
+
+        function teacherSubmitReport() {
+            if(!appState.reportDetails) return alert("ยังไม่มีข้อมูลบันทึกในสัปดาห์นี้ครับ");
+            
+            const note = document.getElementById('teacher-note').value;
+            
+            // จำลองการส่ง
+            const btn = document.getElementById('btn-submit-head');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังส่ง...';
+            
+            setTimeout(() => {
+                appState.isSubmitted = true;
+                appState.teacherNote = note;
+                updateSyncUI();
+                alert("ส่งรายงานให้หัวหน้าระดับตรวจสอบเรียบร้อยครับ");
+            }, 1000);
+        }
+
+        // ----------------------------------------------------
+        // โซนหัวหน้า: ตรวจและรับทราบ
+        // ----------------------------------------------------
+        function openReviewModal(room) {
+            document.getElementById('review-room').innerText = room;
+            document.getElementById('review-tue-detail').innerText = appState.reportDetails;
+            document.getElementById('review-teacher-note').innerText = appState.teacherNote || "ไม่มีหมายเหตุ";
+            document.getElementById('head-remark').value = "";
+            document.getElementById('sig-preview').style.display = 'none';
+            document.getElementById('sig-upload').value = "";
+            
+            new bootstrap.Modal(document.getElementById('reviewModal')).show();
+        }
+
+        // อ่านไฟล์รูปมาโชว์บนหน้าเว็บชั่วคราว
+        function previewSignature(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('sig-preview').src = e.target.result;
+                    document.getElementById('sig-preview').style.display = 'block';
+                    appState.headSignatureData = e.target.result; // เก็บรูปไว้ใน state
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function headApproveReport() {
+            if(!appState.headSignatureData) return alert("กรุณาอัปโหลดรูปลายมือชื่อเพื่อรับทราบครับ");
+            
+            appState.headRemark = document.getElementById('head-remark').value;
+            appState.isApproved = true;
+            
+            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+            updateSyncUI();
+            alert("✅ อนุมัติและรับทราบรายงานเรียบร้อยแล้วครับ");
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชันซิงค์ UI ให้ตรงกับ State เสมอ (หัวใจหลักของระบบ)
+        // ----------------------------------------------------
+        function updateSyncUI() {
+            // --- 1. อัปเดตหน้า Dashboard ของหัวหน้า ---
+            if(appState.role === 'head') {
+                const statusTd = document.getElementById('head-status-td');
+                const btnM21 = document.getElementById('btn-review-m21');
+                
+                if(appState.isApproved) {
+                    statusTd.innerHTML = '<span class="badge bg-success"><i class="bi bi-check2-all"></i> รับทราบแล้ว</span>';
+                    btnM21.className = "btn btn-sm btn-outline-success rounded-pill px-3";
+                    btnM21.innerText = "ตรวจสอบแล้ว";
+                    btnM21.disabled = true;
+                } else if(appState.isSubmitted) {
+                    statusTd.innerHTML = '<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> รอตรวจสอบ</span>';
+                    btnM21.disabled = false;
+                }
+            }
+
+            // --- 2. อัปเดตหน้า Submit ของครู ---
+            if(appState.role === 'teacher') {
+                const badge = document.getElementById('teacher-status-badge');
+                const boxAct = document.getElementById('box-submit-action');
+                const sigBox = document.getElementById('teacher-sig-box');
+
+                if(appState.isApproved) {
+                    badge.className = 'badge bg-success text-white border shadow-sm rounded-pill p-2 px-3 fs-6';
+                    badge.innerHTML = '<i class="bi bi-check2-all"></i> สถานะ: รับทราบแล้ว';
+                    boxAct.style.display = 'none'; // ปิดกล่องส่ง
+                    sigBox.classList.add('approved');
+                    sigBox.innerHTML = `
+                        <i class="bi bi-check-circle-fill fs-1 text-success mb-2"></i>
+                        <h6 class="fw-bold text-success mb-1">หัวหน้าระดับชั้นรับทราบแล้ว</h6>
+                        <div class="small text-dark mt-2 border-top pt-2 text-start">
+                            <span class="text-danger fw-bold">หมายเหตุ: </span> ${appState.headRemark || '-'}<br>
+                            <img src="${appState.headSignatureData}" style="height:40px; margin-top:5px;">
+                        </div>`;
+                } else if(appState.isSubmitted) {
+                    badge.className = 'badge bg-info text-dark border shadow-sm rounded-pill p-2 px-3 fs-6';
+                    badge.innerHTML = '<i class="bi bi-hourglass"></i> สถานะ: รอหัวหน้าระดับรับทราบ';
+                    document.getElementById('btn-submit-head').innerHTML = '<i class="bi bi-check-circle"></i> ส่งไปแล้ว';
+                    document.getElementById('btn-submit-head').className = 'btn btn-success w-100 py-2 shadow disabled';
+                    document.getElementById('teacher-note').disabled = true;
+                }
+
+                // --- 3. อัปเดตหน้า Print ของครู ---
+                if(appState.isApproved) {
+                    document.getElementById('print-head-pending').style.display = 'none';
+                    document.getElementById('print-head-approved').style.display = 'block';
+                    document.getElementById('print-head-sig-img').src = appState.headSignatureData;
+                    if(appState.headRemark) {
+                        document.getElementById('print-head-remark').innerText = "หมายเหตุ: " + appState.headRemark;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
