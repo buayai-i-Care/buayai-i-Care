@@ -74,7 +74,7 @@
             100% { border-color: #f97316; box-shadow: 0 0 20px rgba(249,115,22,0.4); }
         }
 
-        .score-number { font-size: 4.5rem; font-weight: 800; color: var(--orange-dark); line-height: 1; margin: 10px 0; font-family: 'Prompt', sans-serif;}
+        .score-number { font-size: 4.5rem; font-weight: 800; color: var(--orange-dark); line-height: 1; margin: 10px 0; font-family: 'Prompt', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 90px;}
         
         .section-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed #e2e8f0; }
@@ -171,11 +171,14 @@
             <div id="view-dashboard">
                 <!-- 1. ส่วนบน (คะแนนปัจจุบัน ตัวโตๆ กรอบกระพริบ) -->
                 <div class="score-card blink-border">
-                    <span class="badge bg-light text-muted rounded-pill px-3 py-2 mb-2 shadow-sm border"><i class="bi bi-person-vcard"></i> <span id="display-id">รหัส: 00000</span> | ม.<span id="display-room">0/0</span></span>
-                    <h5 class="fw-bold text-dark mt-2" id="display-name">ด.ช. รักเรียน ตั้งใจศึกษา</h5>
+                    <span class="badge bg-light text-muted rounded-pill px-3 py-2 mb-2 shadow-sm border"><i class="bi bi-person-vcard"></i> รหัส: <span id="display-id">-</span> | ม.<span id="display-room">-</span></span>
+                    <h5 class="fw-bold text-dark mt-2" id="display-name">กำลังโหลดข้อมูล...</h5>
                     <div class="text-muted small mt-3">คะแนนพฤติกรรมปัจจุบัน</div>
-                    <div class="score-number" id="display-score">100</div>
-                    <div class="small fw-bold text-success"><i class="bi bi-graph-up-arrow"></i> อัปเดตล่าสุดวันนี้</div>
+                    <div class="score-number" id="display-score">
+                        <!-- โชว์ลูกข่างหมุนๆ ระหว่างรอโหลดคะแนนจริงมาใส่ -->
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    </div>
+                    <div class="small fw-bold text-success" id="sync-status"><i class="bi bi-cloud-arrow-down"></i> กำลังดึงข้อมูลจากระบบ...</div>
                 </div>
 
                 <!-- 2. ส่วนกลาง (ความดี) -->
@@ -186,7 +189,7 @@
                     </div>
                     <div id="good-list-container">
                         <!-- รายการความดีจะถูกแทรกที่นี่ -->
-                        <div class="text-center py-4 text-muted small">กำลังโหลดข้อมูล...</div>
+                        <div class="text-center py-4 text-muted small"><div class="spinner-border spinner-border-sm mb-2 text-warning"></div><br>กำลังโหลดประวัติ...</div>
                     </div>
                 </div>
 
@@ -198,7 +201,7 @@
                     </div>
                     <div id="bad-list-container">
                         <!-- รายการหักคะแนนจะถูกแทรกที่นี่ -->
-                        <div class="text-center py-4 text-muted small">กำลังโหลดข้อมูล...</div>
+                        <div class="text-center py-4 text-muted small"><div class="spinner-border spinner-border-sm mb-2 text-danger"></div><br>กำลังโหลดประวัติ...</div>
                     </div>
                 </div>
             </div>
@@ -296,6 +299,19 @@
 
         function fillStudentId() { document.getElementById('login-id').value = document.getElementById('login-student').value; }
 
+        // 🌟 ฟังก์ชันแปลงวันที่ให้เป็นรูปแบบเต็ม (วันศุกร์ที่ 23 มีนาคม 2569)
+        function formatThaiDateFull(dateString) {
+            if(!dateString) return "";
+            const d = new Date(dateString);
+            if(isNaN(d.getTime())) return dateString; 
+            return d.toLocaleDateString('th-TH', { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        }
+
         async function handleLogin() {
             const room = document.getElementById('login-room').value;
             const id = document.getElementById('login-id').value;
@@ -328,25 +344,28 @@
                 currentUser = { room: room, id: id };
                 document.getElementById('login-view').style.display = 'none';
                 document.getElementById('app-view').style.display = 'block';
-                loadDashboardData(); // โหลดสถิติ
+                loadDashboardData(); // โหลดสถิติหลังบ้าน
             } else {
                 alert("❌ " + res.error);
             }
         }
 
-        // --- โหลดข้อมูล Dashboard สรุปคะแนน ---
+        // --- โหลดข้อมูล Dashboard สรุปคะแนน (ดึงข้อมูลจริงๆ มาโชว์) ---
         async function loadDashboardData() {
             const res = await fetchAPI({ action: 'getDashboardData', room: currentUser.room, id: currentUser.id }, null);
             
             if(res.success) {
                 const data = res.data;
                 // เซ็ตข้อมูลส่วนตัวและคะแนนรวม
-                document.getElementById('side-name').innerText = data.name;
+                document.getElementById('side-name').innerText = data.name || "ไม่ระบุชื่อ";
                 document.getElementById('side-id').innerText = "รหัส: " + currentUser.id;
-                document.getElementById('display-name').innerText = data.name;
+                document.getElementById('display-name').innerText = data.name || "ไม่ระบุชื่อ";
                 document.getElementById('display-id').innerText = currentUser.id;
                 document.getElementById('display-room').innerText = currentUser.room;
-                document.getElementById('display-score').innerText = data.score;
+                
+                // แทนที่ Spinner ด้วยคะแนนที่ดึงมาได้
+                document.getElementById('display-score').innerHTML = data.score;
+                document.getElementById('sync-status').innerHTML = '<i class="bi bi-check-circle-fill"></i> ดึงข้อมูลสำเร็จ อัปเดตล่าสุดวันนี้';
                 
                 // เซ็ตยอดรวม
                 document.getElementById('display-good-total').innerText = data.goodTotal;
@@ -362,7 +381,7 @@
                             <div class="history-icon bg-good"><i class="bi bi-star-fill"></i></div>
                             <div class="history-details">
                                 <div class="fw-bold text-dark">${item.type}</div>
-                                <div class="small text-muted"><i class="bi bi-calendar-event"></i> ${item.date}</div>
+                                <div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(item.date)}</div>
                             </div>
                             <div class="history-points text-good">+${item.points}</div>
                             ${item.img ? `<img src="${item.img}" class="img-thumbnail-custom" onclick="openImage('${item.img.replace('w300', 'w1000')}')" onerror="this.style.display='none'">` : ''}
@@ -380,13 +399,17 @@
                             <div class="history-icon bg-bad"><i class="bi bi-dash-circle-fill"></i></div>
                             <div class="history-details">
                                 <div class="fw-bold text-dark">${item.type}</div>
-                                <div class="small text-muted"><i class="bi bi-calendar-event"></i> ${item.date}</div>
+                                <div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(item.date)}</div>
                             </div>
                             <div class="history-points text-bad">-${item.points}</div>
                         </div>
                     `).join('');
                 }
             } else {
+                // หากดึงไม่สำเร็จ
+                document.getElementById('display-name').innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+                document.getElementById('display-score').innerHTML = "-";
+                document.getElementById('sync-status').innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> โหลดข้อมูลล้มเหลว';
                 alert("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + res.error);
             }
         }
