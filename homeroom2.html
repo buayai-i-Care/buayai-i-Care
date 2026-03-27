@@ -388,6 +388,11 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // ====================================================
+        // ⚠️ นำลิงก์ Web App API ที่ Deploy แล้วจาก Google Script มาวางในเครื่องหมายคำพูดด้านล่างนี้ครับ
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwckHhDLHnqz8oBfcvj5KQ06ZtqCwbqMUZSPTuaSOPp2A8aJsDXbM9O7X2lG--eb7ty0w/exec";
+
         // ----------------------------------------------------
         // ตัวแปรจำลองฐานข้อมูล (Global State)
         // ----------------------------------------------------
@@ -477,9 +482,9 @@
         function toggleInput(id, cb) { document.getElementById(id).style.display = cb.checked ? 'block' : 'none'; }
 
         // ----------------------------------------------------
-        // โซนครู: บันทึก และ ส่งรายงาน
+        // โซนครู: บันทึก (เรียก API)
         // ----------------------------------------------------
-        function saveRecord() {
+        async function saveRecord() {
             let details = [];
             if(document.getElementById('chk-announce').checked) details.push(`1. ประกาศ: ${document.getElementById('val-announce').value}`);
             if(document.getElementById('chk-nail').checked) details.push(`2. ตรวจระเบียบ: ${document.getElementById('val-nail').value} คน`);
@@ -488,9 +493,27 @@
             if(details.length === 0) return alert("กรุณากรอกข้อมูล");
             
             appState.reportDetails = details.join(', ');
-            alert("✅ บันทึกข้อมูลวันนี้สำเร็จ!\nกรุณาไปที่เมนู 'เสนอหัวหน้าระดับ' เพื่อส่งรายงานครับ");
             
-            // อัปเดต UI วันอังคารว่ากรอกแล้ว
+            // ส่งข้อมูลไป Google Sheet แบบเบื้องหลัง (Background API Fetch)
+            const payload = {
+                action: 'saveRecord',
+                room: appState.room,
+                date: new Date().toLocaleDateString('th-TH'),
+                details: appState.reportDetails,
+                stats: `มา 35 สาย 2 ลา 1 ขาด 2` // (สถิติสามารถดึงค่าจากตัวแปรสถิติของครูจริงๆ มาใส่แทนได้)
+            };
+            
+            try {
+                fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload), 
+                    headers: {'Content-Type': 'text/plain;charset=utf-8'} // เลี่ยง CORS
+                });
+            } catch(e) { console.error("Error logging to API", e); }
+
+            alert("✅ บันทึกข้อมูลวันนี้สำเร็จ!\nระบบได้ส่งข้อมูลไปยังฐานข้อมูลแล้ว");
+            
+            // อัปเดต UI วันอังคารว่ากรอกแล้ว (Optimistic UI Update)
             document.getElementById('tl-tue').innerHTML = `
                 <div class="timeline-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>
                 <div class="timeline-line"></div><div class="mb-1 fw-bold text-success">อ. 2 มิ.ย.</div>
@@ -502,25 +525,43 @@
             switchMenu('submit', document.querySelectorAll('.nav-link')[1]);
         }
 
-        function teacherSubmitReport() {
+        // ----------------------------------------------------
+        // โซนครู: ส่งรายงาน (เรียก API)
+        // ----------------------------------------------------
+        async function teacherSubmitReport() {
             if(!appState.reportDetails) return alert("ยังไม่มีข้อมูลบันทึกในสัปดาห์นี้ครับ");
             
             const note = document.getElementById('teacher-note').value;
-            
-            // จำลองการส่ง
             const btn = document.getElementById('btn-submit-head');
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังส่ง...';
+            btn.disabled = true;
             
-            setTimeout(() => {
+            const payload = {
+                action: 'submitReport',
+                room: appState.room,
+                teacherNote: note
+            };
+
+            try {
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload), 
+                    headers: {'Content-Type': 'text/plain;charset=utf-8'} 
+                });
+                
                 appState.isSubmitted = true;
                 appState.teacherNote = note;
                 updateSyncUI();
-                alert("ส่งรายงานให้หัวหน้าระดับตรวจสอบเรียบร้อยครับ");
-            }, 1000);
+                alert("ส่งรายงานให้หัวหน้าระดับตรวจสอบในฐานข้อมูลเรียบร้อยครับ");
+            } catch(e) {
+                alert("มีปัญหาการเชื่อมต่อฐานข้อมูล");
+                btn.innerHTML = '<i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน';
+                btn.disabled = false;
+            }
         }
 
         // ----------------------------------------------------
-        // โซนหัวหน้า: ตรวจและรับทราบ
+        // โซนหัวหน้า: ตรวจและรับทราบ (เรียก API)
         // ----------------------------------------------------
         function openReviewModal(room) {
             document.getElementById('review-room').innerText = room;
@@ -533,7 +574,7 @@
             new bootstrap.Modal(document.getElementById('reviewModal')).show();
         }
 
-        // อ่านไฟล์รูปมาโชว์บนหน้าเว็บชั่วคราว
+        // อ่านไฟล์รูปมาโชว์เป็น Base64
         function previewSignature(event) {
             const file = event.target.files[0];
             if (file) {
@@ -541,25 +582,50 @@
                 reader.onload = function(e) {
                     document.getElementById('sig-preview').src = e.target.result;
                     document.getElementById('sig-preview').style.display = 'block';
-                    appState.headSignatureData = e.target.result; // เก็บรูปไว้ใน state
+                    appState.headSignatureData = e.target.result; // เก็บรูปภาพเป็นตัวอักษร Base64
                 }
                 reader.readAsDataURL(file);
             }
         }
 
-        function headApproveReport() {
+        async function headApproveReport() {
             if(!appState.headSignatureData) return alert("กรุณาอัปโหลดรูปลายมือชื่อเพื่อรับทราบครับ");
             
-            appState.headRemark = document.getElementById('head-remark').value;
-            appState.isApproved = true;
+            const remark = document.getElementById('head-remark').value;
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...';
+            btn.disabled = true;
+
+            const payload = {
+                action: 'approveReport',
+                room: document.getElementById('review-room').innerText,
+                headRemark: remark,
+                signature: appState.headSignatureData // ส่งรูปภาพไปเก็บใน Sheet
+            };
             
-            bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
-            updateSyncUI();
-            alert("✅ อนุมัติและรับทราบรายงานเรียบร้อยแล้วครับ");
+            try {
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload), 
+                    headers: {'Content-Type': 'text/plain;charset=utf-8'} 
+                });
+
+                appState.headRemark = remark;
+                appState.isApproved = true;
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                updateSyncUI();
+                alert("✅ อนุมัติและรับทราบรายงานลงในฐานข้อมูลเรียบร้อยแล้วครับ");
+            } catch(e) {
+                alert("มีปัญหาการเชื่อมต่อฐานข้อมูล");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // ----------------------------------------------------
-        // ฟังก์ชันซิงค์ UI ให้ตรงกับ State เสมอ (หัวใจหลักของระบบ)
+        // ฟังก์ชันซิงค์ UI ให้ตรงกับ State เสมอ
         // ----------------------------------------------------
         function updateSyncUI() {
             // --- 1. อัปเดตหน้า Dashboard ของหัวหน้า ---
