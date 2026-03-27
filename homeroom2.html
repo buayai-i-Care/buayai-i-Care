@@ -1080,10 +1080,12 @@
                 const badge = document.getElementById('teacher-status-badge');
                 const boxAct = document.getElementById('box-submit-action');
                 const sigBox = document.getElementById('teacher-sig-box');
+                const btnSubmit = document.getElementById('btn-submit-head'); // 🌟 ดึงปุ่มมาจัดการ
 
                 if(!hasAnyRecord) {
                     badge.className = 'badge bg-secondary text-white border shadow-sm rounded-pill p-2 px-3 fs-6';
                     badge.innerHTML = '<i class="bi bi-info-circle"></i> สถานะ: ไม่มีข้อมูลในสัปดาห์นี้';
+                    btnSubmit.disabled = true; // 🌟 ล็อกปุ่ม
                 } else if(appState.isApproved) {
                     badge.className = 'badge bg-success text-white border shadow-sm rounded-pill p-2 px-3 fs-6';
                     badge.innerHTML = '<i class="bi bi-check2-all"></i> สถานะ: หัวหน้าระดับรับทราบแล้ว';
@@ -1102,12 +1104,14 @@
                     document.getElementById('btn-submit-head').innerHTML = '<i class="bi bi-check-circle"></i> ส่งให้หัวหน้าตรวจสอบแล้ว';
                     document.getElementById('btn-submit-head').className = 'btn btn-success w-100 py-2 shadow disabled';
                     document.getElementById('teacher-note').disabled = true;
+                    btnSubmit.disabled = true; // 🌟 ล็อกปุ่ม
                 } else {
                     badge.className = 'badge bg-warning text-dark border shadow-sm rounded-pill p-2 px-3 fs-6';
                     badge.innerHTML = '<i class="bi bi-hourglass-split"></i> สถานะ: พบข้อมูล (รอการเสนอรายงาน)';
                     document.getElementById('btn-submit-head').innerHTML = '<i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน';
                     document.getElementById('btn-submit-head').className = 'btn btn-warning w-100 fw-bold py-2 shadow';
                     document.getElementById('teacher-note').disabled = false;
+                    btnSubmit.disabled = false; // 🌟 แก้ไข: บังคับปลดล็อกปุ่มให้กดได้แน่นอน 100%
                     sigBox.classList.remove('approved');
                     sigBox.innerHTML = `
                             <i class="bi bi-file-earmark-lock fs-1 text-muted opacity-25"></i>
