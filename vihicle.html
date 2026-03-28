@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฐานข้อมูลยานพาหนะ - Baayai i Care School</title>
+    
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --orange-main: #f97316;
+            --orange-dark: #ea580c;
+            --orange-light: #ffedd5;
+            --bg-color: #f8fafc;
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; padding-bottom: 50px; }
+        
+        .header-box { background: linear-gradient(135deg, var(--orange-main), var(--orange-dark)); color: white; padding: 25px 20px; border-radius: 0 0 25px 25px; text-align: center; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2); position: relative; }
+        .admin-lock { position: absolute; top: 15px; right: 20px; color: white; font-size: 1.5rem; cursor: pointer; opacity: 0.8; transition: 0.3s; }
+        .admin-lock:hover { opacity: 1; transform: scale(1.1); }
+
+        .main-container { max-width: 600px; margin: -20px auto 0; padding: 0 15px; position: relative; z-index: 10; }
+        
+        .form-section { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .section-title { font-weight: 700; color: var(--orange-dark); border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.1rem; }
+        .section-badge { background: var(--orange-light); color: var(--orange-dark); width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; margin-right: 8px; }
+
+        .form-control, .form-select { border-radius: 12px; padding: 12px 15px; border: 1px solid #cbd5e1; background-color: #f8fafc; }
+        .form-control:focus, .form-select:focus { border-color: var(--orange-main); box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15); background-color: white; }
+        
+        /* Radio Button Styling */
+        .travel-option { border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; background: white; }
+        .travel-option:hover { border-color: var(--orange-light); background: #fff7ed; }
+        .travel-option input[type="radio"] { margin-right: 15px; transform: scale(1.3); accent-color: var(--orange-main); }
+        .travel-option.selected { border-color: var(--orange-main); background: #fff7ed; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.1); }
+        
+        .dynamic-field { display: none; background: #f8fafc; border-left: 4px solid var(--orange-main); padding: 15px; border-radius: 0 12px 12px 0; margin-top: 10px; margin-bottom: 15px; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-submit { background: linear-gradient(135deg, var(--orange-main), var(--orange-dark)); color: white; border: none; border-radius: 15px; padding: 15px; font-weight: 700; font-size: 1.1rem; width: 100%; box-shadow: 0 8px 20px rgba(234, 88, 12, 0.3); transition: 0.3s; }
+        .btn-submit:hover { transform: translateY(-2px); color: white; }
+
+        /* Admin UI */
+        #admin-view { display: none; }
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; }
+        .admin-tab { flex: 1; text-align: center; padding: 10px; background: white; border-radius: 12px; font-weight: bold; cursor: pointer; border: 1px solid #e2e8f0; color: #64748b; }
+        .admin-tab.active { background: #1e293b; color: white; border-color: #1e293b; }
+        .table-custom { background: white; border-radius: 15px; overflow: hidden; font-size: 0.9rem; }
+        .table-custom th { background: #f1f5f9; color: #475569; font-weight: 600; padding: 12px; }
+        .table-custom td { padding: 12px; vertical-align: middle; border-bottom: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header-box">
+        <i class="bi bi-shield-lock-fill admin-lock" onclick="promptAdmin()"></i>
+        <i class="bi bi-car-front-fill" style="font-size: 2.5rem;"></i>
+        <h4 class="fw-bold mt-2 mb-1">ฐานข้อมูลยานพาหนะ Buayai i Care School </h4>
+        <p class="small mb-0" style="opacity: 0.9;">งานยานพาหนะและความปลอดภัยในสถานศึกษา โรงเรียนบัวใหญ่</p>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- หน้าจอกรอกข้อมูล (สำหรับนักเรียน) -->
+    <!-- ============================================== -->
+    <div class="main-container" id="form-view">
+        
+        <!-- ตอนที่ 1: ข้อมูลนักเรียน -->
+        <div class="form-section">
+            <div class="section-title"><span class="section-badge">1</span> ข้อมูลนักเรียน</div>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted mb-1">ระดับชั้น</label>
+                <select id="form-room" class="form-select fw-bold text-primary" onchange="loadStudents()">
+                    <option value="">-- เลือกห้องเรียน --</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted mb-1">ชื่อ-สกุล นักเรียน</label>
+                <select id="form-student" class="form-select fw-bold" disabled onchange="fillStudentId()">
+                    <option value="">-- โปรดเลือกห้องก่อน --</option>
+                </select>
+                <input type="hidden" id="form-id">
+            </div>
+        </div>
+
+        <!-- ตอนที่ 2: ข้อมูลติดต่อ -->
+        <div class="form-section">
+            <div class="section-title"><span class="section-badge">2</span> ข้อมูลการติดต่อ</div>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted mb-1">เบอร์โทรศัพท์นักเรียน (ถ้ามี)</label>
+                <input type="tel" id="f-std-phone" class="form-control" placeholder="08X-XXX-XXXX" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted mb-1">เบอร์โทรศัพท์ผู้ปกครอง <span class="text-danger">*</span></label>
+                <input type="tel" id="f-parent-phone" class="form-control" placeholder="08X-XXX-XXXX" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted mb-1">ชื่อ-สกุล ผู้ปกครอง <span class="text-danger">*</span></label>
+                <input type="text" id="f-parent-name" class="form-control" placeholder="ระบุชื่อและนามสกุล">
+            </div>
+            <div class="mb-0">
+                <label class="small fw-bold text-muted mb-1">ความเกี่ยวข้องกับนักเรียน <span class="text-danger">*</span></label>
+                <select id="f-parent-rel" class="form-select">
+                    <option value="">-- ระบุความสัมพันธ์ --</option>
+                    <option value="บิดา">บิดา</option>
+                    <option value="มารดา">มารดา</option>
+                    <option value="ปู่/ย่า/ตา/ยาย">ปู่/ย่า/ตา/ยาย</option>
+                    <option value="ญาติ/อื่นๆ">ญาติ/อื่นๆ</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ตอนที่ 3: วิธีการเดินทาง -->
+        <div class="form-section">
+            <div class="section-title"><span class="section-badge">3</span> วิธีการเดินทางมาโรงเรียน</div>
+            <p class="small text-muted mb-3">กรุณาเลือกวิธีที่ใช้เดินทางมาโรงเรียนเป็นประจำ</p>
+            
+            <!-- Option A: ขับมาเอง -->
+            <label class="travel-option" id="opt-self">
+                <input type="radio" name="travelMethod" value="ขับมาเอง" onchange="toggleTravelFields()">
+                <div class="fw-bold"><i class="bi bi-bicycle text-primary me-2"></i> ขับขี่ / เดินทางมาด้วยตนเอง</div>
+            </label>
+            <div id="field-self" class="dynamic-field">
+                <select id="self-type" class="form-select mb-2" onchange="checkOther('self-type', 'self-type-other')">
+                    <option value="">- ประเภทยานพาหนะ -</option>
+                    <option value="รถจักรยาน">รถจักรยาน</option>
+                    <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+                    <option value="เดินเท้า">เดินเท้า</option>
+                    <option value="รถไฟ">รถไฟ</option>
+                    <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                </select>
+                <input type="text" id="self-type-other" class="form-control mb-2" placeholder="ระบุประเภท..." style="display:none;">
+                
+                <select id="self-brand" class="form-select mb-2" onchange="checkOther('self-brand', 'self-brand-other')">
+                    <option value="">- ยี่ห้อรถ (ถ้ามี) -</option>
+                    <option value="Honda">Honda</option>
+                    <option value="Yamaha">Yamaha</option>
+                    <option value="Toyota">Toyota</option>
+                    <option value="Isuzu">Isuzu</option>
+                    <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                </select>
+                <input type="text" id="self-brand-other" class="form-control mb-2" placeholder="ระบุยี่ห้อ..." style="display:none;">
+                
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><input type="text" id="self-model" class="form-control" placeholder="รุ่นรถ"></div>
+                    <div class="col-6"><input type="text" id="self-color" class="form-control" placeholder="สีรถ"></div>
+                </div>
+                <input type="text" id="self-plate" class="form-control" placeholder="ป้ายทะเบียน (เช่น กค 1234)">
+            </div>
+
+            <!-- Option B: รถโดยสาร -->
+            <label class="travel-option" id="opt-public">
+                <input type="radio" name="travelMethod" value="รถโดยสาร/รับจ้าง" onchange="toggleTravelFields()">
+                <div class="fw-bold"><i class="bi bi-bus-front-fill text-warning me-2"></i> รถโดยสาร / รถรับจ้าง</div>
+            </label>
+            <div id="field-public" class="dynamic-field border-warning">
+                <select id="pub-type" class="form-select mb-2" onchange="checkOther('pub-type', 'pub-type-other')">
+                    <option value="">- ประเภทยานพาหนะ -</option>
+                    <option value="รถบัส">รถบัส</option>
+                    <option value="รถ 6 ล้อ">รถ 6 ล้อ</option>
+                    <option value="รถกระบะ">รถกระบะ</option>
+                    <option value="รถตู้">รถตู้</option>
+                    <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                </select>
+                <input type="text" id="pub-type-other" class="form-control mb-2" placeholder="ระบุประเภท..." style="display:none;">
+                
+                <input type="text" id="pub-color" class="form-control mb-2" placeholder="สีรถ">
+                <input type="text" id="pub-driver-name" class="form-control mb-2" placeholder="ชื่อผู้ขับขี่">
+                <input type="tel" id="pub-driver-phone" class="form-control mb-2" placeholder="เบอร์โทรผู้ขับขี่" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <input type="text" id="pub-plate" class="form-control" placeholder="ป้ายทะเบียนรถ">
+            </div>
+
+            <!-- Option C: ผู้ปกครองมาส่ง -->
+            <label class="travel-option" id="opt-parent">
+                <input type="radio" name="travelMethod" value="ผู้ปกครองมาส่ง" onchange="toggleTravelFields()">
+                <div class="fw-bold"><i class="bi bi-car-front-fill text-success me-2"></i> ผู้ปกครองมาส่ง</div>
+            </label>
+            <div id="field-parent" class="dynamic-field border-success">
+                <select id="par-type" class="form-select mb-2" onchange="checkOther('par-type', 'par-type-other')">
+                    <option value="">- ประเภทยานพาหนะ -</option>
+                    <option value="รถยนต์">รถยนต์</option>
+                    <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+                    <option value="รถซาเล้ง">รถซาเล้ง</option>
+                    <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                </select>
+                <input type="text" id="par-type-other" class="form-control mb-2" placeholder="ระบุประเภท..." style="display:none;">
+                <input type="text" id="par-plate" class="form-control" placeholder="ป้ายทะเบียนรถ">
+            </div>
+        </div>
+
+        <button id="btn-save" class="btn-submit" onclick="submitData()">
+            <i class="bi bi-floppy-fill me-2"></i> บันทึกข้อมูล
+        </button>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- หน้าจอ Admin (สำหรับคุณครู) -->
+    <!-- ============================================== -->
+    <div class="main-container" id="admin-view" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+            <h5 class="fw-bold text-dark m-0"><i class="bi bi-person-workspace text-primary"></i> ระบบจัดการ</h5>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="logoutAdmin()">ปิดโหมด Admin</button>
+        </div>
+
+        <div class="admin-nav">
+            <div class="admin-tab active" id="tab-report" onclick="switchAdminTab('report')"><i class="bi bi-journal-text"></i> รายงานที่กรอกแล้ว</div>
+            <div class="admin-tab" id="tab-missing" onclick="switchAdminTab('missing')"><i class="bi bi-person-exclamation"></i> ติดตามคนยังไม่กรอก</div>
+        </div>
+
+        <div class="form-section">
+            <div class="d-flex gap-2 mb-3">
+                <select id="admin-room" class="form-select fw-bold w-auto border-primary text-primary">
+                    <option value="">- เลือกระดับชั้น -</option>
+                </select>
+                <button class="btn btn-primary rounded-3 px-4 fw-bold" onclick="loadAdminData()"><i class="bi bi-search"></i> ค้นหา</button>
+            </div>
+
+            <!-- กล่องแสดงรายงานคนที่กรอกแล้ว -->
+            <div id="admin-box-report">
+                <div class="table-responsive table-custom border">
+                    <table class="table mb-0">
+                        <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>การเดินทาง</th><th>ยานพาหนะ</th><th>เบอร์โทรนร.</th></tr></thead>
+                        <tbody id="admin-report-tbody">
+                            <tr><td colspan="5" class="text-center py-4 text-muted">เลือกระดับชั้นแล้วกดค้นหา</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- กล่องแสดงคนที่ยังไม่กรอก -->
+            <div id="admin-box-missing" style="display: none;">
+                <div class="alert alert-warning border-0 d-flex justify-content-between align-items-center">
+                    <div><b>สรุปยอดการตอบกลับ</b><br><small id="missing-summary" class="text-muted">รอการค้นหา...</small></div>
+                    <h3 class="m-0 text-danger fw-bold" id="missing-count">0</h3>
+                </div>
+                <div class="table-responsive table-custom border">
+                    <table class="table mb-0">
+                        <thead><tr><th>รหัส</th><th>ชื่อ-สกุล (รายชื่อผู้ที่ยังไม่กรอกข้อมูล)</th></tr></thead>
+                        <tbody id="admin-missing-tbody">
+                            <tr><td colspan="2" class="text-center py-4 text-muted">เลือกระดับชั้นแล้วกดค้นหา</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // =========================================================
+        // ⚠️ นำลิงก์ Web App API ที่ได้จาก Google Script มาใส่ตรงนี้ ⚠️
+        // =========================================================
+        const API_URL = "ใส่_ลิงก์_WEB_APP_ตรงนี้"; 
+
+        // 1. สร้างตัวเลือกห้อง ม.1/1 - ม.6/10 อัตโนมัติ
+        window.addEventListener('DOMContentLoaded', () => {
+            let optionsHtml = '<option value="">-- เลือกระดับชั้น --</option>';
+            for (let m = 1; m <= 6; m++) {
+                for (let r = 1; r <= 10; r++) {
+                    optionsHtml += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
+                }
+            }
+            document.getElementById('form-room').innerHTML = optionsHtml;
+            document.getElementById('admin-room').innerHTML = optionsHtml;
+        });
+
+        // 2. ฟังก์ชัน Fetch API กลาง
+        async function fetchAPI(payload, btnId) {
+            let btn, originalText;
+            if(btnId) {
+                btn = document.getElementById(btnId);
+                originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> รอสักครู่...';
+                btn.disabled = true;
+            }
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                alert("⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+                return { error: "Connection failed" };
+            } finally {
+                if(btnId) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // --- ส่วนการทำงานของ Form (นักเรียน) ---
+        async function loadStudents() {
+            const room = document.getElementById('form-room').value;
+            const selectStd = document.getElementById('form-student');
+            if(!room) { selectStd.innerHTML = '<option value="">-- โปรดเลือกห้องก่อน --</option>'; selectStd.disabled = true; return; }
+            
+            selectStd.innerHTML = '<option value="">กำลังโหลดรายชื่อ...</option>'; selectStd.disabled = true;
+            const res = await fetchAPI({ action: 'getStudents', room: room }, null);
+            
+            if(res.success) {
+                let options = '<option value="">-- เลือกชื่อของคุณ --</option>';
+                res.data.forEach(std => options += `<option value="${std.id}">${std.name}</option>`);
+                selectStd.innerHTML = options; selectStd.disabled = false;
+            } else {
+                selectStd.innerHTML = '<option value="">ไม่พบข้อมูล</option>'; alert(res.error);
+            }
+        }
+
+        function fillStudentId() { document.getElementById('form-id').value = document.getElementById('form-student').value; }
+
+        function toggleTravelFields() {
+            // ล้างสไตล์เก่า
+            document.querySelectorAll('.travel-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('field-self').style.display = 'none';
+            document.getElementById('field-public').style.display = 'none';
+            document.getElementById('field-parent').style.display = 'none';
+
+            // จัดการตัวที่ถูกเลือก
+            const method = document.querySelector('input[name="travelMethod"]:checked').value;
+            if (method === 'ขับมาเอง') {
+                document.getElementById('opt-self').classList.add('selected');
+                document.getElementById('field-self').style.display = 'block';
+            } else if (method === 'รถโดยสาร/รับจ้าง') {
+                document.getElementById('opt-public').classList.add('selected');
+                document.getElementById('field-public').style.display = 'block';
+            } else if (method === 'ผู้ปกครองมาส่ง') {
+                document.getElementById('opt-parent').classList.add('selected');
+                document.getElementById('field-parent').style.display = 'block';
+            }
+        }
+
+        function checkOther(selectId, inputId) {
+            const sel = document.getElementById(selectId).value;
+            document.getElementById(inputId).style.display = (sel === 'อื่นๆ') ? 'block' : 'none';
+        }
+
+        async function submitData() {
+            // เช็คข้อมูลบังคับ
+            const room = document.getElementById('form-room').value;
+            const id = document.getElementById('form-id').value;
+            const nameEl = document.getElementById('form-student');
+            const name = id ? nameEl.options[nameEl.selectedIndex].text : '';
+            const pPhone = document.getElementById('f-parent-phone').value;
+            const pName = document.getElementById('f-parent-name').value;
+            const pRel = document.getElementById('f-parent-rel').value;
+            const methodRadio = document.querySelector('input[name="travelMethod"]:checked');
+
+            if(!room || !id) return alert("กรุณาเลือกห้องและชื่อนักเรียน");
+            if(!pPhone || !pName || !pRel) return alert("กรุณากรอกข้อมูลผู้ปกครองให้ครบถ้วน");
+            if(!methodRadio) return alert("กรุณาเลือกวิธีการเดินทาง");
+
+            const method = methodRadio.value;
+            let vType = "", vDetails = "", lPlate = "", dName = "", dPhone = "";
+
+            if (method === 'ขับมาเอง') {
+                vType = document.getElementById('self-type').value === 'อื่นๆ' ? document.getElementById('self-type-other').value : document.getElementById('self-type').value;
+                let brand = document.getElementById('self-brand').value === 'อื่นๆ' ? document.getElementById('self-brand-other').value : document.getElementById('self-brand').value;
+                vDetails = `ยี่ห้อ: ${brand}, รุ่น: ${document.getElementById('self-model').value}, สี: ${document.getElementById('self-color').value}`;
+                lPlate = document.getElementById('self-plate').value;
+            } 
+            else if (method === 'รถโดยสาร/รับจ้าง') {
+                vType = document.getElementById('pub-type').value === 'อื่นๆ' ? document.getElementById('pub-type-other').value : document.getElementById('pub-type').value;
+                vDetails = `สี: ${document.getElementById('pub-color').value}`;
+                dName = document.getElementById('pub-driver-name').value;
+                dPhone = document.getElementById('pub-driver-phone').value;
+                lPlate = document.getElementById('pub-plate').value;
+            }
+            else if (method === 'ผู้ปกครองมาส่ง') {
+                vType = document.getElementById('par-type').value === 'อื่นๆ' ? document.getElementById('par-type-other').value : document.getElementById('par-type').value;
+                lPlate = document.getElementById('par-plate').value;
+            }
+
+            const payload = {
+                action: 'submitForm',
+                room: room, id: id, name: name,
+                stdPhone: document.getElementById('f-std-phone').value,
+                parentPhone: pPhone, parentName: pName, parentRel: pRel,
+                travelMethod: method, vehicleType: vType, vehicleDetails: vDetails,
+                licensePlate: lPlate, driverName: dName, driverPhone: dPhone
+            };
+
+            const res = await fetchAPI(payload, 'btn-save');
+            if(res.success) {
+                alert("✅ " + res.message);
+                location.reload(); // รีเฟรชหน้าใหม่
+            } else {
+                alert("❌ " + res.error);
+            }
+        }
+
+        // --- ส่วนการทำงานของ Admin ---
+        let currentAdminMode = 'report';
+
+        function promptAdmin() {
+            const pw = prompt("กรุณากรอกรหัสผ่านสำหรับผู้ดูแลระบบ:");
+            if (pw === "8888") {
+                document.getElementById('form-view').style.display = 'none';
+                document.getElementById('admin-view').style.display = 'block';
+                document.body.style.backgroundColor = "#f1f5f9";
+            } else if (pw !== null) {
+                alert("รหัสผ่านไม่ถูกต้อง");
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('form-view').style.display = 'block';
+            document.getElementById('admin-view').style.display = 'none';
+            document.body.style.backgroundColor = "var(--bg-color)";
+        }
+
+        function switchAdminTab(mode) {
+            currentAdminMode = mode;
+            document.getElementById('tab-report').classList.remove('active');
+            document.getElementById('tab-missing').classList.remove('active');
+            document.getElementById('admin-box-report').style.display = 'none';
+            document.getElementById('admin-box-missing').style.display = 'none';
+            
+            document.getElementById('tab-' + mode).classList.add('active');
+            document.getElementById('admin-box-' + mode).style.display = 'block';
+            
+            if(document.getElementById('admin-room').value) loadAdminData();
+        }
+
+        async function loadAdminData() {
+            const room = document.getElementById('admin-room').value;
+            if(!room) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
+
+            if (currentAdminMode === 'report') {
+                document.getElementById('admin-report-tbody').innerHTML = '<tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> กำลังดึงข้อมูล...</td></tr>';
+                const res = await fetchAPI({ action: 'getAdminReport', room: room });
+                if(res.success) {
+                    if(res.data.length === 0) {
+                        document.getElementById('admin-report-tbody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ยังไม่มีผู้บันทึกข้อมูลในห้องนี้</td></tr>';
+                    } else {
+                        document.getElementById('admin-report-tbody').innerHTML = res.data.map(r => `
+                            <tr>
+                                <td>${r.id}</td><td><b>${r.name}</b></td>
+                                <td><span class="badge bg-primary rounded-pill">${r.method}</span></td>
+                                <td><small>${r.vehicle || '-'}</small></td><td>${r.stdPhone || '-'}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } 
+            else if (currentAdminMode === 'missing') {
+                document.getElementById('admin-missing-tbody').innerHTML = '<tr><td colspan="2" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> กำลังประมวลผล...</td></tr>';
+                const res = await fetchAPI({ action: 'getMissingStudents', room: room });
+                if(res.success) {
+                    document.getElementById('missing-summary').innerText = `นักเรียนทั้งหมด ${res.total} คน / กรอกแล้ว ${res.total - res.missingCount} คน`;
+                    document.getElementById('missing-count').innerText = res.missingCount + " คน";
+                    
+                    if(res.data.length === 0) {
+                        document.getElementById('admin-missing-tbody').innerHTML = '<tr><td colspan="2" class="text-center py-4 text-success fw-bold"><i class="bi bi-check-circle-fill"></i> นักเรียนห้องนี้กรอกข้อมูลครบทุกคนแล้ว!</td></tr>';
+                    } else {
+                        document.getElementById('admin-missing-tbody').innerHTML = res.data.map(r => `
+                            <tr><td class="text-danger">${r.id}</td><td class="fw-bold">${r.name}</td></tr>
+                        `).join('');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
