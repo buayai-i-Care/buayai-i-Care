@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แจ้งลาออนไลน์ - โรงเรียนบัวใหญ่</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+    
+    /* Header */
+    .header-box { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; padding: 25px 20px 30px; border-radius: 0 0 30px 30px; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2); }
+    .org-logo { width: 85px; height: 85px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.9); box-shadow: 0 4px 10px rgba(0,0,0,0.15); background-color: white; margin-bottom: 10px; }
+    
+    /* Content Containers */
+    .content-container { background: white; border-radius: 20px; padding: 30px 20px; margin-top: -25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; z-index: 10; margin-bottom: 40px; }
+    .form-label { font-weight: 600; color: #475569; font-size: 0.9rem; margin-bottom: 5px; }
+    .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 12px 15px; font-size: 1rem; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
+    
+    /* Signature Pad */
+    #signature-pad { border: 2px dashed #94a3b8; border-radius: 15px; width: 100%; height: 160px; background: #f8fafc; cursor: crosshair; touch-action: none; }
+    
+    /* Consent Box */
+    .consent-box { background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-bottom: 25px; }
+    .consent-label { font-size: 0.85rem; font-weight: 600; color: #dc2626; cursor: pointer; line-height: 1.5; margin-left: 5px; }
+    
+    /* Modals */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1100; display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; backdrop-filter: blur(3px); }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-box { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; transform: translateY(-20px); transition: 0.3s; }
+    .modal-overlay.show .modal-box { transform: translateY(0); }
+
+    /* Button effects */
+    .btn-login-pulse { background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: white; transition: 0.3s; }
+    .btn-login-pulse:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w300-h300" alt="โลโก้โรงเรียนบัวใหญ่" class="org-logo">
+    <h4 class="fw-bold mt-2 mb-1">ระบบแจ้งลาออนไลน์</h4>
+    <p class="small mb-1" style="color: rgba(255,255,255,0.9);">โรงเรียนบัวใหญ่</p>
+  </div>
+
+  <div class="container">
+    
+    <div id="login-section" class="content-container text-center">
+        <h5 class="fw-bold text-dark mb-4">เข้าสู่ระบบนักเรียน</h5>
+        
+        <div class="mb-3 text-start">
+            <label class="form-label"><i class="bi bi-person"></i> ชื่อผู้ใช้งาน (Username)</label>
+            <input type="text" id="loginUser" class="form-control text-center" placeholder="ระบุชื่อผู้ใช้งาน">
+        </div>
+        <div class="mb-4 text-start">
+            <label class="form-label"><i class="bi bi-key"></i> รหัสผ่าน (Password)</label>
+            <input type="password" id="loginPass" class="form-control text-center" placeholder="ระบุรหัสผ่าน">
+        </div>
+
+        <button id="btn-login" class="btn btn-login-pulse w-100 rounded-pill py-3 fw-bold shadow-sm mb-4" onclick="doLogin()">
+            <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+        </button>
+
+        <div class="border-top pt-3 mt-2">
+            <p class="small text-muted mb-2">หากยังไม่มีรหัสผ่าน หรือยังไม่ได้ลงทะเบียนระบบ E-Point</p>
+            <a href="https://buayai-i-care.github.io/buayai-i-Care/appyEpoint.html" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-bold">
+                <i class="bi bi-pencil-square"></i> คลิกที่นี่เพื่อลงทะเบียนใหม่
+            </a>
+        </div>
+    </div>
+
+
+    <div id="form-section" class="content-container" style="display: none;">
+        
+        <div class="text-end mb-3">
+            <button class="btn btn-sm btn-light rounded-pill text-danger fw-bold shadow-sm border" onclick="logout()">
+                <i class="bi bi-box-arrow-left"></i> ออกจากระบบ
+            </button>
+        </div>
+
+        <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="bi bi-person-lines-fill"></i> ข้อมูลนักเรียน</h5>
+        
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">ระดับชั้น</label>
+                <select id="grade" class="form-select fw-bold text-primary bg-light" style="pointer-events: none;" readonly>
+                    <option value="" disabled selected>เลือกชั้น</option>
+                    <option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option>
+                    <option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label">ห้อง</label>
+                <select id="room" class="form-select fw-bold text-primary bg-light" style="pointer-events: none;" readonly>
+                    <option value="" disabled selected>เลือกห้อง</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    <option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                </select>
+            </div>
+            <div class="col-12 mt-1"><small class="text-danger">* ระบบดึงชั้นและห้องให้โดยอัตโนมัติตามรหัส</small></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">รหัสนักเรียน (5 หลัก)</label>
+            <input type="number" id="studentId" class="form-control bg-light" readonly>
+        </div>
+        <div class="mb-4">
+            <label class="form-label text-danger">ชื่อ - นามสกุล (กรุณากรอกให้ถูกต้อง)</label>
+            <input type="text" id="studentName" class="form-control" placeholder="เช่น เด็กชายรักเรียน ขยันยิ่ง">
+        </div>
+
+        <h5 class="fw-bold text-primary mb-4 border-bottom pb-2 mt-4"><i class="bi bi-envelope-paper"></i> รายละเอียดการลา</h5>
+
+        <div class="mb-3">
+            <label class="form-label">ประเภทการลา</label>
+            <select id="leaveType" class="form-select text-primary fw-bold">
+                <option value="ลป">ลาป่วย (ลป)</option>
+                <option value="ลก">ลากิจ (ลก)</option>
+            </select>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label">ตั้งแต่วันที่</label>
+                <input type="date" id="leaveStartDate" class="form-control">
+            </div>
+            <div class="col-6">
+                <label class="form-label">ถึงวันที่</label>
+                <input type="date" id="leaveEndDate" class="form-control">
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="form-label">เหตุผลการลา</label>
+            <textarea id="leaveReason" class="form-control" rows="3" placeholder="ระบุอาการป่วย หรือ ธุระความจำเป็น..."></textarea>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label text-danger"><i class="bi bi-pen"></i> ลายเซ็นผู้ปกครองรับรอง</label>
+            <canvas id="signature-pad"></canvas>
+            <div class="text-end mt-2">
+                <span class="badge bg-secondary px-3 py-2 shadow-sm" style="cursor:pointer;" onclick="clearSignature()">
+                    <i class="bi bi-eraser"></i> ล้างลายเซ็น
+                </span>
+            </div>
+        </div>
+
+        <div class="consent-box d-flex align-items-start">
+            <input class="form-check-input mt-1" type="checkbox" id="leaveConsent" style="transform: scale(1.4);">
+            <label class="consent-label" for="leaveConsent">
+                ข้าพเจ้าทราบว่า การลากิจ ลาป่วย แต่ละครั้งมีเหตุจำเป็น และเข้าใจว่าการลาบ่อยครั้งเป็นสาเหตุให้มีนักเรียนมีเวลาเรียนไม่เพียงพอ (มส) ได้ ทั้งนี้จะกำชับให้นักเรียนติดตามภาระงานอย่างใกล้ชิด
+            </label>
+        </div>
+
+        <button id="btn-submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-lg" style="font-size: 1.1rem;" onclick="submitLeaveForm()">
+            <i class="bi bi-send-fill"></i> ยืนยันส่งใบลาออนไลน์
+        </button>
+
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+      <div id="modalIcon" style="font-size: 3.5rem; line-height: 1; margin-bottom: 10px;"></div>
+      <h5 id="modalTitle" class="fw-bold mb-2 text-dark">แจ้งเตือน</h5>
+      <p id="modalMessage" class="text-muted mb-4" style="font-size: 0.95rem;">ข้อความ</p>
+      <button class="btn btn-secondary w-100 rounded-pill fw-bold" onclick="closeModal('customModal')">ตกลง (OK)</button>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================
+    // ⚠️ ใส่ URL Web App API (ของ Code.gs ล่าสุด) ตรงนี้ ⚠️
+    // ========================================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbw4Uxz7Qu1oYnJLJLImV4CtIpTwmYt6bMsaPbCBKVjRZ21UFApqMp2oOdcc13k2Q64S/exec"; 
+
+    // --- Modal Alert ---
+    function showModal(title, message, type = 'warning') {
+      const m = document.getElementById('customModal');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerHTML = message;
+      const icon = document.getElementById('modalIcon');
+      if (type === 'warning') icon.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+      else if (type === 'error') icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+      else if (type === 'success') icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+      m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
+    }
+    function closeModal(modalId) { 
+        const m = document.getElementById(modalId); 
+        m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); 
+    }
+
+    // --- ฟังก์ชันเข้าสู่ระบบ (Login) ---
+    async function doLogin() {
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value.trim();
+        
+        if(!u || !p) return showModal("ข้อมูลไม่ครบ", "กรุณากรอกชื่อผู้ใช้และรหัสผ่านให้ครบถ้วน", "warning");
+
+        const btn = document.getElementById('btn-login');
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังตรวจสอบ...';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "login", username: u, password: p })
+            });
+            const res = await response.json();
+            
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ';
+
+            if (res.success) {
+                // เปลี่ยนหน้าจอเป็นหน้าฟอร์ม
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('form-section').style.display = 'block';
+                
+                // กรอกข้อมูลชั้น/ห้อง อัตโนมัติและล็อกไม่ให้แก้
+                if (res.grade) document.getElementById('grade').value = res.grade;
+                if (res.room) document.getElementById('room').value = res.room;
+                document.getElementById('studentId').value = u; // นำ Username มาใส่เป็นรหัสนักเรียนให้เลย
+                
+                // เซ็ตปฏิทินเป็นวันปัจจุบัน
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('leaveStartDate').value = today;
+                document.getElementById('leaveEndDate').value = today;
+                
+                // เซ็ตค่ากระดานวาดรูป
+                resizeCanvas();
+            } else {
+                showModal("เข้าสู่ระบบล้มเหลว", res.error || "รหัสผ่านไม่ถูกต้อง", "error");
+            }
+        } catch(err) {
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ';
+            showModal("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+        }
+    }
+
+    // --- ออกจากระบบ ---
+    function logout() {
+        document.getElementById('loginUser').value = "";
+        document.getElementById('loginPass').value = "";
+        document.getElementById('studentName').value = "";
+        document.getElementById('leaveReason').value = "";
+        document.getElementById('leaveConsent').checked = false;
+        
+        document.getElementById('form-section').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+    }
+
+    // --- กระดานวาดลายเซ็น ---
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        ctx.scale(ratio, ratio);
+        ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.strokeStyle = "#0f172a";
+    }
+    window.addEventListener("resize", resizeCanvas);
+    
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+    
+    function startDraw(e) { e.preventDefault(); isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
+    function draw(e) { if (!isDrawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
+    function stopDraw(e) { e.preventDefault(); isDrawing = false; }
+    
+    canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseout', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stopDraw);
+    
+    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    
+    function isCanvasBlank() {
+        const blank = document.createElement('canvas');
+        blank.width = canvas.width; blank.height = canvas.height;
+        return canvas.toDataURL() === blank.toDataURL();
+    }
+
+    // --- ฟังก์ชันส่งใบลา ---
+    async function submitLeaveForm() {
+        const grade = document.getElementById('grade').value;
+        const room = document.getElementById('room').value;
+        const studentId = document.getElementById('studentId').value.trim();
+        const studentName = document.getElementById('studentName').value.trim();
+        
+        const leaveType = document.getElementById('leaveType').value;
+        const startDate = document.getElementById('leaveStartDate').value;
+        const endDate = document.getElementById('leaveEndDate').value;
+        const reason = document.getElementById('leaveReason').value.trim();
+        const consent = document.getElementById('leaveConsent').checked;
+
+        if (!studentName) return showModal("ข้อมูลไม่ครบ", "กรุณากรอก ชื่อ-นามสกุล นักเรียนด้วยครับ", "warning");
+        if (!startDate || !endDate || !reason) return showModal("ข้อมูลการลาไม่ครบ", "กรุณาระบุวันที่และเหตุผลการลาให้ชัดเจนครับ", "warning");
+        if (isCanvasBlank()) return showModal("ลืมเซ็นชื่อ", "กรุณาเซ็นชื่อผู้ปกครองรับรองการลาด้วยครับ", "warning");
+        if (!consent) return showModal("กดยอมรับเงื่อนไข", "กรุณาทำเครื่องหมายถูก (☑) เพื่อรับทราบเงื่อนไขเรื่อง มส ก่อนส่งข้อมูลครับ", "warning");
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึกข้อมูล...';
+
+        const payload = {
+            action: "submitLeave",
+            data: {
+                grade: grade,
+                room: room,
+                studentId: studentId,
+                name: studentName,
+                leaveType: leaveType,
+                startDate: startDate,
+                endDate: endDate,
+                reason: reason,
+                signature: canvas.toDataURL("image/png")
+            }
+        };
+
+        try {
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const res = await response.json();
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> ยืนยันส่งใบลาออนไลน์';
+
+            if (res.success) {
+                showModal("ส่งใบลาสำเร็จ!", "ระบบได้รับเรื่องการลาของ " + studentName + " เรียบร้อยแล้วครับ", "success");
+                // เคลียร์ฟอร์มบางส่วนให้พร้อมใช้งานต่อ หรือจะเตะออกไปหน้าล็อกอินก็ได้
+                document.getElementById('leaveReason').value = "";
+                document.getElementById('leaveConsent').checked = false;
+                clearSignature();
+            } else {
+                showModal("เกิดข้อผิดพลาด", res.error, "error");
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> ยืนยันส่งใบลาออนไลน์';
+            showModal("ข้อผิดพลาดในการเชื่อมต่อ", "ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง", "error");
+        }
+    }
+  </script>
+</body>
+</html>
