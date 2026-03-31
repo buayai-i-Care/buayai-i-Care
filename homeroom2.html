@@ -603,6 +603,9 @@
             document.getElementById('insp-inline-summary').classList.remove('d-none');
         }
 
+        // ====================================================
+        // บันทึกผลการตรวจระเบียบ และนำไปเชื่อมกับบันทึกโฮมรูม
+        // ====================================================
         async function saveStandaloneInspection() {
             let inspectionsToSave = appState.inspResults.filter(s => s.status !== 'ผ่าน' && s.status !== 'ยังไม่ตรวจ').map(s => ({
                 id: s.id, name: s.name, status: s.status
@@ -613,8 +616,11 @@
             btn.disabled = true;
 
             try {
+                let inspDate = document.getElementById('insp-inline-date').value; // วันที่ตรวจระเบียบ
+                let homeroomDate = document.getElementById('record-date-input').value; // วันที่หน้าโฮมรูม
+                
                 await sendToAPI({
-                    action: 'saveInspection', room: appState.room, date: document.getElementById('insp-inline-date').value, 
+                    action: 'saveInspection', room: appState.room, date: inspDate, 
                     category: appState.currentInspCat, inspections: inspectionsToSave
                 });
                 
@@ -630,19 +636,34 @@
                 if (fail.length > 0) summaryText += ` | ไม่ผ่าน ${fail.length} คน [${fail.join(', ')}]`;
                 if (warn.length > 0) summaryText += ` | ตักเตือน ${warn.length} คน [${warn.join(', ')}]`;
 
-                if (document.getElementById('insp-inline-date').value === document.getElementById('record-date-input').value) {
+                let alertMsg = "บันทึกผลการตรวจระเบียบลงฐานข้อมูลเรียบร้อยแล้วครับ";
+                
+                // 🌟 ตรวจสอบว่าวันที่ตรวจตรงกับวันที่ในหน้าโฮมรูมหรือไม่
+                if (inspDate === homeroomDate) {
                     let otherBox = document.getElementById('val-other');
                     let currentText = otherBox.value.trim();
                     otherBox.value = currentText ? (currentText + "\n" + summaryText) : summaryText;
                     document.getElementById('chk-other').checked = true;
                     document.getElementById('input-other').style.display = 'block';
+                    
+                    // 🌟 สร้างข้อความสำหรับ Custom Modal แจ้งเตือนให้กดเซฟโฮมรูม
+                    alertMsg = `ระบบได้นำสรุปการตรวจไปใส่ในช่อง 'เรื่องอื่นๆ' ของโฮมรูมวันที่ <b>${inspDate}</b> ให้แล้วครับ<br><br>
+                                <div class="p-3 bg-white border border-warning rounded-3 mt-3 shadow-sm">
+                                    <span class="text-danger fw-bold fs-6"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>สำคัญมาก!</span><br>
+                                    <span class="small text-dark fw-bold">อย่าลืมกลับไปที่เมนู <span class="text-primary">'บันทึกโฮมรูมวันนี้'</span> แล้วกดปุ่ม <b>"บันทึกข้อมูลโฮมรูม"</b> สีเขียว เพื่อยืนยันการบันทึกข้อมูลโฮมรูมด้วยนะครับ</span>
+                                </div>`;
+                } else {
+                    // กรณีวันที่ไม่ตรงกัน แจ้งเตือนแค่ว่าบันทึกตรวจแล้ว แต่ไม่ได้ไปต่อท้ายโฮมรูม
+                    alertMsg += `<br><br><span class="text-muted small">*หมายเหตุ: เนื่องจากวันที่ตรวจระเบียบ (${inspDate}) ไม่ตรงกับวันที่ตั้งไว้ในหน้าโฮมรูม (${homeroomDate}) ระบบจึงบันทึกผลตรวจลงฐานข้อมูลเท่านั้น ไม่ได้นำสรุปไปต่อท้ายให้ครับ</span>`;
                 }
 
-                alert("✨ บันทึกผลการตรวจระเบียบเรียบร้อยแล้วครับ\n(ระบบได้ส่งข้อความสรุปไปใส่ในช่อง 'เรื่องอื่นๆ' ของบันทึกโฮมรูมวันนี้ให้แล้วครับ)");
                 document.getElementById('insp-inline-container').classList.add('d-none');
                 
+                // 🌟 เรียกใช้ Custom Modal สวยๆ แจ้งเตือนผู้ใช้
+                showModal("✨ ตรวจระเบียบสำเร็จ!", alertMsg, "success");
+                
             } catch(e) { 
-                alert("❌ บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"); 
+                showModal("❌ ผิดพลาด", "บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง หรือเช็คการเชื่อมต่อ", "error");
             } finally { 
                 btn.innerHTML = '<i class="bi bi-save2-fill me-1"></i> บันทึกลงระบบ'; 
                 btn.disabled = false; 
