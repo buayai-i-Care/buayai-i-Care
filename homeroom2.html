@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบโฮมรูม Buayai I Care School- โรงเรียนบัวใหญ่</title>
+    <title>ระบบโฮมรูม - โรงเรียนบัวใหญ่</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -44,6 +44,9 @@
         .btn-check-custom:checked + label.warn { background: #fef9c3; color: #b45309; border-color: #b45309; }
         .btn-check-custom:checked + label.uncheck { background: #e2e8f0; color: #334155; border-color: #334155; }
         .summary-badge { font-size: 0.85rem; padding: 5px 12px; border-radius: 15px; }
+        .mock-sheet { border-collapse: collapse; width: 100%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .mock-sheet th { background: #1e293b; color: white; padding: 15px; font-weight: 600; text-align: center; border: 1px solid #334155; }
+        .mock-sheet td { padding: 15px; border: 1px solid #cbd5e1; vertical-align: top; }
         .timeline-item { position: relative; padding-left: 40px; margin-bottom: 15px; }
         .timeline-icon { position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 2;}
         .timeline-line { position: absolute; left: 14px; top: 30px; bottom: -15px; width: 2px; background-color: #cbd5e1; z-index: 1;}
@@ -51,8 +54,6 @@
         .signature-box { border: 2px dashed #cbd5e1; border-radius: 15px; background: #f8fafc; padding: 20px; text-align: center; transition: all 0.3s ease; }
         .signature-box.approved { border: 2px solid #22c55e; background: #f0fdf4; color: #15803d; }
         .preview-sig-img { max-width: 150px; max-height: 80px; object-fit: contain; margin-bottom: 5px; }
-
-        /* สำหรับกราฟแท่ง Custom */
         .bar-container { cursor: pointer; transition: 0.2s; border-radius: 10px; padding: 8px; }
         .bar-container:hover { background-color: #f1f5f9; }
         .bar-track { background-color: #e2e8f0; border-radius: 10px; height: 22px; overflow: hidden; flex-grow: 1; }
@@ -64,9 +65,9 @@
     <div id="login-view">
         <div class="login-card">
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้" width="90" class="mb-3">
-            <h4 class="fw-bold mt-2 mb-1">ระบบโฮมรูมออนไลน์</h4>
+            <h4 class="fw-bold mt-2 mb-1">ระบบโฮมรูมออนไลน์ครูที่ปรึกษา/หัวหน้าระดับชั้น</h4>
             <p class="text-muted small mb-4">Buayai I Care School</p>
-            <input type="text" id="login-username" class="form-control rounded-pill text-center mb-3 py-2 fw-bold" placeholder="รหัสผู้ใช้งาน (เช่น t21 หรือ m2)" autocomplete="off">
+            <input type="text" id="login-username" class="form-control rounded-pill text-center mb-3 py-2 fw-bold" placeholder="รหัสผู้ใช้งาน (เช่น t41 หรือ m4)" autocomplete="off">
             <button id="btn-login" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="handleLogin()">เข้าสู่ระบบ</button>
             <p id="login-error" class="text-danger small mt-2 mb-0" style="display: none;">ไม่พบรหัสผู้ใช้งานนี้ในระบบ</p>
         </div>
@@ -92,7 +93,6 @@
                 <button type="button" class="btn-close" onclick="toggleSidebar()"></button>
             </div>
             
-            <!-- เมนูครูที่ปรึกษา -->
             <div id="menu-teacher" style="display: none;">
                 <div class="nav-link active" onclick="switchMenu('record', this)"><i class="bi bi-pencil-square"></i> บันทึกโฮมรูมวันนี้</div>
                 <div class="nav-link text-primary bg-light" onclick="switchMenu('inspect-form', this)"><i class="bi bi-person-check text-primary"></i> ตรวจระเบียบ (รายคน)</div>
@@ -101,10 +101,8 @@
                 <div class="nav-link" onclick="switchMenu('print', this)"><i class="bi bi-printer"></i> พิมพ์รายงาน (รายเดือน)</div>
             </div>
 
-            <!-- เมนูหัวหน้าระดับ -->
             <div id="menu-head" style="display: none;">
                 <div class="nav-link active-head" onclick="switchMenu('head-dashboard', this)"><i class="bi bi-inboxes"></i> รายงานที่รอตรวจสอบ</div>
-                <!-- 🌟 เพิ่มเมนู สถิติการส่งโฮมรูม -->
                 <div class="nav-link" onclick="switchMenu('head-stats', this)"><i class="bi bi-bar-chart-fill"></i> สถิติการส่งโฮมรูม</div>
             </div>
             
@@ -112,108 +110,139 @@
         </div>
 
         <div class="main-content">
-            <!-- 1. บันทึกโฮมรูมวันนี้ -->
             <div id="view-record" style="display: none;">
-                <!-- (เนื้อหาเหมือนเดิม ขออนุญาตย่อโค้ดเพื่อไม่ให้รกเกินไปครับ) -->
                 <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0">บันทึกกิจกรรมโฮมรูม</h3><div class="d-flex align-items-center mt-2"><span class="text-muted me-2">ประจำวันที่: </span><input type="date" id="record-date-input" class="form-control form-control-sm fw-bold text-primary shadow-sm" style="width: auto; border-radius: 10px;" onchange="fetchDailyStats()"></div></div><span class="badge bg-white text-dark border p-2 px-3 shadow-sm rounded-pill fs-6 current-room-badge"></span></div>
-                <div class="row"><div class="col-lg-8"><div class="content-card"><h5 class="section-title"><i class="bi bi-ui-checks-grid me-2"></i>หัวข้อการโฮมรูม</h5><div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-announce" onchange="toggleInput('input-announce', this)"><label class="form-check-label w-100" for="chk-announce">1. แจ้งข่าวประกาศ / อบรมหน้าเสาธง<div id="input-announce" class="hidden-input"><input type="text" class="form-control" id="val-announce" placeholder="ระบุเรื่องที่แจ้งนักเรียน..."></div></label></div><div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-nail" onchange="toggleInput('input-nail', this)"><label class="form-check-label w-100" for="chk-nail">2. ติดตามการตรวจระเบียบ / ตรวจสุขภาพ<div id="input-nail" class="hidden-input mt-2 d-flex align-items-center gap-2"><span>พบ:</span><input type="number" class="form-control w-25 text-center" id="val-nail" placeholder="0"><span>คน</span></div></label></div><div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-parent" onchange="toggleInput('input-parent', this)"><label class="form-check-label w-100" for="chk-parent">3. ประสานงานกับผู้ปกครอง<div id="input-parent" class="hidden-input mt-2"><div class="d-flex gap-3 mb-2 flex-wrap"><div class="form-check"><input class="form-check-input" type="checkbox" id="p-grade" value="ผลการเรียน"><label class="form-check-label" for="p-grade">ผลการเรียน</label></div><div class="form-check"><input class="form-check-input" type="checkbox" id="p-beh" value="ความประพฤติ"><label class="form-check-label" for="p-beh">ความประพฤติ</label></div></div><input type="text" class="form-control" id="val-parent-other" placeholder="เรื่องอื่นๆ..."></div></label></div><div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-scholar" onchange="toggleInput('input-scholar', this)"><label class="form-check-label w-100" for="chk-scholar">4. ประสานงานการมอบทุนการศึกษา<div id="input-scholar" class="hidden-input mt-2"><div id="scholar-list"><div class="input-group mb-2"><span class="input-group-text bg-light border-end-0">รายชื่อ 1</span><input type="text" class="form-control scholar-name border-start-0" placeholder="ชื่อ-สกุล นักเรียนรับทุน"></div></div><button class="btn btn-sm btn-outline-primary rounded-pill mt-1" onclick="addScholarRow()"><i class="bi bi-plus-circle"></i> เพิ่มรายชื่อนักเรียน</button></div></label></div><div class="form-check form-check-custom position-relative"><input class="form-check-input fs-5" type="checkbox" id="chk-other" onchange="toggleInput('input-other', this)"><label class="form-check-label w-100" for="chk-other">5. เรื่องอื่นๆ (โปรดระบุ)</label><button type="button" class="btn btn-sm btn-primary rounded-pill position-absolute shadow-sm" style="right: 15px; top: 12px; z-index: 10;" onclick="openSummaryPullerModal()"><i class="bi bi-cloud-arrow-down me-1"></i> ดึงสรุปการตรวจ</button><div id="input-other" class="hidden-input mt-2"><textarea class="form-control" rows="3" placeholder="พิมพ์รายละเอียดเพิ่มเติม หรือกดปุ่ม 'ดึงสรุปการตรวจ' ด้านบน..." id="val-other"></textarea></div></div></div></div><div class="col-lg-4"><div class="content-card bg-primary text-white" style="border: none;"><h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-down me-2"></i>ดึงข้อมูลสถิติอัตโนมัติ</h6><div class="row g-2 mb-2 text-dark"><div class="col-12"><div class="stat-box stat-total">รวม<br><span class="fs-4" id="stat-total-val">-</span></div></div><div class="col-6"><div class="stat-box stat-present">มา<br><span class="fs-4" id="stat-present-val">-</span></div></div><div class="col-6"><div class="stat-box stat-late">สาย<br><span class="fs-4" id="stat-late-val">-</span></div></div><div class="col-6"><div class="stat-box bg-info text-dark" style="background:#e0f2fe;">ลา<br><span class="fs-4" id="stat-leave-val">-</span></div></div><div class="col-6"><div class="stat-box stat-absent">ขาด<br><span class="fs-4" id="stat-absent-val">-</span></div></div></div><small class="text-white-50" id="stat-status-text">* อิงจากวันที่เลือกด้านบน ระบบจะดึงยอดจริงมาแสดง</small></div><button id="btn-save-record" class="btn btn-success btn-lg w-100 shadow-lg rounded-pill fw-bold py-3" onclick="saveRecord()"><i class="bi bi-save2-fill me-2"></i> บันทึกข้อมูล</button></div></div>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="content-card">
+                            <h5 class="section-title"><i class="bi bi-ui-checks-grid me-2"></i>หัวข้อการโฮมรูม</h5>
+                            
+                            <!-- ข้อ 1 -->
+                            <div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-announce" onchange="toggleInput('input-announce', this)"><label class="form-check-label w-100" for="chk-announce">1. แจ้งข่าวประกาศ / อบรมหน้าเสาธง<div id="input-announce" class="hidden-input"><input type="text" class="form-control" id="val-announce" placeholder="ระบุเรื่องที่แจ้งนักเรียน..."></div></label></div>
+                            
+                            <!-- 🌟 ข้อ 2 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-health" onchange="toggleInput('input-health', this)">
+                                <label class="form-check-label w-100" for="chk-health">2. ติดตามการตรวจระเบียบ / ตรวจสุขภาพ
+                                    <div id="input-health" class="hidden-input mt-2">
+                                        <input type="text" class="form-control mb-2" id="val-health-other" placeholder="ระบุรายละเอียด หรือเรื่องที่พบอื่นๆ (ถ้ามี)...">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="openStudentSelector('health')"><i class="bi bi-person-lines-fill"></i> เลือกรายชื่อนักเรียนที่เกี่ยวข้อง</button>
+                                        <div id="selected-students-health" class="mt-2 small text-muted"></div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <!-- 🌟 ข้อ 3 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-parent" onchange="toggleInput('input-parent', this)">
+                                <label class="form-check-label w-100" for="chk-parent">3. ประสานงานกับผู้ปกครอง
+                                    <div id="input-parent" class="hidden-input mt-2">
+                                        <div class="d-flex gap-3 mb-2 flex-wrap">
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" id="p-grade" value="ผลการเรียน"><label class="form-check-label" for="p-grade">เรื่อง ผลการเรียน</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" id="p-beh" value="ความประพฤติ"><label class="form-check-label" for="p-beh">เรื่อง ความประพฤติ</label></div>
+                                        </div>
+                                        <input type="text" class="form-control mb-2" id="val-parent-other" placeholder="ระบุเรื่องที่ประสานงานอื่นๆ (ถ้ามี)...">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="openStudentSelector('parent')"><i class="bi bi-person-lines-fill"></i> เลือกรายชื่อนักเรียนที่ประสานงาน</button>
+                                        <div id="selected-students-parent" class="mt-2 small text-muted"></div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <!-- 🌟 ข้อ 4 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <div class="form-check form-check-custom">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-scholar" onchange="toggleInput('input-scholar', this)">
+                                <label class="form-check-label w-100" for="chk-scholar">4. ประสานงานการมอบทุนการศึกษา
+                                    <div id="input-scholar" class="hidden-input mt-2">
+                                        <input type="text" class="form-control mb-2" id="val-scholar-other" placeholder="ระบุชื่อทุนการศึกษา หรือรายละเอียด (ถ้ามี)...">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="openStudentSelector('scholar')"><i class="bi bi-person-lines-fill"></i> เลือกรายชื่อนักเรียนที่รับทุน</button>
+                                        <div id="selected-students-scholar" class="mt-2 small text-muted"></div>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <!-- ข้อ 5 -->
+                            <div class="form-check form-check-custom position-relative">
+                                <input class="form-check-input fs-5" type="checkbox" id="chk-other" onchange="toggleInput('input-other', this)"><label class="form-check-label w-100" for="chk-other">5. เรื่องอื่นๆ (โปรดระบุ)</label>
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill position-absolute shadow-sm" style="right: 15px; top: 12px; z-index: 10;" onclick="openSummaryPullerModal()"><i class="bi bi-cloud-arrow-down me-1"></i> ดึงสรุปประวัติ</button>
+                                <div id="input-other" class="hidden-input mt-2"><textarea class="form-control" rows="3" placeholder="พิมพ์รายละเอียดเพิ่มเติม หรือกดปุ่ม 'ดึงสรุปประวัติ' ด้านบน..." id="val-other"></textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="content-card bg-primary text-white" style="border: none;">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-down me-2"></i>ดึงข้อมูลสถิติอัตโนมัติ</h6>
+                            <div class="row g-2 mb-2 text-dark"><div class="col-12"><div class="stat-box stat-total">รวม<br><span class="fs-4" id="stat-total-val">-</span></div></div><div class="col-6"><div class="stat-box stat-present">มา<br><span class="fs-4" id="stat-present-val">-</span></div></div><div class="col-6"><div class="stat-box stat-late">สาย<br><span class="fs-4" id="stat-late-val">-</span></div></div><div class="col-6"><div class="stat-box bg-info text-dark" style="background:#e0f2fe;">ลา<br><span class="fs-4" id="stat-leave-val">-</span></div></div><div class="col-6"><div class="stat-box stat-absent">ขาด<br><span class="fs-4" id="stat-absent-val">-</span></div></div></div>
+                            <small class="text-white-50" id="stat-status-text">* อิงจากวันที่เลือกด้านบน ระบบจะดึงยอดจริงมาแสดง</small>
+                        </div>
+                        <button id="btn-save-record" class="btn btn-success btn-lg w-100 shadow-lg rounded-pill fw-bold py-3" onclick="saveRecord()"><i class="bi bi-save2-fill me-2"></i> บันทึกข้อมูล</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- 2. ฟอร์มตรวจระเบียบ -->
+            <!-- ส่วนอื่นๆ (ตรวจระเบียบ, ประวัติ, ส่งรายงาน, พิมพ์, Dashboard หัวหน้า) คงเดิม -->
             <div id="view-inspect-form" style="display: none;">
                 <h3 class="fw-bold text-dark mb-4"><i class="bi bi-person-check text-primary me-2"></i>ตรวจระเบียบนักเรียน</h3><div class="content-card"><div class="row g-3 mb-2 border-bottom pb-4"><div class="col-md-3"><label class="form-label fw-bold">วันที่ตรวจ</label><input type="date" id="insp-inline-date" class="form-control border-primary text-primary fw-bold"></div><div class="col-md-6"><label class="form-label fw-bold">หมวดหมู่</label><select id="insp-inline-cat" class="form-select border-primary text-primary fw-bold" onchange="checkInlineInspOther()"><option value="" disabled selected>เลือกหมวดหมู่ที่ตรวจ...</option><option value="ทรงผม">ทรงผม</option><option value="การแต่งกาย">การแต่งกาย</option><option value="ถุงเท้า">ถุงเท้า</option><option value="รองเท้า">รองเท้า</option><option value="เล็บ">เล็บ</option><option value="อื่นๆ">อื่น ๆ (ระบุ)</option></select><input type="text" id="insp-inline-other" class="form-control mt-2" style="display:none;" placeholder="ระบุเรื่องที่ตรวจ..."></div><div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="startInlineInspection()"><i class="bi bi-list-check me-1"></i> เริ่มตรวจ</button></div></div><div id="insp-inline-loading" class="text-center py-5 d-none"><span class="spinner-border text-primary"></span><div class="mt-2 text-muted">กำลังดึงรายชื่อนักเรียน...</div></div><div id="insp-inline-container" class="d-none mt-4"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold text-primary m-0"><i class="bi bi-card-checklist me-2"></i>รายชื่อนักเรียน</h5><button class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm" onclick="setAllInlinePass()"><i class="bi bi-check-all"></i> ให้ผ่านทุกคน</button></div><div id="insp-inline-list"></div><div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top"><button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="prevInlineInspPage()" id="btn-insp-prev-in"><i class="bi bi-chevron-left"></i> ก่อนหน้า</button><span class="small fw-bold text-muted" id="insp-inline-page-info">หน้า 1</span><button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="nextInlineInspPage()" id="btn-insp-next-in">ถัดไป <i class="bi bi-chevron-right"></i></button></div><button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow mt-4 fs-5" id="btn-save-inspection" onclick="saveStandaloneInspection()"><i class="bi bi-save2-fill me-1"></i> บันทึกลงระบบ</button></div></div>
             </div>
 
-            <!-- 3. ดูประวัติการตรวจ -->
             <div id="view-inspection-history" style="display: none;">
                 <h3 class="fw-bold text-dark mb-4"><i class="bi bi-search text-primary me-2"></i>ประวัติการตรวจระเบียบ</h3><div class="content-card"><div class="row g-2 mb-4"><div class="col-md-8"><select id="filter-insp-cat" class="form-select border-primary text-primary fw-bold"><option value="" disabled selected>เลือกหมวดหมู่ที่ต้องการดูประวัติ</option><option value="ทรงผม">ทรงผม</option><option value="การแต่งกาย">การแต่งกาย</option><option value="ถุงเท้า">ถุงเท้า</option><option value="รองเท้า">รองเท้า</option><option value="เล็บ">เล็บ</option></select></div><div class="col-md-4"><button class="btn btn-primary w-100 fw-bold" onclick="fetchInspectionHistory()"><i class="bi bi-cloud-download me-1"></i> ดึงข้อมูล</button></div></div><div id="insp-history-content" class="text-center text-muted py-5 border rounded-3 bg-light"><i class="bi bi-inbox fs-1"></i><br>กรุณาเลือกหมวดหมู่และกดดึงข้อมูล</div></div>
             </div>
 
-            <!-- 4. เสนอหัวหน้า -->
             <div id="view-submit" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-send-check-fill text-primary me-2"></i>เสนอหัวหน้าระดับชั้น</h3><p class="text-muted m-0">สรุปรายงานโฮมรูมสัปดาห์นี้ เพื่อให้หัวหน้าเซ็นรับทราบ</p></div><span id="teacher-status-badge" class="badge bg-warning text-dark border p-2 px-3 shadow-sm rounded-pill fs-6"><i class="bi bi-hourglass-split"></i> สถานะ: กำลังโหลดข้อมูล...</span></div><div class="row g-4"><div class="col-lg-7"><div class="content-card h-100"><div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2"><h5 class="fw-bold text-dark m-0"><i class="bi bi-calendar-week text-primary me-2"></i>สรุปข้อมูลรายสัปดาห์</h5><div class="input-group" style="width: auto; max-width: 200px;"><span class="input-group-text bg-light text-primary"><i class="bi bi-calendar-range"></i></span><input type="date" class="form-control border-start-0 ps-0 fw-bold text-primary small" id="week-selector" onchange="generateTimeline()"></div></div><div class="text-center mb-4"><span class="badge bg-light text-dark border p-2 px-3 shadow-sm rounded-pill" id="week-range-display">กำลังคำนวณ...</span></div><div id="timeline-container" class="mt-4 ms-2"></div></div></div><div class="col-lg-5"><div class="content-card bg-primary text-white mb-3" style="border: none;" id="box-submit-action"><h6 class="fw-bold mb-2"><i class="bi bi-envelope-paper me-2"></i>ส่งรายงานสัปดาห์นี้</h6><textarea class="form-control mb-3" rows="2" placeholder="หมายเหตุถึงหัวหน้าระดับ (ถ้ามี)..." id="teacher-note"></textarea><button class="btn btn-warning w-100 fw-bold py-2 shadow" id="btn-submit-head" onclick="teacherSubmitReport()"><i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน</button></div><div class="signature-box" id="teacher-sig-box"><i class="bi bi-file-earmark-lock fs-1 text-muted opacity-25"></i><h6 class="fw-bold mt-2 mb-1 text-muted">ผลการพิจารณา</h6><p class="small text-muted m-0">ไม่มีประวัติการส่งรายงานในสัปดาห์นี้</p></div></div></div>
             </div>
 
-            <!-- 5. พิมพ์รายงาน -->
             <div id="view-print" style="display: none;">
                 <div id="print-controls" class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border"><span class="fw-bold text-muted mx-3"><i class="bi bi-calendar-month"></i> เลือกเดือน:</span><input type="month" id="print-month-selector" class="form-control form-control-sm rounded-pill border-primary text-primary fw-bold" style="width: auto;" onchange="generatePrintReport()"></div><button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i> พิมพ์เอกสาร PDF</button></div><div class="a4-paper"><div class="text-center mb-4"><img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" width="80" class="mb-3"><h4 class="fw-bold">รายงานการจัดกิจกรรมโฮมรูม (Homeroom)</h4><p>ชั้นมัธยมศึกษาปีที่ <span class="current-room-text"></span> ประจำเดือน <span id="print-month-display" class="fw-bold">...</span></p></div><table class="mock-sheet mb-4"><thead><tr><th width="15%">วันที่</th><th width="55%">รายการบันทึกโฮมรูม</th><th width="30%">สถิติ</th></tr></thead><tbody id="print-tbody"><tr><td colspan="3" class="text-center text-muted py-4">กรุณาเลือกเดือนเพื่อดูรายงาน</td></tr></tbody></table><div class="sign-area d-flex justify-content-around align-items-end w-100"><div id="print-teachers-container" class="d-flex justify-content-around flex-wrap" style="width: 60%;"></div><div id="print-head-area" style="width: 35%;"><div id="print-head-pending"><div class="sign-line mt-3"></div><p class="mb-0 text-muted">( รอหัวหน้าระดับรับทราบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small></div><div id="print-head-approved" style="display: none;"><img id="print-head-sig-img" src="" class="preview-sig-img"><br><p class="mb-0">( ผู้ตรวจสอบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small><br><small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small></div></div></div></div>
             </div>
 
-            <!-- 6. โซนหัวหน้า: ตรวจสอบรายงาน -->
             <div id="view-head-dashboard" style="display: none;">
-                <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
-                    <div>
-                        <h3 class="fw-bold text-dark m-0"><i class="bi bi-inboxes-fill text-warning me-2"></i>รายงานที่รอตรวจสอบ</h3>
-                        <p class="text-muted m-0" id="head-dashboard-subtitle">ระดับชั้นมัธยมศึกษา</p>
-                    </div>
-                    <div class="input-group shadow-sm" style="width: auto; max-width: 250px;">
-                        <span class="input-group-text bg-light text-primary border-primary"><i class="bi bi-calendar-week"></i> เลือกสัปดาห์</span>
-                        <input type="date" class="form-control border-primary fw-bold text-primary" id="head-week-selector" onchange="loadHeadDashboard()">
-                    </div>
-                </div>
-                <div class="content-card p-0 overflow-auto">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light"><tr><th class="py-3 px-4">ห้อง</th><th>ผู้ส่ง (ครูที่ปรึกษา)</th><th>สถานะ</th><th class="text-center">จัดการ</th></tr></thead>
-                        <tbody id="head-table-body"></tbody>
-                    </table>
-                </div>
+                <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-inboxes-fill text-warning me-2"></i>รายงานที่รอตรวจสอบ</h3><p class="text-muted m-0" id="head-dashboard-subtitle">ระดับชั้นมัธยมศึกษา</p></div><div class="input-group shadow-sm" style="width: auto; max-width: 250px;"><span class="input-group-text bg-light text-primary border-primary"><i class="bi bi-calendar-week"></i> เลือกสัปดาห์</span><input type="date" class="form-control border-primary fw-bold text-primary" id="head-week-selector" onchange="loadHeadDashboard()"></div></div><div class="content-card p-0 overflow-auto"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th class="py-3 px-4">ห้อง</th><th>ผู้ส่ง (ครูที่ปรึกษา)</th><th>สถานะ</th><th class="text-center">จัดการ</th></tr></thead><tbody id="head-table-body"></tbody></table></div>
             </div>
 
-            <!-- 🌟 7. โซนหัวหน้า: สถิติการส่งโฮมรูม (ใหม่ล่าสุด!) -->
             <div id="view-head-stats" style="display: none;">
-                <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
-                    <div>
-                        <h3 class="fw-bold text-dark m-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>สถิติการส่งโฮมรูม</h3>
-                        <p class="text-muted m-0">ข้อมูลภาพรวมการส่งรายงานของครูที่ปรึกษา</p>
-                    </div>
-                    <button class="btn btn-outline-primary rounded-pill shadow-sm" onclick="loadHeadStats()"><i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล</button>
-                </div>
-
-                <div class="row g-4">
-                    <!-- ส่วนที่ 1: กราฟแท่งจัดอันดับรวม -->
-                    <div class="col-lg-7">
-                        <div class="content-card h-100">
-                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                                <h6 class="fw-bold m-0"><i class="bi bi-graph-up me-2"></i>ยอดการส่งสะสมเรียงจากน้อยไปมาก</h6>
-                                <select id="stats-term-select" class="form-select form-select-sm border-primary text-primary fw-bold" style="width: auto;" onchange="renderOverallChart()">
-                                    <!-- ตัวเลือกภาคเรียนจะถูกใส่ที่นี่อัตโนมัติ -->
-                                </select>
-                            </div>
-                            <div id="stats-overall-loading" class="text-center py-5"><span class="spinner-border text-primary"></span></div>
-                            <div id="stats-overall-chart"></div> <!-- วาดกราฟตรงนี้ -->
-                        </div>
-                    </div>
-                    
-                    <!-- ส่วนที่ 2: เช็คเป็นรายสัปดาห์ (ปฏิทิน) -->
-                    <div class="col-lg-5">
-                        <div class="content-card bg-primary text-white mb-3 border-0">
-                            <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>ตรวจสอบรายสัปดาห์ (เรียงมากไปน้อย)</h6>
-                            <input type="date" class="form-control border-0 fw-bold text-dark" id="stats-week-picker" onchange="renderWeeklyStats()">
-                            <div class="small mt-2 opacity-75" id="stats-week-info">กรุณาเลือกวันที่เพื่อตรวจสอบ</div>
-                        </div>
-                        <div class="content-card p-0 overflow-auto" style="max-height: 400px;">
-                            <table class="table table-hover mb-0 align-middle">
-                                <tbody id="stats-weekly-list">
-                                    <tr><td class="text-center text-muted py-5">กรุณาเลือกวันที่ด้านบน</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>สถิติการส่งโฮมรูม</h3><p class="text-muted m-0">ข้อมูลภาพรวมการส่งรายงานของครูที่ปรึกษา</p></div><button class="btn btn-outline-primary rounded-pill shadow-sm" onclick="loadHeadStats()"><i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล</button></div><div class="row g-4"><div class="col-lg-7"><div class="content-card h-100"><div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3"><h6 class="fw-bold m-0"><i class="bi bi-graph-up me-2"></i>ยอดการส่งสะสมเรียงจากน้อยไปมาก</h6><select id="stats-term-select" class="form-select form-select-sm border-primary text-primary fw-bold" style="width: auto;" onchange="renderOverallChart()"></select></div><div id="stats-overall-loading" class="text-center py-5"><span class="spinner-border text-primary"></span></div><div id="stats-overall-chart"></div></div></div><div class="col-lg-5"><div class="content-card bg-primary text-white mb-3 border-0"><h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>ตรวจสอบรายสัปดาห์ (เรียงมากไปน้อย)</h6><input type="date" class="form-control border-0 fw-bold text-dark" id="stats-week-picker" onchange="renderWeeklyStats()"><div class="small mt-2 opacity-75" id="stats-week-info">กรุณาเลือกวันที่เพื่อตรวจสอบ</div></div><div class="content-card p-0 overflow-auto" style="max-height: 400px;"><table class="table table-hover mb-0 align-middle"><tbody id="stats-weekly-list"><tr><td class="text-center text-muted py-5">กรุณาเลือกวันที่ด้านบน</td></tr></tbody></table></div></div></div>
             </div>
 
         </div>
     </div>
 
-    <!-- Modals ต่างๆ (มีของใหม่คือ statsDetailModal) -->
-    <!-- 1. Modal รีวิวของหัวหน้า -->
+    <!-- Modals ต่างๆ -->
     <div class="modal fade" id="reviewModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content border-0 shadow-lg" style="border-radius: 20px;"><div class="modal-header bg-warning border-0 px-4 py-3"><h5 class="fw-bold m-0 text-dark"><i class="bi bi-search me-2"></i>ตรวจสอบรายงาน: <span id="review-room"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 bg-light"><div class="bg-white p-3 rounded-3 border mb-3 shadow-sm"><h6 class="fw-bold text-primary mb-2">บันทึกข้อมูลในสัปดาห์นี้</h6><table class="table table-sm table-bordered small mb-0"><tr class="table-light"><th width="20%">วันที่</th><th>รายการ</th></tr><tbody id="review-table-body"><tr><td colspan="2" class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary"></span></td></tr></tbody></table></div><div class="alert alert-info border-0 rounded-3 mb-4"><b class="text-dark"><i class="bi bi-chat-left-text-fill text-primary"></i> หมายเหตุจากครู:</b><br><span id="review-teacher-note">กำลังโหลด...</span></div><div class="p-3 bg-white border rounded-3 shadow-sm"><label class="fw-bold text-dark mb-1">หมายเหตุกลับไป (ถ้ามี)</label><input type="text" id="head-remark" class="form-control mb-3" placeholder="รับทราบเรียบร้อยครับ"><label class="fw-bold text-dark mb-1">อัปโหลดลายมือชื่อ</label><div class="d-flex align-items-center gap-3"><div class="position-relative overflow-hidden d-inline-block"><button class="btn btn-outline-primary"><i class="bi bi-upload me-1"></i> เลือกไฟล์รูป</button><input type="file" id="sig-upload" accept="image/*" onchange="previewSignature(event)" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;" /></div><img id="sig-preview" class="preview-sig-img border rounded" src="" style="display: none; background: #fff;"></div></div></div><div class="modal-footer border-0 justify-content-center bg-white pb-4"><button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ปิด</button><button id="btn-approve" type="button" class="btn btn-success rounded-pill px-5 fw-bold shadow" onclick="headApproveReport()"><i class="bi bi-check2-all me-1"></i> รับทราบและอนุมัติ</button></div></div></div></div>
-
-    <!-- 2. Modal ดึงข้อมูลสรุปการตรวจ -->
+    
     <div class="modal fade" id="pullSummaryModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius: 20px;"><div class="modal-header bg-primary text-white border-0 px-4 py-3"><h5 class="fw-bold m-0"><i class="bi bi-cloud-arrow-down me-2"></i>ดึงข้อมูลสรุปการตรวจ</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 bg-light"><div id="pull-summary-loading" class="text-center py-4"><span class="spinner-border text-primary"></span></div><div id="pull-summary-list" class="d-none" style="max-height: 350px; overflow-y: auto;"></div></div><div class="modal-footer border-0 justify-content-center bg-white pb-4"><button type="button" class="btn btn-success rounded-pill px-5 fw-bold shadow" onclick="insertSelectedSummaries()"><i class="bi bi-check2-square me-1"></i> นำไปใส่เรื่องอื่นๆ</button></div></div></div></div>
-
-    <!-- 🌟 3. Modal ดูรายละเอียดสัปดาห์ที่ส่ง (ใหม่) -->
+    
     <div class="modal fade" id="statsDetailModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg" style="border-radius: 20px;"><div class="modal-header bg-info text-dark border-0 px-4 py-3"><h6 class="fw-bold m-0" id="stats-detail-title">รายละเอียด</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 text-center bg-light"><div class="display-1 text-primary mb-2"><i class="bi bi-journal-check"></i></div><h5 class="fw-bold text-dark" id="stats-detail-count">0 ครั้ง</h5><p class="text-muted small mb-3">รายการสัปดาห์ที่ส่งรายงานแล้ว:</p><div id="stats-detail-list" class="d-flex flex-wrap justify-content-center gap-2"></div></div><div class="modal-footer border-0 justify-content-center"><button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button></div></div></div></div>
+
+    <!-- 🌟 MODAL ใหม่: หน้าต่างเลือกรายชื่อนักเรียน -->
+    <div class="modal fade" id="studentSelectorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white border-0 px-4 py-3">
+                    <h5 class="fw-bold m-0"><i class="bi bi-people-fill me-2"></i>เลือกรายชื่อนักเรียน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="small fw-bold text-primary" id="student-selector-info"><i class="bi bi-person-check-fill"></i> เลือกแล้ว 0 คน</span>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="selectAllStudentsSelector()">เลือกหน้านี้ทั้งหมด</button>
+                    </div>
+                    <div id="student-selector-list" class="mb-3">
+                        <!-- รายชื่อนักเรียนจะถูกสร้างที่นี่อัตโนมัติ -->
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" onclick="prevStudentSelectorPage()" id="btn-ss-prev"><i class="bi bi-chevron-left"></i> ก่อนหน้า</button>
+                        <span class="small fw-bold text-muted" id="ss-page-info">หน้า 1</span>
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" onclick="nextStudentSelectorPage()" id="btn-ss-next">ถัดไป <i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-white pb-4">
+                    <button type="button" class="btn btn-success rounded-pill px-5 fw-bold shadow" onclick="confirmStudentSelection()"><i class="bi bi-check2-square me-1"></i> ยืนยันการเลือก</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -291,11 +320,124 @@
             if(el) { document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active', 'active-head')); el.classList.add(appState.role === 'head' ? 'active-head' : 'active'); toggleSidebar(); }
             document.querySelectorAll('.main-content > div').forEach(d => d.style.display = 'none'); document.getElementById('view-' + menuId).style.display = 'block';
             if (menuId === 'print') generatePrintReport();
-            if (menuId === 'head-stats') loadHeadStats(); // โหลดสถิติใหม่เมื่อกดเข้าเมนู
+            if (menuId === 'head-stats') loadHeadStats();
         }
         
         function toggleInput(id, cb) { document.getElementById(id).style.display = cb.checked ? 'block' : 'none'; }
-        let scholarCount = 1; function addScholarRow() { scholarCount++; const list = document.getElementById('scholar-list'); const newRow = document.createElement('div'); newRow.className = 'input-group mb-2'; newRow.innerHTML = `<span class="input-group-text bg-light border-end-0">รายชื่อ ${scholarCount}</span><input type="text" class="form-control scholar-name border-start-0" placeholder="ชื่อ-สกุล นักเรียนรับทุน">`; list.appendChild(newRow); }
+
+        // ====================================================
+        // 🌟 ระบบเลือกรายชื่อนักเรียนแบบอัตโนมัติ (ใหม่ล่าสุด!)
+        // ====================================================
+        let selectedStudentsFor = { health: [], parent: [], scholar: [] };
+        let currentSelectorTarget = '';
+        let studentSelectorPage = 0;
+        const STUDENT_SELECTOR_PER_PAGE = 10;
+        let studentSelectorModalInstance = null;
+
+        async function openStudentSelector(target) {
+            currentSelectorTarget = target;
+            studentSelectorPage = 0;
+            
+            if(!studentSelectorModalInstance) {
+                studentSelectorModalInstance = new bootstrap.Modal(document.getElementById('studentSelectorModal'));
+            }
+            
+            studentSelectorModalInstance.show();
+            
+            // ตรวจสอบว่าดึงรายชื่อห้องมาหรือยัง ถ้ายังให้วิ่งไปดึงมาก่อน
+            if (appState.students.length === 0) {
+                document.getElementById('student-selector-list').innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary"></span><div class="mt-2 small text-muted">กำลังดึงข้อมูลรายชื่อ...</div></div>';
+                try {
+                    const res = await sendToAPI({ action: "getStudents", room: appState.room });
+                    if(res.success) { 
+                        appState.students = res.students || res.data; 
+                        appState.inspResults = appState.students.map(s => ({ id: s.id, name: s.name, status: "ผ่าน", isChecked: false }));
+                        renderStudentSelector();
+                    } else { 
+                        document.getElementById('student-selector-list').innerHTML = '<div class="text-danger text-center">ดึงข้อมูลล้มเหลว</div>'; 
+                    }
+                } catch(e) {
+                    document.getElementById('student-selector-list').innerHTML = '<div class="text-danger text-center">เชื่อมต่อล้มเหลว</div>';
+                }
+            } else {
+                renderStudentSelector(); // ถ้าเคยดึงมาแล้ว ก็แค่โชว์หน้าจอเลย
+            }
+        }
+
+        function renderStudentSelector() {
+            const list = document.getElementById('student-selector-list');
+            let html = '';
+            let start = studentSelectorPage * STUDENT_SELECTOR_PER_PAGE;
+            let end = Math.min(start + STUDENT_SELECTOR_PER_PAGE, appState.students.length);
+            
+            let selectedSet = new Set(selectedStudentsFor[currentSelectorTarget].map(s => s.id));
+
+            for(let i = start; i < end; i++) {
+                let s = appState.students[i];
+                let isChecked = selectedSet.has(s.id) ? 'checked' : '';
+                html += `
+                <label class="form-check mb-2 bg-white p-3 border rounded-3 shadow-sm d-flex align-items-center" style="cursor: pointer; transition: 0.2s;">
+                    <input class="form-check-input ms-1 me-3 ss-checkbox fs-4" type="checkbox" value="${s.id}" data-name="${s.name}" ${isChecked} onchange="toggleStudentSelection('${s.id}', '${s.name}', this.checked)">
+                    <div class="fw-bold text-dark" style="font-size: 1rem;">${i+1}. ${s.name} <span class="small text-muted fw-normal ms-1">(${s.id})</span></div>
+                </label>`;
+            }
+            list.innerHTML = html;
+            
+            document.getElementById('btn-ss-prev').disabled = (studentSelectorPage === 0);
+            document.getElementById('btn-ss-next').disabled = (end >= appState.students.length);
+            document.getElementById('ss-page-info').innerText = `หน้า ${studentSelectorPage + 1} / ${Math.ceil(appState.students.length / STUDENT_SELECTOR_PER_PAGE)}`;
+            
+            updateStudentSelectorInfo();
+        }
+
+        function toggleStudentSelection(id, name, isChecked) {
+            if (isChecked) {
+                if (!selectedStudentsFor[currentSelectorTarget].find(s => s.id === id)) {
+                    selectedStudentsFor[currentSelectorTarget].push({id: id, name: name});
+                }
+            } else {
+                selectedStudentsFor[currentSelectorTarget] = selectedStudentsFor[currentSelectorTarget].filter(s => s.id !== id);
+            }
+            updateStudentSelectorInfo();
+        }
+
+        function updateStudentSelectorInfo() {
+            let count = selectedStudentsFor[currentSelectorTarget].length;
+            document.getElementById('student-selector-info').innerHTML = `<i class="bi bi-person-check-fill"></i> เลือกแล้ว <b>${count}</b> คน`;
+        }
+
+        function selectAllStudentsSelector() {
+            let checkboxes = document.querySelectorAll('.ss-checkbox');
+            checkboxes.forEach(cb => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    toggleStudentSelection(cb.value, cb.getAttribute('data-name'), true);
+                }
+            });
+        }
+
+        function prevStudentSelectorPage() {
+            if(studentSelectorPage > 0) { studentSelectorPage--; renderStudentSelector(); }
+        }
+
+        function nextStudentSelectorPage() {
+            if((studentSelectorPage+1)*STUDENT_SELECTOR_PER_PAGE < appState.students.length) { studentSelectorPage++; renderStudentSelector(); }
+        }
+
+        function confirmStudentSelection() {
+            let selected = selectedStudentsFor[currentSelectorTarget];
+            let containerId = `selected-students-${currentSelectorTarget}`;
+            let container = document.getElementById(containerId);
+            
+            if (selected.length > 0) {
+                let names = selected.map(s => s.name).join(', ');
+                container.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ผู้ที่ถูกเลือก (${selected.length} คน):</span> <span class="text-dark">${names}</span>`;
+            } else {
+                container.innerHTML = '';
+            }
+            studentSelectorModalInstance.hide();
+        }
+
 
         async function fetchDailyStats() {
             const dateVal = document.getElementById('record-date-input').value; if (!dateVal) return;
@@ -309,27 +451,60 @@
             } catch(e) { appState.currentStatsStr = "ไม่พบสถิติ"; document.getElementById('stat-total-val').innerText = '?'; }
         }
 
+        // 🌟 อัปเดตฟังก์ชันบันทึกข้อมูล ให้เก็บรายชื่อที่ติ๊กเลือกเข้าไปด้วย
         async function saveRecord() {
             let details = [];
-            if(document.getElementById('chk-announce').checked) details.push(`<b>1. ประกาศ:</b> ${document.getElementById('val-announce').value || '(ไม่ระบุ)'}`);
-            if(document.getElementById('chk-nail').checked) details.push(`<b>2. ตรวจสุขภาพ:</b> พบ ${document.getElementById('val-nail').value || 0} คน`);
+            
+            if(document.getElementById('chk-announce').checked) {
+                details.push(`<b>1. ประกาศ:</b> ${document.getElementById('val-announce').value || '(ไม่ระบุ)'}`);
+            }
+            
+            // ข้อ 2 ตรวจสุขภาพ/ระเบียบ
+            if(document.getElementById('chk-health').checked) {
+                let healthOther = document.getElementById('val-health-other').value;
+                let selectedCount = selectedStudentsFor['health'].length;
+                let selectedStr = selectedCount > 0 ? ` <br><span style="color:#2563eb; font-size:0.9em;">[ รายชื่อที่เกี่ยวข้อง ${selectedCount} คน: ${selectedStudentsFor['health'].map(s=>s.name).join(', ')} ]</span>` : '';
+                details.push(`<b>2. ตรวจระเบียบ/สุขภาพ:</b> ${healthOther || '(ตรวจสอบเรียบร้อย)'}${selectedStr}`);
+            }
+            
+            // ข้อ 3 ประสาน ผปค.
             if(document.getElementById('chk-parent').checked) {
-                let pTopics = []; if(document.getElementById('p-grade').checked) pTopics.push("ผลการเรียน"); if(document.getElementById('p-beh').checked) pTopics.push("ความประพฤติ");
-                let pOther = document.getElementById('val-parent-other').value; if(pOther) pTopics.push(pOther);
-                details.push(`<b>3. ติดต่อ ผปค.:</b> ${pTopics.length > 0 ? pTopics.join(', ') : '(ไม่ระบุ)'}`);
+                let pTopics = []; 
+                if(document.getElementById('p-grade').checked) pTopics.push("ผลการเรียน"); 
+                if(document.getElementById('p-beh').checked) pTopics.push("ความประพฤติ");
+                let pOther = document.getElementById('val-parent-other').value; 
+                if(pOther) pTopics.push(pOther);
+                
+                let selectedCount = selectedStudentsFor['parent'].length;
+                let selectedStr = selectedCount > 0 ? ` <br><span style="color:#2563eb; font-size:0.9em;">[ รายชื่อนักเรียน ${selectedCount} คน: ${selectedStudentsFor['parent'].map(s=>s.name).join(', ')} ]</span>` : '';
+                
+                details.push(`<b>3. ติดต่อ ผปค.:</b> ${pTopics.length > 0 ? pTopics.join(', ') : '(ไม่ระบุ)'}${selectedStr}`);
             }
+            
+            // ข้อ 4 มอบทุน
             if(document.getElementById('chk-scholar').checked) {
-                let scholars = []; document.querySelectorAll('.scholar-name').forEach(el => { if(el.value) scholars.push(el.value); });
-                details.push(`<b>4. มอบทุน:</b> ${scholars.length} ราย (${scholars.join(', ')})`);
+                let scholarOther = document.getElementById('val-scholar-other').value;
+                let selectedCount = selectedStudentsFor['scholar'].length;
+                let selectedStr = selectedCount > 0 ? ` <br><span style="color:#2563eb; font-size:0.9em;">[ รายชื่อผู้รับทุน ${selectedCount} คน: ${selectedStudentsFor['scholar'].map(s=>s.name).join(', ')} ]</span>` : '';
+                details.push(`<b>4. มอบทุน:</b> ${scholarOther || '(มอบทุนการศึกษา)'}${selectedStr}`);
             }
-            if(document.getElementById('chk-other').checked) details.push(`<b>5. อื่นๆ:</b> ${document.getElementById('val-other').value || '(ไม่ระบุ)'}`);
+            
+            // ข้อ 5 อื่นๆ
+            if(document.getElementById('chk-other').checked) {
+                details.push(`<b>5. อื่นๆ:</b> ${document.getElementById('val-other').value || '(ไม่ระบุ)'}`);
+            }
+            
             if(details.length === 0) return alert("กรุณาเลือกบันทึกอย่างน้อย 1 รายการ");
             
-            const btn = document.getElementById('btn-save-record'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...'; btn.disabled = true;
+            appState.reportDetails = details.join('<br>');
+            const btn = document.getElementById('btn-save-record'); const originalHtml = btn.innerHTML; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...'; btn.disabled = true;
+            
             try {
-                await sendToAPI({ action: 'saveRecord', room: appState.room, date: document.getElementById('record-date-input').value, details: details.join('<br><br>'), stats: appState.currentStatsStr || "ไม่มีข้อมูลสถิติ" });
-                alert("✨ บันทึกข้อมูลโฮมรูมเรียบร้อยแล้วครับ"); document.getElementById('week-selector').value = document.getElementById('record-date-input').value; switchMenu('submit', document.querySelectorAll('.nav-link')[3]); generateTimeline(); 
-            } catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); } finally { btn.innerHTML = '<i class="bi bi-save2-fill me-2"></i> บันทึกข้อมูล'; btn.disabled = false; }
+                await sendToAPI({ action: 'saveRecord', room: appState.room, date: document.getElementById('record-date-input').value, details: appState.reportDetails, stats: appState.currentStatsStr || "ไม่มีข้อมูลสถิติ" });
+                alert("✨ บันทึกข้อมูลโฮมรูมเรียบร้อยแล้วครับ"); 
+                document.getElementById('week-selector').value = document.getElementById('record-date-input').value; 
+                switchMenu('submit', document.querySelectorAll('.nav-link')[3]); generateTimeline(); 
+            } catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
         const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
@@ -363,7 +538,7 @@
             if (appState.students.length === 0) {
                 try {
                     const res = await sendToAPI({ action: "getStudents", room: appState.room });
-                    if(res.success) { appState.students = res.students; appState.inspResults = appState.students.map(s => ({ id: s.id, name: s.name, status: "ผ่าน", isChecked: false })); } 
+                    if(res.success) { appState.students = res.students || res.data; appState.inspResults = appState.students.map(s => ({ id: s.id, name: s.name, status: "ผ่าน", isChecked: false })); } 
                     else { alert(res.error); document.getElementById('insp-inline-loading').classList.add('d-none'); return; }
                 } catch(e) { alert("เชื่อมต่อล้มเหลว"); document.getElementById('insp-inline-loading').classList.add('d-none'); return; }
             } else { appState.inspResults.forEach(s => { s.status = "ผ่าน"; s.isChecked = false; }); }
@@ -559,27 +734,26 @@
         }
 
         // ====================================================
-        // 🌟 ระบบสถิติสำหรับหัวหน้าระดับ (ฟีเจอร์ใหม่)
+        // 🌟 ระบบสถิติสำหรับหัวหน้าระดับ
         // ====================================================
         let rawStatsData = {}; 
-        let parsedStatsMap = {}; // โครงสร้าง: year -> term -> room -> Set(weeks)
+        let parsedStatsMap = {}; 
         let allRoomsForLevel = [];
 
-        // ฟังก์ชันอัจฉริยะคำนวณ "สัปดาห์ที่" ของโรงเรียน
         function getSchoolWeek(dateStr) {
             let parts = dateStr.split('-');
             if(parts.length !== 3) return null;
             let year = parseInt(parts[0]);
-            let month = parseInt(parts[1]) - 1; // 0-indexed (0=Jan, 4=May, 10=Nov)
+            let month = parseInt(parts[1]) - 1; 
             let day = parseInt(parts[2]);
             let d = new Date(year, month, day);
 
-            let t1Start = new Date(year, 4, 10); // 10 พ.ค.
-            let t2Start = new Date(year, 10, 1); // 1 พ.ย.
+            let t1Start = new Date(year, 4, 10); 
+            let t2Start = new Date(year, 10, 1); 
 
             let targetTerm = 1;
             let targetStart = t1Start;
-            let academicYear = year + 543; // ปีการศึกษาไทย
+            let academicYear = year + 543; 
 
             if (d < t1Start) {
                 targetTerm = 2;
@@ -594,7 +768,7 @@
             let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             let week = Math.floor(diffDays / 7) + 1;
             
-            if (week < 1 || week > 20) return null; // นับสูงสุด 20 สัปดาห์
+            if (week < 1 || week > 20) return null; 
             return { term: targetTerm, week: week, year: academicYear };
         }
 
@@ -603,8 +777,11 @@
             document.getElementById('stats-overall-chart').innerHTML = '';
             
             let level = appState.room.replace('ม.', '');
+            
+            // 🌟 แก้ไข: ถ้าระดับชั้นเป็น ม.4 ให้สร้างอาร์เรย์ 12 ห้อง
+            let maxRooms = (level === '4') ? 12 : 10;
             allRoomsForLevel = [];
-            for(let i=1; i<=10; i++) allRoomsForLevel.push(`ม.${level}/${i}`);
+            for(let i=1; i<=maxRooms; i++) allRoomsForLevel.push(`ม.${level}/${i}`);
 
             try {
                 const res = await sendToAPI({ action: 'getHomeroomStats', level: level });
@@ -612,7 +789,6 @@
                     rawStatsData = res.data;
                     parsedStatsMap = {};
                     
-                    // คำนวณและจัดกลุ่มข้อมูล
                     for (let room in rawStatsData) {
                         rawStatsData[room].forEach(dateStr => {
                             let weekInfo = getSchoolWeek(dateStr);
@@ -621,12 +797,11 @@
                                 if (!parsedStatsMap[y]) parsedStatsMap[y] = {};
                                 if (!parsedStatsMap[y][t]) parsedStatsMap[y][t] = {};
                                 if (!parsedStatsMap[y][t][room]) parsedStatsMap[y][t][room] = new Set();
-                                parsedStatsMap[y][t][room].add(w); // ใช้ Set เพื่อให้นับสัปดาห์ละ 1 ครั้ง
+                                parsedStatsMap[y][t][room].add(w); 
                             }
                         });
                     }
                     
-                    // สร้างตัวเลือกใน Dropdown (ภาคเรียน)
                     const termSelect = document.getElementById('stats-term-select');
                     termSelect.innerHTML = '';
                     let availableTerms = [];
@@ -635,9 +810,8 @@
                             availableTerms.push({y: y, t: t});
                         }
                     }
-                    availableTerms.sort((a,b) => (b.y - a.y) || (b.t - a.t)); // เรียงล่าสุดขึ้นก่อน
+                    availableTerms.sort((a,b) => (b.y - a.y) || (b.t - a.t)); 
                     
-                    // ถ้าไม่มีข้อมูลเลย ให้สร้างตัวเลือกปัจจุบันแบบหลอกๆ ไว้
                     if (availableTerms.length === 0) {
                         let curr = getSchoolWeek(formatISODate(new Date()));
                         if(curr) availableTerms.push({y: curr.year, t: curr.term});
@@ -658,7 +832,6 @@
             document.getElementById('stats-overall-loading').classList.add('d-none');
         }
 
-        // วาดกราฟแท่ง (เรียงจากน้อยไปมาก)
         function renderOverallChart() {
             const chartDiv = document.getElementById('stats-overall-chart');
             const termVal = document.getElementById('stats-term-select').value;
@@ -667,7 +840,6 @@
             let [selectedYear, selectedTerm] = termVal.split('-');
             let chartData = [];
             
-            // เตรียมข้อมูล 10 ห้อง (ถ้าไม่มีให้เป็น 0)
             allRoomsForLevel.forEach(room => {
                 let wSet = parsedStatsMap[selectedYear]?.[selectedTerm]?.[room];
                 let count = wSet ? wSet.size : 0;
@@ -675,12 +847,11 @@
                 chartData.push({ room: room, count: count, weeks: weeksArray });
             });
 
-            // 🌟 เรียงจาก "น้อยไปหามาก"
             chartData.sort((a, b) => a.count - b.count);
 
             let html = '';
             chartData.forEach(item => {
-                let percent = (item.count / 20) * 100; // เทียบจากสูงสุด 20 สัปดาห์
+                let percent = (item.count / 20) * 100; 
                 if (percent > 100) percent = 100;
                 let colorClass = item.count === 0 ? "background-color: #ef4444;" : "background: linear-gradient(90deg, #3b82f6, #60a5fa);";
                 
@@ -696,7 +867,6 @@
             chartDiv.innerHTML = html;
         }
 
-        // โชว์รายสัปดาห์ฝั่งขวา (ปฏิทิน -> เรียงมากไปน้อย)
         function renderWeeklyStats() {
             const tbody = document.getElementById('stats-weekly-list');
             const dateStr = document.getElementById('stats-week-picker').value;
@@ -715,12 +885,10 @@
             
             let weekData = [];
             allRoomsForLevel.forEach(room => {
-                // เช็คว่าใน ปี/เทอม/ห้อง นี้ มีสัปดาห์ที่เลือกอยู่ไหม?
                 let hasSubmitted = parsedStatsMap[weekInfo.year]?.[weekInfo.term]?.[room]?.has(weekInfo.week) ? 1 : 0;
                 weekData.push({ room: room, count: hasSubmitted });
             });
 
-            // 🌟 เรียงจาก "มากไปหาน้อย" (ส่งแล้ว ขึ้นก่อน)
             weekData.sort((a, b) => b.count - a.count);
 
             let html = '';
@@ -734,7 +902,6 @@
             tbody.innerHTML = html;
         }
 
-        // โชว์ Modal รายละเอียดเมื่อคลิกที่กราฟ
         function showStatsDetail(room, weeksStr) {
             document.getElementById('stats-detail-title').innerText = "ข้อมูลห้อง " + room;
             
