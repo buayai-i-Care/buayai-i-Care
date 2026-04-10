@@ -75,7 +75,13 @@
                 <a class="nav-link active" onclick="switchMenu('check-in', this)"><i class="bi bi-person-check me-2"></i> เช็คชื่อนักเรียน</a>
                 <a class="nav-link" onclick="switchMenu('report', this)"><i class="bi bi-pie-chart me-2"></i> สถิติภาพรวม</a>
                 <a class="nav-link" onclick="switchMenu('print', this)"><i class="bi bi-file-earmark-spreadsheet me-2"></i> ออกรายงาน Excel</a>
+                
+                <div class="border-top border-secondary my-2 opacity-50"></div>
+                <a class="nav-link text-warning fw-bold" style="background: rgba(255, 193, 7, 0.1);" onclick="openHomeroomApp()">
+                    <i class="bi bi-journal-bookmark-fill me-2"></i> บันทึกโฮมรูม (แยกไฟล์)
+                </a>
             </div>
+            
             <div class="p-3 border-top border-secondary">
                 <div class="small mb-2 text-info opacity-75 text-truncate" id="user-display">ผู้ใช้: -</div>
                 <button class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="location.reload()">ออกจากระบบ</button>
@@ -91,7 +97,6 @@
             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                 <div>
                     <h3 id="page-title" class="fw-bold m-0 text-dark">เช็คชื่อนักเรียน</h3>
-                    
                     <div class="mt-2" id="date-picker-container">
                         <label class="small fw-bold text-muted mb-1"><i class="bi bi-calendar-event"></i> เลือกวันที่เช็คชื่อ:</label>
                         <input type="date" id="checkin-date" class="form-control rounded-pill border-primary shadow-sm" style="max-width: 200px; font-weight: bold;">
@@ -150,6 +155,7 @@
                     </button>
                 </div>
             </div>
+    
         </div>
     </div>
 
@@ -180,10 +186,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ================================================================
-        // ⚠️ นำลิงก์ Web App API มาใส่ที่บรรทัดด้านล่างนี้นะครับ ⚠️
+        // ⚠️ ลิงก์ Web App API ระบบเช็คชื่อเข้าแถว (ของเดิม)
         // ================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbziKXkyGcrMr-stjk-DOJdCY9PJSTGdcnJG88mUa-Gf8vLBdI1-1qLFU9FvSR13uFszvQ/exec"; 
-
+        const API_URL = "https://script.google.com/macros/s/AKfycbziKXkyGcrMr-stjk-DOJdCY9PJSTGdcnJG88mUa-Gf8vLBdI1-1qLFU9FvSR13uFszvQ/exec";
+        
         let currentUser = {}, studentData = [], pendingData = [], lastStat = null;
         google.charts.load('current', {'packages':['corechart']});
 
@@ -191,7 +197,6 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 return await response.json();
@@ -216,7 +221,6 @@
             document.getElementById('content-print').style.display = m==='print'?'block':'none';
             document.getElementById('page-title').innerText = el.innerText;
             
-            // ซ่อน/แสดง กล่องปฏิทินเลือกวันที่
             const datePicker = document.getElementById('date-picker-container');
             if (datePicker) {
                 datePicker.style.display = (m === 'check-in') ? 'block' : 'none';
@@ -224,6 +228,34 @@
 
             if(m === 'report') loadAdvancedStats();
             if(window.innerWidth <= 768) toggleSidebar();
+        }
+
+        // ================================================================
+        // 🌟 ระบบเปิดหน้าโฮมรูมตามระดับชั้น
+        // ================================================================
+        function openHomeroomApp() {
+            let u = document.getElementById('username').value.trim().toLowerCase();
+            let level = '1';
+
+            // ดึงตัวเลขชั้นมาจากข้อมูลห้อง (เช่น ถ้าห้องเป็น "ม.2/1" จะได้เลข "2")
+            if (currentUser && currentUser.assignedClass) {
+                let match = currentUser.assignedClass.match(/(\d)/); 
+                if (match) {
+                    level = match[1];
+                }
+            } else {
+                // เผื่อกรณีดึงจากห้องไม่ได้ ให้ดึงจาก username
+                if (u.startsWith('m')) {
+                    level = u.replace('m', '');
+                } else if (u.startsWith('t')) {
+                    level = u.charAt(1);
+                    if (level === '0') level = '1';
+                }
+            }
+
+            // เปิดหน้า homeroomX.html พร้อมส่งพารามิเตอร์ user ติดไปด้วย
+            let targetUrl = `homeroom${level}.html?user=${u}`;
+            window.open(targetUrl, '_blank');
         }
 
         function showCustomAlert(title, message, type='success', hideCloseBtn = false) {
@@ -258,7 +290,8 @@
 
                 loadStudents();
             } else { 
-                btn.disabled = false; btn.innerHTML = "เข้าสู่ระบบ"; 
+                btn.disabled = false;
+                btn.innerHTML = "เข้าสู่ระบบ"; 
                 document.getElementById('login-msg').innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"; 
             }
         }
@@ -309,7 +342,8 @@
 
         function collapseCard(id, s) { 
             const c = document.getElementById(`card-${id}`), d = document.getElementById(`status-display-${id}`); 
-            c.classList.add('checked'); d.innerText = s + " (แก้)"; d.classList.remove('d-none'); 
+            c.classList.add('checked'); 
+            d.innerText = s + " (แก้)"; d.classList.remove('d-none'); 
             d.className = 'badge status-badge-display ms-1 ' + (s==='มา'?'bg-success':s==='สาย'?'bg-danger':s==='ขาด'?'bg-secondary':'bg-warning text-dark'); 
         }
 
@@ -325,7 +359,6 @@
             });
             let s = {'มา':0, 'สาย':0, 'ลป':0, 'ลก':0, 'ขาด':0}; 
             pendingData.forEach(i => s[i.status]++);
-            
             document.getElementById('summaryBody').innerHTML = `
                 <div class="row g-2 text-white mb-3">
                     <div class="col-4"><div class="p-2 rounded bg-success small shadow-sm">มา: ${s['มา']}</div></div>
@@ -343,7 +376,6 @@
             btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
             
             const checkDate = document.getElementById('checkin-date').value;
-            
             const res = await fetchAPI({ 
                 action: 'saveAttendance', 
                 className: currentUser.assignedClass, 
@@ -354,7 +386,6 @@
             
             bootstrap.Modal.getInstance(document.getElementById('summaryModal')).hide();
             btn.disabled = false; btn.innerHTML = "ยืนยันบันทึก";
-            
             if(res && res.status === 'success') {
                 showCustomAlert("สำเร็จ!", res.message, "success");
                 loadStudents();
@@ -387,7 +418,6 @@
             btn.disabled = true; btn.innerHTML = "<span class='spinner-border spinner-border-sm'></span> กำลังประมวลผล...";
             
             const res = await fetchAPI({ action: 'createFilteredReport', className: currentUser.assignedClass, type: type, dateVal: dateVal });
-            
             btn.disabled = false; btn.innerHTML = "<i class='bi bi-file-earmark-arrow-down'></i> เริ่มสร้างรายงาน";
             
             if(res && res.status === 'success') { 
@@ -403,7 +433,7 @@
             if(!res) return; lastStat = res; 
             
             const d = google.visualization.arrayToDataTable([['สถานะ','จำนวน'],['มา',res.pieData['มา'].length],['ลป',res.pieData['ลป'].length],['ลก',res.pieData['ลก'].length],['สาย',res.pieData['สาย'].length],['ขาด',res.pieData['ขาด'].length]]); 
-            new google.visualization.PieChart(document.getElementById('chart_div')).draw(d, { pieHole: 0.4, chartArea: {width:'100%', height:'80%'}, colors: ['#10b981','#f59e0b','#3b82f6','#ef4444','#64748b'], legend: {position:'bottom'} }); 
+            new google.visualization.PieChart(document.getElementById('chart_div')).draw(d, { pieHole: 0.4, chartArea: {width:'100%', height:'80%'}, colors: ['#10b981','#f59e0b','#3b82f6','#ef4444','#64748b'], legend: {position:'bottom'} });
             let top10 = res.top10.map((t, i) => `<div class="d-flex justify-content-between mb-1"><span>${i+1}. ${t.name}</span> <span class="badge bg-danger rounded-pill">${t.count} ครั้ง</span></div>`).join(''); 
             document.getElementById('top10-res').innerHTML = top10 || '-'; 
         }
@@ -411,11 +441,10 @@
         async function loadHistory(id, el) { 
             el.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
             const res = await fetchAPI({ action: 'getStudentHistory', cls: currentUser.assignedClass, id: id });
-            
             if(res) {
-                document.getElementById(`history-res-${id}`).innerHTML = `<i class="bi bi-clock"></i> 3 วันล่าสุด: <span class="fw-bold">${res}</span>`; 
+                document.getElementById(`history-res-${id}`).innerHTML = `<i class="bi bi-clock"></i> 3 วันล่าสุด: <span class="fw-bold">${res}</span>`;
             }
-            el.innerHTML = '<i class="bi bi-clock-history"></i> ประวัติ'; 
+            el.innerHTML = '<i class="bi bi-clock-history"></i> ประวัติ';
         }
     </script>
 </body>
