@@ -94,7 +94,7 @@
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="70" class="bg-white rounded-circle p-1 shadow-sm border">
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                 <div>
                     <h3 id="page-title" class="fw-bold m-0 text-dark">เช็คชื่อนักเรียน</h3>
                     <div class="mt-2" id="date-picker-container">
@@ -106,10 +106,9 @@
             </div>
 
             <div id="content-check-in">
-                <div id="student-list" class="row g-3"></div>
+                <!-- เพิ่ม style="padding-bottom: 120px;" เข้าไปที่บรรทัดนี้ -->
+                <div id="student-list" class="row g-3" style="padding-bottom: 120px;"></div>
                 <div class="sticky-save">
-                    <br>
-                    <br>
                     <button class="btn btn-success btn-lg w-100 shadow-lg rounded-pill py-3 fw-bold" onclick="submitAttendance()">
                         <i class="bi bi-cloud-upload me-2"></i>บันทึกข้อมูล
                     </button>
