@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ระบบบันทึกเวลาควบคุมนักเรียน ร่วมกิจกรรมพิธีการหน้าเสาธง โรงเรียนบัวใหญ่</title>
+  
+  <!-- Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    /* 1. Theme: Lime Background */
+    body { font-family: 'Sarabun', sans-serif; background-color: #f7fee7; }
+    
+    /* 2. Card Styles (Pink/Green Theme) */
+    .student-card-manual { background-color: #ffe4e6; border: 2px solid #fda4af; cursor: pointer; transition: 0.1s; }
+    .student-card-manual:active { transform: scale(0.98); }
+    .student-card-auto { background-color: #15803d; color: white; border: 1px solid #14532d; cursor: default; }
+    
+    /* 3. Status Colors */
+    .status-present { background-color: #15803d; color: white; }
+    .status-late { background-color: #f59e0b; color: white; }
+    .status-absent-pending { background-color: #fecaca; color: #7f1d1d; }
+    
+    .hidden { display: none; }
+    .hidden-section { display: none !important; }
+    
+    /* 4. Stats UI */
+    .stat-card { @apply bg-white p-4 rounded-lg shadow-sm border border-gray-200; }
+    .rank-badge { @apply w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mr-2; }
+    .noselect { -webkit-user-select: none; user-select: none; }
+    
+    /* 5. Edit Mode */
+    .edit-card { background-color: white; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+
+    /* Dynamic Visibility */
+    .student-card-auto .student-name, 
+    .status-present .student-name,
+    .status-late .student-name, 
+    .status-absent-pending .student-name { display: none; }
+    .status-absent-pending .student-name { display: block; }
+  </style>
+</head>
+<body class="text-gray-800">
+
+  <div class="container mx-auto max-w-lg p-4 min-h-screen">
+    
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6">
+      <div id="clock" class="text-3xl font-bold text-slate-700 bg-white px-4 py-2 rounded-lg shadow-sm border border-lime-200">--:--</div>
+      <div class="text-right">
+        <h1 class="text-lg font-bold text-lime-900">ระบบบันทึกการควบคุมนักเรียนร่วมกิจกรรมพิธีการหน้าเสาธง</h1>
+        <p class="text-xs text-gray-500">โรงเรียนบัวใหญ่</p>
+      </div>
+    </div>
+
+    <!-- VIEW 1: CLASS SELECTOR -->
+    <div id="view-selector" class="space-y-4">
+      <div class="bg-white p-4 rounded-lg border border-lime-200 text-center shadow-sm">
+        <p class="text-sm text-lime-800 font-bold mb-2">กรุณาระบุรหัสเพื่อเข้าใช้งาน</p>
+        <input type="password" id="teacherId" class="w-full p-3 border border-lime-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-lime-500" placeholder="รหัสผ่าน">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="accessClass('m1')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.1</button>
+        <button onclick="accessClass('m2')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.2</button>
+        <button onclick="accessClass('m3')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.3</button>
+        <button onclick="accessClass('m4')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.4</button>
+        <button onclick="accessClass('m5')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.5</button>
+        <button onclick="accessClass('m6')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.6</button>
+      </div>
+      
+       <button onclick="openTeacherLogin()" class="w-full p-3 bg-white text-lime-700 rounded-lg shadow hover:bg-lime-50 transition border border-lime-200 font-bold flex items-center justify-center gap-2">
+         <i class="ph ph-user-circle text-xl"></i> เข้าระบบครู
+       </button>
+    </div>
+
+    <!-- VIEW 2: LOADING -->
+    <div id="view-loading" class="hidden text-center py-20">
+      <div class="animate-spin inline-block w-10 h-10 border-4 border-lime-600 border-t-transparent rounded-full mb-4"></div>
+      <p class="text-gray-500 text-lg">กำลังเชื่อมต่อฐานข้อมูล...</p>
+    </div>
+
+    <!-- VIEW 3: RECORD MODE -->
+    <div id="view-record" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <button onclick="resetApp()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 font-bold"><i class="ph ph-arrow-left"></i> กลับ</button>
+        <div class="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">● เปิดรับลงเวลา</div>
+        
+        <button id="btnGoToEditMode" onclick="triggerEditMode()" class="hidden px-3 py-1 bg-blue-100 text-blue-700 rounded-lg font-bold text-sm hover:bg-blue-200 flex items-center gap-1"><i class="ph ph-pencil-simple"></i> แก้ไข</button>
+      </div>
+
+      <h2 id="record-title" class="text-2xl font-bold text-center mb-4 text-gray-800"></h2>
+      
+      <!-- 🌟 เพิ่ม pb-32 เพื่อเว้นพื้นที่ด้านล่าง ป้องกันปุ่มบังการ์ดนักเรียนคนสุดท้าย -->
+      <div id="record-container" class="space-y-3 pb-32"></div>
+    </div>
+
+    <!-- VIEW 4: STATS DASHBOARD -->
+    <div id="view-stats" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <button onclick="resetApp()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 font-bold"><i class="ph ph-arrow-left"></i> กลับ</button>
+        <div class="text-sm font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">● ปิดระบบ (โหมดสถิติ)</div>
+      </div>
+      
+      <h2 id="stats-title" class="text-xl font-bold text-center mb-6 text-gray-800"></h2>
+
+      <div class="grid grid-cols-1 gap-4 mb-8">
+        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <h3 class="font-bold text-yellow-800 mb-2 flex items-center"><i class="ph ph-clock-afternoon mr-2"></i> 5 อันดับ มาสาย</h3>
+          <ul id="list-late" class="text-sm space-y-1"></ul>
+        </div>
+        <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+          <h3 class="font-bold text-red-800 mb-2 flex items-center"><i class="ph ph-warning-circle mr-2"></i> 5 อันดับ ไม่ทราบสาเหตุ</h3>
+          <ul id="list-unknown" class="text-sm space-y-1"></ul>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+          <h3 class="font-bold text-blue-800 mb-2 flex items-center"><i class="ph ph-hand-waving mr-2"></i> 5 อันดับ ขออนุญาต</h3>
+          <ul id="list-permit" class="text-sm space-y-1"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: EDIT MODE SECTION -->
+    <div id="edit-mode-section" class="hidden-section bg-lime-50 min-h-screen absolute top-0 left-0 w-full z-40 p-4">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-lime-900 leading-tight">แก้ไขข้อมูล (Admin)</h2>
+          <p id="edit-subtitle" class="text-sm text-lime-700 mt-1">ระดับชั้น ...</p>
+        </div>
+        <button onclick="exitEditMode()" class="text-gray-400 hover:text-red-500 bg-white rounded-full p-1 shadow"><i class="ph ph-x text-2xl"></i></button>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-lime-200">
+        <label class="block text-sm font-bold text-lime-800 mb-2">เลือกวันที่ต้องการแก้ไข:</label>
+        <div class="flex gap-2">
+          <input type="date" id="editDateInput" class="flex-grow p-2 border rounded-lg bg-gray-50 text-lime-900" onchange="loadEditData()">
+          <button onclick="loadEditData()" class="px-4 bg-lime-100 text-lime-700 rounded-lg font-bold hover:bg-lime-200"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+        </div>
+      </div>
+
+      <div id="edit-container" class="space-y-3 pb-32">
+        <div class="text-center text-gray-400 py-10">กรุณาเลือกวันที่</div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-6 backdrop-blur-sm transition-opacity">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center border border-gray-100">
+        <div class="p-6">
+          <div id="notif-icon" class="mb-4 flex justify-center"></div>
+          <h3 id="notif-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
+          <p id="notif-message" class="text-gray-600 mb-6 text-sm"></p>
+          <button onclick="closeNotification()" class="w-full py-3 bg-lime-600 text-white rounded-xl font-bold hover:bg-lime-700 transition shadow-lg">รับทราบ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm">
+        <h3 class="text-2xl font-bold text-center mb-4 text-lime-900">ตั้งค่าเวลา</h3>
+        <div class="space-y-4">
+          <div><label class="block text-sm font-bold text-lime-800">สิ้นสุด "มาทัน":</label><input type="time" id="inputLimitPresent" class="w-full p-2 border rounded"></div>
+          <div><label class="block text-sm font-bold text-lime-800">สิ้นสุด "มาสาย":</label><input type="time" id="inputLimitLate" class="w-full p-2 border rounded"></div>
+        </div>
+        <div class="mt-6 flex gap-3">
+          <button onclick="closeSettings()" class="flex-1 py-2 bg-gray-200 rounded font-bold">ยกเลิก</button>
+          <button onclick="saveSettings()" class="flex-1 py-2 bg-lime-600 text-white rounded font-bold">บันทึก</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Trigger -->
+    <button onclick="openSettings()" id="settingsBtn" class="hidden fixed top-4 right-4 z-40 p-2 bg-white text-lime-700 rounded-full shadow hover:bg-lime-50 border border-lime-200">
+       <i class="ph ph-gear text-xl"></i>
+    </button>
+
+    <!-- TEACHER SELF-SERVICE MODAL -->
+    <div id="teacher-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md h-auto max-h-[90vh] flex flex-col">
+        <div class="p-5 border-b flex justify-between items-center bg-lime-50 rounded-t-2xl">
+          <h3 class="text-xl font-bold text-lime-900">เข้าสู่ระบบครู (ส่วนตัว)</h3>
+          <button onclick="closeTeacherLogin()" class="text-gray-400 hover:text-red-500"><i class="ph ph-x-circle text-3xl"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto">
+          <div class="mb-4">
+            <label class="block text-sm font-bold text-lime-800 mb-1">1. เลือกระดับชั้น</label>
+            <select id="loginClass" onchange="fetchTeacherList()" class="w-full p-3 border rounded-lg bg-white text-lg"><option value="">-- กรุณาเลือก --</option><option value="m1">ม.1</option><option value="m2">ม.2</option><option value="m3">ม.3</option><option value="m4">ม.4</option><option value="m5">ม.5</option><option value="m6">ม.6</option></select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-bold text-lime-800 mb-1">2. เลือกชื่อครู</label>
+            <select id="loginName" class="w-full p-3 border rounded-lg bg-gray-100 text-lg" disabled><option value="">-- รอเลือกชั้น --</option></select>
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-bold text-lime-800 mb-1">3. รหัสผ่าน</label>
+            <input type="password" id="loginPass" class="w-full p-3 border rounded-lg text-lg">
+          </div>
+          <button id="btnTeacherLogin" onclick="doTeacherLogin()" class="w-full bg-lime-600 text-white py-3 rounded-lg font-bold shadow hover:bg-lime-700">เข้าสู่ระบบ</button>
+          <div id="teacherResult" class="mt-6 space-y-2 hidden border-t pt-4">
+            <h4 class="font-bold text-lime-800 pb-2">ประวัติการลงเวลา</h4>
+            <div id="teacherResultList" class="max-h-60 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm text-center">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">ยืนยันการบันทึก?</h3>
+        <p class="text-gray-600 mb-6">คุณกำลังจะแก้ไขข้อมูลเฉพาะรายชื่อนี้</p>
+        <div class="flex gap-3">
+          <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="flex-1 py-3 bg-gray-200 rounded-lg font-bold text-gray-700">ยกเลิก</button>
+          <button id="btnConfirmSingle" onclick="confirmSingleSave()" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold shadow">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ====================================================
+    // ⚠️ ใส่ URL Web App API (ที่เพิ่ง Deploy ใหม่) ตรงนี้ ⚠️
+    // ====================================================
+    const API_URL = "ใส่_ลิงก์_WEB_APP_ตรงนี้"; 
+
+    // --- ฟังก์ชันติดต่อเซิร์ฟเวอร์ (API Fetcher) ---
+    async function fetchAPI(payload) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        } catch (error) {
+            throw new Error("การเชื่อมต่อล้มเหลว โปรดตรวจสอบสัญญาณอินเทอร์เน็ต");
+        }
+    }
+
+    // --- GLOBAL CONFIG ---
+    let configLimitPresent = "08:00"; 
+    let configLimitLate = "08:20";
+    let currentTeacherId = "";
+    let currentClassName = "";
+    let isLocked = false; 
+    let isCurrentSessionAdmin = false;
+    
+    const NORMAL_IDS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
+    const ADMIN_CODES = ['bysp1', 'byby2', 'spsp3', 'sbsb4', 'ysys5', 'ybyb6']; 
+    const TIME_MSG_OPEN = "07:30 - 10:00 น.";
+
+    let editModeClass = "";
+    let editModeDate = "";
+    let pendingEditPayload = null; 
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings(); updateClock(); setInterval(updateClock, 1000);
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('editDateInput').value = today;
+    });
+
+    // --- MAIN NAVIGATION ---
+    function showClassSelection() {
+      document.getElementById('view-selector').classList.remove('hidden'); 
+      document.getElementById('view-loading').classList.add('hidden');
+      document.getElementById('view-record').classList.add('hidden');
+      document.getElementById('view-stats').classList.add('hidden');
+      document.getElementById('settingsBtn').classList.add('hidden');
+      isCurrentSessionAdmin = false;
+    }
+    
+    function resetApp() {
+        showClassSelection();
+        document.getElementById('teacherId').value = "";
+    }
+
+    async function accessClass(cls) {
+      const tid = document.getElementById('teacherId').value.trim();
+      const adminIdx = ADMIN_CODES.indexOf(tid);
+      const isNormal = NORMAL_IDS.includes(tid);
+      
+      if (!isNormal && adminIdx === -1) { alert("รหัสไม่ถูกต้อง"); return; }
+      if (adminIdx !== -1) {
+         const allowed = `m${adminIdx+1}`;
+         if (cls !== allowed) { alert(`รหัสนี้ใช้ได้เฉพาะ ${allowed}`); return; }
+         isCurrentSessionAdmin = true;
+      }
+
+      currentTeacherId = tid;
+      currentClassName = cls; 
+
+      document.getElementById('view-selector').classList.add('hidden');
+      document.getElementById('view-loading').classList.remove('hidden');
+
+      try {
+          // ดึงข้อมูลการเข้าแถว หรือ สถิติ จาก API
+          const res = await fetchAPI({ action: 'getClassContext', className: cls });
+          
+          document.getElementById('view-loading').classList.add('hidden');
+          
+          if(res.status === 'success') {
+              showLoginNotification(res.data.mode);
+              document.getElementById('settingsBtn').classList.remove('hidden');
+
+              if (res.data.mode === 'RECORD') {
+                renderRecordMode(res.data.data);
+              } else if (res.data.mode === 'STATS') {
+                renderStatsMode(res.data.data);
+              }
+          } else {
+              throw new Error(res.message);
+          }
+      } catch (e) {
+          alert("Error: " + e.message); 
+          resetApp();
+      }
+    }
+
+    function showLoginNotification(mode) {
+      const modal = document.getElementById('notification-modal');
+      const title = document.getElementById('notif-title');
+      const msg = document.getElementById('notif-message');
+      const icon = document.getElementById('notif-icon');
+      if (mode === 'RECORD') {
+        icon.innerHTML = '<i class="ph ph-check-circle text-6xl text-green-500"></i>';
+        title.textContent = "ระบบเปิดรับลงเวลา";
+        msg.innerHTML = `ขณะนี้อยู่ในช่วงเวลา <b>${TIME_MSG_OPEN}</b><br>ท่านสามารถบันทึกและแก้ไขข้อมูลได้`;
+      } else {
+        icon.innerHTML = '<i class="ph ph-chart-pie-slice text-6xl text-blue-500"></i>';
+        title.textContent = "โหมดแสดงสถิติ";
+        msg.innerHTML = `ขณะนี้อยู่นอกเวลาทำการ (${TIME_MSG_OPEN})<br>ระบบแสดงผลข้อมูลสถิติเท่านั้น`;
+      }
+      modal.classList.remove('hidden');
+    }
+    function closeNotification() { document.getElementById('notification-modal').classList.add('hidden'); }
+
+    // --- RENDER RECORD MODE ---
+    function renderRecordMode(data) {
+      document.getElementById('view-record').classList.remove('hidden');
+      document.getElementById('record-title').textContent = `เช็คชื่อ ${currentClassName.replace('m','ม.')}`;
+      
+      const editBtn = document.getElementById('btnGoToEditMode');
+      if (isCurrentSessionAdmin) editBtn.classList.remove('hidden'); else editBtn.classList.add('hidden');
+
+      const con = document.getElementById('record-container');
+      con.innerHTML = '';
+
+      data.forEach((st, i) => {
+        const uid = `c-${i}`;
+        const div = document.createElement('div');
+        
+        if (st.isRecorded) {
+          div.className = 'student-card-auto p-4 rounded-lg shadow-sm text-lg font-bold noselect';
+          div.innerHTML = `${st.displayName}<br><span class="text-sm font-normal opacity-90">${st.status}</span>`;
+        } else if (st.isException) {
+          div.className = 'student-card-auto p-4 rounded-lg shadow-sm text-lg font-bold noselect';
+          div.innerHTML = `${st.displayName}`;
+          
+          // บันทึกคนที่มีป้าย "เวร" แบบอัตโนมัติ
+          autoRecordException(currentClassName, st.displayName, st.status);
+          
+        } else {
+          div.className = 'student-card-manual p-4 rounded-lg shadow-sm text-lg font-bold text-gray-700 noselect';
+          div.innerHTML = `
+            <div>${st.displayName}</div>
+            <div id="status-${uid}" class="hidden mt-2 pt-2 border-t border-red-200 text-base font-normal"></div>
+            <div id="opts-${uid}" class="hidden mt-2 space-y-2 text-base font-normal border-t border-gray-100 pt-2">
+               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ลา" onclick="save('${st.displayName}', this)"> ลา</label>
+               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ไปราชการ" onclick="save('${st.displayName}', this)"> ไปราชการ</label>
+               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ไม่ทราบสาเหตุ" onclick="save('${st.displayName}', this)"> ไม่ทราบสาเหตุ</label>
+            </div>`;
+          div.ondblclick = () => handleDoubleTap(div, st.displayName, uid);
+        }
+        con.appendChild(div);
+      });
+    }
+
+    async function autoRecordException(className, displayName, status) {
+        try {
+            await fetchAPI({ action: 'recordAttendance', className: className, studentName: displayName, status: status });
+        } catch(e) { console.error("Auto save failed", e); }
+    }
+
+    async function handleDoubleTap(card, name, uid) {
+      const now = new Date();
+      const [hP, mP] = configLimitPresent.split(':');
+      const timePresent = new Date(now); timePresent.setHours(hP, mP, 0);
+      const [hL, mL] = configLimitLate.split(':');
+      const timeLate = new Date(now); timeLate.setHours(hL, mL, 0);
+
+      let status = "มาทันเวลา";
+      let colorClass = "status-present";
+      
+      if (now > timePresent && now <= timeLate) {
+         status = "มาแต่ไม่ทันเวลา";
+         colorClass = "status-late";
+      } else if (now > timeLate) {
+         status = "ไม่มา";
+         const opts = document.getElementById(`opts-${uid}`);
+         if(opts) opts.classList.remove('hidden');
+         card.className = 'status-absent-pending p-4 rounded-lg shadow-sm text-lg font-bold text-red-900 noselect';
+         return; 
+      }
+
+      card.className = `${colorClass} p-4 rounded-lg shadow-sm text-lg font-bold noselect`;
+      const statusDiv = document.getElementById(`status-${uid}`);
+      if(statusDiv) { statusDiv.innerHTML = status; statusDiv.classList.remove('hidden'); }
+      const opts = document.getElementById(`opts-${uid}`);
+      if(opts) opts.classList.add('hidden');
+
+      try {
+          const res = await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: status });
+          if(res.status !== 'success') throw new Error(res.message);
+      } catch(e) {
+          alert("บันทึกไม่ได้: " + e.message);
+      }
+    }
+    
+    window.save = async function(name, radio) {
+       const card = radio.closest('.student-card-manual');
+       card.className = 'status-absent-pending p-4 rounded-lg shadow-sm text-lg font-bold text-red-900 noselect border-2 border-red-500';
+       const opts = card.querySelector('[id^="opts-"]');
+       if(opts) opts.classList.add('hidden');
+       
+       const statDiv = card.querySelector('[id^="status-"]');
+       if(statDiv) { statDiv.innerHTML = radio.value; statDiv.classList.remove('hidden'); }
+
+       try {
+           const res = await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: radio.value });
+           if(res.status !== 'success') throw new Error(res.message);
+       } catch(e) {
+           alert("บันทึกไม่ได้: " + e.message);
+       }
+    }
+
+    // --- RENDER STATS MODE ---
+    function renderStatsMode(data) {
+      document.getElementById('view-stats').classList.remove('hidden');
+      document.getElementById('stats-title').textContent = `สถิติการร่วมกิจกรรม ${currentClassName.replace('m','ม.')}`;
+
+      const renderList = (items, id, colorClass) => {
+        const el = document.getElementById(id);
+        if (!items.length) { el.innerHTML = '<li class="text-gray-400 italic text-center py-2">- ไม่มีข้อมูล -</li>'; return; }
+        el.innerHTML = items.map((x, i) => 
+          `<li class="flex justify-between border-b last:border-0 border-gray-100 py-1"><span class="flex items-center"><span class="rank-badge ${colorClass}">${i+1}</span>${x.name}</span><span class="font-bold">${x.count}</span></li>`
+        ).join('');
+      };
+      renderList(data.top5.late, 'list-late', 'bg-yellow-500');
+      renderList(data.top5.unknown, 'list-unknown', 'bg-red-500');
+      renderList(data.top5.permit, 'list-permit', 'bg-blue-500');
+    }
+
+    // --- EDIT MODE LOGIC ---
+    function triggerEditMode() { if (!isCurrentSessionAdmin) return; enterEditMode(currentClassName); }
+    function enterEditMode(cls) { editModeClass = cls; document.getElementById('edit-mode-section').classList.remove('hidden-section'); document.getElementById('edit-subtitle').textContent = `ระดับชั้น ${cls.replace('m', 'ม.')}`; loadEditData(); }
+    function exitEditMode() { document.getElementById('edit-mode-section').classList.add('hidden-section'); document.getElementById('edit-container').innerHTML = ''; }
+    
+    async function loadEditData() {
+      const date = document.getElementById('editDateInput').value;
+      if (!date) return;
+      editModeDate = date;
+      const container = document.getElementById('edit-container');
+      container.innerHTML = '<div class="text-center py-10 text-gray-500">กำลังดึงข้อมูล...</div>';
+      
+      try {
+          const res = await fetchAPI({ action: 'getTeacherStatusForEdit', className: editModeClass, date: date });
+          if(res.status === 'success') {
+              renderEditCards(res.data);
+          } else {
+              throw new Error(res.message);
+          }
+      } catch(e) {
+          container.innerHTML = `<div class="text-red-500 text-center">${e.message}</div>`;
+      }
+    }
+
+    function renderEditCards(data) {
+      const container = document.getElementById('edit-container');
+      container.innerHTML = '';
+      if (!data || data.length === 0) { container.innerHTML = '<div class="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>'; return; }
+
+      data.forEach((teacher, index) => {
+        const statusOptions = ["มาทันเวลา", "มาแต่ไม่ทัน", "ลา", "ไปราชการ", "ขออนุญาต", "ไม่ทราบสาเหตุ"];
+        const currentStatus = teacher.status || "ไม่ทราบสาเหตุ";
+        let optionsHtml = '';
+        statusOptions.forEach(opt => {
+          const selected = (opt === currentStatus) ? 'selected' : '';
+          optionsHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+        });
+        if (!statusOptions.includes(currentStatus)) { optionsHtml += `<option value="${currentStatus}" selected>${currentStatus}</option>`; }
+        
+        let borderClass = "border-gray-200";
+        let textClass = "text-gray-600"; 
+        if(currentStatus.includes("ทัน") || currentStatus.includes("เวร")) { borderClass = "border-green-500 bg-green-50"; textClass = "text-green-700"; }
+        else if(currentStatus.includes("สาย")) { borderClass = "border-yellow-500 bg-yellow-50"; textClass = "text-yellow-700"; }
+        else { borderClass = "border-red-500 bg-red-50"; textClass = "text-red-700"; }
+
+        const html = `
+          <div class="edit-card ${borderClass} flex flex-col gap-2" id="edit-card-${index}">
+            <div class="font-bold text-lg text-gray-800">${teacher.name}</div>
+            <div class="flex items-center gap-2 text-sm mb-1"><span class="font-semibold text-gray-500">สถานะเดิม:</span><span class="font-bold ${textClass}">${currentStatus}</span></div>
+            <div class="flex gap-2">
+              <select id="select-${index}" class="flex-grow p-2 border rounded bg-white text-base focus:ring-blue-500" data-name="${teacher.name}">${optionsHtml}</select>
+              <button onclick="initiateSingleSave('${teacher.name}', 'select-${index}')" class="bg-blue-600 text-white px-4 rounded-lg shadow hover:bg-blue-700 whitespace-nowrap font-bold">บันทึก</button>
+            </div>
+          </div>`;
+        container.innerHTML += html;
+      });
+    }
+
+    function initiateSingleSave(name, selectId) {
+      const val = document.getElementById(selectId).value;
+      pendingEditPayload = { name: name, status: val };
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    async function confirmSingleSave() {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      if (!pendingEditPayload) return;
+      
+      const btn = document.getElementById('btnConfirmSingle');
+      btn.innerText = "กำลังบันทึก...";
+      btn.disabled = true;
+
+      try {
+          const res = await fetchAPI({ 
+              action: 'saveAttendanceCorrections', 
+              className: editModeClass, 
+              date: editModeDate, 
+              updates: [pendingEditPayload] 
+          });
+          
+          if(res.status === 'success') {
+              alert("บันทึกสำเร็จ"); 
+              loadEditData(); 
+          } else {
+              throw new Error(res.message);
+          }
+      } catch(e) {
+          alert("บันทึกไม่สำเร็จ: " + e.message); 
+      } finally {
+          pendingEditPayload = null;
+          btn.innerText = "ยืนยัน";
+          btn.disabled = false;
+      }
+    }
+
+    // --- HELPERS & MODALS ---
+    function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('th-TH', { hour12: false }); }
+    function openSettings() { document.getElementById('inputLimitPresent').value = configLimitPresent; document.getElementById('inputLimitLate').value = configLimitLate; document.getElementById('settings-modal').classList.remove('hidden'); }
+    function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+    function saveSettings() {
+      const p = document.getElementById('inputLimitPresent').value; const l = document.getElementById('inputLimitLate').value;
+      if (p >= l) { alert("เวลาไม่ถูกต้อง"); return; }
+      configLimitPresent = p; configLimitLate = l;
+      localStorage.setItem('cfg_limit_present', p); localStorage.setItem('cfg_limit_late', l);
+      closeSettings();
+    }
+    function loadSettings() { const p = localStorage.getItem('cfg_limit_present'); const l = localStorage.getItem('cfg_limit_late'); if (p) configLimitPresent = p; if (l) configLimitLate = l; }
+    
+    function openTeacherLogin() { 
+        document.getElementById('teacher-modal').classList.remove('hidden'); 
+        document.getElementById('teacherResult').classList.add('hidden'); 
+        document.getElementById('loginClass').value = ""; 
+        document.getElementById('loginName').innerHTML = '<option value="">-- รอเลือกชั้น --</option>'; 
+        document.getElementById('loginName').disabled = true; 
+        document.getElementById('loginPass').value = ""; 
+    }
+    
+    function closeTeacherLogin() { document.getElementById('teacher-modal').classList.add('hidden'); }
+    
+    async function fetchTeacherList() { 
+        const cls = document.getElementById('loginClass').value; 
+        const nameSelect = document.getElementById('loginName'); 
+        if(!cls) { nameSelect.innerHTML = '<option value="">-- รอเลือกชั้น --</option>'; nameSelect.disabled = true; return; } 
+        
+        nameSelect.innerHTML = '<option>กำลังโหลด...</option>'; 
+        nameSelect.disabled = true; 
+        
+        try {
+            const res = await fetchAPI({ action: 'getTeacherListForLogin', className: cls });
+            if(res.status === 'success') {
+                let html = '<option value="">-- เลือกชื่อ --</option>'; 
+                res.data.forEach(n => { html += `<option value="${n}">${n}</option>`; }); 
+                nameSelect.innerHTML = html; 
+                nameSelect.disabled = false;
+            } else {
+                throw new Error(res.message);
+            }
+        } catch(e) {
+            alert("Error: " + e.message); 
+            nameSelect.innerHTML = '<option value="">ผิดพลาด</option>'; 
+        }
+    }
+    
+    async function doTeacherLogin() { 
+        const cls = document.getElementById('loginClass').value; 
+        const name = document.getElementById('loginName').value; 
+        const pass = document.getElementById('loginPass').value; 
+        
+        if(!cls || !name || !pass) { alert("กรุณากรอกข้อมูลให้ครบถ้วน"); return; } 
+        
+        const resList = document.getElementById('teacherResultList'); 
+        resList.innerHTML = '<div class="text-center py-4 text-gray-500">กำลังตรวจสอบ...</div>'; 
+        document.getElementById('teacherResult').classList.remove('hidden'); 
+        
+        const btn = document.getElementById('btnTeacherLogin');
+        btn.disabled = true;
+
+        try {
+            const res = await fetchAPI({ action: 'getTeacherSelfReport', className: cls, teacherName: name, password: pass });
+            if(res.status === 'success') {
+                renderTeacherReport(res.data);
+            } else {
+                throw new Error(res.message);
+            }
+        } catch(e) {
+            resList.innerHTML = `<div class="text-red-500 text-center py-2">${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+    
+    function renderTeacherReport(data) { 
+        const list = document.getElementById('teacherResultList'); 
+        if(!data || data.length === 0) { list.innerHTML = '<div class="text-center py-4 text-gray-500">ไม่พบประวัติการลงเวลา</div>'; return; } 
+        let html = ''; 
+        data.forEach(row => { 
+            let colorClass = "text-gray-600"; 
+            if(row.status.includes("ทัน") || row.status.includes("เวร") || row.status.includes("เฉพาะ")) colorClass = "text-green-700 font-bold"; 
+            else if(row.status.includes("สาย")) colorClass = "text-yellow-700 font-bold"; 
+            else colorClass = "text-red-700 font-bold"; 
+            
+            let dDisplay = row.date; 
+            try { dDisplay = new Date(row.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}); } catch(e){} 
+            
+            html += `<div class="flex justify-between items-center p-3 border-b last:border-0 hover:bg-gray-50"><div class="text-sm font-medium text-gray-800">${dDisplay}</div><div class="text-sm ${colorClass}">${row.status}</div></div>`; 
+        }); 
+        list.innerHTML = html; 
+    }
+
+  </script>
+</body>
+</html>
