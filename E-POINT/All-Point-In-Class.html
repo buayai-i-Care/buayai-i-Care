@@ -55,6 +55,7 @@
         .btn-outline-teal { border: 2px solid var(--teal-primary); color: var(--teal-primary); border-radius: 50px; font-weight: 600; padding: 8px 20px; background: white; transition: 0.2s;}
         .btn-outline-teal:hover { background-color: var(--teal-primary); color: white; }
 
+        /* 🌟 ปรับปรุงปุ่ม Action ใต้ชื่อให้กะทัดรัดและสวยงาม */
         .btn-praise { background: #10b981; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: inline-block; margin-top: 6px; }
         .btn-praise:hover { background: #059669; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
         .btn-encourage { background: #3b82f6; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: inline-block; margin-top: 6px; }
@@ -93,9 +94,9 @@
             <a href="#" class="nav-link-custom active" onclick="switchView('dashboard')"><i class="bi bi-people-fill"></i> 1.1 ดูคะแนน/วิเคราะห์กลุ่ม</a>
             <a href="epoint_add.html" class="nav-link-custom"><i class="bi bi-pencil-square"></i> 1.2 เพิ่ม/ลด คะแนน</a>
             
-            <!-- 🌟 เมนูใหม่ -->
+            <!-- 🌟 เมนูแจ้งเตือน -->
             <div class="border-top my-2"></div>
-            <a href="#" class="nav-link-custom text-primary" onclick="switchView('noti')"><i class="bi bi-bell-fill"></i> 1.4 ประวัติการแจ้งเตือนนักเรียน</a>
+            <a href="#" class="nav-link-custom text-primary" onclick="switchView('noti')"><i class="bi bi-bell-fill"></i> ประวัติการแจ้งเตือนนักเรียน</a>
             
             <div class="border-top my-2"></div>
             <a href="index.html" class="nav-link-custom text-danger"><i class="bi bi-box-arrow-left"></i> กลับหน้าหลัก</a>
@@ -119,7 +120,7 @@
                         <select id="classSelect" class="form-select fw-bold rounded-pill px-4 py-2 shadow-sm border-2"></select>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn-teal w-100 shadow-sm py-2" onclick="loadSelectedData()"><i class="bi bi-search me-1"></i> ประมวลผลข้อมูล</button>
+                        <button class="btn-teal w-100 shadow-sm py-2" onclick="loadSelectedData()"><i class="bi bi-search me-1"></i> วิเคราะห์ข้อมูล</button>
                     </div>
                     <div class="col-md-4 text-md-end" id="exportArea" style="display: none;">
                         <button class="btn-outline-teal mb-1 mb-md-0" id="btnExportSheet" onclick="exportToSheets()"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Sheets</button>
@@ -135,15 +136,18 @@
 
             <div id="chart-section" style="display:none;">
                 
-                <!-- 🌟 กล่องข้อความแจ้งสารสนเทศสำคัญด้านบนสุด -->
+                <!-- 🌟 กล่องข้อความแจ้งสารสนเทศสำคัญด้านบนสุด (อัปเดตใหม่) -->
                 <div class="alert bg-white border border-primary border-start border-5 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                     <div>
                         <h5 class="fw-bold text-dark m-0 font-prompt" id="displayTitle">ผลการวิเคราะห์</h5>
-                        <div class="text-muted mt-1"><i class="bi bi-info-circle-fill text-primary"></i> <span id="banner-text">มีนักเรียนปกติทั้งหมด 0 คน คะแนนเฉลี่ย 0 คะแนน</span></div>
-                        <div class="small text-danger mt-1">* ไม่นำนักเรียนกลุ่มสถานะพิเศษมาคำนวณ</div>
+                        <div class="text-muted mt-1"><i class="bi bi-info-circle-fill text-primary"></i> <span id="banner-text">มีนักเรียนทั้งหมด 0 คน คะแนนเฉลี่ย 0 คะแนน</span></div>
+                        <div class="small text-danger mt-1">* ไม่นำนักเรียนที่มีสถานะพิเศษ (ขาดเรียนนาน, พักการเรียน ฯลฯ) มาคำนวณในค่าเฉลี่ย</div>
                     </div>
                     <div>
-                        <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6 shadow-sm"><i class="bi bi-person-slash"></i> สถานะพิเศษ: <span id="count-special">0</span> คน</span>
+                        <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6 shadow-sm d-flex align-items-center gap-2">
+                            <span><i class="bi bi-person-slash"></i> สถานะพิเศษ: <span id="count-special">0</span> คน</span>
+                            <button id="btn-special-detail" class="btn btn-sm btn-light text-dark rounded-pill py-0 px-2" style="display:none; font-size: 0.75rem;" onclick="showChartDetail('รายชื่อนักเรียนสถานะพิเศษ', categorizedStudents.special, 3)">คลิกดู</button>
+                        </span>
                     </div>
                 </div>
                 
@@ -182,6 +186,7 @@
                     </div>
                 </div>
 
+                <!-- กล่องแสดงรายชื่อแบบกดย่อขยาย -->
                 <div id="chart-detail-box" class="alert bg-white border border-2 shadow-sm mb-4" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                         <h5 class="fw-bold m-0 font-prompt" id="chart-detail-title">รายชื่อนักเรียน</h5>
@@ -200,10 +205,11 @@
                     <table class="table mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th width="35%" class="text-start">ห้อง / ชื่อ-สกุล</th>
+                                <!-- 🌟 ลบคอลัมน์รหัสออก เพิ่มพื้นที่ให้ชื่อ-สกุล -->
+                                <th width="40%" class="text-start ps-4">ห้อง / ชื่อ-สกุล (การจัดการ)</th>
                                 <th width="15%" class="text-center">คะแนน</th>
                                 <th width="25%">ประวัติหักคะแนน</th>
-                                <th width="25%">ประวัติความดี</th>
+                                <th width="20%">ประวัติความดี</th>
                             </tr>
                         </thead>
                         <tbody id="studentTable">
@@ -219,7 +225,7 @@
         <!-- ============================================== -->
         <div id="view-noti" style="display: none;">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <h3 class="fw-bold m-0 font-prompt" style="color: var(--teal-primary);"><i class="bi bi-bell-fill me-2"></i>ประวัติการแจ้งเตือนนักเรียน</h3>
+                <h3 class="fw-bold m-0 font-prompt" style="color: var(--teal-primary);"><i class="bi bi-bell-fill me-2"></i>ประวัติแจ้งเตือนนักเรียน</h3>
             </div>
             
             <div class="control-card">
@@ -248,7 +254,7 @@
 
     </div>
 
-    <!-- 🌟 Modal ยืนยันการลงบันทึก -->
+    <!-- 🌟 Modal ยืนยันการลงบันทึก (ชมเชย/ติดตาม) -->
     <div class="modal fade" id="actionModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
@@ -270,11 +276,17 @@
                         <input type="text" id="actionDetail" class="form-control form-control-lg fw-bold" placeholder="พิมพ์ข้อความที่นี่...">
                     </div>
 
+                    <div class="alert alert-info text-start small border-0 bg-info bg-opacity-10 rounded-3 mt-3 mb-0">
+                        <i class="bi bi-info-circle-fill text-primary"></i> <b class="text-primary">คำแนะนำระบบ:</b><br>
+                        1. ข้อความนี้จะไปปรากฏใน <b>หน้าแอปของนักเรียน</b><br>
+                        2. ข้อมูลจะถูกบันทึกลง <b>ฐานข้อมูลโฮมรูมของระดับชั้น</b> อัตโนมัติ
+                    </div>
+
                     <input type="hidden" id="actionType">
                 </div>
                 <div class="modal-footer border-0 justify-content-center bg-light py-3">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btnConfirmAction" onclick="confirmAction()">ยืนยันบันทึกเข้าระบบ</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btnConfirmAction" onclick="confirmAction()">ยืนยันส่งข้อความ</button>
                 </div>
             </div>
         </div>
@@ -381,7 +393,15 @@
             document.getElementById('count-normal').innerText = categorizedStudents.normal.length;
             document.getElementById('count-risk').innerText = categorizedStudents.risk.length;
             document.getElementById('count-problem').innerText = categorizedStudents.problem.length;
+            
+            // อัปเดตส่วนสถานะพิเศษ
             document.getElementById('count-special').innerText = categorizedStudents.special.length;
+            const btnSp = document.getElementById('btn-special-detail');
+            if(categorizedStudents.special.length > 0) {
+                btnSp.style.display = 'inline-block';
+            } else {
+                btnSp.style.display = 'none';
+            }
 
             const probBox = document.getElementById('problem-box');
             probBox.className = categorizedStudents.problem.length > 0 ? 'stat-card blink-rapid' : 'stat-card border-danger border-2';
@@ -400,7 +420,7 @@
 
             var options = {
                 pieHole: 0.4,
-                colors: ['#10b981', '#f59e0b', '#ef4444', '#64748b'], // เขียว, ส้ม, แดง, เทา
+                colors: ['#10b981', '#f59e0b', '#ef4444', '#64748b'], 
                 chartArea: {width: '100%', height: '85%'},
                 legend: {position: 'bottom', textStyle: {fontName: 'Sarabun'}},
                 fontName: 'Sarabun',
@@ -457,7 +477,7 @@
         }
 
         // ==========================================
-        // 🌟 วาดตารางด้านล่าง + ปุ่มแบบ Dynamic
+        // 🌟 วาดตารางด้านล่าง (ปุ่มอยู่ใต้ชื่อ)
         // ==========================================
         function displayData(students) {
             document.getElementById('content-display').style.display = 'block';
@@ -478,7 +498,7 @@
 
                 let spLabel = s.isSpecial ? `<span class="badge bg-danger ms-2">${s.specialData.status}</span>` : '';
                 
-                // 🌟 ปุ่ม Action แบบ Dynamic ย้ายมาไว้ใต้ชื่อ
+                // 🌟 ปุ่ม Action แบบ Dynamic ถูกนำมาไว้ใต้ชื่อนักเรียน
                 let actionBtn = '';
                 if(s.isSpecial) {
                     actionBtn = `<span class="badge bg-secondary px-3 py-2 mt-2"><i class="bi bi-shield-lock-fill"></i> สถานะพิเศษ</span>`;
@@ -490,25 +510,25 @@
                     actionBtn = `<button class="btn-follow shadow-sm" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'follow')"><i class="bi bi-exclamation-triangle-fill"></i> ติดตามพฤติกรรม</button>`;
                 }
 
-                let tdName = `<td class="text-start align-top pt-3">
-                    <span class="badge bg-white text-dark border shadow-sm me-2 mb-1">ม.${s.room}</span><span class="fw-bold text-dark">${s.name}</span>${spLabel}
+                // ดันข้อมูลชิดขอบบน เพื่อให้ปุ่มดูเป็นระเบียบแม้อีกฝั่งข้อความจะยาว
+                let tdName = `<td class="text-start align-top pt-4 ps-4">
+                    <span class="badge bg-white text-dark border shadow-sm me-2 mb-1">ม.${s.room}</span><span class="fw-bold text-dark fs-6">${s.name}</span>${spLabel}
                     <br>${actionBtn}
                 </td>`;
                 
                 let scoreColor = s.isSpecial ? 'text-secondary' : (s.score < 50 ? 'text-danger' : (s.score <= 79 ? 'text-warning' : 'text-success'));
-                let tdScore = `<td class="text-center fw-bold fs-4 align-top pt-3 ${scoreColor}">${s.score}</td>`;
+                let tdScore = `<td class="text-center fw-bold fs-4 align-top pt-4 ${scoreColor}">${s.score}</td>`;
 
-                // ประวัติหัก/เพิ่ม
                 let pText = s.penalties.length > 0 ? s.penalties.map(p => `<div class="small"><span class="text-muted">${p.date}:</span> ${p.category} (<b class="text-danger">-${p.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
                 let bText = s.bonusRecords.length > 0 ? s.bonusRecords.map(b => `<div class="small"><span class="text-muted">${b.date}:</span> ${b.category} (<b class="text-success">+${b.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
 
-                tr.innerHTML = tdName + tdScore + `<td class="align-top pt-3">${pText}</td><td class="align-top pt-3">${bText}</td>`;
+                tr.innerHTML = tdName + tdScore + `<td class="align-top pt-4">${pText}</td><td class="align-top pt-4">${bText}</td>`;
                 tbody.appendChild(tr);
             });
         }
 
         // ==========================================
-        // 🌟 ระบบ Modal Action
+        // 🌟 ระบบ Modal Action (ส่งบันทึกลงโฮมรูม)
         // ==========================================
         const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
 
@@ -583,7 +603,7 @@
         // ==========================================
         async function loadNotifications() {
             const room = document.getElementById('notiSelect').value;
-            if(!room) return alert("กรุณาระบุระดับชั้น");
+            if(!room) return alert("กรุณาระบุระดับชั้นหรือห้องเรียน");
 
             const tbody = document.getElementById('notiTable');
             tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5"><span class="spinner-border text-primary"></span><br>กำลังโหลด...</td></tr>';
@@ -608,6 +628,9 @@
             }
         }
 
+        // ==========================================
+        // Export
+        // ==========================================
         function setExportBtn(id, isLoading, defaultText, iconClass) {
             const btn = document.getElementById(id);
             btn.disabled = isLoading;
