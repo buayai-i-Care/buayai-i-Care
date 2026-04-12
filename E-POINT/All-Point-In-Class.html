@@ -3,120 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คะแนนพฤติกรรม E-POINT ของระบบ Buayai- I Care School</title>
+    <title>ระบบคะแนนพฤติกรรม E-POINT - โรงเรียนบัวใหญ่</title>
     
-    <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- 🌟 โหลด Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
     <style>
         :root {
-            --pink-bg: #fff1f2;
-            --pink-primary: #e11d48; /* Rose 600 */
-            --pink-light: #fda4af;
-            --pink-hover: #be123c;
-            --sidebar-bg: #ffffff;
+            /* โทนสี Teal สำหรับโหมดครู */
+            --teal-primary: #0f766e; 
+            --teal-dark: #115e59;
+            --teal-light: #ccfbf1;
+            --teal-hover: #0d9488;
+            --bg-color: #f8fafc;
             --text-dark: #1e293b;
         }
 
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: var(--pink-bg);
-            color: var(--text-dark);
-            min-height: 100vh;
-        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+        h1, h2, h3, h4, h5, .nav-link-custom, .font-prompt { font-family: 'Prompt', sans-serif; }
 
         /* --- Navbar & Sidebar --- */
-        .top-navbar {
-            background-color: white;
-            box-shadow: 0 2px 15px rgba(225, 29, 72, 0.08);
-            height: 70px;
-            z-index: 1040;
+        .top-navbar { 
+            background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark)); 
+            color: white; height: 70px; z-index: 1040; 
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
         }
+        .hamburger-btn { border: none; background: transparent; font-size: 1.8rem; color: white; padding: 5px 15px; transition: 0.2s; }
+
+        .offcanvas-start { width: 280px; border-right: none; box-shadow: 5px 0 25px rgba(0,0,0,0.05); }
+        .sidebar-logo { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid var(--teal-light); padding: 2px; background: white;}
+
+        .nav-link-custom { color: var(--text-dark); font-weight: 600; padding: 12px 20px; border-radius: 12px; margin: 4px 15px; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-link-custom:hover, .nav-link-custom.active { background-color: var(--teal-light); color: var(--teal-primary); }
         
-        .hamburger-btn {
-            border: none; background: transparent; font-size: 1.8rem;
-            color: var(--pink-primary); padding: 5px 15px; transition: 0.2s;
-        }
-        .hamburger-btn:active { transform: scale(0.9); }
-
-        .offcanvas-start {
-            width: 280px;
-            border-right: none;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.05);
-        }
-
-        .sidebar-logo {
-            width: 60px; height: 60px; object-fit: cover;
-            border-radius: 50%; border: 2px solid var(--pink-light);
-            padding: 2px;
-        }
-
-        .nav-link-custom {
-            color: var(--text-dark); font-weight: 600; padding: 12px 20px;
-            border-radius: 12px; margin: 4px 15px; transition: all 0.2s ease;
-            display: flex; align-items: center; gap: 12px; text-decoration: none;
-        }
-        .nav-link-custom:hover, .nav-link-custom.active {
-            background-color: #ffe4e6; color: var(--pink-primary);
-        }
-        .nav-link-custom i { font-size: 1.2rem; color: var(--pink-primary); opacity: 0.8; }
-        
-        /* Submenu */
-        .submenu { background-color: #fafafa; border-radius: 12px; margin: 0 15px; padding: 5px 0; }
-        .submenu .nav-link-custom { font-size: 0.95rem; margin: 2px 10px; padding: 10px 15px; }
-
         /* --- Main Content --- */
-        .main-content {
-            padding: 90px 20px 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .main-content { padding: 90px 20px 40px; max-width: 1200px; margin: 0 auto; }
 
-        /* --- Cards & Dashboard --- */
-        .control-card {
-            background: white; border-radius: 20px; padding: 25px;
-            box-shadow: 0 4px 20px rgba(225, 29, 72, 0.04); border: 1px solid #ffe4e6;
-            margin-bottom: 25px;
+        .control-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(15, 118, 110, 0.04); border: 1px solid var(--teal-light); margin-bottom: 25px; }
+        .form-control, .form-select { border-radius: 12px; padding: 12px 15px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-family: 'Sarabun'; }
+        .form-control:focus, .form-select:focus { border-color: var(--teal-primary); box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.15); background-color: white; }
+        
+        .stat-card { background: white; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; height: 100%;}
+        .stat-value { font-size: 2.5rem; font-weight: 700; font-family: 'Prompt'; line-height: 1; margin: 10px 0;}
+        
+        /* --- 🌟 เอฟเฟกต์กระพริบสำหรับกลุ่มมีปัญหา --- */
+        .blink-rapid {
+            animation: rapidBlink 0.5s infinite;
+            border: 3px solid #ef4444 !important;
         }
-
-        .stat-card {
-            background: white; padding: 20px; border-radius: 20px; text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;
-            transition: transform 0.3s;
+        @keyframes rapidBlink {
+            0% { background-color: #fef2f2; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+            50% { background-color: #fee2e2; box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); }
+            100% { background-color: #fef2f2; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
         }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-value { font-size: 2.5rem; font-weight: 700; background: -webkit-linear-gradient(45deg, #e11d48, #f43f5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         /* --- Table --- */
-        .table-wrapper {
-            background: white; border-radius: 20px; overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
-        }
-        .table thead th {
-            background-color: #fff1f2; color: var(--pink-primary);
-            font-weight: 700; border-bottom: 2px solid #fda4af;
-            padding: 15px; white-space: nowrap;
-        }
-        .table tbody td { padding: 15px; vertical-align: middle; }
-
-        /* --- Capsules (Records) --- */
-        .record-capsule {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 15px; margin-bottom: 6px; border-radius: 20px;
-            font-size: 0.85rem; font-weight: 500;
-        }
-        .capsule-penalty { background-color: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
-        .capsule-bonus { background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+        .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+        .table thead th { background-color: #f0fdfa; color: var(--teal-primary); font-weight: 700; border-bottom: 2px solid var(--teal-light); padding: 15px; white-space: nowrap; font-family: 'Prompt'; }
+        .table tbody td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f8fafc; }
+        
+        /* ไฮไลต์แถวที่มีปัญหา */
+        .row-problem { background-color: #fef2f2 !important; border-left: 4px solid #ef4444; }
+        .row-risk { background-color: #fffbeb !important; border-left: 4px solid #f59e0b; }
 
         /* Buttons */
-        .btn-pink { background-color: var(--pink-primary); color: white; border-radius: 50px; font-weight: 600; padding: 10px 25px; transition: 0.2s; border: none; }
-        .btn-pink:hover { background-color: var(--pink-hover); color: white; transform: scale(0.98); }
-        .btn-outline-pink { border: 2px solid var(--pink-primary); color: var(--pink-primary); border-radius: 50px; font-weight: 600; padding: 8px 20px; background: white;}
-        .btn-outline-pink:hover { background-color: var(--pink-bg); color: var(--pink-primary); }
+        .btn-teal { background-color: var(--teal-primary); color: white; border-radius: 50px; font-weight: 600; padding: 10px 25px; transition: 0.2s; border: none; font-family: 'Prompt';}
+        .btn-teal:hover { background-color: var(--teal-hover); color: white; transform: scale(0.98); }
+        .btn-outline-teal { border: 2px solid var(--teal-primary); color: var(--teal-primary); border-radius: 50px; font-weight: 600; padding: 8px 20px; background: white; transition: 0.2s;}
+        .btn-outline-teal:hover { background-color: var(--teal-primary); color: white; }
 
-        .placeholder-view { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; margin-top: 20px; color: #64748b; border: 2px dashed #cbd5e1; }
+        /* 🌟 Action Buttons (ชมเชย/ติดตาม) */
+        .btn-praise { background: #10b981; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .btn-praise:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        
+        .btn-follow { background: #ef4444; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .btn-follow:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+
+        select optgroup { font-weight: 700; color: var(--teal-dark); background: #f0fdfa; }
+        select option { font-weight: 400; color: #1e293b; background: white; }
     </style>
 </head>
 <body>
@@ -128,281 +96,467 @@
                 <button class="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
                     <i class="bi bi-list"></i>
                 </button>
-                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="ms-2 me-3" style="width: 40px; height: 40px; object-fit: contain;">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="ms-2 me-3 rounded-circle bg-white p-1" style="width: 40px; height: 40px; object-fit: contain;">
                 <div>
-                    <h5 class="m-0 fw-bold" style="color: var(--pink-primary); font-size: 1.1rem;">คะแนนพฤติกรรม E-POINT</h5>
-                    <small class="text-muted d-none d-sm-block" style="font-size: 0.75rem;">ของระบบ Buayai I-Care School</small>
+                    <h5 class="m-0 fw-bold text-white font-prompt" style="font-size: 1.1rem;">ระบบคะแนนพฤติกรรม E-POINT </h5>
+                    <small class="text-white-50 d-none d-sm-block" style="font-size: 0.75rem;">Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</small>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- 🌟 Sidebar Menu (Offcanvas) -->
+    <!-- 🌟 Sidebar Menu -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header border-bottom justify-content-center pt-4 pb-3">
             <div class="text-center">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" class="sidebar-logo mb-2">
-                <h6 class="fw-bold m-0 text-dark">โรงเรียนบัวใหญ่</h6>
+                <h6 class="fw-bold m-0 text-dark font-prompt">โรงเรียนบัวใหญ่</h6>
             </div>
             <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body p-0 pt-3">
+            <a href="#" class="nav-link-custom active"><i class="bi bi-people-fill"></i> 1.1 ดูคะแนน/วิเคราะห์กลุ่ม</a>
+            <a href="epoint_add.html" class="nav-link-custom"><i class="bi bi-pencil-square"></i> 1.2 เพิ่ม/ลด คะแนน</a>
+            <a href="#" class="nav-link-custom"><i class="bi bi-clock-history"></i> 1.3 ดูประวัติมาสาย</a>
             
-            <!-- เมนูหลัก 1. ระบบ E-Point -->
-            <a href="#submenuEpoint" data-bs-toggle="collapse" class="nav-link-custom active">
-                <i class="bi bi-star-fill"></i> 1. ระบบ E-Point <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
-            </a>
-            <div class="collapse show submenu" id="submenuEpoint">
-                <a href="#" class="nav-link-custom active" onclick="switchView('dashboard', this)"><i class="bi bi-people-fill"></i> 1.1 ดูคะแนนทั้งห้อง</a>
-                <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-clock-history"></i> 1.2 ดูมาสาย</a>
-                <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-door-open-fill"></i> 1.3 ดูโดดเรียน</a>
-            </div>
-
-            <!-- เมนูอื่นๆ -->
-            <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-flag-fill"></i> 2. บันทึกเข้าแถว</a>
-            <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-heart-fill text-success"></i> 3. บันทึกความดี</a>
-            <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-x-circle-fill text-danger"></i> 4. ผู้ไม่ผ่านเกณฑ์</a>
-            <a href="#" class="nav-link-custom" onclick="switchView('placeholder', this)"><i class="bi bi-calendar-week-fill text-primary"></i> 5. ปฏิทินกิจการนักเรียน</a>
-            <a href="#" class="nav-link-custom text-muted" onclick="switchView('placeholder', this)"><i class="bi bi-gear-fill text-muted"></i> 6. ตั้งไว้ก่อน</a>
-
+            <div class="border-top my-3"></div>
+            <a href="index.html" class="nav-link-custom text-danger"><i class="bi bi-box-arrow-left"></i> กลับหน้าหลัก</a>
         </div>
     </div>
 
     <!-- 🌟 Main Content Area -->
     <div class="main-content">
         
-        <!-- View: 1.1 E-Point Dashboard -->
-        <div id="view-dashboard">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <h3 class="fw-bold m-0" style="color: var(--pink-primary);"><i class="bi bi-graph-up-arrow me-2"></i>ภาพรวมคะแนนพฤติกรรม</h3>
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <h3 class="fw-bold m-0 font-prompt" style="color: var(--teal-primary);"><i class="bi bi-graph-up-arrow me-2"></i>วิเคราะห์คะแนนพฤติกรรม</h3>
+        </div>
 
-            <!-- ส่วนควบคุม -->
-            <div class="control-card">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-5 col-lg-4">
-                        <label class="form-label fw-bold text-muted small mb-1">เลือกห้องเรียนที่รับผิดชอบ</label>
-                        <select id="classSelect" class="form-select border-danger text-danger fw-bold rounded-pill px-4 py-2 shadow-sm">
-                            <option value="">-- กำลังโหลดข้อมูลชั้นเรียน... --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn-pink w-100 shadow-sm" onclick="loadSelectedData()">
-                            <i class="bi bi-search me-1"></i> แสดงข้อมูล
-                        </button>
-                    </div>
-                    <div class="col-md-4 text-md-end" id="exportArea" style="display: none;">
-                        <button class="btn-outline-pink mb-1 mb-md-0" id="btnExportSheet" onclick="exportToSheets()"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Sheets</button>
-                        <button class="btn-outline-pink" id="btnExportPdf" onclick="exportToPdf()"><i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF</button>
-                    </div>
+        <!-- 🎛️ กล่องควบคุมการค้นหา -->
+        <div class="control-card">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold text-muted small mb-1">เลือกระดับชั้น หรือ ห้องเรียน</label>
+                    <select id="classSelect" class="form-select fw-bold rounded-pill px-4 py-2 shadow-sm border-2">
+                        <option value="">-- โหลดข้อมูลห้องเรียน... --</option>
+                    </select>
                 </div>
-            </div>
-
-            <!-- ส่วนแสดงโหลด -->
-            <div id="loading" class="text-center py-5" style="display:none;">
-                <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;"></div>
-                <h5 class="text-muted">กำลังดึงข้อมูลจากระบบ...</h5>
-            </div>
-
-            <!-- ส่วนเนื้อหาที่ดึงมา -->
-            <div id="content-display" style="display:none;">
-                <!-- 3 Stats Cards -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <div class="stat-card">
-                            <div class="text-muted fw-bold small mb-2">คะแนนรวมทั้งห้อง</div>
-                            <div class="stat-value" id="stat-total">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-card">
-                            <div class="text-muted fw-bold small mb-2">จำนวนนักเรียนทั้งหมด</div>
-                            <div class="stat-value text-info" id="stat-count" style="background: none; -webkit-text-fill-color: #3b82f6;">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="stat-card">
-                            <div class="text-muted fw-bold small mb-2">คะแนนเฉลี่ยต่อคน</div>
-                            <div class="stat-value text-success" id="stat-avg" style="background: none; -webkit-text-fill-color: #10b981;">0</div>
-                        </div>
-                    </div>
+                <div class="col-md-3">
+                    <button class="btn-teal w-100 shadow-sm py-2" onclick="loadSelectedData()">
+                        <i class="bi bi-search me-1"></i> วิเคราะห์ข้อมูล
+                    </button>
                 </div>
-
-                <!-- ตารางรายชื่อ -->
-                <div class="table-wrapper table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th width="10%">รหัส</th>
-                                <th width="20%">ชื่อ-สกุล</th>
-                                <th width="10%" class="text-center">คะแนน</th>
-                                <th width="30%"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> ประวัติถูกตัดคะแนน</th>
-                                <th width="30%"><i class="bi bi-star-fill text-success me-1"></i> ประวัติเพิ่มความดี</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTable">
-                            <!-- Data fills here -->
-                        </tbody>
-                    </table>
+                <div class="col-md-4 text-md-end" id="exportArea" style="display: none;">
+                    <button class="btn-outline-teal mb-1 mb-md-0" id="btnExportSheet" onclick="exportToSheets()"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Sheets</button>
+                    <button class="btn-outline-teal" id="btnExportPdf" onclick="exportToPdf()"><i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF</button>
                 </div>
             </div>
         </div>
 
-        <!-- View: Placeholder (สำหรับเมนูที่ยังไม่เสร็จ) -->
-        <div id="view-placeholder" class="placeholder-view" style="display: none;">
-            <i class="bi bi-tools display-1 text-muted mb-3"></i>
-            <h3 class="fw-bold text-dark">กำลังพัฒนาระบบ</h3>
-            <p>เมนูนี้กำลังอยู่ในขั้นตอนการเชื่อมต่อข้อมูล จะเปิดให้ใช้งานเร็วๆ นี้ครับ</p>
-            <button class="btn btn-secondary rounded-pill px-4 mt-3" onclick="switchView('dashboard', document.querySelector('.nav-link-custom'))">กลับไปหน้าหลัก</button>
+        <div id="loading" class="text-center py-5" style="display:none;">
+            <div class="spinner-border mb-3" style="color: var(--teal-primary); width: 3rem; height: 3rem;"></div>
+            <h5 class="text-muted fw-bold font-prompt">กำลังดึงข้อมูลและวิเคราะห์กราฟ...</h5>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 🌟 ส่วนที่ 1: กราฟวิเคราะห์กลุ่มเสี่ยง (บน) -->
+        <!-- ============================================== -->
+        <div id="chart-section" style="display:none;">
+            <h4 class="fw-bold text-dark mb-3 font-prompt" id="displayTitle">ผลการวิเคราะห์</h4>
+            
+            <div class="row g-4 mb-4">
+                <!-- 📊 กราฟวงกลม -->
+                <div class="col-lg-5">
+                    <div class="stat-card h-100 p-0 overflow-hidden d-flex flex-column">
+                        <h6 class="fw-bold bg-light py-3 m-0 border-bottom text-dark font-prompt">สัดส่วนนักเรียนตามเกณฑ์คะแนน</h6>
+                        <div id="piechart" style="width: 100%; flex-grow: 1; min-height: 250px;"></div>
+                        <div class="small text-muted pb-3 bg-light pt-2"><i class="bi bi-hand-index-thumb"></i> คลิกที่ส่วนของกราฟเพื่อดูรายชื่อ</div>
+                    </div>
+                </div>
+                
+                <!-- 📋 กล่องสรุป 3 ระดับ -->
+                <div class="col-lg-7">
+                    <div class="row g-3 h-100">
+                        <div class="col-sm-6">
+                            <div class="stat-card border-success" style="border-width: 2px;">
+                                <div class="text-success fw-bold mb-2 font-prompt fs-5"><i class="bi bi-emoji-smile-fill"></i> กลุ่มปกติ (80 ขึ้นไป)</div>
+                                <div class="stat-value text-success" id="count-normal">0</div>
+                                <div class="small text-muted fw-bold">คน</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="stat-card border-warning" style="border-width: 2px;">
+                                <div class="text-warning fw-bold mb-2 font-prompt fs-5"><i class="bi bi-emoji-neutral-fill"></i> กลุ่มเสี่ยง (51 - 79)</div>
+                                <div class="stat-value text-warning" id="count-risk">0</div>
+                                <div class="small text-muted fw-bold">คน</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <!-- 🚨 กล่องกระพริบเตือน -->
+                            <div class="stat-card" id="problem-box">
+                                <div class="text-danger fw-bold mb-2 font-prompt fs-4"><i class="bi bi-exclamation-octagon-fill"></i> กลุ่มมีปัญหา (ต่ำกว่า 50)</div>
+                                <div class="stat-value text-danger" id="count-problem">0</div>
+                                <div class="text-dark fw-bold mt-2 bg-white rounded-pill d-inline-block px-3 py-1 border shadow-sm">ต้องรีบดำเนินการแก้ไขพฤติกรรม</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- กล่องแสดงรายชื่อเมื่อคลิกกราฟ (จะโชว์เมื่อคลิกวงกลม) -->
+            <div id="chart-detail-box" class="alert bg-white border border-2 shadow-sm mb-4" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold m-0 font-prompt" id="chart-detail-title">รายชื่อนักเรียน</h5>
+                    <button type="button" class="btn-close" onclick="document.getElementById('chart-detail-box').style.display='none'"></button>
+                </div>
+                <div id="chart-detail-list" style="max-height: 250px; overflow-y: auto;" class="pe-2"></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 🌟 ส่วนที่ 2: ตารางรายละเอียด (ล่าง) -->
+        <!-- ============================================== -->
+        <div id="content-display" style="display:none;">
+            <div class="d-flex justify-content-between align-items-end mb-3">
+                <h5 class="fw-bold text-dark m-0 font-prompt"><i class="bi bi-list-columns-reverse text-primary me-2"></i>รายละเอียดรายบุคคล</h5>
+            </div>
+            
+            <div class="table-wrapper table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th width="15%">รหัส</th>
+                            <th width="35%">ห้อง / ชื่อ-สกุล</th>
+                            <th width="15%" class="text-center">คะแนน</th>
+                            <th width="35%" class="text-center">การจัดการ (บันทึกโฮมรูม)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTable">
+                        <!-- Data fills here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
 
+    <!-- ============================================== -->
+    <!-- 🌟 Modal ยืนยันการลงบันทึก (ชมเชย/ติดตาม) -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="actionModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header border-0 pb-0 pt-4 justify-content-center position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                    <i id="actionIcon" class="display-1 mb-2"></i>
+                </div>
+                <div class="modal-body px-4 pb-4 pt-0 text-center">
+                    <h4 class="fw-bold font-prompt" id="actionTitle">ยืนยันการดำเนินการ</h4>
+                    
+                    <div class="bg-light rounded-3 p-3 my-3 border">
+                        <h5 class="fw-bold text-dark m-0" id="actionStudentName">ชื่อนักเรียน</h5>
+                        <p class="text-muted small m-0 mt-1">ชั้น ม.<span id="actionRoom"></span> | รหัส <span id="actionStudentId"></span></p>
+                    </div>
+                    
+                    <div class="alert alert-info text-start small border-0 bg-info bg-opacity-10 rounded-3 mb-4">
+                        <i class="bi bi-info-circle-fill text-primary"></i> <b class="text-primary">คำแนะนำระบบ:</b> หากกดยืนยันแล้ว<br>
+                        1. ข้อความจะไปแสดงใน <b>หน้าจอแอปของนักเรียน</b> ทันที<br>
+                        2. ข้อมูลจะถูกบันทึกลง <b>ฐานข้อมูลโฮมรูม (Google Sheets)</b> อัตโนมัติ เพื่อเป็นหลักฐานให้ครูที่ปรึกษา
+                    </div>
+
+                    <div class="text-start mb-2">
+                        <label class="fw-bold small text-muted mb-2">ระบุข้อความที่ต้องการแจ้ง <span class="text-danger">*</span></label>
+                        <input type="text" id="actionDetail" class="form-control form-control-lg fw-bold" placeholder="พิมพ์ข้อความที่นี่...">
+                    </div>
+
+                    <input type="hidden" id="actionType">
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-light py-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" id="btnConfirmAction" onclick="confirmAction()">ยืนยันบันทึกเข้าระบบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // โหลดไลบรารีกราฟของ Google
+        google.charts.load('current', {'packages':['corechart']});
+
         // ====================================================
-        // ⚠️ ใส่ URL Web App API ที่ Deploy ใหม่ตรงนี้ ⚠️
+        // ⚠️ ใส่ URL Web App API ที่ได้จาก Google Apps Script ⚠️
         // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycby44Waa1or3wpmtyCMZvsi9aAwWFLagtCez0kXXnja6YHejF24feJt4rxnWqlCb7cA/exec"; 
 
         let currentData = null;
+        let categorizedStudents = { normal: [], risk: [], problem: [] };
 
-        // ระบบสลับหน้าจอ (UI Navigation)
-        function switchView(viewId, clickedElement) {
-            document.getElementById('view-dashboard').style.display = 'none';
-            document.getElementById('view-placeholder').style.display = 'none';
-            
-            document.getElementById('view-' + viewId).style.display = 'block';
+        // สร้างตัวเลือก Dropdown
+        window.onload = function() {
+            let options = '<option value="">-- เลือกระดับชั้น หรือ ห้องเรียน --</option>';
+            options += '<optgroup label="📌 ดูภาพรวมระดับชั้น">';
+            for (let m = 1; m <= 6; m++) options += `<option value="m${m}">ภาพรวมระดับชั้น ม.${m}</option>`;
+            options += '</optgroup>';
 
-            if(clickedElement) {
-                document.querySelectorAll('.nav-link-custom').forEach(el => el.classList.remove('active'));
-                clickedElement.classList.add('active');
+            for (let m = 1; m <= 6; m++) {
+                options += `<optgroup label="ดูรายห้อง ม.${m}">`;
+                let maxRooms = (m === 4) ? 12 : 10;
+                for (let r = 1; r <= maxRooms; r++) options += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
+                options += `</optgroup>`;
             }
+            document.getElementById('classSelect').innerHTML = options;
+        };
 
-            // ซ่อน Sidebar ในมือถือเมื่อกดเมนู
-            const bsOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'));
-            if (bsOffcanvas && window.innerWidth < 992) {
-                bsOffcanvas.hide();
-            }
+        function toggleSidebar() {
+            const sb = document.getElementById('mainSidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('show');
+            ov.style.display = sb.classList.contains('show') ? 'block' : 'none';
         }
 
-        // ฟังก์ชันดึง API (Fetch)
         async function fetchAPI(payload) {
             try {
                 const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 return await response.json();
-            } catch (error) {
-                alert("การเชื่อมต่อล้มเหลว โปรดตรวจสอบอินเทอร์เน็ต");
-                return null;
-            }
+            } catch (error) { return null; }
         }
 
-        // ฟังก์ชันแปลงวันที่
-        function formatShortThaiDate(dateString) {
-            if (!dateString) return "-";
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return dateString;
-                return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
-            } catch (e) { return dateString; }
-        }
-
-        // 1. โหลดรายชื่อห้องตอนเปิดเว็บ
-        window.onload = async function() {
-            const res = await fetchAPI({ action: 'getClassroomList' });
-            if (res && res.success) {
-                const select = document.getElementById('classSelect');
-                select.innerHTML = '<option value="">-- เลือกห้องประจำชั้น --</option>';
-                res.classrooms.forEach(c => {
-                    select.innerHTML += `<option value="${c}">ชั้นมัธยมศึกษาปีที่ ${c}</option>`;
-                });
-            } else {
-                document.getElementById('classSelect').innerHTML = '<option value="">โหลดข้อมูลล้มเหลว</option>';
-            }
-        };
-
-        // 2. ดึงข้อมูลนักเรียน
+        // ==========================================
+        // 🌟 ดึงข้อมูลและวิเคราะห์กราฟ
+        // ==========================================
         async function loadSelectedData() {
-            const className = document.getElementById('classSelect').value;
-            if (!className) return alert('กรุณาเลือกห้องเรียนก่อนครับ');
+            const target = document.getElementById('classSelect').value;
+            if (!target) return alert('กรุณาระบุระดับชั้นหรือห้องเรียนครับ');
             
             document.getElementById('loading').style.display = 'block';
             document.getElementById('content-display').style.display = 'none';
+            document.getElementById('chart-section').style.display = 'none';
             document.getElementById('exportArea').style.display = 'none';
+            document.getElementById('chart-detail-box').style.display = 'none';
             
-            const data = await fetchAPI({ action: 'getData', className: className });
+            const data = await fetchAPI({ action: 'getData', className: target });
             document.getElementById('loading').style.display = 'none';
 
             if (data && data.success) {
-                currentData = { className, data };
-                displayData(data);
+                currentData = { className: target, data };
+                document.getElementById('displayTitle').innerText = `ผลการวิเคราะห์: ${data.displayTitle}`;
+                
+                processChartData(data.students);
+                displayData(data.students);
+                
                 document.getElementById('exportArea').style.display = 'block';
+                document.getElementById('chart-section').style.display = 'block';
             } else {
                 alert("เกิดข้อผิดพลาด: " + (data ? data.error : "ไม่ทราบสาเหตุ"));
             }
         }
 
-        // 3. นำข้อมูลลงตารางและหน้าปัด
-        function displayData(data) {
-            document.getElementById('content-display').style.display = 'block';
-            document.getElementById('stat-total').textContent = data.stats.totalScore;
-            document.getElementById('stat-count').textContent = data.stats.totalStudents;
-            document.getElementById('stat-avg').textContent = data.stats.averageScore;
+        function processChartData(students) {
+            categorizedStudents = { normal: [], risk: [], problem: [] };
             
+            students.forEach(s => {
+                if (s.score < 50) categorizedStudents.problem.push(s);
+                else if (s.score <= 79) categorizedStudents.risk.push(s);
+                else categorizedStudents.normal.push(s);
+            });
+
+            document.getElementById('count-normal').innerText = categorizedStudents.normal.length;
+            document.getElementById('count-risk').innerText = categorizedStudents.risk.length;
+            document.getElementById('count-problem').innerText = categorizedStudents.problem.length;
+
+            // ระบบไฟกระพริบ ถ้ามีเด็กกลุ่มมีปัญหา
+            const probBox = document.getElementById('problem-box');
+            if(categorizedStudents.problem.length > 0) {
+                probBox.className = 'stat-card blink-rapid';
+            } else {
+                probBox.className = 'stat-card border-danger border-2';
+            }
+
+            drawChart();
+        }
+
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['กลุ่ม', 'จำนวน'],
+                ['กลุ่มปกติ (80+)', categorizedStudents.normal.length],
+                ['กลุ่มเสี่ยง (51-79)', categorizedStudents.risk.length],
+                ['กลุ่มมีปัญหา (<50)', categorizedStudents.problem.length]
+            ]);
+
+            var options = {
+                pieHole: 0.4,
+                colors: ['#10b981', '#f59e0b', '#ef4444'], // เขียว, ส้ม, แดง
+                chartArea: {width: '100%', height: '85%'},
+                legend: {position: 'bottom', textStyle: {fontName: 'Sarabun'}},
+                fontName: 'Sarabun',
+                pieSliceText: 'value'
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+            // Event: คลิกที่กราฟเพื่อดูรายชื่อ
+            google.visualization.events.addListener(chart, 'select', function() {
+                var selection = chart.getSelection();
+                if (selection.length) {
+                    var row = selection[0].row;
+                    var groupName = data.getValue(row, 0);
+                    var list = row === 0 ? categorizedStudents.normal : (row === 1 ? categorizedStudents.risk : categorizedStudents.problem);
+                    showChartDetail(groupName, list, row);
+                }
+            });
+
+            chart.draw(data, options);
+        }
+
+        function showChartDetail(title, list, rowIndex) {
+            const box = document.getElementById('chart-detail-box');
+            const titleEl = document.getElementById('chart-detail-title');
+            const listEl = document.getElementById('chart-detail-list');
+            
+            // เปลี่ยนสีขอบกล่องตามกลุ่มที่เลือก
+            let borderColor = rowIndex === 0 ? '#10b981' : (rowIndex === 1 ? '#f59e0b' : '#ef4444');
+            box.style.borderColor = borderColor;
+
+            titleEl.innerHTML = `<span style="color:${borderColor}">${title}</span> (${list.length} คน)`;
+            
+            if(list.length === 0) {
+                listEl.innerHTML = '<div class="text-muted small py-3 text-center">ไม่มีรายชื่อในกลุ่มนี้</div>';
+            } else {
+                // จัดเรียงคะแนนจากน้อยไปมาก
+                let sortedList = [...list].sort((a,b) => a.score - b.score);
+                
+                let html = '';
+                sortedList.forEach(s => {
+                    let scoreBadgeColor = s.score < 50 ? 'bg-danger' : (s.score <= 79 ? 'bg-warning text-dark' : 'bg-success');
+                    html += `
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <span class="badge bg-light text-dark border me-2">ม.${s.room}</span>
+                            <span class="fw-bold">${s.name}</span>
+                        </div>
+                        <span class="badge ${scoreBadgeColor} fs-6 rounded-pill px-3">${s.score}</span>
+                    </div>`;
+                });
+                listEl.innerHTML = html;
+            }
+            box.style.display = 'block';
+            
+            // เลื่อนจอลงมาให้เห็นกล่อง
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ==========================================
+        // 🌟 วาดตารางด้านล่าง + ปุ่มจัดการ
+        // ==========================================
+        function displayData(students) {
+            document.getElementById('content-display').style.display = 'block';
             const tbody = document.getElementById('studentTable');
             tbody.innerHTML = '';
             
-            if(data.students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">ไม่พบรายชื่อนักเรียน</td></tr>';
+            if(students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5">ไม่พบรายชื่อนักเรียน</td></tr>';
                 return;
             }
 
-            data.students.forEach(s => {
+            students.forEach(s => {
                 let tr = document.createElement('tr');
                 
-                // คอลัมน์รหัสและชื่อ
-                let tdId = `<td class="fw-bold text-muted">${s.id}</td>`;
-                let tdName = `<td class="fw-bold">${s.name}</td>`;
-                
-                // คอลัมน์คะแนน
-                let scoreColor = s.score < 0 ? 'text-danger' : 'text-success';
-                let tdScore = `<td class="text-center fw-bold fs-5 ${scoreColor}">${s.score}</td>`;
-                
-                // คอลัมน์ประวัติหักคะแนน
-                let penaltyHtml = '';
-                if (s.penalties.length > 0) {
-                    s.penalties.forEach(p => {
-                        let behavior = p.category || p.violation || "ไม่ระบุ";
-                        penaltyHtml += `
-                        <div class="record-capsule capsule-penalty">
-                            <div><span class="opacity-75 me-2">${formatShortThaiDate(p.date)}</span> <span>${behavior}</span></div>
-                            <span class="fw-bold fs-6">-${Math.abs(p.points)}</span>
-                        </div>`;
-                    });
-                } else { penaltyHtml = '<span class="text-muted small">- ไม่มีประวัติ -</span>'; }
+                if(s.score < 50) tr.className = "row-problem";
+                else if(s.score <= 79) tr.className = "row-risk";
 
-                // คอลัมน์ประวัติเพิ่มคะแนน
-                let bonusHtml = '';
-                if (s.bonusRecords.length > 0) {
-                    s.bonusRecords.forEach(b => {
-                        bonusHtml += `
-                        <div class="record-capsule capsule-bonus">
-                            <div><span class="opacity-75 me-2">${formatShortThaiDate(b.date)}</span> <span>${b.category}</span></div>
-                            <span class="fw-bold fs-6">+${Math.abs(b.points)}</span>
-                        </div>`;
-                    });
-                } else { bonusHtml = '<span class="text-muted small">- ไม่มีประวัติ -</span>'; }
+                let tdId = `<td class="text-muted small fw-bold">${s.id}</td>`;
+                let tdName = `<td><span class="badge bg-white text-dark border shadow-sm me-2">ม.${s.room}</span><span class="fw-bold text-dark">${s.name}</span></td>`;
+                
+                let scoreColor = s.score < 50 ? 'text-danger' : (s.score <= 79 ? 'text-warning' : 'text-success');
+                let tdScore = `<td class="text-center fw-bold fs-4 ${scoreColor}">${s.score}</td>`;
+                
+                // ปุ่ม Action ส่งข้อมูลเข้าโฮมรูม
+                let tdAction = `
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn-praise" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'praise')"><i class="bi bi-star-fill"></i> ชมเชย</button>
+                            <button class="btn-follow" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'follow')"><i class="bi bi-exclamation-triangle-fill"></i> ติดตาม</button>
+                        </div>
+                    </td>`;
 
-                tr.innerHTML = tdId + tdName + tdScore + `<td>${penaltyHtml}</td><td>${bonusHtml}</td>`;
+                tr.innerHTML = tdId + tdName + tdScore + tdAction;
                 tbody.appendChild(tr);
             });
         }
 
-        // 4. ระบบ Export
+        // ==========================================
+        // 🌟 ระบบ Modal Action (บันทึกลงโฮมรูม)
+        // ==========================================
+        const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+
+        function promptAction(id, name, room, type) {
+            document.getElementById('actionStudentId').innerText = id;
+            document.getElementById('actionStudentName').innerText = name;
+            document.getElementById('actionRoom').innerText = room;
+            document.getElementById('actionType').value = type;
+            document.getElementById('actionDetail').value = ""; 
+
+            const icon = document.getElementById('actionIcon');
+            const title = document.getElementById('actionTitle');
+            const btn = document.getElementById('btnConfirmAction');
+
+            if (type === 'praise') {
+                icon.className = "bi bi-award-fill text-success display-1 mb-2";
+                title.innerText = "ส่งข้อความ ชื่นชม นักเรียน";
+                title.className = "modal-title fw-bold font-prompt text-success";
+                btn.className = "btn btn-success rounded-pill px-5 fw-bold shadow-sm";
+            } else {
+                icon.className = "bi bi-exclamation-triangle-fill text-danger display-1 mb-2";
+                title.innerText = "ส่งข้อความ ติดตาม พฤติกรรม";
+                title.className = "modal-title fw-bold font-prompt text-danger";
+                btn.className = "btn btn-danger rounded-pill px-5 fw-bold shadow-sm";
+            }
+
+            actionModal.show();
+        }
+
+        async function confirmAction() {
+            const id = document.getElementById('actionStudentId').innerText;
+            const room = document.getElementById('actionRoom').innerText;
+            const detail = document.getElementById('actionDetail').value.trim();
+            const type = document.getElementById('actionType').value;
+
+            if(!detail) return alert("กรุณาระบุข้อความที่ต้องการแจ้งให้นักเรียนทราบครับ");
+
+            const prefix = type === 'praise' ? "⭐ [ชมเชย]: " : "🚨 [ติดตามพฤติกรรม]: ";
+            const finalMessage = prefix + detail;
+
+            const btn = document.getElementById('btnConfirmAction');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังส่งข้อมูล...';
+            btn.disabled = true;
+
+            const payload = {
+                action: 'saveStudentAction',
+                id: id,
+                room: room,
+                detail: finalMessage
+            };
+
+            const res = await fetchAPI(payload);
+            
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+
+            if (res && res.success) {
+                alert("✅ " + res.message);
+                actionModal.hide();
+            } else {
+                alert("❌ เกิดข้อผิดพลาด: " + (res ? res.error : "ไม่ทราบสาเหตุ"));
+            }
+        }
+
+        // ==========================================
+        // ส่งออกเอกสาร (เหมือนเดิม)
+        // ==========================================
         function setExportBtn(id, isLoading, defaultText, iconClass) {
             const btn = document.getElementById(id);
             btn.disabled = isLoading;
@@ -414,7 +568,7 @@
             setExportBtn('btnExportSheet', true, 'Sheets', 'bi bi-file-earmark-spreadsheet-fill');
             const res = await fetchAPI({ action: 'exportToGoogleSheets', className: currentData.className });
             setExportBtn('btnExportSheet', false, 'Sheets', 'bi bi-file-earmark-spreadsheet-fill');
-            if(res && res.success) { window.open(res.url, '_blank'); } else { alert("สร้างไฟล์ล้มเหลว"); }
+            if(res && res.success) { window.open(res.url, '_blank'); } else { alert("สร้างไฟล์ล้มเหลว: " + res.error); }
         }
 
         async function exportToPdf() {
@@ -422,7 +576,7 @@
             setExportBtn('btnExportPdf', true, 'PDF', 'bi bi-file-earmark-pdf-fill');
             const res = await fetchAPI({ action: 'exportToPDF', className: currentData.className });
             setExportBtn('btnExportPdf', false, 'PDF', 'bi bi-file-earmark-pdf-fill');
-            if(res && res.success) { window.open(res.url, '_blank'); } else { alert("สร้างไฟล์ล้มเหลว"); }
+            if(res && res.success) { window.open(res.url, '_blank'); } else { alert("สร้างไฟล์ล้มเหลว: " + res.error); }
         }
     </script>
 </body>
