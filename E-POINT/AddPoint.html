@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            --primary-color: #6366f1; /* สีม่วงอมน้ำเงินทันสมัย */
+            --primary-color: #6366f1;
             --secondary-color: #4f46e5;
             --bg-color: #f8fafc;
         }
@@ -19,7 +19,6 @@
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; overflow-x: hidden; }
         h1, h2, h3, h4, h5, .nav-link { font-family: 'Prompt', sans-serif; }
         
-        /* 📱 Navbar & Sidebar */
         .top-navbar { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; height: 65px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); position: fixed; top: 0; width: 100%; z-index: 1030; }
         .hamburger-btn { background: none; border: none; color: white; font-size: 1.8rem; padding: 0; margin-right: 15px; }
         
@@ -30,35 +29,29 @@
         .nav-link-custom { color: #475569; padding: 12px 20px; border-radius: 12px; margin-bottom: 5px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-weight: 600; transition: 0.2s; }
         .nav-link-custom:hover, .nav-link-custom.active { background: #e0e7ff; color: var(--primary-color); }
 
-        /* 📦 Main Content */
         .main-content { padding: 85px 15px 30px; max-width: 800px; margin: 0 auto; }
         .content-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 20px; }
         
         .form-control, .form-select { border-radius: 12px; padding: 12px 15px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-family: 'Sarabun'; }
         .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); background-color: white; }
         
-        /* 🔵 Tabs for Record Modes */
         .custom-tabs { display: flex; background: #f1f5f9; border-radius: 15px; padding: 5px; margin-bottom: 20px; }
         .custom-tab { flex: 1; text-align: center; padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer; color: #64748b; transition: 0.2s; font-size: 0.9rem;}
         .custom-tab.active { background: white; color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* 🔘 Buttons */
         .btn-main { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; border-radius: 15px; padding: 14px; font-weight: 600; font-family: 'Prompt'; width: 100%; transition: 0.3s; }
         .btn-main:active { transform: scale(0.98); }
         .btn-main:disabled { opacity: 0.7; transform: none; }
 
-        /* 📷 Image Upload */
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; background: #f8fafc; transition: 0.2s; }
         .upload-area:hover { border-color: var(--primary-color); background: #eff6ff; }
         #preview-img { max-height: 200px; border-radius: 10px; display: none; margin: 10px auto 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        /* 📋 Checkbox List */
         .student-checkbox-list { max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; background: white; }
         .student-item { padding: 10px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .student-item:last-child { border-bottom: none; }
         .student-item input[type="checkbox"] { transform: scale(1.3); }
 
-        /* 📚 History Table */
         .history-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         
         #login-view { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e293b, #0f172a); position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
@@ -67,13 +60,10 @@
 </head>
 <body>
 
-    <!-- ============================================== -->
-    <!-- 🔒 หน้าจอล็อกอิน -->
-    <!-- ============================================== -->
     <div id="login-view">
         <div class="login-box">
             <i class="bi bi-star-fill text-warning mb-3" style="font-size: 3rem; filter: drop-shadow(0 4px 6px rgba(245,158,11,0.3));"></i>
-            <h4 class="fw-bold mb-1">E-POINT</h4>
+            <h4 class="fw-bold mb-1">คะแนนความประพฤติ E-POINT </h4>
             <p class="text-muted small mb-4">ระบบบันทึกคะแนนความดี</p>
             
             <input type="text" id="username" class="form-control text-center mb-3 fw-bold" placeholder="ชื่อผู้ใช้งาน (เช่น m1, m2)">
@@ -83,18 +73,13 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- 📱 โครงสร้างหลักของแอป -->
-    <!-- ============================================== -->
     <div id="app-view" style="display: none;">
         
-        <!-- Navbar -->
         <div class="top-navbar">
             <button class="hamburger-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
             <h5 class="m-0 fw-bold">E-POINT เพิ่มคะแนน</h5>
         </div>
 
-        <!-- Sidebar -->
         <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
         <div class="sidebar" id="mainSidebar">
             <div class="text-center pb-3 border-bottom mb-3">
@@ -108,20 +93,16 @@
             <button class="btn btn-outline-danger rounded-pill mt-auto fw-bold" onclick="location.reload()"><i class="bi bi-box-arrow-right me-2"></i> 3. ออกจากระบบ</button>
         </div>
 
-        <!-- เนื้อหาหลัก -->
         <div class="main-content">
             
-            <!-- 📍 หน้า 1: บันทึกข้อมูล -->
             <div id="view-record">
                 <div class="content-card pb-2">
-                    <!-- แท็บเลือกโหมดการบันทึก -->
                     <div class="custom-tabs">
                         <div class="custom-tab active" id="tab-single" onclick="setRecordMode('single')">1. รายบุคคล</div>
                         <div class="custom-tab" id="tab-multi" onclick="setRecordMode('multi')">2. หลายคน (ในห้อง)</div>
-                        <div class="custom-tab" id="tab-bulk" onclick="setRecordMode('bulk')">3. วางข้อความ</div>
+                        <div class="custom-tab" id="tab-bulk" onclick="setRecordMode('bulk')">3. วางรายชื่อ (หลายคน)</div>
                     </div>
 
-                    <!-- 📝 ฟอร์มส่วนที่ 1: เลือกนักเรียน -->
                     <div id="mode-single" class="mode-section">
                         <label class="form-label fw-bold small text-muted">เลือกระดับชั้น</label>
                         <select id="single-room" class="form-select mb-3" onchange="loadStudentsForMode('single')">
@@ -151,7 +132,6 @@
                     </div>
                 </div>
 
-                <!-- 📝 ฟอร์มส่วนที่ 2: รายละเอียดความดี (ใช้ร่วมกันทุกโหมด) -->
                 <div class="content-card">
                     <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-star-fill text-warning me-2"></i>ข้อมูลความดี</h5>
                     
@@ -175,15 +155,18 @@
                     </div>
                     <input type="file" id="image-upload" accept="image/*" class="d-none" onchange="previewImage(event)">
 
-                    <button id="btn-save" class="btn-main" onclick="submitData()"><i class="bi bi-floppy2-fill me-2"></i> บันทึกข้อมูล</button>
+                    <!-- 🌟 ปรับปรุงปุ่มบันทึก และ เพิ่มปุ่มแก้ไขด้านข้าง -->
+                    <div class="d-flex gap-2">
+                        <button id="btn-save" class="btn-main flex-grow-1" onclick="submitData()"><i class="bi bi-floppy2-fill me-2"></i> บันทึกข้อมูล</button>
+                        <button type="button" class="btn btn-outline-primary rounded-4 px-4 shadow-sm fw-bold" onclick="switchView('history', document.querySelectorAll('.nav-link-custom')[1]); loadHistory();" style="border-radius: 15px;"><i class="bi bi-pencil-square"></i> แก้ไข</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- 📍 หน้า 2: ประวัติและแก้ไข -->
             <div id="view-history" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark m-0"><i class="bi bi-clock-history text-primary me-2"></i>ประวัติการบันทึก</h5>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadHistory()"><i class="bi bi-arrow-clockwise"></i> รีเฟรช</button>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="loadHistory()"><i class="bi bi-arrow-clockwise"></i> รีเฟรช</button>
                 </div>
                 
                 <div id="history-loading" class="text-center py-5">
@@ -191,20 +174,18 @@
                     <div class="mt-2 small text-muted">กำลังดึงข้อมูล...</div>
                 </div>
 
-                <div id="history-container">
-                    <!-- ประวัติจะถูกสร้างที่นี่ -->
-                </div>
+                <div id="history-container"></div>
             </div>
 
         </div>
     </div>
 
-    <!-- 🌟 Modal แก้ไขข้อมูล -->
+    <!-- Modal แก้ไขข้อมูล -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
                 <div class="modal-header bg-light border-0">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> แก้ไขข้อมูล</h6>
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> แก้ไขข้อมูลการให้คะแนน</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -238,14 +219,13 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ที่ได้จาก Google Apps Script ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyOFEh0NfBROic2aq9AKn_calcR3axkDZSYuXafJGcpdOMzyllln2V2vW6MITsNEiwY/exec"; 
+        const API_URL = "ใส่_ลิงก์_WEB_APP_ตรงนี้"; 
 
         let currentUser = "";
         let currentMode = "single";
         let uploadedBase64 = null;
         let classOptionsHTML = '<option value="">-- เลือกห้องเรียน --</option>';
 
-        // 1. สร้างตัวเลือกห้องเรียนตอนโหลดเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             for (let m = 1; m <= 6; m++) {
                 for (let r = 1; r <= 10; r++) {
@@ -256,7 +236,33 @@
             document.getElementById('multi-room').innerHTML = classOptionsHTML;
         });
 
-        // 2. ฟังก์ชัน Fetch กลาง
+        // 🌟 แปลงวันที่เป็น "วันจันทร์ ที่ 20 มีนาคม 2569" แบบทนทาน
+        function formatFullThaiDate(dateString) {
+            if (!dateString) return "-";
+            try {
+                let d = new Date(dateString);
+                if (isNaN(d.getTime()) && dateString.includes('/')) {
+                    const datePart = dateString.split(/[\s,]+/)[0];
+                    const parts = datePart.split('/');
+                    if (parts.length === 3) {
+                        d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                    }
+                }
+                if(isNaN(d.getTime())) return dateString; 
+
+                const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+                const thaiDays = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+                
+                const dayName = thaiDays[d.getDay()];
+                const dateNum = d.getDate();
+                const monthName = thaiMonths[d.getMonth()];
+                let year = d.getFullYear();
+                if (year < 2400) year += 543;
+
+                return `วัน${dayName} ที่ ${dateNum} ${monthName} ${year}`;
+            } catch (e) { return dateString; }
+        }
+
         async function fetchAPI(payload, btnId) {
             let btn = btnId ? document.getElementById(btnId) : null;
             let originalText = btn ? btn.innerHTML : "";
@@ -277,7 +283,6 @@
             }
         }
 
-        // --- ควบคุม UI พื้นฐาน ---
         function toggleSidebar() {
             document.getElementById('mainSidebar').classList.toggle('show');
             let overlay = document.getElementById('sidebar-overlay');
@@ -301,7 +306,6 @@
             document.getElementById('mode-' + mode).style.display = 'block';
         }
 
-        // --- ระบบล็อกอิน ---
         async function handleLogin() {
             const u = document.getElementById('username').value.trim();
             const p = document.getElementById('password').value.trim();
@@ -318,7 +322,6 @@
             }
         }
 
-        // --- ระบบดึงรายชื่อนักเรียน ---
         async function loadStudentsForMode(mode) {
             const room = document.getElementById(`${mode}-room`).value;
             if (mode === 'single') {
@@ -353,24 +356,22 @@
             }
         }
 
-        // --- ระบบอัปโหลดรูปภาพ ---
         function previewImage(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                // บีบอัดภาพด้วย Canvas
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // ย่อขนาดเพื่อไม่ให้ไฟล์หนัก
+                    const MAX_WIDTH = 800; 
                     let width = img.width; let height = img.height;
                     if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    uploadedBase64 = canvas.toDataURL('image/jpeg', 0.6); // บีบอัด 60%
+                    uploadedBase64 = canvas.toDataURL('image/jpeg', 0.6); 
                     const preview = document.getElementById('preview-img');
                     preview.src = uploadedBase64;
                     preview.style.display = 'block';
@@ -380,7 +381,6 @@
             reader.readAsDataURL(file);
         }
 
-        // --- ระบบบันทึกข้อมูลหลัก ---
         async function submitData() {
             let studentsToSave = [];
             let currentClass = "";
@@ -406,15 +406,12 @@
                 const text = document.getElementById('bulk-text').value.trim();
                 if(!text) return alert("กรุณาวางข้อความรายชื่อ");
                 
-                // รูปแบบ: ชื่อ-สกุล ชั้น
                 const lines = text.split('\n');
                 lines.forEach(line => {
-                    let parts = line.trim().split(/\s+/); // แยกคำด้วยช่องว่าง
+                    let parts = line.trim().split(/\s+/); 
                     if (parts.length >= 2) {
-                        let cls = parts.pop(); // คำสุดท้ายคือห้อง (เช่น 1/1)
-                        let fullname = parts.join(' '); // ที่เหลือคือชื่อ
-                        // เอา "ม." ออกถ้ามีพิมพ์มา
-                        cls = cls.replace('ม.', '');
+                        let cls = parts.pop().replace('ม.', ''); 
+                        let fullname = parts.join(' '); 
                         studentsToSave.push({ id: "", name: fullname, room: cls });
                     }
                 });
@@ -423,7 +420,7 @@
 
             const category = document.getElementById('record-category').value;
             const score = document.getElementById('record-score').value;
-            if(!score) return alert("กรุณาระบุคะแนน (ตัวเลข)");
+            if(!score) return alert("กรุณาระบุคะแนน (เช่น 10)");
 
             let pureBase64 = uploadedBase64 ? uploadedBase64.split(',')[1] : "";
 
@@ -440,7 +437,6 @@
             const res = await fetchAPI(payload, 'btn-save');
             if (res.success) {
                 alert("✅ " + res.message);
-                // รีเซ็ตฟอร์ม
                 document.getElementById('record-score').value = "";
                 document.getElementById('bulk-text').value = "";
                 document.getElementById('preview-img').style.display = "none";
@@ -451,7 +447,6 @@
             }
         }
 
-        // --- ระบบประวัติและแก้ไข ---
         async function loadHistory() {
             document.getElementById('history-loading').style.display = 'block';
             document.getElementById('history-container').innerHTML = '';
@@ -468,13 +463,13 @@
                 let html = '';
                 res.data.forEach(r => {
                     html += `
-                    <div class="history-card">
+                    <div class="history-card shadow-sm border-0">
                         <div>
-                            <div class="fw-bold">${r.name} <span class="badge bg-light text-dark border">ม.${r.room}</span></div>
-                            <div class="small text-muted mb-1">${r.date}</div>
+                            <div class="fw-bold">${r.name} <span class="badge bg-light text-dark border ms-1">${r.room}</span></div>
+                            <div class="small text-muted mb-1"><i class="bi bi-calendar-event"></i> ${formatFullThaiDate(r.date)}</div>
                             <div class="small"><span class="text-primary fw-bold">${r.category}</span> | ได้ <span class="text-success fw-bold">+${r.score}</span> คะแนน</div>
                         </div>
-                        <button class="btn btn-sm btn-outline-secondary rounded-3" onclick="openEditModal(${r.rowIdx}, '${r.name}', '${r.room}', '${r.date}', '${r.category}', ${r.score})"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-outline-primary rounded-circle" style="width: 45px; height: 45px;" onclick="openEditModal(${r.rowIdx}, '${r.name}', '${r.room}', '${r.date}', '${r.category}', ${r.score})"><i class="bi bi-pencil-square"></i></button>
                     </div>`;
                 });
                 document.getElementById('history-container').innerHTML = html;
@@ -487,9 +482,8 @@
             document.getElementById('edit-rowIdx').value = rowIdx;
             document.getElementById('edit-name').innerText = name;
             document.getElementById('edit-room').innerText = room;
-            document.getElementById('edit-date').innerText = date;
+            document.getElementById('edit-date').innerText = formatFullThaiDate(date); // โชว์ใน Modal แบบไทยๆ
             
-            // พยายาม select category ถ้ามีใน list, ถ้าไม่มีให้พิมพ์ทับ
             let catSelect = document.getElementById('edit-category');
             let found = Array.from(catSelect.options).some(opt => opt.value === category);
             if (!found) {
@@ -508,7 +502,7 @@
             const cat = document.getElementById('edit-category').value;
             const score = document.getElementById('edit-score').value;
 
-            if(!score) return alert("กรุณาระบุคะแนน");
+            if(!score) return alert("กรุณาระบุคะแนนที่ต้องการแก้ไข");
 
             const payload = {
                 action: 'updateRecord',
@@ -521,7 +515,7 @@
             if(res.success) {
                 alert("✅ " + res.message);
                 bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-                loadHistory(); // รีเฟรชประวัติใหม่
+                loadHistory(); 
             } else {
                 alert("❌ " + res.error);
             }
