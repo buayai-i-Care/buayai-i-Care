@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการผลการเรียน มผ - E-Point ภาคเรียนที่1/2569</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            /* 🦄 Bubblegum Purple Theme */
+            --purple-main: #d946ef; 
+            --purple-dark: #a21caf; 
+            --purple-light: #fdf4ff; 
+            --purple-hover: #c026d3;
+            --bg-color: #f8fafc; 
+            --text-dark: #1e293b;
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+        h1, h2, h3, h4, h5, .nav-link-custom, .font-prompt { font-family: 'Prompt', sans-serif; }
+
+        /* --- Navbar --- */
+        .top-navbar { 
+            background: linear-gradient(135deg, var(--purple-main), var(--purple-dark)); 
+            color: white; height: 70px; z-index: 1040; 
+            box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+        }
+        .hamburger-btn { border: none; background: transparent; font-size: 1.8rem; color: white; padding: 5px 15px; transition: 0.2s; }
+
+        /* --- 🌟 Sidebar --- */
+        .offcanvas-start { width: 280px; border-right: none; box-shadow: 5px 0 25px rgba(0,0,0,0.05); }
+        
+        .nav-link-custom { color: var(--text-dark); font-weight: 600; padding: 12px 20px; border-radius: 12px; margin: 4px 15px; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+        .nav-link-custom:hover, .nav-link-custom.active { background-color: var(--purple-light); color: var(--purple-main); }
+        
+        /* --- Main Content --- */
+        .main-content { padding: 90px 20px 40px; max-width: 1200px; margin: 0 auto; flex-grow: 1; width: 100%; }
+
+        .control-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(217, 70, 239, 0.05); border: 1px solid #fae8ff; margin-bottom: 25px; }
+        .form-select, .form-control { border-radius: 12px; padding: 12px 15px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-family: 'Sarabun'; font-weight: bold; color: var(--purple-dark);}
+        .form-select:focus, .form-control:focus { border-color: var(--purple-main); box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15); background-color: white; }
+
+        .stat-card { background: white; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; height: 100%;}
+        .stat-value { font-size: 2.5rem; font-weight: 700; font-family: 'Prompt'; line-height: 1; margin: 10px 0;}
+
+        /* --- Table --- */
+        .table-wrapper { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+        .table thead th { background-color: var(--purple-light); color: var(--purple-dark); font-weight: 700; border-bottom: 2px solid #f5d0fe; padding: 15px; white-space: nowrap; font-family: 'Prompt'; text-align: center; }
+        .table tbody td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f8fafc; }
+        
+        .row-fail { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .row-pass { background-color: #f0fdf4; border-left: 4px solid #10b981; }
+
+        /* Buttons */
+        .btn-purple { background-color: var(--purple-main); color: white; border-radius: 50px; font-weight: 600; padding: 10px 25px; transition: 0.2s; border: none; font-family: 'Prompt';}
+        .btn-purple:hover { background-color: var(--purple-hover); color: white; transform: scale(0.98); }
+        .btn-outline-purple { border: 2px solid var(--purple-main); color: var(--purple-main); border-radius: 50px; font-weight: 600; padding: 8px 20px; background: white; transition: 0.2s;}
+        .btn-outline-purple:hover { background-color: var(--purple-main); color: white; }
+
+        .btn-pass-action { background: #10b981; color: white; border: none; border-radius: 10px; padding: 8px 15px; font-size: 0.95rem; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);}
+        .btn-pass-action:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3); }
+        
+        /* 🌟 ปุ่มเติมคะแนน */
+        .btn-fill-action { background: white; color: var(--purple-main); border: 2px solid var(--purple-main); border-radius: 10px; padding: 6px 15px; font-size: 0.95rem; font-weight: bold; transition: 0.2s;}
+        .btn-fill-action:hover { background: var(--purple-main); color: white; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(217, 70, 239, 0.2); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar top-navbar fixed-top">
+        <div class="container-fluid px-2">
+            <div class="d-flex align-items-center">
+                <button class="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                    <i class="bi bi-list"></i>
+                </button>
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="ms-2 me-3 rounded-circle bg-white p-1" style="width: 40px; height: 40px; object-fit: contain;">
+                <div>
+                    <h5 class="m-0 fw-bold text-white font-prompt" style="font-size: 1.1rem;">ระบบจัดการผลการเรียน มผ ภาคเรียนที่1/2569</h5>
+                    <small class="text-white-50 d-none d-sm-block" style="font-size: 0.75rem;">ผู้ดูแลระบบ / ฝ่ายกิจการนักเรียน</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="offcanvas offcanvas-start d-flex flex-column" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header border-bottom justify-content-center pt-4 pb-3 flex-shrink-0">
+            <div class="text-center">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" class="rounded-circle border p-1 mb-2" width="70" style="border-color: var(--purple-light) !important;">
+                <h6 class="fw-bold m-0 text-dark font-prompt">โรงเรียนบัวใหญ่</h6>
+            </div>
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="offcanvas"></button>
+        </div>
+        
+        <div class="offcanvas-body p-0 pt-3 flex-grow-1 overflow-y-auto" style="scrollbar-width: thin;">
+            <a class="nav-link-custom active" onclick="switchView('list', this)"><i class="bi bi-card-list fs-5"></i> 1. รายชื่อผู้ไม่ผ่านเกณฑ์</a>
+            <a class="nav-link-custom" onclick="switchView('edit', this)"><i class="bi bi-pencil-square fs-5 text-danger"></i> 2. แก้ไขผลการเรียน (มผ)</a>
+            <a class="nav-link-custom" onclick="switchView('transfer', this)"><i class="bi bi-arrow-left-right fs-5 text-warning"></i> 3. โอนรายชื่อผู้ไม่ผ่านเกณฑ์</a>
+            <a class="nav-link-custom text-muted"><i class="bi bi-gear fs-5"></i> 4. ตั้งไว้</a>
+            <a class="nav-link-custom text-muted"><i class="bi bi-gear fs-5"></i> 5. ตั้งไว้</a>
+        </div>
+
+        <div class="p-3 flex-shrink-0 border-top mt-auto">
+            <a href="index.html" class="btn btn-outline-danger w-100 rounded-pill fw-bold"><i class="bi bi-box-arrow-right me-2"></i> 6. ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="view-list">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h3 class="fw-bold m-0 font-prompt" style="color: var(--purple-dark);"><i class="bi bi-card-list me-2"></i>รายชื่อนักเรียนกลุ่ม มผ.</h3>
+            </div>
+
+            <div class="control-card">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold text-muted small mb-1">เลือกภาคเรียน</label>
+                        <select id="termSelect" class="form-select shadow-sm border-2" onchange="filterListData()">
+                            <option value="all">-- โหลดข้อมูลภาคเรียน... --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7 text-md-end">
+                        <button class="btn-outline-purple" id="btnExportPdf" onclick="exportToPdf()" disabled><i class="bi bi-file-earmark-pdf-fill me-1"></i> โหลดรายงาน PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="list-loading" class="text-center py-5">
+                <div class="spinner-border mb-3" style="color: var(--purple-main); width: 3rem; height: 3rem;"></div>
+                <h5 class="text-muted fw-bold font-prompt">กำลังจัดเรียงข้อมูลตามภาคเรียนและระดับชั้น...</h5>
+            </div>
+
+            <div id="list-content" style="display: none;">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card border-primary" style="border-width: 2px;">
+                            <div class="text-primary fw-bold mb-2 font-prompt fs-5">ผู้ไม่ผ่านเกณฑ์ (50คะแนน)(รวม)</div>
+                            <div class="stat-value text-primary" id="stat-total">0</div>
+                            <div class="small text-muted fw-bold">คน</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card border-success" style="border-width: 2px;">
+                            <div class="text-success fw-bold mb-2 font-prompt fs-5"><i class="bi bi-check-circle-fill"></i> แก้ไขแล้ว (ผ่าน)</div>
+                            <div class="stat-value text-success" id="stat-pass">0</div>
+                            <div class="small text-muted fw-bold">คน</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card border-danger" style="border-width: 2px;">
+                            <div class="text-danger fw-bold mb-2 font-prompt fs-5"><i class="bi bi-x-circle-fill"></i> ยังไม่แก้ไข (มผ)</div>
+                            <div class="stat-value text-danger" id="stat-fail">0</div>
+                            <div class="small text-muted fw-bold">คน</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th width="15%">รหัส</th>
+                                <th width="30%" class="text-start">ห้อง / ชื่อ-สกุล</th>
+                                <th width="15%">ภาคเรียน</th>
+                                <th width="15%">คะแนน</th>
+                                <th width="25%">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-edit" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h3 class="fw-bold m-0 font-prompt text-danger"><i class="bi bi-pencil-square me-2"></i>อนุมัติการแก้ไขผลการเรียน</h3>
+            </div>
+
+            <div class="alert alert-danger border-0 border-start border-5 shadow-sm mb-4 bg-white">
+                <h6 class="fw-bold text-danger m-0 font-prompt"><i class="bi bi-exclamation-triangle-fill"></i> คำแนะนำการใช้งาน</h6>
+                <p class="small text-muted m-0 mt-1">หน้านี้จะแสดง <b>เฉพาะนักเรียนที่สถานะยังเป็น "มผ"</b> เท่านั้น สามารถกด <b>"เติมคะแนน"</b> เพื่ออัปเดตความคืบหน้า หรือกด <b>"ผ่าน"</b> หากแก้ไขครบถ้วนสมบูรณ์แล้ว</p>
+            </div>
+
+            <div class="table-wrapper table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th width="30%" class="text-start ps-4">ห้อง / ชื่อ-สกุล</th>
+                            <th width="15%">ภาคเรียน</th>
+                            <th width="15%">คะแนนที่เหลือ</th>
+                            <th width="15%">สถานะ</th>
+                            <th width="25%">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="editTableBody">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">กำลังโหลดข้อมูล...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 📍 เมนูที่ 3: โอนรายชื่อผู้ไม่ผ่านเกณฑ์ -->
+        <!-- ============================================== -->
+        <div id="view-transfer" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h3 class="fw-bold m-0 font-prompt" style="color: var(--purple-dark);"><i class="bi bi-arrow-left-right me-2"></i>โอนรายชื่อผู้ไม่ผ่านเกณฑ์ไปภาคเรียนปัจจุบัน</h3>
+            </div>
+
+            <div class="alert bg-white border border-warning border-start border-5 shadow-sm mb-4 p-4">
+                <h5 class="fw-bold text-warning font-prompt mb-3"><i class="bi bi-info-circle-fill"></i> หลักการทำงานของระบบนี้</h5>
+                <ul class="text-muted small mb-0 lh-lg">
+                    <li>ระบบจะทำการ <b>กวาดข้อมูลนักเรียนจากทุกห้อง</b> (ตั้งแต่ ม.1/1 ถึง ม.6/10 รวมถึง ม.4 ทั้ง 12 ห้อง)</li>
+                    <li>นักเรียนที่มีคะแนน <b class="text-danger">น้อยกว่า 50</b> จะถูกย้ายมาด้วยสถานะ <b class="badge bg-danger">มผ</b></li>
+                    <li>นักเรียนที่มีคะแนน <b class="text-warning">51 - 79</b> จะถูกย้ายมาด้วยสถานะ <b class="badge bg-warning text-dark">ออกใบรับรองความประพฤติไม่ได้</b></li>
+                    <li><b class="text-primary"><i class="bi bi-floppy-fill"></i> ข้อมูลจะถูกบันทึกลงในชีต "ไม่ผ่านเกณฑ์" ทั้งที่ไฟล์ต้นทาง และ ไฟล์ปลายทาง พร้อมกัน</b></li>
+                </ul>
+            </div>
+
+            <div class="control-card">
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted mb-1">1. Google Sheet ID ปลายทาง</label>
+                        <input type="text" id="target-sheet-id" class="form-control text-primary fw-bold" value="1CdZIXi62GGbfefM1CQlf4PAX6QSIj0UlzeKdzACQ-Sw" placeholder="ระบุ Sheet ID ปลายทาง">
+                        <div class="form-text small text-muted">* ค่าเริ่มต้นคือฐานข้อมูลปัจจุบัน หากต้องการโอนไปยังไฟล์ใหม่ให้เปลี่ยน ID นี้</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted mb-1">2. ระบุภาคเรียนปัจจุบัน</label>
+                        <input type="text" id="target-term" class="form-control fw-bold" placeholder="เช่น 1/2569">
+                    </div>
+                </div>
+                <div class="mt-4 border-top pt-4 text-center">
+                    <button class="btn btn-purple btn-lg px-5 shadow-lg rounded-pill" onclick="startTransferData()">
+                        <i class="bi bi-database-fill-gear me-2"></i> เริ่มกวาดข้อมูลและโอนย้าย
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ====================================================
+        // ⚠️ ใส่ URL Web App API ที่ Deploy ใหม่ตรงนี้ ⚠️
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwdWbEvgDs-_s63qKTteCRMfVS7Tk_k9bBsfxfrXLhWZ04oVGAtnxkQrNuzfKBohw/exec"; 
+
+        let globalData = []; // เก็บข้อมูลทั้งหมด
+        let currentTerm = "all";
+
+        window.onload = function() {
+            fetchData();
+        };
+
+        function toggleSidebar() {
+            const sb = document.getElementById('mainSidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('show');
+            ov.style.display = sb.classList.contains('show') ? 'block' : 'none';
+        }
+
+        function switchView(viewId, el) {
+            document.querySelectorAll('.nav-link-custom').forEach(n => n.classList.remove('active'));
+            if(el) el.classList.add('active');
+            
+            document.getElementById('view-list').style.display = (viewId === 'list') ? 'block' : 'none';
+            document.getElementById('view-edit').style.display = (viewId === 'edit') ? 'block' : 'none';
+            document.getElementById('view-transfer').style.display = (viewId === 'transfer') ? 'block' : 'none';
+            
+            toggleSidebar();
+            
+            // รีเฟรชตารางแก้ไขเมื่อเปิดหน้า
+            if(viewId === 'edit') renderEditTable();
+        }
+
+        async function fetchAPI(payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) { return null; }
+        }
+
+        // ==========================================
+        // 🌟 ดึงข้อมูลและแสดงผล
+        // ==========================================
+        async function fetchData() {
+            const res = await fetchAPI({ action: 'getFailData' });
+            
+            document.getElementById('list-loading').style.display = 'none';
+            document.getElementById('list-content').style.display = 'block';
+
+            if (res && res.success) {
+                globalData = res.data;
+                
+                // ใส่ตัวเลือกภาคเรียน
+                let termHtml = '<option value="all">ดูทุกภาคเรียน</option>';
+                res.terms.forEach(t => termHtml += `<option value="${t}">ภาคเรียนที่ ${t}</option>`);
+                document.getElementById('termSelect').innerHTML = termHtml;
+                document.getElementById('btnExportPdf').disabled = false;
+
+                renderListTable();
+            } else {
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + (res ? res.error : "Unknown Error"));
+            }
+        }
+
+        function filterListData() {
+            currentTerm = document.getElementById('termSelect').value;
+            renderListTable();
+        }
+
+        function renderListTable() {
+            let filteredData = currentTerm === "all" ? globalData : globalData.filter(r => r.term === currentTerm);
+            
+            let total = filteredData.length;
+            let pass = 0; let fail = 0;
+            let tbody = document.getElementById('listTableBody');
+            let html = '';
+
+            if (total === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">ไม่พบข้อมูลในภาคเรียนนี้</td></tr>';
+                document.getElementById('stat-total').innerText = 0;
+                document.getElementById('stat-pass').innerText = 0;
+                document.getElementById('stat-fail').innerText = 0;
+                return;
+            }
+
+            filteredData.forEach(r => {
+                let isFail = r.status === 'มผ';
+                if(isFail) fail++; else pass++;
+
+                let rowClass = isFail ? 'row-fail' : 'row-pass';
+                let statusBadge = isFail ? `<span class="badge bg-danger fs-6 px-3">มผ</span>` : `<span class="badge bg-success fs-6 px-3"><i class="bi bi-check-lg"></i> ผ่าน</span>`;
+                let scoreColor = isFail ? 'text-danger' : 'text-success';
+
+                html += `
+                <tr class="${rowClass}">
+                    <td class="text-muted fw-bold text-center">${r.id}</td>
+                    <td class="text-start">
+                        <span class="badge border border-secondary text-dark me-2">ม.${r.room}</span><span class="fw-bold">${r.name}</span>
+                    </td>
+                    <td class="text-center fw-bold">${r.term}</td>
+                    <td class="text-center fw-bold fs-5 ${scoreColor}">${r.score}</td>
+                    <td class="text-center">${statusBadge}</td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-pass').innerText = pass;
+            document.getElementById('stat-fail').innerText = fail;
+        }
+
+        // ==========================================
+        // 🌟 หน้าแก้ไขผลการเรียน (แสดงเฉพาะ มผ)
+        // ==========================================
+        function renderEditTable() {
+            let tbody = document.getElementById('editTableBody');
+            let failData = globalData.filter(r => r.status === 'มผ'); 
+            
+            if (failData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-success py-5 fw-bold fs-5"><i class="bi bi-shield-check display-4 d-block mb-2"></i>ยอดเยี่ยม! ไม่มีนักเรียนติด มผ ในระบบแล้ว</td></tr>';
+                return;
+            }
+
+            let html = '';
+            failData.forEach(r => {
+                // 🌟 เพิ่มปุ่ม "เติมคะแนน" วางคู่กับ "ให้ผ่าน"
+                html += `
+                <tr class="row-fail">
+                    <td class="text-start ps-4">
+                        <div class="small text-muted fw-bold mb-1">รหัส: ${r.id}</div>
+                        <span class="badge bg-white text-dark shadow-sm border me-2">ม.${r.room}</span><span class="fw-bold fs-6">${r.name}</span>
+                    </td>
+                    <td class="text-center fw-bold">${r.term}</td>
+                    <td class="text-center fw-bold fs-4 text-danger">${r.score}</td>
+                    <td class="text-center"><span class="badge bg-danger fs-6 px-3">มผ</span></td>
+                    <td class="text-center pe-4">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                            <button class="btn-fill-action flex-grow-1" onclick="promptFillScore('${r.name}', '${r.room}', ${r.rowIdx}, '${r.score}')"><i class="bi bi-plus-circle-fill me-1"></i> เติมคะแนน</button>
+                            <button class="btn-pass-action flex-grow-1" onclick="confirmPassAction('${r.name}', '${r.room}', ${r.rowIdx})"><i class="bi bi-check-circle-fill me-1"></i> ให้ผ่าน</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // 🌟 ระบบ "เติมคะแนน" ด้วย SweetAlert2
+        async function promptFillScore(name, room, rowIdx, currentScore) {
+            const { value: newScore } = await Swal.fire({
+                title: 'อัปเดตคะแนนสะสม',
+                html: `<div class="mb-3 text-start bg-light p-3 rounded border">
+                        นักเรียน: <b>${name} (ม.${room})</b><br>
+                        คะแนนที่เหลือปัจจุบัน: <b class="text-danger">${currentScore}</b>
+                       </div>`,
+                input: 'number',
+                inputPlaceholder: 'ระบุคะแนนสะสมล่าสุด (ตัวเลข)',
+                icon: 'info',
+                iconColor: 'var(--purple-main)',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--purple-main)',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'บันทึกคะแนน',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value) return 'กรุณาระบุตัวเลขคะแนนครับ!';
+                }
+            });
+
+            if (newScore) {
+                Swal.fire({ title: 'กำลังอัปเดตคะแนน...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+                const payload = { action: 'updateFillScore', rowIdx: rowIdx, score: newScore };
+                const res = await fetchAPI(payload);
+
+                if (res && res.success) {
+                    Swal.fire({ icon: 'success', title: 'อัปเดตสำเร็จ!', text: res.message, confirmButtonColor: 'var(--purple-main)' });
+                    
+                    // อัปเดตข้อมูลในหน้าจอทันที
+                    let targetIndex = globalData.findIndex(r => r.rowIdx === rowIdx);
+                    if(targetIndex !== -1) {
+                        globalData[targetIndex].score = newScore;
+                    }
+                    renderEditTable(); 
+                    if (document.getElementById('view-list').style.display === 'block') renderListTable();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res ? res.error : 'Unknown Error' });
+                }
+            }
+        }
+
+        // 🌟 ระบบยืนยัน "ให้ผ่าน" ด้วยรหัส kkss
+        async function confirmPassAction(name, room, rowIdx) {
+            const { value: password } = await Swal.fire({
+                title: 'ยืนยันการอนุมัติผ่าน',
+                html: `<div class="mb-3 text-start">
+                        คุณกำลังอนุมัติผลการเรียนให้ <b>${name} (ม.${room})</b><br>
+                        <small class="text-danger">* ระบบจะปรับสถานะเป็นผ่าน และรีเซ็ตคะแนนให้เป็น 50 อัตโนมัติ</small>
+                       </div>`,
+                input: 'password',
+                inputPlaceholder: 'กรอกรหัสผ่านเพื่อยืนยัน',
+                icon: 'warning',
+                iconColor: '#10b981',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ยืนยันอนุมัติ',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value) return 'กรุณากรอกรหัสผ่านครับ!';
+                    if (value !== 'kkss') return 'รหัสผ่านไม่ถูกต้อง!';
+                }
+            });
+
+            if (password === 'kkss') {
+                Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+                const payload = { action: 'updatePassStatus', rowIdx: rowIdx, password: password };
+                const res = await fetchAPI(payload);
+
+                if (res && res.success) {
+                    Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, confirmButtonColor: 'var(--purple-main)' });
+                    let targetIndex = globalData.findIndex(r => r.rowIdx === rowIdx);
+                    if(targetIndex !== -1) {
+                        globalData[targetIndex].status = "ผ่าน";
+                        globalData[targetIndex].score = 50;
+                    }
+                    renderEditTable(); 
+                    if (document.getElementById('view-list').style.display === 'block') renderListTable(); 
+                } else {
+                    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res ? res.error : 'Unknown Error' });
+                }
+            }
+        }
+
+        // ==========================================
+        // 🌟 ส่งออก PDF
+        // ==========================================
+        async function exportToPdf() {
+            const btn = document.getElementById('btnExportPdf');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> สร้างไฟล์...';
+            btn.disabled = true;
+
+            const res = await fetchAPI({ action: 'exportPDF', term: currentTerm });
+            
+            btn.innerHTML = '<i class="bi bi-file-earmark-pdf-fill me-1"></i> โหลดรายงาน PDF';
+            btn.disabled = false;
+
+            if(res && res.success) { window.open(res.url, '_blank'); } 
+            else { alert("สร้างไฟล์ล้มเหลว: " + (res ? res.error : "Unknown Error")); }
+        }
+
+        // ==========================================
+        // 🌟 โอนย้ายข้อมูล (กวาดข้อมูลข้ามชีต)
+        // ==========================================
+        async function startTransferData() {
+            const targetId = document.getElementById('target-sheet-id').value.trim();
+            const term = document.getElementById('target-term').value.trim();
+
+            if (!targetId || !term) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุ Sheet ID ปลายทาง และ ภาคเรียน ให้ครบถ้วน', 'warning');
+
+            const { value: password } = await Swal.fire({
+                title: 'ยืนยันการทำรายการ',
+                html: `<div class="text-start small">
+                        คุณกำลังสั่งให้ระบบกวาดข้อมูลนักเรียนทั้งโรงเรียน<br>
+                        เพื่อหาผู้ที่ไม่ผ่านเกณฑ์และโอนไปยังภาคเรียน <b>${term}</b><br>
+                        <span class="text-primary fw-bold">ข้อมูลจะถูกบันทึก 2 จุด: (ต้นทาง และ ปลายทาง)</span><br>
+                        <span class="text-danger">* โปรดระบุรหัสผ่าน (kkss) เพื่อดำเนินการ</span>
+                       </div>`,
+                input: 'password',
+                inputPlaceholder: 'รหัสผ่านยืนยัน',
+                icon: 'warning',
+                iconColor: 'var(--purple-main)',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันและเริ่มโอนข้อมูล',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value) return 'กรุณากรอกรหัสผ่าน';
+                    if (value !== 'kkss') return 'รหัสผ่านไม่ถูกต้อง!';
+                }
+            });
+
+            if (password === 'kkss') {
+                Swal.fire({
+                    title: 'กำลังสแกนและโอนข้อมูล...',
+                    html: 'กระบวนการนี้อาจใช้เวลาสักครู่ โปรดอย่าปิดหน้าต่างนี้',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const payload = { action: 'transferData', targetSheetId: targetId, term: term };
+                const res = await fetchAPI(payload);
+
+                if (res && res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ดำเนินการเสร็จสิ้น!',
+                        text: res.message,
+                        confirmButtonColor: 'var(--purple-main)'
+                    }).then(() => {
+                        document.getElementById('target-term').value = '';
+                        document.getElementById('list-loading').style.display = 'block';
+                        document.getElementById('list-content').style.display = 'none';
+                        fetchData();
+                        switchView('list', document.querySelector('.nav-link-custom'));
+                    });
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด', res ? res.error : 'Unknown Error', 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
