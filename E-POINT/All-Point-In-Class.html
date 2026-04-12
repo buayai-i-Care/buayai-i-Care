@@ -55,11 +55,11 @@
         .btn-outline-teal { border: 2px solid var(--teal-primary); color: var(--teal-primary); border-radius: 50px; font-weight: 600; padding: 8px 20px; background: white; transition: 0.2s;}
         .btn-outline-teal:hover { background-color: var(--teal-primary); color: white; }
 
-        .btn-praise { background: #10b981; color: white; border: none; border-radius: 12px; padding: 8px 15px; font-size: 0.85rem; font-weight: bold; transition: 0.2s; width: 100%;}
+        .btn-praise { background: #10b981; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: inline-block; margin-top: 6px; }
         .btn-praise:hover { background: #059669; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
-        .btn-encourage { background: #3b82f6; color: white; border: none; border-radius: 12px; padding: 8px 15px; font-size: 0.85rem; font-weight: bold; transition: 0.2s; width: 100%;}
+        .btn-encourage { background: #3b82f6; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: inline-block; margin-top: 6px; }
         .btn-encourage:hover { background: #2563eb; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
-        .btn-follow { background: #ef4444; color: white; border: none; border-radius: 12px; padding: 8px 15px; font-size: 0.85rem; font-weight: bold; transition: 0.2s; width: 100%;}
+        .btn-follow { background: #ef4444; color: white; border: none; border-radius: 12px; padding: 6px 15px; font-size: 0.8rem; font-weight: bold; transition: 0.2s; display: inline-block; margin-top: 6px; }
         .btn-follow:hover { background: #dc2626; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
 
         select optgroup { font-weight: 700; color: var(--teal-dark); background: #f0fdfa; }
@@ -200,11 +200,10 @@
                     <table class="table mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th width="25%" class="text-start">ห้อง / ชื่อ-สกุล</th>
-                                <th width="10%">คะแนน</th>
+                                <th width="35%" class="text-start">ห้อง / ชื่อ-สกุล</th>
+                                <th width="15%" class="text-center">คะแนน</th>
                                 <th width="25%">ประวัติหักคะแนน</th>
                                 <th width="25%">ประวัติความดี</th>
-                                <th width="15%">การจัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="studentTable">
@@ -466,7 +465,7 @@
             tbody.innerHTML = '';
             
             if(students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">ไม่พบรายชื่อนักเรียน</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5">ไม่พบรายชื่อนักเรียน</td></tr>';
                 return;
             }
 
@@ -478,30 +477,32 @@
                 else if(s.score <= 79) tr.className = "row-risk";
 
                 let spLabel = s.isSpecial ? `<span class="badge bg-danger ms-2">${s.specialData.status}</span>` : '';
-                let tdName = `<td class="text-start"><span class="badge bg-white text-dark border shadow-sm me-2">ม.${s.room}</span><span class="fw-bold text-dark">${s.name}</span>${spLabel}</td>`;
                 
-                let scoreColor = s.isSpecial ? 'text-secondary' : (s.score < 50 ? 'text-danger' : (s.score <= 79 ? 'text-warning' : 'text-success'));
-                let tdScore = `<td class="text-center fw-bold fs-4 ${scoreColor}">${s.score}</td>`;
-
-                // ประวัติหัก/เพิ่ม
-                let pText = s.penalties.length > 0 ? s.penalties.map(p => `<div class="small"><span class="text-muted">${p.date}:</span> ${p.category} (<b class="text-danger">-${p.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
-                let bText = s.bonusRecords.length > 0 ? s.bonusRecords.map(b => `<div class="small"><span class="text-muted">${b.date}:</span> ${b.category} (<b class="text-success">+${b.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
-
-                // 🌟 ปุ่ม Action แบบ Dynamic 1 ปุ่ม
+                // 🌟 ปุ่ม Action แบบ Dynamic ย้ายมาไว้ใต้ชื่อ
                 let actionBtn = '';
                 if(s.isSpecial) {
-                    actionBtn = `<span class="badge bg-secondary w-100 py-2">สถานะพิเศษ</span>`;
+                    actionBtn = `<span class="badge bg-secondary px-3 py-2 mt-2"><i class="bi bi-shield-lock-fill"></i> สถานะพิเศษ</span>`;
                 } else if (s.score >= 80) {
                     actionBtn = `<button class="btn-praise shadow-sm" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'praise')"><i class="bi bi-star-fill"></i> ชมเชย</button>`;
                 } else if (s.score >= 51) {
                     actionBtn = `<button class="btn-encourage shadow-sm" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'encourage')"><i class="bi bi-heart-fill"></i> ให้กำลังใจ</button>`;
                 } else {
-                    actionBtn = `<button class="btn-follow shadow-sm" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'follow')"><i class="bi bi-exclamation-triangle-fill"></i> ติดตาม</button>`;
+                    actionBtn = `<button class="btn-follow shadow-sm" onclick="promptAction('${s.id}', '${s.name}', '${s.room}', 'follow')"><i class="bi bi-exclamation-triangle-fill"></i> ติดตามพฤติกรรม</button>`;
                 }
-                
-                let tdAction = `<td class="text-center">${actionBtn}</td>`;
 
-                tr.innerHTML = tdName + tdScore + `<td>${pText}</td><td>${bText}</td>` + tdAction;
+                let tdName = `<td class="text-start align-top pt-3">
+                    <span class="badge bg-white text-dark border shadow-sm me-2 mb-1">ม.${s.room}</span><span class="fw-bold text-dark">${s.name}</span>${spLabel}
+                    <br>${actionBtn}
+                </td>`;
+                
+                let scoreColor = s.isSpecial ? 'text-secondary' : (s.score < 50 ? 'text-danger' : (s.score <= 79 ? 'text-warning' : 'text-success'));
+                let tdScore = `<td class="text-center fw-bold fs-4 align-top pt-3 ${scoreColor}">${s.score}</td>`;
+
+                // ประวัติหัก/เพิ่ม
+                let pText = s.penalties.length > 0 ? s.penalties.map(p => `<div class="small"><span class="text-muted">${p.date}:</span> ${p.category} (<b class="text-danger">-${p.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
+                let bText = s.bonusRecords.length > 0 ? s.bonusRecords.map(b => `<div class="small"><span class="text-muted">${b.date}:</span> ${b.category} (<b class="text-success">+${b.points}</b>)</div>`).join('') : '<span class="text-muted small">-</span>';
+
+                tr.innerHTML = tdName + tdScore + `<td class="align-top pt-3">${pText}</td><td class="align-top pt-3">${bText}</td>`;
                 tbody.appendChild(tr);
             });
         }
