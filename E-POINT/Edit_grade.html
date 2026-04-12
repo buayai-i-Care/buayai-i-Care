@@ -55,6 +55,8 @@
         
         .row-fail { background-color: #fef2f2; border-left: 4px solid #ef4444; }
         .row-pass { background-color: #f0fdf4; border-left: 4px solid #10b981; }
+        /* 🌟 เพิ่มสไตล์สำหรับแถวสถานะพิเศษให้ดูแตกต่าง (สีเทา) */
+        .row-special { background-color: #f8fafc; border-left: 4px solid #64748b; opacity: 0.85; }
 
         /* Buttons */
         .btn-purple { background-color: var(--purple-main); color: white; border-radius: 50px; font-weight: 600; padding: 10px 25px; transition: 0.2s; border: none; font-family: 'Prompt';}
@@ -158,6 +160,12 @@
                             <div class="small text-muted fw-bold">คน</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- 🌟 กล่องข้อความหมายเหตุ จะโชว์เมื่อมีเด็กสถานะพิเศษ -->
+                <div class="alert alert-secondary border-0 py-2 mb-4 shadow-sm" id="special-remark-box" style="display: none; background-color: #f1f5f9;">
+                    <i class="bi bi-info-circle-fill text-secondary"></i> 
+                    <span class="small fw-bold text-muted">หมายเหตุ: มีนักเรียนสถานะพิเศษ (ขาดเรียนนาน ฯลฯ) จำนวน <span id="stat-special" class="text-danger fs-6 fw-bold">0</span> คน ซึ่งไม่ได้นำมาคำนวณรวมในสถิติด้านบน</span>
                 </div>
 
                 <div class="table-wrapper table-responsive">
@@ -322,32 +330,45 @@
         function renderListTable() {
             let filteredData = currentTerm === "all" ? globalData : globalData.filter(r => r.term === currentTerm);
             
-            let total = filteredData.length;
-            let pass = 0; let fail = 0;
+            let total = 0;
+            let pass = 0; let fail = 0; let special = 0;
             let tbody = document.getElementById('listTableBody');
             let html = '';
 
-            if (total === 0) {
+            if (filteredData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">ไม่พบข้อมูลในภาคเรียนนี้</td></tr>';
                 document.getElementById('stat-total').innerText = 0;
                 document.getElementById('stat-pass').innerText = 0;
                 document.getElementById('stat-fail').innerText = 0;
+                document.getElementById('special-remark-box').style.display = 'none';
                 return;
             }
 
             filteredData.forEach(r => {
                 let isFail = r.status === 'มผ';
-                if(isFail) fail++; else pass++;
+                let rowClass = '';
 
-                let rowClass = isFail ? 'row-fail' : 'row-pass';
+                // 🌟 แยกนับสถานะพิเศษ ไม่เอาไปรวมกับสถิติ 3 กล่องด้านบน
+                if (r.specialStatus) {
+                    special++;
+                    rowClass = 'row-special';
+                } else {
+                    total++;
+                    if(isFail) fail++; else pass++;
+                    rowClass = isFail ? 'row-fail' : 'row-pass';
+                }
+
                 let statusBadge = isFail ? `<span class="badge bg-danger fs-6 px-3">มผ</span>` : `<span class="badge bg-success fs-6 px-3"><i class="bi bi-check-lg"></i> ผ่าน</span>`;
                 let scoreColor = isFail ? 'text-danger' : 'text-success';
+                
+                // เพิ่มการเช็คสถานะพิเศษ
+                let specialNote = r.specialStatus ? `<br><span class="badge bg-secondary mt-1">* ${r.specialStatus}</span>` : '';
 
                 html += `
                 <tr class="${rowClass}">
                     <td class="text-muted fw-bold text-center">${r.id}</td>
                     <td class="text-start">
-                        <span class="badge border border-secondary text-dark me-2">ม.${r.room}</span><span class="fw-bold">${r.name}</span>
+                        <span class="badge border border-secondary text-dark me-2">ม.${r.room}</span><span class="fw-bold">${r.name}</span>${specialNote}
                     </td>
                     <td class="text-center fw-bold">${r.term}</td>
                     <td class="text-center fw-bold fs-5 ${scoreColor}">${r.score}</td>
@@ -359,6 +380,10 @@
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-pass').innerText = pass;
             document.getElementById('stat-fail').innerText = fail;
+            
+            // 🌟 จัดการเปิด/ปิด กล่องหมายเหตุ และใส่ตัวเลข
+            document.getElementById('stat-special').innerText = special;
+            document.getElementById('special-remark-box').style.display = special > 0 ? 'inline-block' : 'none';
         }
 
         // ==========================================
@@ -375,12 +400,18 @@
 
             let html = '';
             failData.forEach(r => {
-                // 🌟 เพิ่มปุ่ม "เติมคะแนน" วางคู่กับ "ให้ผ่าน"
+                // เพิ่มการเช็คสถานะพิเศษ
+                let specialNote = r.specialStatus ? `<br><span class="badge bg-secondary mt-1">* ${r.specialStatus}</span>` : '';
+                
+                // 🌟 ใช้คลาสสีเทาถ้าเป็นนักเรียนกลุ่มพิเศษ เพื่อแยกความแตกต่างให้ชัดเจน
+                let rowClass = r.specialStatus ? 'row-special' : 'row-fail';
+
+                // เพิ่มปุ่ม "เติมคะแนน" วางคู่กับ "ให้ผ่าน"
                 html += `
-                <tr class="row-fail">
+                <tr class="${rowClass}">
                     <td class="text-start ps-4">
                         <div class="small text-muted fw-bold mb-1">รหัส: ${r.id}</div>
-                        <span class="badge bg-white text-dark shadow-sm border me-2">ม.${r.room}</span><span class="fw-bold fs-6">${r.name}</span>
+                        <span class="badge bg-white text-dark shadow-sm border me-2">ม.${r.room}</span><span class="fw-bold fs-6">${r.name}</span>${specialNote}
                     </td>
                     <td class="text-center fw-bold">${r.term}</td>
                     <td class="text-center fw-bold fs-4 text-danger">${r.score}</td>
