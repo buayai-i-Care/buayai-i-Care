@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กล่องข้อความ งานหัวหน้าระดับ | Buayai I-Care</title>
+    <!-- Fonts & UI Library -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --purple-primary: #d946ef;
+            --purple-dark: #a21caf;
+            --purple-light: #fdf4ff;
+            --bg-body: #f8fafc;
+            --text-dark: #1e293b;
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: var(--text-dark); overflow-x: hidden; }
+        h1, h2, h3, h4, h5, .btn-purple, .nav-link, .font-prompt { font-family: 'Prompt', sans-serif; }
+        
+        /* Sidebar Styles (Rule 3 Compliant) */
+        .sidebar { width: 280px; background: white; border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; transition: 0.3s; z-index: 1050; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.05); }
+        .main-content { margin-left: 280px; padding: 2rem; transition: 0.3s; min-height: 100vh; }
+        
+        .nav-link { color: #64748b; padding: 0.8rem 1.2rem; border-radius: 0.6rem; margin: 0.2rem 1rem; display: flex; align-items: center; text-decoration: none; transition: 0.2s; font-weight: 600; }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--purple-primary); }
+        .nav-link i { font-size: 1.3rem; margin-right: 12px; width: 24px; text-align: center; }
+
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; padding-top: 70px; }
+            .mobile-header { position: fixed; top: 0; left: 0; right: 0; background: white; z-index: 1040; padding: 10px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex !important; justify-content: space-between; align-items: center; }
+        }
+        
+        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1040; backdrop-filter: blur(2px); }
+
+        .sidebar-footer { border-top: 1px solid #f1f5f9; padding: 1rem; margin-top: auto; }
+
+        /* Stats Card */
+        .stat-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; font-family: 'Prompt'; margin: 5px 0; line-height: 1; }
+        
+        /* Message Card Section */
+        .section-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; margin-bottom: 25px; }
+        .section-title { color: var(--purple-dark); font-weight: 700; border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; }
+        
+        .msg-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px 20px; margin-bottom: 12px; transition: 0.2s; border-left: 5px solid #cbd5e1; }
+        .msg-item:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .msg-item.type-homeroom { border-left-color: #3b82f6; background: #eff6ff; }
+        .msg-item.type-student { border-left-color: #f59e0b; background: #fffbeb; }
+
+        /* Custom Button */
+        .btn-purple { background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark)); color: white; border: none; border-radius: 50px; padding: 8px 20px; font-weight: 600; transition: 0.3s; }
+        .btn-purple:hover { transform: translateY(-2px); color: white; box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Header -->
+    <div class="mobile-header d-none">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light border-0 me-2" onclick="toggleSidebar()"><i class="bi bi-list fs-3 text-purple-dark"></i></button>
+            <h5 class="m-0 fw-bold font-prompt" style="color: var(--purple-dark);">กล่องข้อความ</h5>
+        </div>
+        <span class="badge bg-purple-light text-purple-dark rounded-pill border" id="mobile-level">...</span>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebarMenu">
+        <div class="p-3 text-center border-bottom mb-2">
+            <h5 class="text-purple-dark fw-bold mb-0 font-prompt">Buayai I-Care</h5>
+            <div class="badge bg-purple-light text-purple-dark mt-2 px-3 py-2 rounded-pill border">
+                หัวหน้าระดับ <span id="sidebarLevel">...</span>
+            </div>
+        </div>
+        
+        <div class="flex-grow-1 overflow-y-auto">
+            <a href="level_head.html" class="nav-link"><i class="bi bi-grid-1x2"></i> หน้าหลัก (Dashboard)</a>
+            <a href="homeroom.html" class="nav-link"><i class="bi bi-house-door"></i> 1. งานโฮมรูม</a>
+            <a href="discipline.html" class="nav-link"><i class="bi bi-shield-check"></i> 2. งานวินัย / E-Point</a>
+            <a href="grades.html" class="nav-link"><i class="bi bi-mortarboard"></i> 3. ผลการเรียน</a>
+            <a href="Task.html" class="nav-link"><i class="bi bi-clipboard-check"></i> 4. ภาระงานอื่นๆ</a>
+            <a href="messages_head.html" class="nav-link active"><i class="bi bi-chat-dots-fill"></i> 5. กล่องข้อความ</a>
+            <a href="note.html" class="nav-link"><i class="bi bi-bell"></i> 6. เตือนความจำ</a>
+        </div>
+
+        <!-- Rule 3: Bottom Buttons -->
+        <div class="sidebar-footer">
+            <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="nav-link text-primary mb-2">
+                <i class="bi bi-house-up"></i> กลับหน้าหลักโรงเรียน
+            </a>
+            <a href="#" onclick="handleLogout()" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-right"></i> ออกจากระบบ
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="d-none d-lg-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1 font-prompt text-dark"><i class="bi bi-chat-dots-fill text-purple-dark me-2"></i>ศูนย์รวมกล่องข้อความ</h2>
+                <p class="text-muted mb-0">ระบบติดตามงานและข้อความแจ้งเตือน ระดับชั้นมัธยมศึกษาปีที่ <span id="mainLevel">...</span></p>
+            </div>
+            <button class="btn btn-outline-primary rounded-pill px-4 bg-white shadow-sm fw-bold" onclick="fetchMessages()">
+                <i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล
+            </button>
+        </div>
+
+        <!-- 🌟 ส่วนที่ 1: สรุปสถิติ -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="stat-card border-primary" style="border-width: 2px;">
+                    <div class="text-muted fw-bold small">ข้อความทั้งหมด</div>
+                    <div class="stat-value text-primary" id="stat-total">0</div>
+                    <div class="small fw-bold">รายการ</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card border-success" style="border-width: 2px;">
+                    <div class="text-success fw-bold small"><i class="bi bi-check-circle-fill"></i> อ่านแล้ว/อนุมัติ</div>
+                    <div class="stat-value text-success" id="stat-read">0</div>
+                    <div class="small fw-bold text-success">รายการ</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card border-danger" style="border-width: 2px;">
+                    <div class="text-danger fw-bold small"><i class="bi bi-envelope-exclamation-fill"></i> ยังไม่อ่าน/ไม่ผ่าน</div>
+                    <div class="stat-value text-danger" id="stat-unread">0</div>
+                    <div class="small fw-bold text-danger">รายการ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loading" class="text-center py-5">
+            <div class="spinner-border text-purple-dark mb-3" style="width: 3rem; height: 3rem;"></div>
+            <h5 class="text-muted font-prompt fw-bold">กำลังดึงข้อมูลจากฐานข้อมูล...</h5>
+        </div>
+
+        <!-- 🌟 ส่วนที่ 2: รายละเอียดข้อความ -->
+        <div id="content-container" style="display: none;">
+            
+            <!-- กลุ่ม 1: โฮมรูมที่รอตรวจสอบ -->
+            <div class="section-card">
+                <h5 class="section-title fs-5"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>1. งานโฮมรูมที่ยังไม่ตรวจ (รอรับทราบ)</h5>
+                <div id="list-homeroom">
+                    <!-- Data will be populated here -->
+                </div>
+            </div>
+
+            <!-- กลุ่ม 2: งานจากส่วนกลาง (ตั้งไว้) -->
+            <div class="section-card">
+                <h5 class="section-title fs-5"><i class="bi bi-building-fill-exclamation text-danger me-2"></i>2. มอบหมายงานจากส่วนกลาง</h5>
+                <div class="alert bg-light border border-danger border-start border-5 text-center py-4 mb-0 shadow-sm rounded-3">
+                    <i class="bi bi-hdd-network text-muted display-4 mb-3 d-block"></i>
+                    <h6 class="fw-bold text-dark font-prompt">รอเชื่อมต่อ API ส่วนกลางในเฟสถัดไป</h6>
+                    <p class="small text-muted mb-0">ระบบจะทำการดึงข้อมูลจาก Google Sheet ID ของส่วนกลางมาแสดงในภายหลัง</p>
+                </div>
+            </div>
+
+            <!-- กลุ่ม 3: แจ้งเตือนนักเรียน (เรียงตามห้อง) -->
+            <div class="section-card">
+                <h5 class="section-title fs-5"><i class="bi bi-bell-fill text-warning me-2"></i>3. ติดตามการแจ้งเตือนนักเรียน (ที่ยังไม่อ่าน)</h5>
+                <div id="list-student-noti">
+                    <!-- Data will be populated here -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ====================================================
+        // ⚠️ ใส่ลิงก์ Web App API ของ "กล่องข้อความ" ที่ Deploy ใหม่ตรงนี้ ⚠️
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbzX48lumI-kLRD1GQRTj69BwQrzjLpX6_ZXGSRkfir0NAijhOkwz_6hRa1Qo4vHOsIJ/exec"; 
+
+        let userLevel = "";
+
+        // ฟังก์ชันจัดรูปแบบวันที่สั้นๆ
+        function formatShortDate(dateStr) {
+            if(!dateStr) return "-";
+            try {
+                let d = new Date(dateStr);
+                if(isNaN(d.getTime())) return dateStr;
+                return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' น.';
+            } catch(e) { return dateStr; }
+        }
+
+        window.onload = function() {
+            // ดึงข้อมูลผู้ใช้จาก localStorage ตามกฎระบบหัวหน้า
+            const userData = JSON.parse(localStorage.getItem('buayai_user'));
+            
+            if(!userData || !userData.level || userData.role !== 'หัวหน้าระดับ') {
+                alert("กรุณาเข้าสู่ระบบผ่านหน้า Portal หลักครับ");
+                window.location.href = "https://buayai-i-care.github.io/buayai-i-Care/";
+                return;
+            }
+
+            userLevel = userData.level.replace('m', '');
+            document.getElementById('sidebarLevel').innerText = "ม." + userLevel;
+            document.getElementById('mobile-level').innerText = "ม." + userLevel;
+            document.getElementById('mainLevel').innerText = userLevel;
+
+            // กฎข้อ 5: ปิด Sidebar อัตโนมัติเมื่อใช้บนมือถือ
+            document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) toggleSidebar();
+                });
+            });
+
+            fetchMessages();
+        };
+
+        function toggleSidebar() {
+            document.getElementById('sidebarMenu').classList.toggle('show');
+            let overlay = document.getElementById('sidebar-overlay');
+            overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function handleLogout() {
+            Swal.fire({
+                title: 'ออกจากระบบ?',
+                text: 'คุณต้องการออกจากระบบจัดการหัวหน้าระดับใช่หรือไม่',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonColor: '#64748b',
+                confirmButtonColor: '#ef4444'
+            }).then((result) => { 
+                if (result.isConfirmed) {
+                    localStorage.removeItem('buayai_user');
+                    window.location.href = 'https://buayai-i-care.github.io/buayai-i-Care/'; 
+                }
+            });
+        }
+
+        // ==========================================
+        // 🚀 ดึงข้อมูลจาก API
+        // ==========================================
+        async function fetchMessages() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content-container').style.display = 'none';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getMessages', level: userLevel })
+                });
+                
+                const res = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if(res.success) {
+                    // 1. อัปเดตสถิติ
+                    document.getElementById('stat-total').innerText = res.stats.total;
+                    document.getElementById('stat-read').innerText = res.stats.read;
+                    document.getElementById('stat-unread').innerText = res.stats.unread;
+
+                    // 2. วาดกล่องโฮมรูม
+                    renderHomeroom(res.homeroomPending);
+
+                    // 3. วาดกล่องแจ้งเตือนนักเรียน
+                    renderStudentNotis(res.studentNotis);
+
+                    document.getElementById('content-container').style.display = 'block';
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                }
+            } catch(e) {
+                document.getElementById('loading').style.display = 'none';
+                Swal.fire('การเชื่อมต่อล้มเหลว', 'โปรดตรวจสอบสัญญาณอินเทอร์เน็ต และลิงก์ Web App', 'error');
+            }
+        }
+
+        function renderHomeroom(data) {
+            const container = document.getElementById('list-homeroom');
+            if(data.length === 0) {
+                container.innerHTML = '<div class="text-center text-success py-4 fw-bold"><i class="bi bi-check-circle-fill"></i> ตรวจสอบงานโฮมรูมครบถ้วนแล้วครับ ยอดเยี่ยมมาก!</div>';
+                return;
+            }
+
+            let html = '';
+            data.forEach(item => {
+                let noteHtml = item.teacherNote ? `<div class="mt-2 small text-primary border-top pt-2"><b>โน้ตจากครู:</b> ${item.teacherNote}</div>` : '';
+                html += `
+                <div class="msg-item type-homeroom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <div class="mb-1">
+                            <span class="badge bg-primary rounded-pill me-2 fs-6">ม.${item.room}</span>
+                            <span class="small text-muted"><i class="bi bi-clock"></i> ส่งเมื่อ: ${formatShortDate(item.date)}</span>
+                        </div>
+                        <div class="fw-bold text-dark lh-sm">${item.details.replace(/<br>/g, ' ')}</div>
+                        ${noteHtml}
+                    </div>
+                    <div class="text-md-end shrink-0">
+                        <a href="homeroom.html" class="btn btn-purple shadow-sm w-100" style="white-space: nowrap;"><i class="bi bi-check-square me-1"></i> ไปหน้าตรวจสอบ</a>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderStudentNotis(data) {
+            const container = document.getElementById('list-student-noti');
+            if(data.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox-fill fs-1"></i><br>ไม่มีข้อความตกค้าง นักเรียนเปิดอ่านครบแล้ว</div>';
+                return;
+            }
+
+            let html = '';
+            data.forEach(item => {
+                // จัดการข้อความ [ชมเชย], [ให้กำลังใจ], [ติดตามพฤติกรรม]
+                let msgHtml = item.message;
+                if(msgHtml.includes('⭐ [ชมเชย]')) msgHtml = msgHtml.replace('⭐ [ชมเชย]:', '<span class="badge bg-success mb-1">ชมเชย</span><br>');
+                else if(msgHtml.includes('💡 [ให้กำลังใจ]')) msgHtml = msgHtml.replace('💡 [ให้กำลังใจ]:', '<span class="badge bg-primary mb-1">ให้กำลังใจ</span><br>');
+                else if(msgHtml.includes('🚨 [ติดตามพฤติกรรม]')) msgHtml = msgHtml.replace('🚨 [ติดตามพฤติกรรม]:', '<span class="badge bg-danger mb-1">ติดตาม</span><br>');
+
+                html += `
+                <div class="msg-item type-student">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-warning text-dark border border-warning rounded-pill shadow-sm me-2">ม.${item.room}</span>
+                            <span class="fw-bold text-dark">${item.studentName}</span> <span class="small text-muted">(${item.studentId})</span>
+                        </div>
+                        <span class="small text-muted"><i class="bi bi-clock"></i> ${formatShortDate(item.date)}</span>
+                    </div>
+                    <div class="bg-white p-2 rounded border small text-dark lh-sm">${msgHtml}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
