@@ -256,6 +256,15 @@
         } catch(e) {
             console.error("Error reading user data", e);
         }
+
+        // --- เพิ่มระบบปิด Sidebar อัตโนมัติเมื่อคลิกเลือกเมนู (สำหรับมือถือ) ---
+        document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.getElementById('sidebarMenu').classList.remove('show');
+                }
+            });
+        });
     };
 
     // ฟังก์ชันสำหรับบันทึก Log ไปยัง Backend
