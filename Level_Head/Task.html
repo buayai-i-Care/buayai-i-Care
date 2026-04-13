@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ภาระงานหัวหน้าระดับ | Buayai I-Care</title>
+    <!-- Fonts & CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --purple-primary: #d946ef;
+            --purple-dark: #a21caf;
+            --purple-light: #fdf4ff;
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        h1, h2, h3, .btn-purple, .nav-link { font-family: 'Prompt', sans-serif; }
+        
+        /* Sidebar Styles */
+        .sidebar { width: 280px; background: white; border-right: 1px solid #e2e8f0; }
+        .nav-link { color: #475569; padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 0.2rem 1rem; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--purple-primary); }
+        .nav-link i { margin-right: 10px; font-size: 1.2rem; }
+        
+        /* Task Card & Star Animation */
+        .task-card { border: none; border-radius: 15px; border-left: 6px solid var(--purple-primary); transition: transform 0.2s; }
+        .task-card:hover { transform: translateY(-3px); }
+        .star-success {
+            color: #f59e0b;
+            font-size: 1.8rem;
+            animation: star-blink 1.2s infinite ease-in-out;
+            filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+        }
+        @keyframes star-blink {
+            0%, 100% { opacity: 1; transform: scale(1.1); }
+            50% { opacity: 0.4; transform: scale(0.9); }
+        }
+
+        /* Progress Bar */
+        .progress-container { background: #f1f5f9; border-radius: 10px; padding: 15px; margin-top: 15px; }
+        input[type="range"]::-webkit-slider-runnable-track { background: #e2e8f0; height: 8px; border-radius: 4px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; background: var(--purple-primary); border-radius: 50%; margin-top: -6px; cursor: pointer; }
+
+        .btn-purple { background: var(--purple-primary); color: white; border-radius: 8px; border: none; padding: 8px 20px; }
+        .btn-purple:hover { background: var(--purple-dark); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="d-flex min-vh-100">
+    <!-- Sidebar -->
+    <div class="sidebar d-flex flex-column shadow-sm d-none d-lg-flex">
+        <div class="p-4 text-center">
+            <h4 class="text-purple-dark fw-bold mb-0">Buayai I-Care</h4>
+            <small class="text-muted">โหมดหัวหน้าระดับชั้น</small>
+        </div>
+        
+        <div class="flex-grow-1 overflow-y-auto mt-2">
+            <a href="#" class="nav-link"><i class="bi bi-house-door"></i> งานโฮมรูม</a>
+            <a href="#" class="nav-link"><i class="bi bi-shield-check"></i> งานวินัย</a>
+            <a href="#" class="nav-link"><i class="bi bi-mortarboard"></i> ผลการเรียน</a>
+            <a href="#" class="nav-link active"><i class="bi bi-clipboard-check"></i> ภาระงานอื่นๆ</a>
+            <a href="#" class="nav-link"><i class="bi bi-chat-dots"></i> กล่องข้อความ</a>
+            <a href="#" class="nav-link"><i class="bi bi-bell"></i> เตือนความจำ</a>
+        </div>
+
+        <div class="mt-auto p-3 flex-shrink-0 border-top">
+            <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="nav-link text-primary"><i class="bi bi-arrow-left-circle"></i> กลับหน้าหลัก</a>
+            <a href="#" onclick="logout()" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-3 p-md-4">
+        <!-- Header for Mobile -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+                <i class="bi bi-list fs-2"></i>
+            </button>
+            <h5 class="mb-0 text-purple-dark fw-bold">ภาระงานอื่นๆ</h5>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">จัดการภาระงาน</h2>
+                <p class="text-muted"><i class="bi bi-person-badge"></i> ระดับชั้น ม.2 | ภาคเรียนที่ 1/2569</p>
+            </div>
+            <button class="btn btn-purple shadow-sm" onclick="openAddModal()">
+                <i class="bi bi-plus-lg me-2"></i> เพิ่มภาระงาน
+            </button>
+        </div>
+
+        <!-- Task Grid -->
+        <div class="row g-3" id="taskContainer">
+            <!-- Loading Spinner -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-purple-primary" role="status"></div>
+                <p class="mt-2 text-muted">กำลังดึงข้อมูลภาระงาน...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Sidebar Offcanvas -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMobile">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold text-purple-dark">เมนูหัวหน้าระดับ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div class="flex-grow-1">
+            <a href="#" class="nav-link" onclick="closeSidebar()"><i class="bi bi-house-door"></i> งานโฮมรูม</a>
+            <a href="#" class="nav-link" onclick="closeSidebar()"><i class="bi bi-shield-check"></i> งานวินัย</a>
+            <a href="#" class="nav-link" onclick="closeSidebar()"><i class="bi bi-mortarboard"></i> ผลการเรียน</a>
+            <a href="#" class="nav-link active" onclick="closeSidebar()"><i class="bi bi-clipboard-check"></i> ภาระงานอื่นๆ</a>
+            <a href="#" class="nav-link" onclick="closeSidebar()"><i class="bi bi-chat-dots"></i> กล่องข้อความ</a>
+            <a href="#" class="nav-link" onclick="closeSidebar()"><i class="bi bi-bell"></i> เตือนความจำ</a>
+        </div>
+        <div class="mt-auto pt-3 border-top">
+            <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="nav-link text-primary"><i class="bi bi-arrow-left-circle"></i> กลับหน้าหลัก</a>
+            <a href="#" onclick="logout()" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal fade" id="taskModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-purple-light border-0">
+                <h5 class="modal-title fw-bold text-purple-dark" id="modalTitle">เพิ่มภาระงานใหม่</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="taskForm">
+                    <input type="hidden" id="taskId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ชื่องาน/โครงการ</label>
+                        <input type="text" id="taskName" class="form-control p-2" placeholder="เช่น รายงานผลการโฮมรูม..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ผลการดำเนินงาน</label>
+                        <textarea id="taskResult" class="form-control" rows="3" placeholder="สรุปผลโดยย่อ..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-purple px-4" onclick="handleSave()">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // --- ตั้งค่าเริ่มต้น ---
+    const API_URL = "https://script.google.com/macros/s/AKfycbw2ljtG3YfjUBSgCsO2kntXS9Hm7STvJyu-pzXXTozc05dJ4PHnAV4H8A7Q7lcNHzXLlg/exec"; // ใส่ URL ที่ได้จาก GAS
+    const currentLevel = "m2"; // ดึงจากระบบ Login
+    let taskData = [];
+
+    // --- โหลดข้อมูล ---
+    window.onload = () => {
+        fetchTasks();
+    };
+
+    async function fetchTasks() {
+        // ในระบบจริงจะใช้ fetch(API_URL + "?level=" + currentLevel)
+        // จำลองข้อมูลเพื่อการแสดงผล UI
+        setTimeout(() => {
+            taskData = [
+                { id: 1, date: "15 มี.ค. 2569", name: "จัดทำแผนปฏิบัติการประจำปี", result: "เสนอผ่านที่ประชุมแล้ว", progress: 100 },
+                { id: 2, date: "22 มี.ค. 2569", name: "ติดตามนักเรียนเสี่ยงออกกลางคัน", result: "กำลังประสานครูที่ปรึกษา", progress: 65 }
+            ];
+            renderTasks();
+        }, 800);
+    }
+
+    function renderTasks() {
+        const container = document.getElementById('taskContainer');
+        if (taskData.length === 0) {
+            container.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่พบข้อมูลภาระงาน</div>`;
+            return;
+        }
+
+        container.innerHTML = taskData.map(task => `
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card task-card shadow-sm h-100 p-2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold text-dark mb-0">${task.name}</h5>
+                            ${task.progress == 100 ? '<i class="bi bi-star-fill star-success"></i>' : ''}
+                        </div>
+                        <p class="small text-muted mb-3"><i class="bi bi-calendar3 me-1"></i> ${task.date}</p>
+                        <p class="text-secondary small mb-3"><strong>สรุปผล:</strong> ${task.result || '-'}</p>
+                        
+                        <div class="progress-container">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small fw-bold">ความก้าวหน้า</span>
+                                <span class="badge ${task.progress == 100 ? 'bg-success' : 'bg-purple-dark'}">${task.progress}%</span>
+                            </div>
+                            <input type="range" class="form-range" min="0" max="100" value="${task.progress}" 
+                                onchange="updateProgress(${task.id}, this.value)">
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-warning w-50" onclick="openEditModal(${task.id})">
+                                <i class="bi bi-pencil-square"></i> แก้ไข
+                            </button>
+                            <button class="btn btn-sm btn-outline-info w-50" onclick="printReport(${task.id})">
+                                <i class="bi bi-file-earmark-pdf"></i> รายงาน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // --- ฟังก์ชันจัดการข้อมูล ---
+    function openAddModal() {
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskId').value = "";
+        document.getElementById('modalTitle').innerText = "เพิ่มภาระงานใหม่";
+        new bootstrap.Modal(document.getElementById('taskModal')).show();
+    }
+
+    function openEditModal(id) {
+        const task = taskData.find(t => t.id === id);
+        if (!task) return;
+        document.getElementById('taskId').value = task.id;
+        document.getElementById('taskName').value = task.name;
+        document.getElementById('taskResult').value = task.result;
+        document.getElementById('modalTitle').innerText = "แก้ไขภาระงาน";
+        new bootstrap.Modal(document.getElementById('taskModal')).show();
+    }
+
+    async function updateProgress(id, value) {
+        const task = taskData.find(t => t.id === id);
+        if (task) task.progress = parseInt(value);
+        
+        // บันทึกอัตโนมัติ (Mock API)
+        Swal.fire({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 1500,
+            icon: 'success', title: `บันทึกความก้าวหน้า ${value}%`
+        });
+        
+        if (value == 100) renderTasks(); // รีโหลดเพื่อแสดงดาวกระพริบ
+    }
+
+    async function handleSave() {
+        const name = document.getElementById('taskName').value;
+        if (!name) return Swal.fire('กรุณาระบุชื่องาน', '', 'warning');
+        
+        Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        // จำลองการบันทึก
+        setTimeout(() => {
+            Swal.fire('บันทึกสำเร็จ', '', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+            fetchTasks();
+        }, 1000);
+    }
+
+    // --- กฎข้อ 4: จัดการ PDF ---
+    function printReport(id) {
+        const task = taskData.find(t => t.id === id);
+        Swal.fire({
+            title: 'สร้างรายงานบันทึกข้อความ',
+            html: `ระบบกำลังสร้างไฟล์ PDF สำหรับงาน:<br><b>${task.name}</b>`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-eye"></i> เปิดดูไฟล์',
+            cancelButtonText: 'ปิด',
+            confirmButtonColor: '#d946ef'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ตัวอย่างลิ้งค์ PDF (ในระบบจริงจะส่งมาจาก GAS)
+                const mockPdfUrl = "https://example.com/report.pdf";
+                const a = document.createElement('a');
+                a.href = mockPdfUrl;
+                a.target = '_blank';
+                a.click();
+            }
+        });
+    }
+
+    function closeSidebar() {
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMobile'));
+        if(bsOffcanvas) bsOffcanvas.hide();
+    }
+
+    function logout() {
+        Swal.fire({
+            title: 'ออกจากระบบ?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then(res => { if(res.isConfirmed) window.location.href = "login.html"; });
+    }
+</script>
+
+</body>
+</html>
