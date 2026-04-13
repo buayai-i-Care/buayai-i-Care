@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าหลัก งานหัวหน้าระดับ | Buayai I-Care School</title>
+    <!-- Fonts & UI Library -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --purple-primary: #d946ef;
+            --purple-dark: #a21caf;
+            --purple-light: #fdf4ff;
+            --bg-body: #f8fafc;
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: #334155; }
+        h1, h2, h3, h4, h5, .btn-purple, .nav-link, .menu-card-title { font-family: 'Prompt', sans-serif; }
+        
+        /* Sidebar Styles (Rule 3 Compliant) */
+        .sidebar { width: 280px; background: white; border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; transition: 0.3s; z-index: 1000; }
+        .main-content { margin-left: 280px; padding: 2rem; transition: 0.3s; }
+        
+        .nav-link { color: #64748b; padding: 0.8rem 1.2rem; border-radius: 0.6rem; margin: 0.2rem 1rem; display: flex; align-items: center; text-decoration: none; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--purple-primary); font-weight: 600; }
+        .nav-link i { font-size: 1.3rem; margin-right: 12px; }
+
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+        }
+
+        .sidebar-footer { border-top: 1px solid #f1f5f9; padding: 1rem; margin-top: auto; }
+
+        /* Dashboard specific styles */
+        .welcome-card {
+            background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+            color: white;
+            border-radius: 1.2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(217, 70, 239, 0.3);
+        }
+
+        .menu-card {
+            border: none;
+            border-radius: 1rem;
+            transition: 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            background: white;
+        }
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px -5px rgba(0,0,0,0.1);
+        }
+        .menu-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        .bg-icon-purple { background-color: var(--purple-light); color: var(--purple-primary); }
+        .bg-icon-blue { background-color: #eff6ff; color: #3b82f6; }
+        .bg-icon-green { background-color: #f0fdf4; color: #22c55e; }
+        .bg-icon-orange { background-color: #fff7ed; color: #f97316; }
+        .bg-icon-red { background-color: #fef2f2; color: #ef4444; }
+        .bg-icon-teal { background-color: #f0fdfa; color: #14b8a6; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar d-flex flex-column shadow-sm" id="sidebarMenu">
+    <div class="p-4 text-center">
+        <h4 class="text-purple-dark fw-bold mb-0">Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h4>
+        <div class="badge bg-purple-light text-purple-dark mt-1 px-3 py-2 rounded-pill shadow-sm">
+            <i class="bi bi-person-badge"></i> <span id="sidebarRole">หัวหน้าระดับ</span>
+        </div>
+    </div>
+    
+    <div class="flex-grow-1 overflow-y-auto pt-2">
+        <a href="level_head.html" class="nav-link active"><i class="bi bi-grid-1x2"></i> หน้าหลัก (Dashboard)</a>
+        <a href="homeroom.html" class="nav-link"><i class="bi bi-house-door"></i> 1. งานโฮมรูม</a>
+        <a href="discipline.html" class="nav-link"><i class="bi bi-shield-check"></i> 2. งานวินัย / E-Point</a>
+        <a href="grades.html" class="nav-link"><i class="bi bi-mortarboard"></i> 3. ผลการเรียน</a>
+        <a href="task.html" class="nav-link"><i class="bi bi-clipboard-check"></i> 4. ภาระงานอื่นๆ</a>
+        <a href="messages.html" class="nav-link"><i class="bi bi-chat-dots"></i> 5. กล่องข้อความ</a>
+        <a href="note.html" class="nav-link"><i class="bi bi-bell"></i> 6. เตือนความจำ</a>
+    </div>
+
+    <!-- Rule 3: Bottom Buttons -->
+    <div class="sidebar-footer">
+        <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="nav-link text-primary mb-2">
+            <i class="bi bi-house-up"></i> กลับเมนูโรงเรียน
+        </a>
+        <a href="#" onclick="handleLogout()" class="nav-link text-danger">
+            <i class="bi bi-box-arrow-right"></i> ออกจากระบบ
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Mobile Header Toggle -->
+    <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-light shadow-sm" onclick="toggleSidebar()">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <h5 class="mb-0 fw-bold text-purple-dark">หน้าหลัก</h5>
+        <div style="width: 48px;"></div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="welcome-card position-relative overflow-hidden">
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-2">ยินดีต้อนรับ, <span id="userName">คุณครู...</span></h2>
+            <p class="mb-0 opacity-75 fs-5">เข้าสู่ระบบจัดการข้อมูลหัวหน้าระดับชั้น <strong id="userLevel">...</strong></p>
+        </div>
+        <i class="bi bi-shield-lock-fill position-absolute" style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; transform: rotate(-15deg);"></i>
+    </div>
+
+    <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-grid"></i> เมนูการจัดการ</h4>
+
+    <!-- Menu Grid -->
+    <div class="row g-4">
+        <!-- เมนู 1 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="homeroom.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-blue">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">1. งานโฮมรูม</h5>
+                    <p class="text-muted small mb-0">รับทราบบันทึก และดูสถิติการโฮมรูม</p>
+                </div>
+            </a>
+        </div>
+        
+        <!-- เมนู 2 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="discipline.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-red">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">2. งานวินัย / E-Point</h5>
+                    <p class="text-muted small mb-0">ปฏิทินตรวจวินัย, ผู้ไม่ผ่านเกณฑ์ E-Point</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- เมนู 3 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="grades.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-green">
+                        <i class="bi bi-mortarboard"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">3. ผลการเรียน</h5>
+                    <p class="text-muted small mb-0">ติดตามนักเรียนติด 0, ร, มส</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- เมนู 4 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="task.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-purple">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">4. ภาระงานอื่นๆ</h5>
+                    <p class="text-muted small mb-0">บันทึกความก้าวหน้า และพิมพ์แบบรายงาน</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- เมนู 5 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="messages.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-teal">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">5. กล่องข้อความ</h5>
+                    <p class="text-muted small mb-0">สื่อสารและรับส่งเอกสารในระดับชั้น</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- เมนู 6 -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="note.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-orange">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">6. เตือนความจำ</h5>
+                    <p class="text-muted small mb-0">จัดการรายการสิ่งที่ต้องทำ (To-Do List)</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</main>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // URL สำหรับส่งข้อมูล Log (นำ URL จาก Backend ตัวใหม่มาใส่ตรงนี้)
+    const API_URL_LOG = "https://script.google.com/macros/s/AKfycbwGCJToZ0vwXy0GKzzH06DJFs-2i-zqZqJY_wNtJ9eVzSevdhyxGzQARt4N3L3uyzKj4A/exec";
+
+    // การจำลองข้อมูล Auto Login หากยังไม่มีใน localStorage (เพื่อการทดสอบ)
+    if (!localStorage.getItem('buayai_user')) {
+        const mockUser = {
+            username: "head_m2",
+            name: "ครูสมชาย ใจดี",
+            role: "หัวหน้าระดับ",
+            level: "m2"
+        };
+        localStorage.setItem('buayai_user', JSON.stringify(mockUser));
+    }
+
+    // โหลดข้อมูลผู้ใช้เมื่อเปิดหน้า
+    window.onload = () => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('buayai_user'));
+            
+            // ตรวจสอบสิทธิ์เบื้องต้น (ถ้าไม่ใช่หัวหน้าระดับ อาจจะดีดออก)
+            if(!userData || !userData.level) {
+                window.location.href = "https://buayai-i-care.github.io/buayai-i-Care/"; // หรือหน้า Login ของ รร.
+                return;
+            }
+
+            // แสดงข้อมูลบนหน้าจอ
+            document.getElementById('userName').innerText = userData.name || userData.username;
+            
+            // แปลง m1 ให้เป็น ม.1 เป็นต้น
+            let displayLevel = userData.level.replace('m', 'ม.');
+            document.getElementById('userLevel').innerText = displayLevel;
+            document.getElementById('sidebarRole').innerText = "หัวหน้าระดับ " + displayLevel;
+
+            // --- เพิ่มการบันทึก Log การเข้าสู่ระบบ ---
+            recordLog(userData.username, userData.name, "เข้าสู่หน้าหลัก (Dashboard)", "สำเร็จ");
+
+        } catch(e) {
+            console.error("Error reading user data", e);
+        }
+    };
+
+    // ฟังก์ชันสำหรับบันทึก Log ไปยัง Backend
+    async function recordLog(username, name, actionMsg, status) {
+        if(API_URL_LOG === "URL_GAS_BACKEND_LEVEL_HEAD") return; // ข้ามถ้ายังไม่ได้ใส่ URL จริง
+        
+        // ดึงข้อมูลอุปกรณ์เบื้องต้น (เช่น Mobile, Desktop, OS)
+        const userAgent = navigator.userAgent;
+        let device = "Desktop";
+        if (/android/i.test(userAgent)) device = "Android";
+        else if (/iPad|iPhone|iPod/.test(userAgent)) device = "iOS";
+        
+        try {
+            await fetch(API_URL_LOG, {
+                method: "POST",
+                body: JSON.stringify({
+                    actionType: "saveLog",
+                    username: username,
+                    name: name,
+                    actionMsg: actionMsg,
+                    status: status,
+                    device: device
+                })
+            });
+        } catch (error) {
+            console.error("Failed to save log:", error);
+        }
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebarMenu').classList.toggle('show');
+    }
+
+    function handleLogout() {
+        Swal.fire({
+            title: 'ออกจากระบบ?',
+            text: 'คุณต้องการออกจากระบบจัดการหัวหน้าระดับใช่หรือไม่',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่, ออกจากระบบ',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#d33'
+        }).then((result) => { 
+            if (result.isConfirmed) {
+                // บันทึก Log ก่อนออก (ดึงข้อมูลผู้ใช้จาก localStorage)
+                const user = JSON.parse(localStorage.getItem('buayai_user'));
+                if(user) recordLog(user.username, user.name, "ออกจากระบบ", "สำเร็จ");
+
+                // ลบข้อมูล Auto Login
+                localStorage.removeItem('buayai_user');
+                // เด้งกลับหน้าหลักของโรงเรียน
+                setTimeout(() => {
+                    window.location.href = 'https://buayai-i-care.github.io/buayai-i-Care/'; 
+                }, 500); // หน่วงเวลาเล็กน้อยให้ Log บันทึกทัน
+            }
+        });
+    }
+</script>
+</body>
+</html>
