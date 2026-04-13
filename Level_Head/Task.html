@@ -79,7 +79,7 @@
         <a href="homeroom.html" class="nav-link"><i class="bi bi-house-door"></i> 1. งานโฮมรูม</a>
         <a href="discipline.html" class="nav-link"><i class="bi bi-shield-check"></i> 2. งานวินัย / E-Point</a>
         <a href="grades.html" class="nav-link"><i class="bi bi-mortarboard"></i> 3. ผลการเรียน</a>
-        <a href="task.html" class="nav-link active"><i class="bi bi-clipboard-check"></i> 4. ภาระงานอื่นๆ</a>
+        <a href="Task.html" class="nav-link active"><i class="bi bi-clipboard-check"></i> 4. ภาระงานอื่นๆ</a>
         <a href="messages.html" class="nav-link"><i class="bi bi-chat-dots"></i> 5. กล่องข้อความ</a>
         <a href="note.html" class="nav-link"><i class="bi bi-bell"></i> 6. เตือนความจำ</a>
     </div>
@@ -179,10 +179,9 @@
 
 <script>
     // --- Configuration ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbw2ljtG3YfjUBSgCsO2kntXS9Hm7STvJyu-pzXXTozc05dJ4PHnAV4H8A7Q7lcNHzXLlg/exec"; // เปลี่ยนเป็น URL ที่ Deploy จริงจาก backend.gs
+    // โปรดใส่ URL ที่ Deploy แบบ AnyOne จากไฟล์ task_backend.gs ล่าสุด
+    const API_URL = "https://script.google.com/macros/s/AKfycbw2ljtG3YfjUBSgCsO2kntXS9Hm7STvJyu-pzXXTozc05dJ4PHnAV4H8A7Q7lcNHzXLlg/exec"; 
     
-    // Auto Login Simulation: รับค่าจาก localStorage
-    // ตรวจสอบว่ามีข้อมูลจากระบบล็อกอินหลักหรือไม่ หากไม่มีสร้าง Mock data ไว้ทดสอบ
     if (!localStorage.getItem('buayai_user')) {
         localStorage.setItem('buayai_user', JSON.stringify({level: "m2", name: "หัวหน้า ม.2", role: "หัวหน้าระดับ"}));
     }
@@ -195,23 +194,26 @@
         document.getElementById('userLevelHeader').innerText = CURRENT_LEVEL.toUpperCase();
         document.getElementById('levelLabel').innerText = "ระดับชั้น " + CURRENT_LEVEL.toUpperCase();
         fetchTasks();
+
+        // ปิด Sidebar อัตโนมัติเมื่อเลือกเมนูบนมือถือ (กฎข้อ 5)
+        document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) document.getElementById('sidebarMenu').classList.remove('show');
+            });
+        });
     };
 
-    // --- API Interactions ---
     async function fetchTasks() {
         showLoading(true);
         try {
-            // ในที่นี้เรียก GET API_URL?level=m2
             const response = await fetch(`${API_URL}?level=${CURRENT_LEVEL}`);
             const data = await response.json();
             allTasks = Array.isArray(data) ? data : [];
             renderTasks();
         } catch (err) {
             console.error(err);
-            // จำลองข้อมูลกรณี API ยังไม่ได้ตั้งค่า URL (แสดงเพื่อการดีไซน์และทดสอบ)
             allTasks = [
-                { id: "MOCK1", date: "13 เม.ย. 2569", name: "งานติดตามการเข้าแถว", result: "เสร็จสิ้นครบถ้วน", progress: 100 },
-                { id: "MOCK2", date: "13 เม.ย. 2569", name: "จัดทำสรุปโฮมรูมสัปดาห์ที่ 5", result: "รอการรวบรวมข้อมูล", progress: 45 }
+                { id: "MOCK1", date: "13 เม.ย. 2569", name: "งานติดตามการเข้าแถว", result: "เสร็จสิ้นครบถ้วน", progress: 100 }
             ];
             renderTasks();
         } finally {
@@ -237,49 +239,36 @@
                 progress: id ? (allTasks.find(t => t.id == id)?.progress || 0) : 0
             };
 
-            await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
+            await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
 
             bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
             Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
-            fetchTasks(); // อัปเดตข้อมูลหลังจากบันทึก
+            fetchTasks(); 
         } catch (err) {
-            Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบ URL ของ Apps Script', 'error');
+            Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
         } finally {
             showLoading(false);
         }
     }
 
     async function updateProgressAPI(id, val) {
-        // อัปเดต UI ทันทีเพื่อให้ผู้ใช้รู้สึกถึงความเร็ว
         const task = allTasks.find(t => t.id == id);
         if (task) {
             task.progress = parseInt(val);
-            if (val == 100) renderTasks(); // รีเรนเดอร์เพื่อแสดงดาวกระพริบ
+            if (val == 100) renderTasks(); 
         }
 
-        // Auto-Save UI Toast
         const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
         toast.fire({ icon: 'success', title: `บันทึกความก้าวหน้า ${val}%` });
 
         try {
             await fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify({
-                    action: "updateProgress",
-                    level: CURRENT_LEVEL,
-                    id: id,
-                    progress: val
-                })
+                body: JSON.stringify({ action: "updateProgress", level: CURRENT_LEVEL, id: id, progress: val })
             });
-        } catch (err) {
-            console.error("Auto-save failed: ", err);
-        }
+        } catch (err) {}
     }
 
-    // --- UI Rendering ---
     function renderTasks() {
         const grid = document.getElementById('taskGrid');
         let doneCount = 0;
@@ -297,28 +286,20 @@
                         
                         ${task.progress >= 100 ? '<i class="bi bi-star-fill star-success"></i>' : ''}
                         
-                        <p class="text-secondary small mt-2 mb-3">
-                            <strong>ผลงาน:</strong> ${task.result || '-'}
-                        </p>
+                        <p class="text-secondary small mt-2 mb-3"><strong>ผลงาน:</strong> ${task.result || '-'}</p>
 
                         <div class="progress-box mt-auto">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="small fw-bold">ความก้าวหน้า</span>
-                                <span class="badge ${task.progress >= 100 ? 'bg-success' : 'bg-purple-dark'} rounded-pill">
-                                    ${task.progress}%
-                                </span>
+                                <span class="badge ${task.progress >= 100 ? 'bg-success' : 'bg-purple-dark'} rounded-pill">${task.progress}%</span>
                             </div>
                             <input type="range" class="form-range" min="0" max="100" value="${task.progress}" 
                                 onchange="updateProgressAPI('${task.id}', this.value)">
                         </div>
 
                         <div class="mt-3 d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-warning w-50" onclick="editTask('${task.id}')">
-                                <i class="bi bi-pencil-square"></i> แก้ไข
-                            </button>
-                            <button class="btn btn-sm btn-outline-info w-50" onclick="exportPDF('${task.id}')">
-                                <i class="bi bi-file-earmark-pdf"></i> รายงาน
-                            </button>
+                            <button class="btn btn-sm btn-outline-warning w-50" onclick="editTask('${task.id}')"><i class="bi bi-pencil-square"></i> แก้ไข</button>
+                            <button class="btn btn-sm btn-outline-info w-50" onclick="exportPDF('${task.id}')"><i class="bi bi-file-earmark-pdf"></i> เสนอ ผอ.</button>
                         </div>
                     </div>
                 </div>
@@ -326,13 +307,11 @@
             `;
         }).join('');
 
-        // Update Stats Overview
         document.getElementById('stat-total').innerText = allTasks.length;
         document.getElementById('stat-done').innerText = doneCount;
         document.getElementById('stat-pending').innerText = allTasks.length - doneCount;
     }
 
-    // --- Helpers ---
     function openModal() {
         document.getElementById('taskForm').reset();
         document.getElementById('taskId').value = "";
@@ -350,22 +329,44 @@
         new bootstrap.Modal(document.getElementById('taskModal')).show();
     }
 
-    function exportPDF(id) {
-        // กฎข้อ 4: ป้องกัน Popup Blocker โดยใช้ SweetAlert2
+    // --- กฎข้อ 4: จัดการพิมพ์ PDF ---
+    async function exportPDF(id) {
+        // แสดหน้าโหลดรอ
         Swal.fire({
             title: 'สร้างบันทึกข้อความ',
-            text: 'ระบบกำลังจัดเตรียมไฟล์ PDF เพื่อเสนอรองผู้อำนวยการ',
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: '<i class="bi bi-file-pdf"></i> เปิดไฟล์ PDF',
-            confirmButtonColor: '#d946ef'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // สร้างลิงก์จำลอง หากต่อ API แล้วสามารถส่ง URL PDF กลับมาให้เปิดได้
-                const pdfUrl = `https://script.google.com/macros/s/.../exec?action=genPdf&id=${id}&level=${CURRENT_LEVEL}`;
-                window.open(pdfUrl, '_blank');
+            html: 'กรุณารอสักครู่ ระบบกำลังจัดเตรียมไฟล์ PDF...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
             }
         });
+
+        try {
+            // ยิง API แบบ GET เพื่อสั่งสร้าง PDF
+            const response = await fetch(`${API_URL}?action=genPdf&level=${CURRENT_LEVEL}&id=${id}`);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // สร้างปุ่มลิงก์ให้ผู้ใช้คลิกเอง ป้องกัน Popup Blocker
+                Swal.fire({
+                    title: 'สร้าง PDF สำเร็จ!',
+                    icon: 'success',
+                    html: `
+                        <p>ไฟล์รายงานบันทึกข้อความของคุณพร้อมแล้ว</p>
+                        <a href="${data.url}" target="_blank" class="btn btn-purple px-4 py-2 mt-3 text-white text-decoration-none" onclick="Swal.close()">
+                            <i class="bi bi-file-earmark-pdf"></i> คลิกที่นี่เพื่อเปิดดูไฟล์ PDF
+                        </a>
+                    `,
+                    showConfirmButton: false,
+                    showCancelButton: true,
+                    cancelButtonText: 'ปิด'
+                });
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถสร้าง PDF ได้: ' + data.message, 'error');
+            }
+        } catch(err) {
+            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อสร้าง PDF', 'error');
+        }
     }
 
     function toggleSidebar() {
