@@ -103,54 +103,6 @@
     
     /* 🌟 ปุ่มขยายโฮมรูม (สีเขียว) */
     .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
-
-    /* UI: Floating Buttons & Guide Modal & AI Chat */
-    .floating-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
-    .float-btn { border: none; border-radius: 50px; padding: 12px 20px; font-weight: 700; font-size: 0.95rem; color: white; box-shadow: 0 6px 15px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s; }
-    .float-btn:active { transform: scale(0.95); }
-    .btn-guide { background: linear-gradient(135deg, #ef4444, #f59e0b); }
-    .btn-ai { background: linear-gradient(135deg, #8b5cf6, #d946ef); animation: pulse-glow 2s infinite; }
-
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 0 0 rgba(217, 70, 239, 0.5); }
-      70% { box-shadow: 0 0 0 10px rgba(217, 70, 239, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(217, 70, 239, 0); }
-    }
-    @keyframes bounce-soft {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-
-    .modal-guide-content { border-radius: 24px; overflow: hidden; border: none; }
-    .info-header { background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; padding: 25px 20px; text-align: center; }
-    .option-card-2 { background: #1e293b; color: white; border-radius: 16px; padding: 20px; margin-bottom: 0px; }
-    .browser-mockup { background: #334155; border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid #475569; }
-    .browser-tab { background: #0f172a; padding: 10px; border-radius: 8px; display: flex; align-items: center; margin-bottom: 8px; }
-
-    /* AI Chat Window */
-    .ai-chat-window {
-      position: fixed; bottom: 130px; right: 20px; width: 350px; max-width: calc(100vw - 40px); background: white;
-      border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden;
-      z-index: 1001; border: 1px solid #e2e8f0; transform-origin: bottom right; transition: all 0.3s ease;
-    }
-    .ai-chat-window.show { display: flex; animation: slideUp 0.3s ease forwards; }
-    @keyframes slideUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    .ai-chat-header { background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .ai-chat-body { padding: 15px; height: 300px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
-    .chat-bubble { max-width: 85%; padding: 10px 15px; border-radius: 18px; font-size: 0.9rem; line-height: 1.4; }
-    .chat-ai { background: white; color: #1e293b; border: 1px solid #e2e8f0; align-self: flex-start; border-bottom-left-radius: 4px; }
-    .chat-user { background: #3b82f6; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .ai-chat-footer { padding: 10px; background: white; border-top: 1px solid #e2e8f0; }
-    .ai-input-group { display: flex; gap: 8px; }
-    .ai-input-group input { flex: 1; border: 1px solid #cbd5e1; border-radius: 20px; padding: 8px 15px; font-size: 0.9rem; outline: none; }
-    .ai-input-group input:focus { border-color: #8b5cf6; }
-    .ai-input-group button { background: #8b5cf6; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .draft-btn { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; border-radius: 12px; padding: 8px; font-size: 0.8rem; text-align: center; margin-top: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .typing-indicator { display: flex; gap: 4px; padding: 5px; align-items: center; }
-    .typing-indicator span { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
-    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     
     /* Lock Screen Layouts */
     .lock-screen-box {
@@ -398,7 +350,28 @@
 
           <div class="section-header pt-0"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-bar-chart-fill"></i> 1. สถิติมาเรียน</h6></div>
           <div class="bento-grid">
-            <a href="Level_Head/level_head.html" class="menu-card" onclick="return checkAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;"><i class="bi bi-pie-chart-fill"></i><p class="card-title">หน้าหลักหัวหน้าระดับชั้น</p></a>
+            
+            <!-- 🌟 เมนูหลักหัวหน้าระดับ (มีปุ่ม ม.1-ม.6 ซ่อนอยู่) -->
+            <div class="menu-card" data-bs-toggle="collapse" data-bs-target="#adminLevelHeadExpand" style="grid-column: span 3; padding: 12px; border-left: 4px solid var(--board-purple);">
+              <i class="bi bi-pie-chart-fill text-danger"></i>
+              <p class="card-title">หน้าหลักหัวหน้าระดับชั้น <i class="bi bi-chevron-down ms-1" style="font-size: 0.6rem; color:#94a3b8;"></i></p>
+            </div>
+            
+            <!-- ส่วนขยายสำหรับเลือก ม.1 - ม.6 -->
+            <div class="collapse w-100" id="adminLevelHeadExpand" style="grid-column: span 3;">
+              <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill text-danger"></i> เลือกระดับชั้นเพื่อเข้าสู่ระบบบริหารจัดการ</div>
+                <div class="expand-grid">
+                  <a href="#" class="expand-btn btn-m1" onclick="openLevelHeadDashboard(event, 'm1')">ม.1</a>
+                  <a href="#" class="expand-btn btn-m2" onclick="openLevelHeadDashboard(event, 'm2')">ม.2</a>
+                  <a href="#" class="expand-btn btn-m3" onclick="openLevelHeadDashboard(event, 'm3')">ม.3</a>
+                  <a href="#" class="expand-btn btn-m4" onclick="openLevelHeadDashboard(event, 'm4')">ม.4</a>
+                  <a href="#" class="expand-btn btn-m5" onclick="openLevelHeadDashboard(event, 'm5')">ม.5</a>
+                  <a href="#" class="expand-btn btn-m6" onclick="openLevelHeadDashboard(event, 'm6')">ม.6</a>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-red);"><i class="bi bi-clipboard-data-fill"></i> 2. สถิติพฤติกรรม</h6></div>
@@ -529,108 +502,8 @@
     &copy; 2026 Buayai School Digital System
   </div>
 
-  <!-- ========================================== -->
-  <!-- 🔘 FLOATING BUTTONS (มุมขวาล่าง) -->
-  <!-- ========================================== -->
-  <div class="floating-container">
-    <button class="float-btn btn-guide" data-bs-toggle="modal" data-bs-target="#guideModal">
-      <i class="bi bi-question-circle-fill"></i> เข้าแอปไม่ได้?
-    </button>
-    <button class="float-btn btn-ai" onclick="toggleChat()">
-      <i class="bi bi-robot"></i> คุยกับ AI ไอที ✨
-    </button>
-  </div>
-
   <!-- 🌟 กล่องบรรจุประกาศ (จะดึง popup.html มาใส่ตรงนี้) -->
   <div id="popup-container"></div>
-
-  <!-- ========================================== -->
-  <!-- 📌 GUIDE MODAL (คู่มือแก้ปัญหา ยังคงไว้เผื่อครูกด) -->
-  <!-- ========================================== -->
-  <div class="modal fade" id="guideModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content modal-guide-content shadow-lg">
-        <div class="info-header">
-          <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-          <i class="bi bi-exclamation-octagon-fill"></i>
-          <h4 class="fw-bold mb-1">เข้าแอปไม่ได้ ทำอย่างไร?</h4>
-          <p class="mb-0 small" style="opacity: 0.9;">หากกดลิงก์แล้วหน้าจอขาว หรือ Error<br>ให้เปิดผ่านโหมดไม่ระบุตัวตนครับ</p>
-        </div>
-        <div class="modal-body p-4 bg-light">
-          <div class="option-card-2" style="margin-bottom: 0;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge bg-warning text-dark px-3 py-1 rounded-pill"><i class="bi bi-star-fill"></i> วิธีแก้ปัญหา (แนะนำที่สุด)</span>
-            </div>
-            <h6 class="fw-bold text-warning">ใช้ "โหมดไม่ระบุตัวตน"</h6>
-            <p class="small text-light opacity-75 mb-3">ให้ก๊อปปี้ลิงก์นี้ไปวางในช่อง URL ของโหมดไม่ระบุตัวตน (Incognito) เพื่อแก้ปัญหาแอปค้างครับ</p>
-            
-            <div class="mb-3 text-center">
-                <a href="https://youtu.be/XyePMT1SPsc" target="_blank" class="btn btn-danger w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center">
-                    <i class="bi bi-youtube fs-5 me-2"></i> คลิกดูวิดีโอสอนการใช้งาน
-                </a>
-            </div>
-
-            <div class="d-flex align-items-center bg-dark border border-secondary rounded-3 p-1 mb-3">
-              <input type="text" id="portalUrlCopy" class="form-control bg-transparent border-0 text-white small" value="https://buayai-i-care.github.io/buayai-i-Care" readonly>
-              <button class="btn btn-warning btn-sm rounded-3 fw-bold px-3" onclick="copyPortalLink()">คัดลอก</button>
-            </div>
-
-            <div class="browser-mockup">
-              <div class="mb-3">
-                <div class="fw-bold text-info small mb-2"><i class="bi bi-android2"></i> ทริคพิเศษสำหรับ Android (แอป Chrome)</div>
-                <div class="bg-dark rounded-3 p-3 border border-secondary shadow-sm position-relative overflow-hidden">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="position-relative me-3 flex-shrink-0">
-                      <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="bi bi-browser-chrome fs-2" style="color: #4285F4;"></i></div>
-                      <i class="bi bi-hand-index-thumb-fill text-warning fs-3 position-absolute" style="bottom: -12px; right: -12px; animation: bounce-soft 1.5s infinite;"></i>
-                    </div>
-                    <div class="small text-white lh-sm"><span class="badge bg-primary rounded-pill mb-1">ขั้นที่ 1</span><br><b>กดค้าง</b> ที่ไอคอนแอป Chrome หน้าจอมือถือ</div>
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <div class="bg-black border border-secondary rounded p-2 me-3 flex-shrink-0 shadow position-relative" style="width: 140px;">
-                      <div class="text-white small py-1 border-bottom border-secondary d-flex align-items-center" style="font-size: 0.75rem;"><i class="bi bi-incognito me-2 fs-6"></i> แท็บไม่ระบุตัวตน...</div>
-                      <div class="text-white opacity-50 small py-1 d-flex align-items-center" style="font-size: 0.75rem;"><i class="bi bi-window-plus me-2 fs-6"></i> แท็บใหม่</div>
-                      <i class="bi bi-cursor-fill text-warning fs-4 position-absolute" style="top: 15px; right: -10px; transform: rotate(-45deg);"></i>
-                    </div>
-                    <div class="small text-white lh-sm"><span class="badge bg-success rounded-pill mb-1">ขั้นที่ 2</span><br><b>กดค้างแล้วลาก</b> เมนูนี้ ออกมาวางบนหน้าจอ</div>
-                  </div>
-                </div>
-                <div class="text-center mt-2 small text-warning fw-bold"><i class="bi bi-stars"></i> ครั้งต่อไป กดเข้าแอปจากปุ่มที่สร้างนี้ได้เลย!</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 🤖 GEMINI AI CHATBOT UI -->
-  <!-- ========================================== -->
-  <div class="ai-chat-window" id="chatWindow">
-    <div class="ai-chat-header">
-      <div>
-        <h6 class="mb-0 fw-bold"><i class="bi bi-stars"></i> ผู้ช่วย AI ไอทีบัวใหญ่</h6>
-        <small style="opacity: 0.8; font-size: 0.75rem;">ขับเคลื่อนด้วย Gemini LLM</small>
-      </div>
-      <button class="btn-close btn-close-white" onclick="toggleChat()"></button>
-    </div>
-    <div class="ai-chat-body" id="chatBody">
-      <div class="chat-bubble chat-ai">
-        สวัสดีครับ! ผมคือ <b>ผู้ช่วย AI ฝ่ายไอที</b> ✨<br><br>
-        คุณครูหรือนักเรียนพบปัญหาเข้าสู่ระบบไม่ได้ตรงไหน พิมพ์ถามผม หรือกดปุ่มด้านล่างให้ผมช่วยร่างข้อความแจ้งแอดมินได้เลยครับ!
-      </div>
-      <div class="draft-btn shadow-sm" onclick="requestDraftMessage()">
-        <i class="bi bi-pencil-square"></i> ร่างข้อความแจ้งปัญหาให้แอดมินอัตโนมัติ
-      </div>
-    </div>
-    <div class="ai-chat-footer">
-      <div class="ai-input-group">
-        <input type="text" id="userInput" placeholder="พิมพ์คำถามที่นี่..." onkeypress="handleEnter(event)">
-        <button onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
-      </div>
-    </div>
-  </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -661,9 +534,30 @@
     });
 
     // ==========================================
+    // 🌟 ฟังก์ชันเข้าสู่หน้าหลักหัวหน้าระดับชั้น (ม.1 - ม.6)
+    // ==========================================
+    function openLevelHeadDashboard(event, levelStr) {
+        event.preventDefault(); // ป้องกันลิงก์กระโดด
+        
+        // จำลองการตั้งค่าผู้ใช้งานหัวหน้าระดับลงเครื่อง
+        const userData = {
+            username: "head_" + levelStr,
+            name: "หัวหน้าระดับ " + levelStr.replace('m', 'ม.'),
+            level: levelStr,  // เช่น 'm4' ตัวแปรนี้สำคัญมากเพราะ Task.html จะดึงไปใช้
+            role: "หัวหน้าระดับ"
+        };
+        
+        // บันทึกลง localStorage ก่อนที่จะย้ายหน้า
+        localStorage.setItem('buayai_user', JSON.stringify(userData));
+        
+        // ส่งตรงไปยังหน้า level_head.html
+        window.location.href = "level_head.html";
+    }
+
+    // ==========================================
     // 🌟 ฟังก์ชันการเชื่อมโยงระบบโฮมรูม (Auto-Login)
     // ==========================================
-    // 1. หัวหน้าระดับ
+    // 1. หัวหน้าระดับ (งานโฮมรูมแบบเดิม)
     function openAdminHomeroom(event) {
         event.preventDefault();
         let pw = sessionStorage.getItem('admin_pw_auto');
@@ -683,23 +577,6 @@
             window.open('homeroom' + level + '.html?user=' + pw, '_blank');
         } else {
             unlockTeacher();
-        }
-    }
-
-    // ==========================================
-    // ฟังก์ชันคัดลอก URL สำหรับวิธีแก้ปัญหา
-    // ==========================================
-    function copyPortalLink() {
-        const copyText = document.getElementById("portalUrlCopy");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); 
-        try {
-            document.execCommand("copy");
-            alert("✅ คัดลอกลิงก์เรียบร้อยแล้ว!\n\nให้ก๊อปปี้ลิงก์นี้ไปวางในช่อง URL โหมดไม่ระบุตัวตน ได้เลยครับ");
-        } catch (err) {
-            navigator.clipboard.writeText(copyText.value).then(() => {
-                alert("✅ คัดลอกลิงก์เรียบร้อยแล้ว!\n\nให้ก๊อปปี้ลิงก์นี้ไปวางในช่อง URL โหมดไม่ระบุตัวตน ได้เลยครับ");
-            });
         }
     }
 
@@ -865,98 +742,6 @@
           unlockSuperAdmin();
       }
       return true;
-    }
-
-    // ==========================================
-    // 🤖 3. ระบบ AI Chatbot (Gemini API)
-    // ==========================================
-    const apiKey = ""; 
-    const aiSystemInstruction = "คุณคือ 'ผู้ช่วย AI ไอที' ของโรงเรียนบัวใหญ่ ทำหน้าที่ช่วยเหลือผู้ใช้งานที่เข้าสู่ระบบไม่ได้ อธิบายสั้นๆ เข้าใจง่าย เป็นกันเอง (ใช้ภาษาไทย) หากผู้ใช้มีปัญหาการล็อกอิน ให้แนะนำการใช้โหมดไม่ระบุตัวตน (Incognito) และอธิบายสั้นๆ ว่าทำไมต้องใช้";
-
-    function toggleChat() {
-      const chatWin = document.getElementById('chatWindow');
-      chatWin.classList.toggle('show');
-    }
-
-    function handleEnter(e) {
-      if (e.key === 'Enter') sendMessage();
-    }
-
-    function appendMessage(text, sender) {
-      const chatBody = document.getElementById('chatBody');
-      const bubble = document.createElement('div');
-      bubble.className = `chat-bubble chat-${sender}`;
-      let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-      bubble.innerHTML = formattedText;
-      chatBody.appendChild(bubble);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function appendLoading() {
-      const chatBody = document.getElementById('chatBody');
-      const loaderId = 'loading-' + Date.now();
-      const bubble = document.createElement('div');
-      bubble.className = `chat-bubble chat-ai`;
-      bubble.id = loaderId;
-      bubble.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
-      chatBody.appendChild(bubble);
-      chatBody.scrollTop = chatBody.scrollHeight;
-      return loaderId;
-    }
-
-    function removeLoading(id) {
-      const loader = document.getElementById(id);
-      if (loader) loader.remove();
-    }
-
-    async function fetchGeminiWithRetry(promptText, maxRetries = 5) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-      const delays = [1000, 2000, 4000, 8000, 16000];
-      const payload = {
-        contents: [{ parts: [{ text: promptText }] }],
-        systemInstruction: { parts: [{ text: aiSystemInstruction }] }
-      };
-
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          if (!response.ok) throw new Error(`HTTP error!`);
-          return await response.json();
-        } catch (error) {
-          if (i === maxRetries - 1) throw error;
-          await new Promise(resolve => setTimeout(resolve, delays[i]));
-        }
-      }
-    }
-
-    async function sendMessage(overrideText = null) {
-      const inputEl = document.getElementById('userInput');
-      const text = overrideText || inputEl.value.trim();
-      if (!text) return;
-      if (!overrideText) inputEl.value = ''; 
-      
-      const draftBtn = document.querySelector('.draft-btn');
-      if (draftBtn) draftBtn.style.display = 'none';
-
-      appendMessage(text, 'user');
-      const loaderId = appendLoading();
-
-      try {
-        const result = await fetchGeminiWithRetry(text);
-        removeLoading(loaderId);
-        if (result && result.candidates && result.candidates[0]) {
-          appendMessage(result.candidates[0].content.parts[0].text, 'ai');
-        } else {
-          appendMessage("ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", 'ai');
-        }
-      } catch (error) {
-        removeLoading(loaderId);
-        appendMessage("⚠️ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ AI ได้ในขณะนี้ครับ", 'ai');
-      }
-    }
-
-    function requestDraftMessage() {
-      sendMessage("ฉันเข้าสู่ระบบ I-Care ไม่ได้ ลองโหมด Incognito แล้วก็ยังไม่ได้ ช่วยร่างข้อความภาษาไทยสั้นๆ สุภาพๆ เพื่อก๊อปปี้ไปแจ้งในกลุ่มไลน์แอดมินหน่อยครับ");
     }
   </script>
 </body>
