@@ -78,7 +78,7 @@
             <div class="d-flex align-items-center">
                 <button class="hamburger-btn me-3" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้" height="35" width="35" style="object-fit: contain;" class="me-2 bg-white rounded-circle p-1">
-                <h5 class="m-0 fw-bold">Buayai I-Care School</h5>
+                <h5 class="m-0 fw-bold">Buayai I-Care</h5>
             </div>
             <div class="d-flex align-items-center small">
                 <span class="badge bg-light text-dark rounded-pill me-2 current-room-badge" style="display: none;"></span>
@@ -120,7 +120,7 @@
                             <!-- ข้อ 1 -->
                             <div class="form-check form-check-custom"><input class="form-check-input fs-5" type="checkbox" id="chk-announce" onchange="toggleInput('input-announce', this)"><label class="form-check-label w-100" for="chk-announce">1. แจ้งข่าวประกาศ / อบรมหน้าเสาธง<div id="input-announce" class="hidden-input"><input type="text" class="form-control" id="val-announce" placeholder="ระบุเรื่องที่แจ้งนักเรียน..."></div></label></div>
                             
-                            <!-- 🌟 ข้อ 2 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <!-- ข้อ 2 -->
                             <div class="form-check form-check-custom">
                                 <input class="form-check-input fs-5" type="checkbox" id="chk-health" onchange="toggleInput('input-health', this)">
                                 <label class="form-check-label w-100" for="chk-health">2. ติดตามการตรวจระเบียบ / ตรวจสุขภาพ
@@ -132,7 +132,7 @@
                                 </label>
                             </div>
                             
-                            <!-- 🌟 ข้อ 3 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <!-- ข้อ 3 -->
                             <div class="form-check form-check-custom">
                                 <input class="form-check-input fs-5" type="checkbox" id="chk-parent" onchange="toggleInput('input-parent', this)">
                                 <label class="form-check-label w-100" for="chk-parent">3. ประสานงานกับผู้ปกครอง
@@ -148,7 +148,7 @@
                                 </label>
                             </div>
                             
-                            <!-- 🌟 ข้อ 4 อัปเดตใหม่ ให้ดึงรายชื่อได้ -->
+                            <!-- ข้อ 4 -->
                             <div class="form-check form-check-custom">
                                 <input class="form-check-input fs-5" type="checkbox" id="chk-scholar" onchange="toggleInput('input-scholar', this)">
                                 <label class="form-check-label w-100" for="chk-scholar">4. ประสานงานการมอบทุนการศึกษา
@@ -180,27 +180,81 @@
                 </div>
             </div>
 
-            <!-- ส่วนอื่นๆ (ตรวจระเบียบ, ประวัติ, ส่งรายงาน, พิมพ์, Dashboard หัวหน้า) คงเดิม -->
+            <!-- 🌟 ตรวจระเบียบนักเรียนรายคน -->
             <div id="view-inspect-form" style="display: none;">
-                <h3 class="fw-bold text-dark mb-4"><i class="bi bi-person-check text-primary me-2"></i>ตรวจระเบียบนักเรียน</h3><div class="content-card"><div class="row g-3 mb-2 border-bottom pb-4"><div class="col-md-3"><label class="form-label fw-bold">วันที่ตรวจ</label><input type="date" id="insp-inline-date" class="form-control border-primary text-primary fw-bold"></div><div class="col-md-6"><label class="form-label fw-bold">หมวดหมู่</label><select id="insp-inline-cat" class="form-select border-primary text-primary fw-bold" onchange="checkInlineInspOther()"><option value="" disabled selected>เลือกหมวดหมู่ที่ตรวจ...</option><option value="ทรงผม">ทรงผม</option><option value="การแต่งกาย">การแต่งกาย</option><option value="ถุงเท้า">ถุงเท้า</option><option value="รองเท้า">รองเท้า</option><option value="เล็บ">เล็บ</option><option value="อื่นๆ">อื่น ๆ (ระบุ)</option></select><input type="text" id="insp-inline-other" class="form-control mt-2" style="display:none;" placeholder="ระบุเรื่องที่ตรวจ..."></div><div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100 fw-bold py-2" onclick="startInlineInspection()"><i class="bi bi-list-check me-1"></i> เริ่มตรวจ</button></div></div><div id="insp-inline-loading" class="text-center py-5 d-none"><span class="spinner-border text-primary"></span><div class="mt-2 text-muted">กำลังดึงรายชื่อนักเรียน...</div></div><div id="insp-inline-container" class="d-none mt-4"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold text-primary m-0"><i class="bi bi-card-checklist me-2"></i>รายชื่อนักเรียน</h5><button class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm" onclick="setAllInlinePass()"><i class="bi bi-check-all"></i> ให้ผ่านทุกคน</button></div><div id="insp-inline-list"></div><div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top"><button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="prevInlineInspPage()" id="btn-insp-prev-in"><i class="bi bi-chevron-left"></i> ก่อนหน้า</button><span class="small fw-bold text-muted" id="insp-inline-page-info">หน้า 1</span><button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="nextInlineInspPage()" id="btn-insp-next-in">ถัดไป <i class="bi bi-chevron-right"></i></button></div><button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow mt-4 fs-5" id="btn-save-inspection" onclick="saveStandaloneInspection()"><i class="bi bi-save2-fill me-1"></i> บันทึกลงระบบ</button></div></div>
+                <h3 class="fw-bold text-dark mb-4"><i class="bi bi-person-check text-primary me-2"></i>ตรวจระเบียบนักเรียน</h3>
+                <div class="content-card">
+                    <div class="row g-3 mb-2 border-bottom pb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">วันที่ตรวจ</label>
+                            <input type="date" id="insp-inline-date" class="form-control border-primary text-primary fw-bold">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">หมวดหมู่</label>
+                            <select id="insp-inline-cat" class="form-select border-primary text-primary fw-bold" onchange="checkInlineInspOther()">
+                                <option value="" disabled selected>เลือกหมวดหมู่ที่ตรวจ...</option>
+                                <option value="ทรงผม">ทรงผม</option>
+                                <option value="การแต่งกาย">การแต่งกาย</option>
+                                <option value="ถุงเท้า">ถุงเท้า</option>
+                                <option value="รองเท้า">รองเท้า</option>
+                                <option value="เล็บ">เล็บ</option>
+                                <option value="อื่นๆ">อื่น ๆ (ระบุ)</option>
+                            </select>
+                            <input type="text" id="insp-inline-other" class="form-control mt-2" style="display:none;" placeholder="ระบุเรื่องที่ตรวจ...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100 fw-bold py-2" onclick="startInlineInspection()"><i class="bi bi-list-check me-1"></i> เริ่มตรวจ</button>
+                        </div>
+                    </div>
+                    <div id="insp-inline-loading" class="text-center py-5 d-none">
+                        <span class="spinner-border text-primary"></span><div class="mt-2 text-muted">กำลังดึงรายชื่อนักเรียน...</div>
+                    </div>
+                    <div id="insp-inline-container" class="d-none mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-primary m-0"><i class="bi bi-card-checklist me-2"></i>รายชื่อนักเรียน</h5>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm" onclick="setAllInlinePass()"><i class="bi bi-check-all"></i> ให้ผ่านทุกคน</button>
+                        </div>
+                        <div id="insp-inline-list"></div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="prevInlineInspPage()" id="btn-insp-prev-in"><i class="bi bi-chevron-left"></i> ก่อนหน้า</button>
+                            <span class="small fw-bold text-muted" id="insp-inline-page-info">หน้า 1</span>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="nextInlineInspPage()" id="btn-insp-next-in">ถัดไป <i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        
+                        <!-- 🌟 เปลี่ยนปุ่มบันทึกเป็น 2 ปุ่ม -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button class="btn btn-outline-primary w-50 rounded-pill py-3 fw-bold fs-6" id="btn-save-insp-1" onclick="saveStandaloneInspection(false)">
+                                <i class="bi bi-save me-1"></i> บันทึก
+                            </button>
+                            <button class="btn btn-primary w-50 rounded-pill py-3 fw-bold shadow fs-6" id="btn-save-insp-2" onclick="saveStandaloneInspection(true)">
+                                <i class="bi bi-send-check me-1"></i> บันทึกและรายงานหัวหน้า
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- ประวัติการตรวจ -->
             <div id="view-inspection-history" style="display: none;">
                 <h3 class="fw-bold text-dark mb-4"><i class="bi bi-search text-primary me-2"></i>ประวัติการตรวจระเบียบ</h3><div class="content-card"><div class="row g-2 mb-4"><div class="col-md-8"><select id="filter-insp-cat" class="form-select border-primary text-primary fw-bold"><option value="" disabled selected>เลือกหมวดหมู่ที่ต้องการดูประวัติ</option><option value="ทรงผม">ทรงผม</option><option value="การแต่งกาย">การแต่งกาย</option><option value="ถุงเท้า">ถุงเท้า</option><option value="รองเท้า">รองเท้า</option><option value="เล็บ">เล็บ</option></select></div><div class="col-md-4"><button class="btn btn-primary w-100 fw-bold" onclick="fetchInspectionHistory()"><i class="bi bi-cloud-download me-1"></i> ดึงข้อมูล</button></div></div><div id="insp-history-content" class="text-center text-muted py-5 border rounded-3 bg-light"><i class="bi bi-inbox fs-1"></i><br>กรุณาเลือกหมวดหมู่และกดดึงข้อมูล</div></div>
             </div>
 
+            <!-- เสนอรายงาน -->
             <div id="view-submit" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-send-check-fill text-primary me-2"></i>เสนอหัวหน้าระดับชั้น</h3><p class="text-muted m-0">สรุปรายงานโฮมรูมสัปดาห์นี้ เพื่อให้หัวหน้าเซ็นรับทราบ</p></div><span id="teacher-status-badge" class="badge bg-warning text-dark border p-2 px-3 shadow-sm rounded-pill fs-6"><i class="bi bi-hourglass-split"></i> สถานะ: กำลังโหลดข้อมูล...</span></div><div class="row g-4"><div class="col-lg-7"><div class="content-card h-100"><div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2"><h5 class="fw-bold text-dark m-0"><i class="bi bi-calendar-week text-primary me-2"></i>สรุปข้อมูลรายสัปดาห์</h5><div class="input-group" style="width: auto; max-width: 200px;"><span class="input-group-text bg-light text-primary"><i class="bi bi-calendar-range"></i></span><input type="date" class="form-control border-start-0 ps-0 fw-bold text-primary small" id="week-selector" onchange="generateTimeline()"></div></div><div class="text-center mb-4"><span class="badge bg-light text-dark border p-2 px-3 shadow-sm rounded-pill" id="week-range-display">กำลังคำนวณ...</span></div><div id="timeline-container" class="mt-4 ms-2"></div></div></div><div class="col-lg-5"><div class="content-card bg-primary text-white mb-3" style="border: none;" id="box-submit-action"><h6 class="fw-bold mb-2"><i class="bi bi-envelope-paper me-2"></i>ส่งรายงานสัปดาห์นี้</h6><textarea class="form-control mb-3" rows="2" placeholder="หมายเหตุถึงหัวหน้าระดับ (ถ้ามี)..." id="teacher-note"></textarea><button class="btn btn-warning w-100 fw-bold py-2 shadow" id="btn-submit-head" onclick="teacherSubmitReport()"><i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน</button></div><div class="signature-box" id="teacher-sig-box"><i class="bi bi-file-earmark-lock fs-1 text-muted opacity-25"></i><h6 class="fw-bold mt-2 mb-1 text-muted">ผลการพิจารณา</h6><p class="small text-muted m-0">ไม่มีประวัติการส่งรายงานในสัปดาห์นี้</p></div></div></div>
             </div>
 
+            <!-- พิมพ์รายงาน -->
             <div id="view-print" style="display: none;">
                 <div id="print-controls" class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border"><span class="fw-bold text-muted mx-3"><i class="bi bi-calendar-month"></i> เลือกเดือน:</span><input type="month" id="print-month-selector" class="form-control form-control-sm rounded-pill border-primary text-primary fw-bold" style="width: auto;" onchange="generatePrintReport()"></div><button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i> พิมพ์เอกสาร PDF</button></div><div class="a4-paper"><div class="text-center mb-4"><img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" width="80" class="mb-3"><h4 class="fw-bold">รายงานการจัดกิจกรรมโฮมรูม (Homeroom)</h4><p>ชั้นมัธยมศึกษาปีที่ <span class="current-room-text"></span> ประจำเดือน <span id="print-month-display" class="fw-bold">...</span></p></div><table class="mock-sheet mb-4"><thead><tr><th width="15%">วันที่</th><th width="55%">รายการบันทึกโฮมรูม</th><th width="30%">สถิติ</th></tr></thead><tbody id="print-tbody"><tr><td colspan="3" class="text-center text-muted py-4">กรุณาเลือกเดือนเพื่อดูรายงาน</td></tr></tbody></table><div class="sign-area d-flex justify-content-around align-items-end w-100"><div id="print-teachers-container" class="d-flex justify-content-around flex-wrap" style="width: 60%;"></div><div id="print-head-area" style="width: 35%;"><div id="print-head-pending"><div class="sign-line mt-3"></div><p class="mb-0 text-muted">( รอหัวหน้าระดับรับทราบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small></div><div id="print-head-approved" style="display: none;"><img id="print-head-sig-img" src="" class="preview-sig-img"><br><p class="mb-0">( ผู้ตรวจสอบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small><br><small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small></div></div></div></div>
             </div>
 
+            <!-- หน้าหัวหน้า Dashboard -->
             <div id="view-head-dashboard" style="display: none;">
                 <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-inboxes-fill text-warning me-2"></i>รายงานที่รอตรวจสอบ</h3><p class="text-muted m-0" id="head-dashboard-subtitle">ระดับชั้นมัธยมศึกษา</p></div><div class="input-group shadow-sm" style="width: auto; max-width: 250px;"><span class="input-group-text bg-light text-primary border-primary"><i class="bi bi-calendar-week"></i> เลือกสัปดาห์</span><input type="date" class="form-control border-primary fw-bold text-primary" id="head-week-selector" onchange="loadHeadDashboard()"></div></div><div class="content-card p-0 overflow-auto"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th class="py-3 px-4">ห้อง</th><th>ผู้ส่ง (ครูที่ปรึกษา)</th><th>สถานะ</th><th class="text-center">จัดการ</th></tr></thead><tbody id="head-table-body"></tbody></table></div>
             </div>
 
+            <!-- หน้าหัวหน้า สถิติ -->
             <div id="view-head-stats" style="display: none;">
                 <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2"><div><h3 class="fw-bold text-dark m-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>สถิติการส่งโฮมรูม</h3><p class="text-muted m-0">ข้อมูลภาพรวมการส่งรายงานของครูที่ปรึกษา</p></div><button class="btn btn-outline-primary rounded-pill shadow-sm" onclick="loadHeadStats()"><i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล</button></div><div class="row g-4"><div class="col-lg-7"><div class="content-card h-100"><div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3"><h6 class="fw-bold m-0"><i class="bi bi-graph-up me-2"></i>ยอดการส่งสะสมเรียงจากน้อยไปมาก</h6><select id="stats-term-select" class="form-select form-select-sm border-primary text-primary fw-bold" style="width: auto;" onchange="renderOverallChart()"></select></div><div id="stats-overall-loading" class="text-center py-5"><span class="spinner-border text-primary"></span></div><div id="stats-overall-chart"></div></div></div><div class="col-lg-5"><div class="content-card bg-primary text-white mb-3 border-0"><h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>ตรวจสอบรายสัปดาห์ (เรียงมากไปน้อย)</h6><input type="date" class="form-control border-0 fw-bold text-dark" id="stats-week-picker" onchange="renderWeeklyStats()"><div class="small mt-2 opacity-75" id="stats-week-info">กรุณาเลือกวันที่เพื่อตรวจสอบ</div></div><div class="content-card p-0 overflow-auto" style="max-height: 400px;"><table class="table table-hover mb-0 align-middle"><tbody id="stats-weekly-list"><tr><td class="text-center text-muted py-5">กรุณาเลือกวันที่ด้านบน</td></tr></tbody></table></div></div></div>
             </div>
@@ -215,7 +269,7 @@
     
     <div class="modal fade" id="statsDetailModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg" style="border-radius: 20px;"><div class="modal-header bg-info text-dark border-0 px-4 py-3"><h6 class="fw-bold m-0" id="stats-detail-title">รายละเอียด</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4 text-center bg-light"><div class="display-1 text-primary mb-2"><i class="bi bi-journal-check"></i></div><h5 class="fw-bold text-dark" id="stats-detail-count">0 ครั้ง</h5><p class="text-muted small mb-3">รายการสัปดาห์ที่ส่งรายงานแล้ว:</p><div id="stats-detail-list" class="d-flex flex-wrap justify-content-center gap-2"></div></div><div class="modal-footer border-0 justify-content-center"><button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button></div></div></div></div>
 
-    <!-- 🌟 MODAL ใหม่: หน้าต่างเลือกรายชื่อนักเรียน -->
+    <!-- หน้าต่างเลือกรายชื่อนักเรียน -->
     <div class="modal fade" id="studentSelectorModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -228,9 +282,7 @@
                         <span class="small fw-bold text-primary" id="student-selector-info"><i class="bi bi-person-check-fill"></i> เลือกแล้ว 0 คน</span>
                         <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="selectAllStudentsSelector()">เลือกหน้านี้ทั้งหมด</button>
                     </div>
-                    <div id="student-selector-list" class="mb-3">
-                        <!-- รายชื่อนักเรียนจะถูกสร้างที่นี่อัตโนมัติ -->
-                    </div>
+                    <div id="student-selector-list" class="mb-3"></div>
                     <div class="d-flex justify-content-between align-items-center border-top pt-3">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" onclick="prevStudentSelectorPage()" id="btn-ss-prev"><i class="bi bi-chevron-left"></i> ก่อนหน้า</button>
                         <span class="small fw-bold text-muted" id="ss-page-info">หน้า 1</span>
@@ -325,9 +377,6 @@
         
         function toggleInput(id, cb) { document.getElementById(id).style.display = cb.checked ? 'block' : 'none'; }
 
-        // ====================================================
-        // 🌟 ระบบเลือกรายชื่อนักเรียนแบบอัตโนมัติ (ใหม่ล่าสุด!)
-        // ====================================================
         let selectedStudentsFor = { health: [], parent: [], scholar: [] };
         let currentSelectorTarget = '';
         let studentSelectorPage = 0;
@@ -344,7 +393,6 @@
             
             studentSelectorModalInstance.show();
             
-            // ตรวจสอบว่าดึงรายชื่อห้องมาหรือยัง ถ้ายังให้วิ่งไปดึงมาก่อน
             if (appState.students.length === 0) {
                 document.getElementById('student-selector-list').innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary"></span><div class="mt-2 small text-muted">กำลังดึงข้อมูลรายชื่อ...</div></div>';
                 try {
@@ -360,7 +408,7 @@
                     document.getElementById('student-selector-list').innerHTML = '<div class="text-danger text-center">เชื่อมต่อล้มเหลว</div>';
                 }
             } else {
-                renderStudentSelector(); // ถ้าเคยดึงมาแล้ว ก็แค่โชว์หน้าจอเลย
+                renderStudentSelector(); 
             }
         }
 
@@ -451,7 +499,6 @@
             } catch(e) { appState.currentStatsStr = "ไม่พบสถิติ"; document.getElementById('stat-total-val').innerText = '?'; }
         }
 
-        // 🌟 อัปเดตฟังก์ชันบันทึกข้อมูล ให้เก็บรายชื่อที่ติ๊กเลือกเข้าไปด้วย
         async function saveRecord() {
             let details = [];
             
@@ -459,7 +506,6 @@
                 details.push(`<b>1. ประกาศ:</b> ${document.getElementById('val-announce').value || '(ไม่ระบุ)'}`);
             }
             
-            // ข้อ 2 ตรวจสุขภาพ/ระเบียบ
             if(document.getElementById('chk-health').checked) {
                 let healthOther = document.getElementById('val-health-other').value;
                 let selectedCount = selectedStudentsFor['health'].length;
@@ -467,7 +513,6 @@
                 details.push(`<b>2. ตรวจระเบียบ/สุขภาพ:</b> ${healthOther || '(ตรวจสอบเรียบร้อย)'}${selectedStr}`);
             }
             
-            // ข้อ 3 ประสาน ผปค.
             if(document.getElementById('chk-parent').checked) {
                 let pTopics = []; 
                 if(document.getElementById('p-grade').checked) pTopics.push("ผลการเรียน"); 
@@ -481,7 +526,6 @@
                 details.push(`<b>3. ติดต่อ ผปค.:</b> ${pTopics.length > 0 ? pTopics.join(', ') : '(ไม่ระบุ)'}${selectedStr}`);
             }
             
-            // ข้อ 4 มอบทุน
             if(document.getElementById('chk-scholar').checked) {
                 let scholarOther = document.getElementById('val-scholar-other').value;
                 let selectedCount = selectedStudentsFor['scholar'].length;
@@ -489,7 +533,6 @@
                 details.push(`<b>4. มอบทุน:</b> ${scholarOther || '(มอบทุนการศึกษา)'}${selectedStr}`);
             }
             
-            // ข้อ 5 อื่นๆ
             if(document.getElementById('chk-other').checked) {
                 details.push(`<b>5. อื่นๆ:</b> ${document.getElementById('val-other').value || '(ไม่ระบุ)'}`);
             }
@@ -563,13 +606,56 @@
         function nextInlineInspPage() { if((inspPageInline+1)*INSP_PER_PAGE_INLINE < appState.inspResults.length) { inspPageInline++; renderInlineInspPage(); } }
         function setAllInlinePass() { appState.inspResults.forEach(s => { s.status = "ผ่าน"; s.isChecked = true; }); renderInlineInspPage(); }
 
-        async function saveStandaloneInspection() {
+        // 🌟 แก้ไขให้มี 2 ปุ่ม และสร้าง Summary Report ตรงนี้
+        async function saveStandaloneInspection(isReport = false) {
             let inspectionsToSave = appState.inspResults.filter(s => s.status !== 'ผ่าน' && s.status !== 'ยังไม่ตรวจ').map(s => ({ id: s.id, name: s.name, status: s.status }));
-            const btn = document.getElementById('btn-save-inspection'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...'; btn.disabled = true;
+            
+            let total = appState.inspResults.length;
+            let fail = 0; let warn = 0; let pass = 0;
+            appState.inspResults.forEach(s => {
+                if(s.status === 'ไม่ผ่าน') fail++;
+                else if(s.status === 'ตักเตือน') warn++;
+                else pass++;
+            });
+
+            // Format Date
+            let rawDate = document.getElementById('insp-inline-date').value;
+            let d = new Date(rawDate);
+            let thaiDate = isNaN(d) ? rawDate : d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+
+            let summaryText = `ห้อง ${appState.room} จำนวน ${total} คนตรวจ ${appState.currentInspCat} วันที่ ${thaiDate} สรุป ผ่าน ${pass} ไม่ผ่าน ${fail} ตักเตือน ${warn}`;
+
+            const btn1 = document.getElementById('btn-save-insp-1');
+            const btn2 = document.getElementById('btn-save-insp-2');
+            
+            if(btn1) { btn1.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; btn1.disabled = true; }
+            if(btn2) { btn2.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; btn2.disabled = true; }
+
             try {
-                await sendToAPI({ action: 'saveInspection', room: appState.room, date: document.getElementById('insp-inline-date').value, category: appState.currentInspCat, inspections: inspectionsToSave });
-                alert("✨ บันทึกผลการตรวจระเบียบลงฐานข้อมูลเรียบร้อยแล้วครับ"); document.getElementById('insp-inline-container').classList.add('d-none');
-            } catch(e) { alert("❌ บันทึกไม่สำเร็จ"); } finally { btn.innerHTML = '<i class="bi bi-save2-fill me-1"></i> บันทึกลงระบบ'; btn.disabled = false; }
+                await sendToAPI({ 
+                    action: 'saveInspection', 
+                    room: appState.room, 
+                    date: rawDate, 
+                    category: appState.currentInspCat, 
+                    inspections: inspectionsToSave,
+                    isReport: isReport,
+                    stats: { total: total, pass: pass, fail: fail, warn: warn },
+                    summaryText: summaryText
+                });
+                
+                if (isReport) {
+                    alert("✨ บันทึกผลและส่งรายงานให้หัวหน้าระดับเรียบร้อยแล้วครับ");
+                } else {
+                    alert("✨ บันทึกผลการตรวจลงฐานข้อมูลเรียบร้อยแล้วครับ");
+                }
+                
+                document.getElementById('insp-inline-container').classList.add('d-none');
+            } catch(e) { 
+                alert("❌ บันทึกไม่สำเร็จ"); 
+            } finally { 
+                if(btn1) { btn1.innerHTML = '<i class="bi bi-save me-1"></i> บันทึก'; btn1.disabled = false; }
+                if(btn2) { btn2.innerHTML = '<i class="bi bi-send-check me-1"></i> บันทึกและรายงานหัวหน้า'; btn2.disabled = false; }
+            }
         }
 
         async function fetchInspectionHistory() {
@@ -778,7 +864,6 @@
             
             let level = appState.room.replace('ม.', '');
             
-            // 🌟 แก้ไข: ถ้าระดับชั้นเป็น ม.4 ให้สร้างอาร์เรย์ 12 ห้อง
             let maxRooms = (level === '4') ? 12 : 10;
             allRoomsForLevel = [];
             for(let i=1; i<=maxRooms; i++) allRoomsForLevel.push(`ม.${level}/${i}`);
