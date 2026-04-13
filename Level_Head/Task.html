@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ภาระงานหัวหน้าระดับ | Buayai I-Care</title>
+    <title>ภาระงานหัวหน้าระดับ | Buayai I-Care School</title>
     <!-- Fonts & UI Library -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -68,7 +68,7 @@
 <!-- Sidebar -->
 <aside class="sidebar d-flex flex-column shadow-sm" id="sidebarMenu">
     <div class="p-4 text-center">
-        <h4 class="text-purple-dark fw-bold mb-0">Buayai I-Care</h4>
+        <h4 class="text-purple-dark fw-bold mb-0">Buayai I-Care School</h4>
         <div class="badge bg-purple-light text-purple-dark mt-1 px-3 py-2 rounded-pill shadow-sm">
             หัวหน้าระดับ <span id="userLevelHeader">...</span>
         </div>
@@ -179,20 +179,25 @@
 
 <script>
     // --- Configuration ---
-    // โปรดใส่ URL ที่ Deploy แบบ AnyOne จากไฟล์ task_backend.gs ล่าสุด
+    // URL Backend สำหรับภาระงาน (Script ตัวที่ 4)
     const API_URL = "https://script.google.com/macros/s/AKfycbw2ljtG3YfjUBSgCsO2kntXS9Hm7STvJyu-pzXXTozc05dJ4PHnAV4H8A7Q7lcNHzXLlg/exec"; 
     
-    if (!localStorage.getItem('buayai_user')) {
-        localStorage.setItem('buayai_user', JSON.stringify({level: "m2", name: "หัวหน้า ม.2", role: "หัวหน้าระดับ"}));
+    // --- รับค่า Auto Login จากระบบ ---
+    let userData = JSON.parse(localStorage.getItem('buayai_user'));
+    
+    // หากยังไม่มีการ Login ให้จำลองเป็น ม.3 เพื่อทดสอบ
+    if (!userData || !userData.level) {
+        userData = {level: "m3", name: "หัวหน้า ม.3", role: "หัวหน้าระดับ"};
     }
-    const userData = JSON.parse(localStorage.getItem('buayai_user'));
     const CURRENT_LEVEL = userData.level; 
 
     let allTasks = [];
 
     window.onload = () => {
-        document.getElementById('userLevelHeader').innerText = CURRENT_LEVEL.toUpperCase();
-        document.getElementById('levelLabel').innerText = "ระดับชั้น " + CURRENT_LEVEL.toUpperCase();
+        let displayLevel = CURRENT_LEVEL.replace('m', 'ม.');
+        document.getElementById('userLevelHeader').innerText = displayLevel;
+        document.getElementById('levelLabel').innerText = "ระดับชั้น " + displayLevel;
+        
         fetchTasks();
 
         // ปิด Sidebar อัตโนมัติเมื่อเลือกเมนูบนมือถือ (กฎข้อ 5)
@@ -206,14 +211,15 @@
     async function fetchTasks() {
         showLoading(true);
         try {
-            const response = await fetch(`${API_URL}?level=${CURRENT_LEVEL}`);
+            // เพิ่ม Time stamp (&t=...) ต่อท้าย URL ป้องกันแคช
+            const response = await fetch(`${API_URL}?level=${CURRENT_LEVEL}&t=${new Date().getTime()}`);
             const data = await response.json();
             allTasks = Array.isArray(data) ? data : [];
             renderTasks();
         } catch (err) {
             console.error(err);
             allTasks = [
-                { id: "MOCK1", date: "13 เม.ย. 2569", name: "งานติดตามการเข้าแถว", result: "เสร็จสิ้นครบถ้วน", progress: 100 }
+                { id: "MOCK1", date: "13 เม.ย. 2569", name: "เชื่อมต่อไม่สำเร็จ หรือ ฐานข้อมูลว่าง", result: "กรุณาเพิ่มข้อมูล", progress: 0 }
             ];
             renderTasks();
         } finally {
@@ -331,7 +337,6 @@
 
     // --- กฎข้อ 4: จัดการพิมพ์ PDF ---
     async function exportPDF(id) {
-        // แสดหน้าโหลดรอ
         Swal.fire({
             title: 'สร้างบันทึกข้อความ',
             html: 'กรุณารอสักครู่ ระบบกำลังจัดเตรียมไฟล์ PDF...',
@@ -342,12 +347,11 @@
         });
 
         try {
-            // ยิง API แบบ GET เพื่อสั่งสร้าง PDF
-            const response = await fetch(`${API_URL}?action=genPdf&level=${CURRENT_LEVEL}&id=${id}`);
+            // เพิ่ม Time stamp ป้องกันแคชตอนดึงลิงก์ PDF
+            const response = await fetch(`${API_URL}?action=genPdf&level=${CURRENT_LEVEL}&id=${id}&t=${new Date().getTime()}`);
             const data = await response.json();
 
             if (data.status === 'success') {
-                // สร้างปุ่มลิงก์ให้ผู้ใช้คลิกเอง ป้องกัน Popup Blocker
                 Swal.fire({
                     title: 'สร้าง PDF สำเร็จ!',
                     icon: 'success',
