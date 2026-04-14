@@ -254,6 +254,11 @@
                                     <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> <b>คำแนะนำ:</b> ให้จัดการแก้ไขฐานข้อมูลนักเรียนส่วนกลาง (ย้ายระดับชั้น) ให้เสร็จสิ้นก่อน จากนั้นจึงมาเลือกระดับชั้นเพื่อทำการโอนข้อมูลทีละขั้นตอน
                                 </div>
 
+                                <!-- 🌟 เพิ่มข้อความรับประกันความปลอดภัยของชีตต้นทาง -->
+                                <div class="alert alert-success border-success small text-dark shadow-sm">
+                                    <i class="bi bi-shield-lock-fill text-success me-1"></i> <b>ระบบป้องกันความปลอดภัยระดับสูงสุด:</b> ระบบจะ <u>ไม่มีการลบข้อมูลใดๆ ในฐานข้อมูลต้นทาง (ส่วนกลาง) อย่างเด็ดขาด</u> ทำงานเฉพาะการคัดลอกข้อมูลไปยังไฟล์ปลายทางเท่านั้น
+                                </div>
+
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-12">
                                         <label class="small text-muted fw-bold mb-1">เลือกระดับชั้นเป้าหมายที่ต้องการซิงค์ข้อมูลลงไป</label>
@@ -642,15 +647,15 @@
             ui2.style.opacity = '0.5';
         }
 
-        // Step 1: ลบแถวข้อมูลทุกชีตในไฟล์เป้าหมาย (ยกเว้น user, teacher)
+        // 🌟 Step 1: ลบแถวข้อมูลทุกชีตในไฟล์เป้าหมาย 
         async function executeBulkStep1() {
             const level = document.getElementById('bulk-level').value;
             if(!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
 
             const confirm = await Swal.fire({
-                title: `ยืนยันล้างข้อมูล ม.${level}?`,
-                html: `<span class="text-danger fw-bold">ข้อมูลในทุกชีตของไฟล์ ม.${level} จะถูกลบแถวทิ้งทั้งหมด!</span><br>ระบบจะเหลือไว้เพียงบรรทัดหัวข้อเท่านั้น (ยกเว้นชีต user, teacher)`,
-                icon: 'warning', showCancelButton: true, confirmButtonText: 'ยืนยันล้างข้อมูล', confirmButtonColor: '#ef4444'
+                title: `ยืนยันล้างข้อมูลปลายทาง ม.${level}?`,
+                html: `<span class="text-danger fw-bold">ข้อมูลในทุกชีตของไฟล์ ม.${level} จะถูกลบแถวทิ้งทั้งหมด!</span><br>ระบบจะเหลือไว้เพียงบรรทัดหัวข้อเท่านั้น (ยกเว้นชีต user, teacher)<br><br><span class="badge bg-success w-100 p-2 fs-6"><i class="bi bi-shield-check"></i> ข้อมูลในชีตส่วนกลางจะปลอดภัย 100%</span>`,
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'ยืนยันล้างข้อมูลปลายทาง', confirmButtonColor: '#ef4444'
             });
 
             if(!confirm.isConfirmed) return;
@@ -672,7 +677,7 @@
                 // ปลดล็อก Step 2
                 document.getElementById('btn-bulk-step2').disabled = false;
                 document.getElementById('ui-bulk-step2').style.opacity = '1';
-                Swal.fire('ขั้นที่ 1 สำเร็จ', `ลบแถวข้อมูลชีตนักเรียน ม.${level} เรียบร้อยแล้ว เชิญกดทำขั้นที่ 2 ต่อได้เลยครับ`, 'success');
+                Swal.fire('ขั้นที่ 1 สำเร็จ', `ลบแถวข้อมูลชีตนักเรียนปลายทาง ม.${level} เรียบร้อยแล้ว เชิญกดทำขั้นที่ 2 ต่อได้เลยครับ`, 'success');
             } else {
                 logToConsole(`> [ERROR] ${res.error}`, 'error');
                 Swal.fire('ข้อผิดพลาด', res.error, 'error');
