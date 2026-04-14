@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการฐานข้อมูลนักเรียน - Buayai I-Care School</title>
+    <title>ระบบจัดการฐานข้อมูลนักเรียน สำหรับผู้ดูแลระบบของระบบ - Buayai I-Care School</title>
     
-    <!-- UI Frameworks -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
@@ -13,81 +12,42 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        :root {
-            --admin-purple: #d946ef;
-            --admin-dark: #a21caf;
-            --admin-light: #fdf4ff;
-            --terminal-bg: #1e1e1e;
-            --terminal-green: #00ff00;
-        }
-        
+        :root { --admin-purple: #d946ef; --admin-dark: #a21caf; --admin-light: #fdf4ff; --terminal-bg: #1e1e1e; --terminal-green: #00ff00; }
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
         h1, h2, h3, h4, h5, .nav-link, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
-
-        .top-navbar {
-            background: linear-gradient(135deg, var(--admin-purple), var(--admin-dark));
-            color: white; height: 70px; display: flex; align-items: center; padding: 0 20px;
-            box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3); z-index: 1030;
-        }
-
+        .top-navbar { background: linear-gradient(135deg, var(--admin-purple), var(--admin-dark)); color: white; height: 70px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3); z-index: 1030; }
         .main-container { padding: 30px 20px; flex-grow: 1; }
-        
         .layout-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
         @media (max-width: 991px) { .layout-grid { grid-template-columns: 1fr; } }
-
         .action-panel { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
-        
         .nav-pills .nav-link { color: #64748b; font-weight: 600; border-radius: 12px; margin-bottom: 10px; transition: 0.2s; border: 1px solid transparent; }
         .nav-pills .nav-link.active { background-color: var(--admin-light); color: var(--admin-dark); border-color: var(--admin-purple); }
-        .nav-pills .nav-link:hover:not(.active) { background-color: #f1f5f9; }
-
         .form-control, .form-select { border-radius: 12px; padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: 600; }
-        .form-control:focus, .form-select:focus { border-color: var(--admin-purple); box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15); background-color: white; }
-
-        .btn-purple { background-color: var(--admin-purple); color: white; border-radius: 12px; padding: 12px 20px; transition: 0.2s; border: none; }
-        .btn-purple:hover { background-color: var(--admin-dark); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(217, 70, 239, 0.3); color: white; }
-
+        .btn-purple { background-color: var(--admin-purple); color: white; border-radius: 12px; padding: 12px 20px; transition: 0.2s; border: none; width: 100%; }
         .terminal-panel { background: var(--terminal-bg); border-radius: 20px; padding: 20px; height: calc(100vh - 150px); min-height: 500px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #333; position: sticky; top: 90px;}
         .terminal-body { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.95rem; color: var(--terminal-green); line-height: 1.6; padding-right: 10px;}
-        
         .log-info { color: #60a5fa; } .log-working { color: #facc15; } .log-success { color: #4ade80; } .log-error { color: #f87171; font-weight: bold; } 
-        
-        .preview-table-container { max-height: 350px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; display: none; margin-top: 15px;}
+        .preview-table-container { max-height: 350px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; display: none; }
         .preview-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .preview-table th { background-color: #f1f5f9; position: sticky; top: 0; padding: 10px; z-index: 1; border-bottom: 2px solid #dee2e6;}
-        .preview-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
+        .preview-table th { background-color: #f1f5f9; position: sticky; top: 0; padding: 10px; z-index: 1; }
     </style>
 </head>
 <body>
 
     <div class="top-navbar">
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="rounded-circle bg-white p-1 me-3" style="width: 45px; height: 45px;">
-        <div>
-            <h4 class="m-0 fw-bold font-prompt text-white">ระบบจัดการฐานข้อมูลนักเรียน สำหรับระบบ Buayai I care School</h4>
-            <div class="small text-white-50">โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</div>
-        </div>
-        <div class="ms-auto">
-            <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-house-door"></i> กลับหน้าหลัก</a>
-        </div>
+        <div><h4 class="m-0 fw-bold font-prompt text-white">ระบบจัดการฐานข้อมูลนักเรียนแบบศูนย์กลาง ของระบบ Buayai I Care School</h4></div>
+        <div class="ms-auto"><a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-house-door"></i> กลับหน้าหลัก</a></div>
     </div>
 
     <div class="container-fluid main-container">
-        
-        <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center mb-4">
-            <i class="bi bi-shield-lock-fill fs-3 me-3"></i>
-            <div>
-                <b class="font-prompt">ความปลอดภัยสูงสุด:</b> ฐานข้อมูลต้นทาง (ID: ...Uspto) จะได้รับการปกป้อง 
-                ระบบจะใช้คำสั่งเขียนทับเฉพาะจุดเพื่อป้องกันความเสียหาย และล็อคไม่ให้มีการลบข้อมูลต้นทางในโหมดเลื่อนชั้น 100%
-            </div>
-        </div>
-
         <div class="layout-grid">
             
             <div class="action-panel">
                 <div class="row">
                     <div class="col-md-4 border-end pe-3">
                         <ul class="nav nav-pills flex-column" role="tablist">
-                            <li class="nav-item"><button class="nav-link active w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-add"><i class="bi bi-person-plus-fill me-2"></i> 1. เพิ่มนักเรียนใหม่</button></li>
+                            <li class="nav-item"><button class="nav-link active w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-add"><i class="bi bi-person-plus-fill me-2"></i> 1. เพิ่มนักเรียน</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-remove"><i class="bi bi-person-dash-fill me-2"></i> 2. ย้ายออก / ลบ</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-edit"><i class="bi bi-pencil-square me-2"></i> 3. ปรับปรุงข้อมูลชื่อ</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-transfer"><i class="bi bi-arrow-left-right me-2"></i> 4. ย้ายห้องเรียน</button></li>
@@ -102,62 +62,62 @@
                             <div class="tab-pane fade show active" id="pane-add">
                                 <h5 class="fw-bold mb-3"><i class="bi bi-person-plus-fill text-success"></i> เพิ่มนักเรียนรายบุคคล</h5>
                                 <div class="row g-3">
-                                    <div class="col-md-6"><label class="small fw-bold">รหัสประจำตัว *</label><input type="text" id="add-id" class="form-control" placeholder="เช่น 33268"></div>
-                                    <div class="col-md-6"><label class="small fw-bold">ชื่อ-สกุล *</label><input type="text" id="add-name" class="form-control" placeholder="ด.ช.ใจดี เรียนเก่ง"></div>
+                                    <div class="col-md-6"><label class="small fw-bold">รหัสประจำตัว *</label><input type="text" id="add-id" class="form-control"></div>
+                                    <div class="col-md-6"><label class="small fw-bold">ชื่อ-สกุล *</label><input type="text" id="add-name" class="form-control"></div>
                                     <div class="col-md-6"><label class="small fw-bold">ห้อง *</label><select id="add-room" class="form-select"></select></div>
-                                    <div class="col-md-6"><label class="small fw-bold">เลขที่ *</label><input type="number" id="add-no" class="form-control" placeholder="รันเลขที่ให้อัตโนมัติ"></div>
-                                    <div class="col-12 mt-4"><button class="btn btn-purple w-100 py-3 fw-bold" onclick="executeAdd()">บันทึกข้อมูลและซิงค์</button></div>
+                                    <div class="col-md-6"><label class="small fw-bold">เลขที่ *</label><input type="number" id="add-no" class="form-control"></div>
+                                    <div class="col-12 mt-4"><button class="btn btn-purple py-3 fw-bold" onclick="executeAdd()">บันทึกข้อมูลและซิงค์</button></div>
                                 </div>
                             </div>
 
-                            <!-- 2. ย้ายออก / ลบ -->
+                            <!-- 2. ลบ -->
                             <div class="tab-pane fade" id="pane-remove">
-                                <h5 class="fw-bold mb-3 text-danger"><i class="bi bi-person-dash-fill"></i> ลบข้อมูลนักเรียน</h5>
+                                <h5 class="fw-bold mb-3 text-danger">ลบข้อมูลนักเรียน</h5>
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-5"><select id="rm-room-select" class="form-select" onchange="loadStudents('rm')"></select></div>
                                     <div class="col-md-7"><select id="rm-student-select" class="form-select" disabled onchange="selectStudent('rm')"><option value="">-- เลือกนักเรียน --</option></select></div>
                                 </div>
-                                <div id="rm-info" style="display: none;" class="alert alert-danger border-0 shadow-sm rounded-4">
+                                <div id="rm-info" style="display: none;" class="alert alert-danger">
                                     <div class="fw-bold fs-5" id="rm-display-name"></div>
                                     <input type="hidden" id="rm-id">
-                                    <p class="small mb-3 mt-1">รหัส: <span id="rm-display-id"></span> | ห้อง: <span id="rm-display-room"></span> | เลขที่: <span id="rm-display-no"></span></p>
-                                    <button class="btn btn-danger w-100 rounded-pill fw-bold" onclick="executeRemove()">ยืนยันการลบข้อมูล (เลขที่คนอื่นจะรันใหม่)</button>
+                                    <p class="small mb-3">รหัส: <span id="rm-display-id"></span> | ห้อง: <span id="rm-display-room"></span></p>
+                                    <button class="btn btn-danger w-100 rounded-pill" onclick="executeRemove()">ยืนยันการลบข้อมูล</button>
                                 </div>
                             </div>
 
-                            <!-- 3. ปรับปรุงข้อมูล -->
+                            <!-- 3. แก้ไขชื่อ -->
                             <div class="tab-pane fade" id="pane-edit">
-                                <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-pencil-square"></i> แก้ไขชื่อนักเรียน (ปลอดภัย 100%)</h5>
+                                <h5 class="fw-bold mb-3 text-warning">แก้ไขชื่อนักเรียน</h5>
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-5"><select id="ed-room-select" class="form-select" onchange="loadStudents('ed')"></select></div>
                                     <div class="col-md-7"><select id="ed-student-select" class="form-select" disabled onchange="selectStudent('ed')"><option value="">-- เลือกนักเรียน --</option></select></div>
                                 </div>
                                 <div id="ed-form" style="display: none;" class="p-3 bg-light rounded-4 border">
                                     <input type="hidden" id="ed-id">
-                                    <div class="mb-3"><label class="small fw-bold">ชื่อ-สกุล (แก้ไขได้ที่นี่)</label><input type="text" id="ed-name" class="form-control text-primary fw-bold"></div>
-                                    <button class="btn btn-warning w-100 rounded-pill fw-bold" onclick="executeEdit()">บันทึกการแก้ไขเฉพาะจุด</button>
+                                    <div class="mb-3"><label class="small fw-bold">ชื่อ-สกุล (แก้ไขได้)</label><input type="text" id="ed-name" class="form-control text-primary fw-bold"></div>
+                                    <button class="btn btn-warning w-100 rounded-pill fw-bold" onclick="executeEdit()">บันทึกแก้ไข</button>
                                 </div>
                             </div>
 
-                            <!-- 4. ย้ายห้องเรียน -->
+                            <!-- 4. ย้ายห้อง -->
                             <div class="tab-pane fade" id="pane-transfer">
-                                <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-arrow-left-right"></i> ย้ายห้องเรียน / เปลี่ยนเลขที่</h5>
+                                <h5 class="fw-bold mb-3 text-primary">ย้ายห้องเรียน / เปลี่ยนเลขที่</h5>
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-5"><select id="tr-room-select" class="form-select" onchange="loadStudents('tr')"></select></div>
                                     <div class="col-md-7"><select id="tr-student-select" class="form-select" disabled onchange="selectStudent('tr')"><option value="">-- เลือกนักเรียน --</option></select></div>
                                 </div>
                                 <div id="tr-form" style="display: none;" class="p-3 bg-light rounded-4 border">
                                     <input type="hidden" id="tr-id">
-                                    <p class="fw-bold text-dark mb-3"><i class="bi bi-person"></i> นักเรียน: <span id="tr-display-name" class="text-primary"></span></p>
+                                    <p class="fw-bold text-dark mb-3">นักเรียน: <span id="tr-display-name" class="text-primary"></span></p>
                                     <div class="row g-2">
                                         <div class="col-6"><label class="small fw-bold">ห้องใหม่</label><select id="tr-new-room" class="form-select"></select></div>
-                                        <div class="col-6"><label class="small fw-bold">เลขที่ใหม่</label><input type="number" id="tr-new-no" class="form-control" placeholder="ระบุเลขที่"></div>
+                                        <div class="col-6"><label class="small fw-bold">เลขที่ใหม่</label><input type="number" id="tr-new-no" class="form-control"></div>
                                     </div>
-                                    <button class="btn btn-primary w-100 rounded-pill fw-bold mt-4" onclick="executeTransfer()">ยืนยันการย้าย (ข้อมูลจะซิงค์ 2 ห้อง)</button>
+                                    <button class="btn btn-primary w-100 rounded-pill fw-bold mt-4" onclick="executeTransfer()">ยืนยันการย้าย</button>
                                 </div>
                             </div>
 
-                            <!-- 5. เลื่อนชั้นปี -->
+                            <!-- 5. Bulk Sync -->
                             <div class="tab-pane fade" id="pane-bulksync">
                                 <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-cloud-sync-fill"></i> ระบบเลื่อนชั้นปีแบบกลุ่ม (Bulk Sync)</h5>
                                 <div class="alert alert-warning border-0 small mb-4">
@@ -176,9 +136,9 @@
                                 </div>
                             </div>
 
-                            <!-- 6. นำเข้า Excel -->
+                            <!-- 6. Excel Import -->
                             <div class="tab-pane fade" id="pane-import">
-                                <h5 class="fw-bold mb-3 text-success"><i class="bi bi-file-earmark-excel-fill"></i> นำเข้านักเรียนใหม่ ม.1 / ม.4 (Excel)</h5>
+                                <h5 class="fw-bold mb-3 text-success">นำเข้านักเรียนใหม่ ม.1 / ม.4 (Excel)</h5>
                                 <div class="alert alert-info border-0 small mb-4 shadow-sm">
                                     <i class="bi bi-magic"></i> <b>ระบบสแกนอัจฉริยะ:</b> คุณครูสามารถใช้ไฟล์ Excel ที่มีครบทุกห้อง (4/1-4/12) อัปโหลดไฟล์เดียวได้เลย ระบบจะสแกนหาเลขห้องและชื่อนักเรียนเพื่อแยกเก็บให้เองอัตโนมัติ
                                 </div>
@@ -202,17 +162,30 @@
                 </div>
             </div>
 
+            <!-- Terminal -->
             <div class="terminal-panel">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <span style="background: #ef4444;"></span>
+                        <span style="background: #f59e0b;"></span>
+                        <span style="background: #10b981;"></span>
+                    </div>
+                    <div class="text-white-50 small font-prompt">System Progress Console</div>
+                </div>
                 <div class="terminal-body" id="console-output">
                     <div class="log-info">> Buayai Master Student DB System Ready.</div>
+                    <div class="log-info">> รอรับคำสั่งดำเนินการ...</div>
                 </div>
             </div>
 
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 📌 [สำคัญ] ใส่ลิงก์ Web App API ของ Google Script (Backend) ลงที่นี่!
+        // ====================================================
+        // ⚠️ ใส่ URL Web App API ที่ Deploy แล้ว (backend_admin_students.gs) ตรงนี้ ⚠️
+        // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbxFsQ6iB_NzMINYlxVEl2cf5CGfS9tWOCRo0vJ_b0Wl3_PKiElZP9jTSl6pJ-peCiiiKQ/exec"; 
 
         let studentLookup = {}; 
@@ -224,11 +197,9 @@
                 let max = (m === 4) ? 12 : 10;
                 for (let r = 1; r <= max; r++) options += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
             }
-            document.getElementById('add-room').innerHTML = options;
-            document.getElementById('rm-room-select').innerHTML = options;
-            document.getElementById('ed-room-select').innerHTML = options;
-            document.getElementById('tr-room-select').innerHTML = options;
-            document.getElementById('tr-new-room').innerHTML = options;
+            ['add-room', 'rm-room-select', 'ed-room-select', 'tr-room-select', 'tr-new-room'].forEach(id => {
+                document.getElementById(id).innerHTML = options;
+            });
         });
 
         function log(msg, type = "info") {
@@ -244,10 +215,9 @@
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 return await response.json();
-            } catch (e) { return { success: false, error: "Network Error: โปรดตรวจสอบสัญญาณอินเทอร์เน็ต" }; }
+            } catch (e) { return { success: false, error: "Network Error" }; }
         }
 
-        // --- ระบบโหลดรายชื่อลง Dropdown ---
         async function loadStudents(prefix) {
             const room = document.getElementById(`${prefix}-room-select`).value;
             const sel = document.getElementById(`${prefix}-student-select`);
@@ -258,7 +228,7 @@
             if(res.success) {
                 studentLookup[prefix] = res.data;
                 let html = '<option value="">-- เลือกนักเรียน --</option>';
-                res.data.forEach(s => html += `<option value="${s.id}">เลขที่ ${s.no} - ${s.name} (${s.id})</option>`);
+                res.data.forEach(s => html += `<option value="${s.id}">${s.name} (${s.id})</option>`);
                 sel.innerHTML = html; sel.disabled = false;
                 log(`> โหลดสำเร็จ พบนักเรียน ${res.data.length} คน`, 'success');
             } else { log(`> [ERROR] ${res.error}`, 'error'); }
@@ -273,7 +243,6 @@
                 document.getElementById('rm-display-name').innerText = std.name;
                 document.getElementById('rm-display-id').innerText = std.id;
                 document.getElementById('rm-display-room').innerText = std.room;
-                document.getElementById('rm-display-no').innerText = std.no;
                 document.getElementById('rm-info').style.display = 'block';
             } else if (prefix === 'ed') {
                 document.getElementById('ed-name').value = std.name;
@@ -284,64 +253,70 @@
             }
         }
 
-        // --- CRUD Actions ---
         async function executeAdd() {
             const id = document.getElementById('add-id').value.trim();
             const name = document.getElementById('add-name').value.trim();
             const room = document.getElementById('add-room').value;
             const no = document.getElementById('add-no').value;
-            if(!id || !name || !room) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-
-            log(`> เริ่มบันทึกนักเรียนใหม่: ${name}`, 'working');
+            if(!id || !name || !room) return alert("ข้อมูลไม่ครบ");
+            log(`> กำลังบันทึกนักเรียน: ${name}`, 'working');
             const res = await callAPI({ action: 'add_central', id, name, room, no });
             if(res.success) {
-                log(`> [SUCCESS] บันทึกส่วนกลางสำเร็จ`, 'success');
+                log(`> ส่วนกลางบันทึกแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: room.split('/')[0] });
-                log(`> [SYNC] ซิงค์ไฟล์โฮมรูม ม.${room.split('/')[0]} เรียบร้อย`, 'success');
-                Swal.fire('สำเร็จ', 'เพิ่มนักเรียนและรันเลขที่เรียบร้อยแล้ว', 'success');
-            } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
+                log(`> ซิงค์สำเร็จ!`, 'success');
+                Swal.fire('สำเร็จ', 'เพิ่มข้อมูลและซิงค์เรียบร้อย', 'success');
+            } else { log(`> [ERROR] ${res.error}`, 'error'); }
         }
 
         async function executeRemove() {
             const id = document.getElementById('rm-id').value;
+            log(`> กำลังลบรหัส: ${id}`, 'working');
             const res = await callAPI({ action: 'remove_central', id });
             if(res.success) {
+                log(`> ส่วนกลางลบแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
-                log(`> [DONE] ลบและรันเลขที่ใหม่สำเร็จ`, 'success');
-                Swal.fire('สำเร็จ', 'ลบข้อมูลเรียบร้อย', 'success');
+                log(`> ซิงค์สำเร็จ!`, 'success');
+                Swal.fire('สำเร็จ', 'ลบข้อมูลและซิงค์แล้ว', 'success');
                 loadStudents('rm');
-            }
+            } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
         async function executeEdit() {
             const id = document.getElementById('ed-id').value;
             const name = document.getElementById('ed-name').value.trim();
+            log(`> กำลังแก้ชื่อเป็น: ${name}`, 'working');
             const res = await callAPI({ action: 'edit_central', id, name });
             if(res.success) {
+                log(`> ส่วนกลางแก้ไขแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
-                log(`> [DONE] อัปเดตชื่อเฉพาะจุดสำเร็จ (Atomic Update)`, 'success');
-                Swal.fire('สำเร็จ', 'ปรับปรุงชื่อเรียบร้อยแล้ว', 'success');
+                log(`> ซิงค์สำเร็จ!`, 'success');
+                Swal.fire('สำเร็จ', 'แก้ไขชื่อและซิงค์แล้ว', 'success');
                 loadStudents('ed');
-            }
+            } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
         async function executeTransfer() {
             const id = document.getElementById('tr-id').value;
             const newRoom = document.getElementById('tr-new-room').value;
             const newNo = document.getElementById('tr-new-no').value;
+            log(`> กำลังย้ายไปห้อง: ${newRoom}`, 'working');
             const res = await callAPI({ action: 'transfer_central', id, newRoom, newNo });
             if(res.success) {
+                log(`> กำลังซิงค์ข้อมูลห้องเดิม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.oldLevel });
-                if(res.oldLevel !== res.newLevel) await callAPI({ action: 'sync_homeroom', level: res.newLevel });
-                log(`> [DONE] ย้ายห้องสำเร็จ (ซิงค์ 2 ฝั่งเรียบร้อย)`, 'success');
-                Swal.fire('สำเร็จ', 'ย้ายห้องนักเรียนเรียบร้อยแล้ว', 'success');
+                if(res.oldLevel !== res.newLevel) {
+                    log(`> กำลังซิงค์ข้อมูลห้องใหม่...`, 'working');
+                    await callAPI({ action: 'sync_homeroom', level: res.newLevel });
+                }
+                log(`> ซิงค์เสร็จสิ้น!`, 'success');
+                Swal.fire('สำเร็จ', 'ย้ายห้องและซิงค์ข้อมูลเรียบร้อย', 'success');
                 loadStudents('tr');
-            }
+            } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
-        // --- Bulk Sync (เมนู 5) ---
         function resetBulkUI() {
-            const level = document.getElementById('bulk-level').value;
+            let level = document.getElementById('bulk-level').value;
             document.getElementById('btn-bulk-step1').disabled = !level;
             document.getElementById('btn-bulk-step2').disabled = true;
             document.getElementById('ui-bulk-step2').style.opacity = '0.5';
@@ -349,89 +324,140 @@
 
         async function executeBulkStep1() {
             const level = document.getElementById('bulk-level').value;
-            const res = await callAPI({ action: 'bulk_step1_clear', level });
+            if(!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
+
+            const confirm = await Swal.fire({
+                title: `ยืนยันล้างข้อมูลปลายทาง ม.${level}?`,
+                html: `<span class="text-danger fw-bold">ข้อมูลในทุกชีตของไฟล์ ม.${level} จะถูกลบแถวทิ้งทั้งหมด!</span><br>ระบบจะเหลือไว้เพียงบรรทัดหัวข้อเท่านั้น (ยกเว้นชีต user, teacher)<br><br><span class="badge bg-success w-100 p-2 fs-6"><i class="bi bi-shield-check"></i> ข้อมูลในชีตส่วนกลางจะปลอดภัย 100%</span>`,
+                icon: 'warning', showCancelButton: true, confirmButtonText: 'ยืนยันล้างข้อมูลปลายทาง', confirmButtonColor: '#ef4444'
+            });
+
+            if(!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-bulk-step1');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังลบแถว...';
+            btn.disabled = true;
+
+            log(`> [BULK SYNC] เริ่มกระบวนการ ขั้นที่ 1: ลบแถวข้อมูลปลายทาง ม.${level}`, 'info');
+
+            const res = await callAPI({ action: 'bulk_step1_clear', level: level });
+            
             if(res.success) {
-                log(`> [BULK] ล้างกระดานปลายทาง ม.${level} สำเร็จ (ยกเว้นรหัสครู)`, 'success');
+                log(`> [SUCCESS] ${res.message}`, 'success');
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ล้างเสร็จแล้ว';
+                btn.classList.replace('btn-outline-danger', 'btn-success');
+                
                 document.getElementById('btn-bulk-step2').disabled = false;
                 document.getElementById('ui-bulk-step2').style.opacity = '1';
-                Swal.fire('ขั้นที่ 1 สำเร็จ', 'ล้างข้อมูลปลายทางเรียบร้อย เริ่มขั้นที่ 2 ได้เลย', 'success');
+                Swal.fire('ขั้นที่ 1 สำเร็จ', `ลบแถวข้อมูลชีตนักเรียนปลายทาง ม.${level} เรียบร้อยแล้ว เชิญกดทำขั้นที่ 2 ต่อได้เลยครับ`, 'success');
+            } else {
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                btn.innerHTML = '<i class="bi bi-eraser-fill"></i> เริ่มขั้นที่ 1';
+                btn.disabled = false;
             }
         }
 
         async function executeBulkStep2() {
             const level = document.getElementById('bulk-level').value;
-            log(`> [BULK] กำลังส่งรายชื่อและสร้างบัญชี ม.${level}...`, 'working');
-            const res = await callAPI({ action: 'bulk_step2_transfer', level });
+            if(!level) return;
+
+            const btn = document.getElementById('btn-bulk-step2');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังโอนย้าย...';
+            btn.disabled = true;
+
+            log(`> [BULK SYNC] เริ่มกระบวนการ ขั้นที่ 2: โอนย้ายข้อมูล 5 คอลัมน์ และสร้างบัญชีผู้ใช้ ม.${level}`, 'info');
+
+            const res = await callAPI({ action: 'bulk_step2_transfer', level: level });
+            
             if(res.success) {
-                log(`> [BULK] โอนข้อมูลและสร้างบัญชีรหัสผ่านนักเรียนสำเร็จ! 🎉`, 'success');
-                Swal.fire('เสร็จสมบูรณ์', 'ระบบย้ายข้อมูลและสร้างบัญชีนักเรียนใหม่เรียบร้อยแล้ว', 'success');
+                log(`> [SUCCESS] ${res.message}`, 'success');
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ย้ายข้อมูลเสร็จสมบูรณ์';
+                btn.classList.replace('btn-outline-success', 'btn-success');
+                
+                log(`> [DONE] กระบวนการเลื่อนชั้น ม.${level} เสร็จสมบูรณ์ 100%! 🎉`, 'info');
+                Swal.fire('เสร็จสมบูรณ์', `โอนย้ายรายชื่อและสร้างบัญชีเข้าระบบให้นักเรียน ม.${level} เรียบร้อยแล้ว!`, 'success');
+            } else {
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> เริ่มขั้นที่ 2';
+                btn.disabled = false;
             }
         }
 
-        // --- Excel Import (เมนู 6) ---
         function handleExcelUpload(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            log(`> กำลังวิเคราะห์ไฟล์: ${file.name}...`, 'working');
-
+            const file = e.target.files[0]; if(!file) return;
+            log(`> วิเคราะห์ไฟล์ Excel...`, 'working');
             const reader = new FileReader();
             reader.onload = function(event) {
                 try {
                     const data = new Uint8Array(event.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-
-                    pendingImportData = [];
-                    let previewHtml = '';
-                    let currentRoom = "";
-                    let isReadingStudents = false;
-
-                    for (let i = 0; i < rows.length; i++) {
-                        let row = rows[i];
+                    pendingImportData = []; let html = ''; let currentRoom = ""; let isReading = false;
+                    for (let row of rows) {
                         let rowStr = row.join(' ').trim();
                         let roomMatch = rowStr.match(/(\d+\/\d+)/);
-                        if (roomMatch) { currentRoom = roomMatch[1]; isReadingStudents = false; log(`> พบหัวตารางกลุ่มห้อง: ม.${currentRoom}`, 'info'); }
-                        if (rowStr.includes('เลขประจำตัว')) { isReadingStudents = true; continue; }
-
-                        if (isReadingStudents && currentRoom) {
+                        if (roomMatch) { currentRoom = roomMatch[1]; isReading = false; log(`> พบกลุ่มห้อง: ม.${currentRoom}`, 'info'); }
+                        if (rowStr.includes('เลขประจำตัว')) { isReading = true; continue; }
+                        if (isReading && currentRoom) {
                             let id = row[1] ? row[1].toString().trim() : "";
-                            if (!id || isNaN(parseInt(id))) { if (id !== "") isReadingStudents = false; continue; }
+                            if (!id || isNaN(parseInt(id))) { if (id !== "") isReading = false; continue; }
                             let no = row[0] || "-";
                             let name = `${row[2] || ""}${row[3] || ""} ${row[4] || ""}`.trim();
                             pendingImportData.push({ no, id, name, room: currentRoom });
-                            previewHtml += `<tr><td class="text-center">${no}</td><td class="fw-bold text-success">${id}</td><td>${name}</td><td class="text-primary fw-bold">ม.${currentRoom}</td></tr>`;
+                            html += `<tr><td>${no}</td><td class="fw-bold text-success">${id}</td><td>${name}</td><td class="text-primary fw-bold">ม.${currentRoom}</td></tr>`;
                         }
                     }
-
                     if (pendingImportData.length > 0) {
-                        document.getElementById('import-preview-body').innerHTML = previewHtml;
+                        document.getElementById('import-preview-body').innerHTML = html;
                         document.getElementById('import-preview-container').style.display = 'block';
                         document.getElementById('import-count-display').classList.remove('d-none');
                         document.getElementById('import-count').innerText = pendingImportData.length;
                         document.getElementById('btn-submit-import').disabled = false;
-                        log(`> สแกนเสร็จสิ้น! พบรายชื่อนักเรียนรวม ${pendingImportData.length} คน จากกลุ่มห้องที่ตรวจพบ`, 'success');
-                    } else { alert("ไม่พบข้อมูลนักเรียนที่ถูกต้อง"); }
+                        log(`> พบรายชื่อทั้งหมด ${pendingImportData.length} คน`, 'success');
+                    }
                 } catch (err) { log(`> [ERROR] ${err.message}`, 'error'); }
             };
             reader.readAsArrayBuffer(file);
         }
 
         async function confirmImportExcel() {
-            const confirm = await Swal.fire({ title: 'ยืนยันนำเข้าข้อมูล?', text: `ระบบจะนำรายชื่อ ${pendingImportData.length} คน ไปบันทึกลงฐานข้อมูลส่วนกลางตามห้องที่ตรวจพบ`, icon: 'question', showCancelButton: true });
+            const confirm = await Swal.fire({ title: 'ยืนยันการนำเข้า?', text: `ระบบจะนำรายชื่อทั้ง ${pendingImportData.length} คน ไปบันทึกแยกตามห้องที่ตรวจพบลงในชีตส่วนกลาง`, icon: 'question', showCancelButton: true, confirmButtonText: 'เริ่มนำเข้า' });
             if (!confirm.isConfirmed) return;
 
             const btn = document.getElementById('btn-submit-import');
-            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังนำเข้า...';
-            log(`> กำลังส่งข้อมูลก้อนใหญ่เข้าสู่ฐานข้อมูลส่วนกลาง...`, 'working');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังประมวลผล...';
 
-            const res = await callAPI({ action: 'bulk_import_new_students', students: pendingImportData });
-            if(res.success) {
-                log(`> [DONE] ${res.message}`, 'success');
-                Swal.fire('นำเข้าสำเร็จ!', res.message, 'success');
-                document.getElementById('excel-file').value = "";
-                document.getElementById('import-preview-container').style.display = 'none';
-                btn.disabled = false; btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> บันทึกเข้าฐานข้อมูลส่วนกลาง';
-            } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
+            log(`> [IMPORT] กำลังส่งข้อมูลเข้าฐานข้อมูลส่วนกลาง...`, 'working');
+            try {
+                const res = await callAPI({ action: 'bulk_import_new_students', students: pendingImportData });
+                
+                if (res.success) {
+                    log(`> [DONE] ${res.message}`, 'success');
+                    
+                    let affectedLevels = new Set(pendingImportData.map(s => s.room.split('/')[0]));
+                    for (let lvl of affectedLevels) {
+                        log(`> กำลัง Sync ข้อมูลอัตโนมัติ ไปยังฐานข้อมูลโฮมรูม ม.${lvl}...`, 'working');
+                        await callAPI({ action: 'sync_homeroom', level: lvl });
+                        log(`> [SYNC] อัปเดตฐานข้อมูล ม.${lvl} สำเร็จ`, 'success');
+                    }
+
+                    Swal.fire('นำเข้าสำเร็จ!', 'บันทึกและซิงค์ข้อมูลไปยังห้องปลายทางเรียบร้อยแล้ว', 'success');
+                    document.getElementById('excel-file').value = "";
+                    document.getElementById('import-preview-container').style.display = 'none';
+                    document.getElementById('import-count-display').classList.add('d-none');
+                    pendingImportData = [];
+                } else { 
+                    throw new Error(res.error); 
+                }
+            } catch (e) { 
+                Swal.fire('ผิดพลาด', e.message, 'error'); 
+                log(`> [ERROR] ${e.message}`, 'error'); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> บันทึกเข้าฐานข้อมูลส่วนกลาง'; 
+            }
         }
     </script>
 </body>
