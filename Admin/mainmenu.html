@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการฐานข้อมูลนักเรียน (ส่วนกลาง) สำหรับผู้ดูแลระบบ - Buayai I-Care School</title>
+    <title>ระบบจัดการฐานข้อมูลนักเรียน (ส่วนกลาง) - Buayai I-Care School</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
@@ -57,6 +59,12 @@
         
         .student-info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .arch-info { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; }
+        
+        /* สไตล์ตาราง Preview */
+        .preview-table-container { max-height: 350px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; display: none; }
+        .preview-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .preview-table th { background-color: #f1f5f9; position: sticky; top: 0; padding: 10px; border-bottom: 2px solid #cbd5e1; z-index: 1; }
+        .preview-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -64,8 +72,8 @@
     <div class="top-navbar">
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="rounded-circle bg-white p-1 me-3" style="width: 45px; height: 45px;">
         <div>
-            <h4 class="m-0 fw-bold font-prompt text-white">ระบบจัดการฐานข้อมูลนักเรียน (ศูนย์กลาง) สำหรับผู้ดูแลระบบ Buayai I care school</h4>
-            <div class="small text-white-50">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</div>
+            <h4 class="m-0 fw-bold font-prompt text-white">ระบบจัดการฐานข้อมูลนักเรียน (ศูนย์กลาง)</h4>
+            <div class="small text-white-50">Master Database Synchronization System</div>
         </div>
         <div class="ms-auto">
             <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-box-arrow-left"></i> กลับหน้าหลัก</a>
@@ -75,12 +83,11 @@
     <div class="container-fluid main-container">
         
         <div class="arch-info shadow-sm text-dark">
-            <i class="bi bi-info-circle-fill text-warning me-2"></i> <b>สถาปัตยกรรมระบบ:</b> หน้านี้คือศูนย์ควบคุมข้อมูลนักเรียน (Master Node) ทุกการ <b>เพิ่ม/ลบ/ย้าย/แก้ไข</b> จะอัปเดตลงฐานข้อมูลกลางและจัดเรียงเลขที่ให้อัตโนมัติ จากนั้นระบบจะสั่ง <b>Sync ข้อมูลไปยังฐานข้อมูลโฮมรูมปลายทาง (M.1 - M.6)</b> เพื่อให้ข้อมูลทั้งโรงเรียนตรงกัน 100% เสมอ
+            <i class="bi bi-info-circle-fill text-warning me-2"></i> <b>สถาปัตยกรรมระบบ:</b> หน้านี้คือศูนย์ควบคุมข้อมูลนักเรียน (Master Node) ทุกการ <b>เพิ่ม/ลบ/ย้าย/แก้ไข/นำเข้า</b> จะอัปเดตลงฐานข้อมูลกลางและจัดเรียงเลขที่ให้อัตโนมัติ จากนั้นระบบจะสั่ง <b>Sync ข้อมูลไปยังฐานข้อมูลโฮมรูมปลายทาง</b> เพื่อให้ข้อมูลทั้งโรงเรียนตรงกัน 100%
         </div>
 
         <div class="layout-grid">
             
-            <!-- 🌟 Left Panel: Forms -->
             <div class="action-panel">
                 <div class="row">
                     <div class="col-md-3 border-end pe-3">
@@ -100,15 +107,17 @@
                             <li class="nav-item mt-3 border-top pt-3" role="presentation">
                                 <button class="nav-link w-100 text-start text-primary" data-bs-toggle="pill" data-bs-target="#pane-bulksync" type="button"><i class="bi bi-cloud-sync-fill me-2"></i> 5. เลื่อนชั้น/ซิงค์ข้อมูล</button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link w-100 text-start text-success" data-bs-toggle="pill" data-bs-target="#pane-import" type="button"><i class="bi bi-file-earmark-excel-fill me-2"></i> 6. นำเข้านักเรียน (Excel)</button>
+                            </li>
                         </ul>
                     </div>
                     
                     <div class="col-md-9 ps-4">
                         <div class="tab-content">
                             
-                            <!-- 1. เพิ่มนักเรียน -->
                             <div class="tab-pane fade show active" id="pane-add">
-                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-plus-fill text-success"></i> เพิ่มนักเรียนใหม่เข้าสู่ระบบ</h5>
+                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-plus-fill text-success"></i> เพิ่มนักเรียนใหม่เข้าสู่ระบบ (ทีละคน)</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="small text-muted fw-bold mb-1">รหัสประจำตัว <span class="text-danger">*</span></label>
@@ -140,7 +149,6 @@
                                 </div>
                             </div>
 
-                            <!-- 2. ย้ายออก / ลบ -->
                             <div class="tab-pane fade" id="pane-remove">
                                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-dash-fill text-danger"></i> นำนักเรียนออกจากระบบ</h5>
                                 
@@ -167,7 +175,6 @@
                                 </div>
                             </div>
 
-                            <!-- 3. ปรับปรุงข้อมูล -->
                             <div class="tab-pane fade" id="pane-edit">
                                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-pencil-square text-warning"></i> ปรับปรุงข้อมูลส่วนตัว (แก้ชื่อผิด)</h5>
                                 
@@ -206,7 +213,6 @@
                                 </div>
                             </div>
 
-                            <!-- 4. ย้ายห้องเรียน -->
                             <div class="tab-pane fade" id="pane-transfer">
                                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-arrow-left-right text-info"></i> ย้ายห้องเรียน</h5>
                                 
@@ -246,7 +252,6 @@
                                 </div>
                             </div>
 
-                            <!-- 5. ซิงค์ข้อมูลระดับชั้น (Bulk Sync) เลื่อนชั้นปี -->
                             <div class="tab-pane fade" id="pane-bulksync">
                                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-cloud-sync-fill text-primary"></i> 5. เลื่อนชั้นปี / ซิงค์ข้อมูลระดับชั้น (Bulk Sync)</h5>
                                 
@@ -254,7 +259,6 @@
                                     <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> <b>คำแนะนำ:</b> ให้จัดการแก้ไขฐานข้อมูลนักเรียนส่วนกลาง (ย้ายระดับชั้น) ให้เสร็จสิ้นก่อน จากนั้นจึงมาเลือกระดับชั้นเพื่อทำการโอนข้อมูลทีละขั้นตอน
                                 </div>
 
-                                <!-- 🌟 เพิ่มข้อความรับประกันความปลอดภัยของชีตต้นทาง -->
                                 <div class="alert alert-success border-success small text-dark shadow-sm">
                                     <i class="bi bi-shield-lock-fill text-success me-1"></i> <b>ระบบป้องกันความปลอดภัยระดับสูงสุด:</b> ระบบจะ <u>ไม่มีการลบข้อมูลใดๆ ในฐานข้อมูลต้นทาง (ส่วนกลาง) อย่างเด็ดขาด</u> ทำงานเฉพาะการคัดลอกข้อมูลไปยังไฟล์ปลายทางเท่านั้น
                                 </div>
@@ -277,7 +281,6 @@
                                 <div class="student-info-card bg-white border border-2 border-primary">
                                     <h6 class="fw-bold text-primary mb-3">กระบวนการทำงาน (ทำทีละขั้นตอน)</h6>
                                     
-                                    <!-- Step 1: ล้างข้อมูล -->
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div>
                                             <b class="text-dark">ขั้นที่ 1: ล้างข้อมูลห้องปลายทาง</b><br>
@@ -286,7 +289,6 @@
                                         <button class="btn btn-outline-danger rounded-pill px-4 fw-bold" id="btn-bulk-step1" onclick="executeBulkStep1()"><i class="bi bi-eraser-fill"></i> เริ่มขั้นที่ 1</button>
                                     </div>
 
-                                    <!-- Step 2: ย้ายข้อมูล -->
                                     <div class="d-flex justify-content-between align-items-center border-top pt-3" id="ui-bulk-step2" style="opacity: 0.5;">
                                         <div>
                                             <b class="text-dark">ขั้นที่ 2: ย้ายข้อมูลจากส่วนกลางและสร้างรหัสผู้ใช้</b><br>
@@ -297,12 +299,46 @@
                                 </div>
                             </div>
 
+                            <div class="tab-pane fade" id="pane-import">
+                                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-file-earmark-excel-fill text-success"></i> 6. นำเข้านักเรียนใหม่จาก Excel สู่ชีตส่วนกลาง</h5>
+                                
+                                <div class="alert alert-info border-info small text-dark shadow-sm">
+                                    <i class="bi bi-info-circle-fill text-primary"></i> <b>การทำงาน:</b> ระบบจะดึงเฉพาะข้อมูล <u>เลขที่, รหัส, ชื่อ-สกุล</u> จากไฟล์ Excel ไปต่อท้ายในฐานข้อมูลส่วนกลาง และจะ <b>ข้ามรหัสประจำตัวที่ซ้ำกันอัตโนมัติ</b> เพื่อป้องกันข้อมูลเก่าเสียหาย
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="small text-muted fw-bold mb-1">1. ยืนยันห้องเรียนเป้าหมาย <span class="text-danger">*</span></label>
+                                        <select id="import-room" class="form-select border-success text-success fw-bold"></select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small text-muted fw-bold mb-1">2. อัปโหลดไฟล์ Excel (.xlsx, .xls) <span class="text-danger">*</span></label>
+                                        <input type="file" id="excel-file" class="form-control border-success" accept=".xlsx, .xls" onchange="handleExcelUpload(event)">
+                                    </div>
+                                </div>
+
+                                <div class="preview-table-container" id="import-preview-container">
+                                    <table class="preview-table">
+                                        <thead>
+                                            <tr><th width="15%">เลขที่</th><th width="20%">รหัสประจำตัว</th><th width="45%">ชื่อ-สกุล</th><th width="20%">ห้อง</th></tr>
+                                        </thead>
+                                        <tbody id="import-preview-body">
+                                            <tr><td colspan="4" class="text-center text-muted py-4">อัปโหลดไฟล์เพื่อดูตัวอย่างข้อมูล</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-end mt-2 small text-muted d-none" id="import-count-display">พบข้อมูลทั้งหมด <b class="text-success" id="import-count">0</b> คน</div>
+
+                                <button class="btn btn-success w-100 py-3 fw-bold rounded-pill shadow-sm mt-4" id="btn-submit-import" disabled onclick="confirmImportExcel()">
+                                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> ยืนยันการนำเข้าสู่ฐานข้อมูลส่วนกลาง
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 🌟 Right Panel: Live Terminal -->
             <div class="terminal-panel">
                 <div class="terminal-header">
                     <div class="terminal-dots">
@@ -330,6 +366,7 @@
 
         const adminUser = "Admin(ส่วนกลาง)";
         let loadedStudentsData = {}; 
+        let pendingImportData = []; // เก็บตัวแปรข้อมูล Excel ที่รอส่งเข้าส่วนกลาง
 
         window.addEventListener('DOMContentLoaded', () => {
             let optionsHtml = '<option value="">-- เลือกห้อง --</option>';
@@ -342,6 +379,7 @@
             document.getElementById('ed-room-select').innerHTML = optionsHtml;
             document.getElementById('tr-room-select').innerHTML = optionsHtml;
             document.getElementById('tr-new-room').innerHTML = optionsHtml;
+            document.getElementById('import-room').innerHTML = optionsHtml; // 🌟 สำหรับหน้า Import
         });
 
         function logToConsole(msg, type = "info") {
@@ -368,7 +406,150 @@
         }
 
         // ==========================================
-        // ระบบค้นหาอัตโนมัติ 
+        // 🌟 6. ระบบนำเข้า Excel อัจฉริยะ (Client-side)
+        // ==========================================
+        function handleExcelUpload(e) {
+            const room = document.getElementById('import-room').value;
+            if(!room) {
+                alert("กรุณายืนยันห้องเรียนเป้าหมายก่อนทำการเลือกไฟล์ครับ");
+                document.getElementById('excel-file').value = ""; // รีเซ็ตไฟล์
+                return;
+            }
+
+            const file = e.target.files[0];
+            if(!file) return;
+
+            logToConsole(`> กำลังอ่านไฟล์ Excel...`, 'working');
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // แปลง Sheet เป็น Array สองมิติ (อ่านทุกแถว)
+                    const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+
+                    // 1. ค้นหาบรรทัดที่เป็นหัวตาราง (หาคำว่า "เลขประจำตัว")
+                    let headerRowIndex = -1;
+                    for (let i = 0; i < rows.length; i++) {
+                        let rowStr = rows[i].join('').replace(/\s+/g, ''); // รวบคำติดกันเพื่อเช็ค
+                        if (rowStr.includes('เลขประจำตัว')) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (headerRowIndex === -1) {
+                        logToConsole(`> [ERROR] ไม่พบคอลัมน์ "เลขประจำตัว" ในไฟล์`, 'error');
+                        return alert("รูปแบบไฟล์ไม่ถูกต้อง: ไม่พบแถวหัวตารางที่มีคำว่า 'เลขประจำตัว'");
+                    }
+
+                    pendingImportData = [];
+                    let previewHtml = '';
+
+                    // 2. ดึงข้อมูลตั้งแต่บรรทัดล่างหัวตารางลงมา
+                    for (let i = headerRowIndex + 1; i < rows.length; i++) {
+                        let row = rows[i];
+                        
+                        // แกะข้อมูลตามโครงสร้างภาพ: 0=เลขที่, 1=รหัส, 2=คำนำหน้า, 3=ชื่อ, 4=สกุล
+                        let no = row[0].toString().trim();
+                        let id = row[1].toString().trim();
+                        let title = row[2] ? row[2].toString().trim() : "";
+                        let fname = row[3] ? row[3].toString().trim() : "";
+                        let lname = row[4] ? row[4].toString().trim() : "";
+
+                        // ถ้าไม่มีรหัส หรือรหัสไม่ใช่ตัวเลข ให้หยุดดึง (อาจจะเป็นแถวสรุปยอดด้านล่าง)
+                        if (!id || isNaN(parseInt(id))) continue;
+
+                        // รวมชื่อ-สกุล
+                        let fullName = `${title}${fname} ${lname}`.trim();
+                        if(fullName === "") fullName = "ไม่ระบุชื่อ";
+
+                        pendingImportData.push({
+                            no: no,
+                            id: id,
+                            name: fullName
+                        });
+
+                        previewHtml += `<tr><td class="text-center">${no}</td><td class="fw-bold text-success">${id}</td><td>${fullName}</td><td>ม.${room}</td></tr>`;
+                    }
+
+                    // 3. วาดผลลัพธ์ลงตาราง
+                    if (pendingImportData.length > 0) {
+                        document.getElementById('import-preview-body').innerHTML = previewHtml;
+                        document.getElementById('import-preview-container').style.display = 'block';
+                        document.getElementById('import-count-display').classList.remove('d-none');
+                        document.getElementById('import-count').innerText = pendingImportData.length;
+                        document.getElementById('btn-submit-import').disabled = false;
+                        
+                        logToConsole(`> อ่านข้อมูลสำเร็จ พบนักเรียน ${pendingImportData.length} คน`, 'success');
+                    } else {
+                        document.getElementById('import-preview-body').innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">ไม่พบข้อมูลรายชื่อที่ถูกต้องใต้หัวตาราง</td></tr>`;
+                        document.getElementById('btn-submit-import').disabled = true;
+                    }
+
+                } catch (err) {
+                    logToConsole(`> [ERROR] ไฟล์ Excel มีปัญหา: ${err.message}`, 'error');
+                    alert("ไม่สามารถอ่านไฟล์ Excel นี้ได้ โปรดตรวจสอบไฟล์อีกครั้ง");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function confirmImportExcel() {
+            const room = document.getElementById('import-room').value;
+            if (pendingImportData.length === 0 || !room) return;
+
+            const confirm = await Swal.fire({
+                title: `ยืนยันนำเข้าข้อมูล ม.${room}?`,
+                html: `ระบบจะนำรายชื่อ <b>${pendingImportData.length}</b> คน ไปต่อท้ายในฐานข้อมูลส่วนกลาง<br><br><span class="text-success small fw-bold"><i class="bi bi-shield-check"></i> ระบบจะข้ามรหัสประจำตัวที่ซ้ำกันให้อัตโนมัติ</span>`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันนำเข้าข้อมูล', confirmButtonColor: '#10b981'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-submit-import');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังนำเข้าฐานข้อมูลส่วนกลาง...';
+            btn.disabled = true;
+
+            logToConsole(`---------------------------------`, 'info');
+            logToConsole(`> [BULK IMPORT] กำลังส่งข้อมูล ${pendingImportData.length} คน เข้าส่วนกลาง...`, 'working');
+
+            const res = await callAPI({ action: 'bulk_import_new_students', room: room, students: pendingImportData });
+            
+            if (res.success) {
+                logToConsole(`> [SUCCESS] ${res.message}`, 'success');
+                
+                // สั่ง Sync ไปยังปลายทางด้วยเลยเพื่อความสะดวก
+                let level = room.split('/')[0];
+                logToConsole(`> กำลัง Sync ข้อมูลใหม่ไปลงห้องปลายทาง ม.${level}...`, 'working');
+                const resSync = await callAPI({ action: 'sync_homeroom', level: level });
+                if(resSync.success) logToConsole(`> [SUCCESS] ซิงค์ห้องปลายทางสำเร็จ 100%`, 'success');
+                
+                await callAPI({ action: 'write_log', type: 'IMPORT', detail: `นำเข้าเด็กใหม่ห้อง ${room} จำนวน ${res.added} คน`, user: adminUser });
+
+                Swal.fire('นำเข้าสำเร็จ!', res.message, 'success');
+                
+                // Reset form
+                document.getElementById('excel-file').value = "";
+                document.getElementById('import-preview-body').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">อัปโหลดไฟล์เพื่อดูตัวอย่างข้อมูล</td></tr>`;
+                document.getElementById('import-count-display').classList.add('d-none');
+                btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> ยืนยันการนำเข้าสู่ฐานข้อมูลส่วนกลาง';
+                pendingImportData = [];
+
+            } else {
+                logToConsole(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> ยืนยันการนำเข้าสู่ฐานข้อมูลส่วนกลาง';
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // ระบบอื่นๆ (ค้นหา, เพิ่ม, ลบ, แก้ไข, ย้าย, เลื่อนชั้น)
         // ==========================================
         async function loadStudentsForAction(prefix) {
             const room = document.getElementById(`${prefix}-room-select`).value;
@@ -443,9 +624,6 @@
             if (prefix === 'tr') document.getElementById('tr-form').style.display = 'none';
         }
 
-        // ==========================================
-        // 1. เพิ่มนักเรียน (ADD)
-        // ==========================================
         async function executeAdd() {
             const id = document.getElementById('add-id').value.trim();
             const cid = document.getElementById('add-cid').value.trim();
@@ -489,9 +667,6 @@
             document.getElementById('add-dob').value = '';
         }
 
-        // ==========================================
-        // 2. ย้ายออก/ลบ (REMOVE)
-        // ==========================================
         async function executeRemove() {
             const id = document.getElementById('rm-search-id').value;
             const name = document.getElementById('rm-name').innerText;
@@ -529,9 +704,6 @@
             loadStudentsForAction('rm');
         }
 
-        // ==========================================
-        // 3. แก้ไขข้อมูล (EDIT)
-        // ==========================================
         async function executeEdit() {
             const id = document.getElementById('ed-search-id').value;
             const cid = document.getElementById('ed-cid').value.trim();
@@ -571,9 +743,6 @@
             loadStudentsForAction('ed');
         }
 
-        // ==========================================
-        // 4. ย้ายห้องเรียน (TRANSFER)
-        // ==========================================
         async function executeTransfer() {
             const id = document.getElementById('tr-search-id').value;
             const name = document.getElementById('tr-name').innerText;
@@ -628,9 +797,6 @@
             loadStudentsForAction('tr');
         }
 
-        // ==========================================
-        // 🌟 5. ระบบซิงค์ข้อมูลเลื่อนชั้น (BULK SYNC)
-        // ==========================================
         function resetBulkUI() {
             let level = document.getElementById('bulk-level').value;
             const btn1 = document.getElementById('btn-bulk-step1');
@@ -647,7 +813,6 @@
             ui2.style.opacity = '0.5';
         }
 
-        // 🌟 Step 1: ลบแถวข้อมูลทุกชีตในไฟล์เป้าหมาย 
         async function executeBulkStep1() {
             const level = document.getElementById('bulk-level').value;
             if(!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
@@ -674,7 +839,6 @@
                 btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ล้างเสร็จแล้ว';
                 btn.classList.replace('btn-outline-danger', 'btn-success');
                 
-                // ปลดล็อก Step 2
                 document.getElementById('btn-bulk-step2').disabled = false;
                 document.getElementById('ui-bulk-step2').style.opacity = '1';
                 Swal.fire('ขั้นที่ 1 สำเร็จ', `ลบแถวข้อมูลชีตนักเรียนปลายทาง ม.${level} เรียบร้อยแล้ว เชิญกดทำขั้นที่ 2 ต่อได้เลยครับ`, 'success');
@@ -686,7 +850,6 @@
             }
         }
 
-        // Step 2: ย้ายข้อมูลจากส่วนกลาง ลง student และสร้าง account ลง user
         async function executeBulkStep2() {
             const level = document.getElementById('bulk-level').value;
             if(!level) return;
@@ -704,7 +867,6 @@
                 btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ย้ายข้อมูลเสร็จสมบูรณ์';
                 btn.classList.replace('btn-outline-success', 'btn-success');
                 
-                // บันทึก Log
                 await callAPI({ action: 'write_log', type: 'BULK_SYNC', detail: `เลื่อนชั้น/ซิงค์ข้อมูลใหม่ทั้งหมดของ ม.${level}`, user: adminUser });
                 
                 logToConsole(`> [DONE] กระบวนการเลื่อนชั้น ม.${level} เสร็จสมบูรณ์ 100%! 🎉`, 'info');
