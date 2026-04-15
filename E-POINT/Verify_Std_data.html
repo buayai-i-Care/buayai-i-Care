@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบยืนยันตัวตน - Buayai I-Care</title>
+    <title>ระบบยืนยันตัวตนข้อมูลนักเรียน ของระบบช่วยเหลือผู้เรียนดิจิทัล - Buayai I-Care School</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -79,7 +79,7 @@
     <div id="login-view">
         <div class="login-card">
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="80" class="mb-3 rounded-circle bg-light p-1">
-            <h4 class="fw-bold mb-1 font-prompt text-dark">ระบบยืนยันตัวตนนักเรียน</h4>
+            <h4 class="fw-bold mb-1 font-prompt text-dark">ระบบยืนยันข้อมูลนักเรียน ของระบบดูแลช่วยเหลือนักเรียนดิจิทัล โรงเรียนบัวใหญ่</h4>
             <p class="text-muted small mb-4">Buayai I-Care School</p>
             
             <input type="text" id="login-user" class="form-control rounded-pill text-center mb-3 fw-bold py-2" placeholder="รหัสประจำตัว / รหัสครู">
@@ -88,7 +88,7 @@
             <button id="btn-login" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="handleLogin()">เข้าสู่ระบบ</button>
             <div id="login-msg" class="text-danger small mt-3 fw-bold" style="display: none;"></div>
             
-            <!-- ลิงก์ไปยังหน้าสมัครใช้งาน (appyEpoint.html) -->
+            <!-- 🌟 เพิ่มลิงก์ไปยังหน้าสมัครใช้งาน (appyEpoint.html) ตรงนี้ -->
             <div class="mt-4">
                 <a href="appyEpoint.html" class="small text-muted text-decoration-none">ลืมรหัสผ่าน / ยังไม่สมัครระบบ? <b class="text-primary">คลิกที่นี่</b></a>
             </div>
@@ -119,7 +119,7 @@
                 </div>
             </div>
 
-            <!-- 🌟 หน้าเมนูหลัก (Grid Menu) -->
+            <!-- 🌟 หน้าเมนูหลัก (Grid Menu) เปลี่ยนแปลงตาม Role -->
             <div id="view-home">
                 <h6 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-grid-fill me-2" style="color: var(--theme-main);"></i>เมนูการใช้งาน</h6>
                 <div class="grid-menu" id="menu-container">
@@ -293,11 +293,15 @@
         }
 
         function applyThemeAndMenu() {
+            // เซ็ต Theme สี
             document.body.className = `theme-${appState.role}`;
+            
+            // แสดงข้อมูลผู้ใช้
             document.getElementById('user-name').innerText = appState.name;
             let scopeText = appState.role === 'student' ? `ห้อง: ${appState.scope}` : `ขอบเขตดูแล: ${appState.scope}`;
             document.getElementById('user-scope').innerText = scopeText;
 
+            // วาดตารางเมนู
             const menuContainer = document.getElementById('menu-container');
             let html = '';
 
@@ -468,7 +472,7 @@
                     const res = await fetchAPI(payload);
                     
                     if (res.success) {
-                        Swal.fire('สำเร็จ', 'ส่งคำร้องขอแก้ไขให้แอดมินแล้ว ระบบจะแจ้งผลการตรวจสอบให้ทราบผ่าน Telegram ผู้ดูแล', 'success');
+                        Swal.fire('สำเร็จ', 'ส่งคำร้องขอแก้ไขให้แอดมินแล้ว ระบบจะแจ้งผลการตรวจสอบให้ทราบภายหลัง', 'success');
                     } else {
                         Swal.fire('ผิดพลาด', res.error || 'ส่งคำร้องไม่สำเร็จ', 'error');
                     }
