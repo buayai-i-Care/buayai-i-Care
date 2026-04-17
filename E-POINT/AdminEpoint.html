@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบผู้ดูแลระบบ E-POINT - Buayai I-Care</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-dark: #1e293b;
+            --blue-main: #2563eb;
+            --orange-main: #f97316;
+            --gray-main: #64748b;
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+        h1, h2, h3, h4, h5, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
+
+        .top-navbar {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white; height: 75px; display: flex; align-items: center; padding: 0 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1030;
+        }
+
+        .main-content { padding: 30px 20px; max-width: 1000px; margin: 0 auto; flex-grow: 1; width: 100%; }
+
+        /* 🍱 Bento Grid Layout */
+        .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        @media (max-width: 768px) { .bento-grid { grid-template-columns: 1fr; } }
+
+        .bento-card {
+            background: white; border-radius: 24px; padding: 30px; text-decoration: none;
+            color: inherit; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 2px solid transparent;
+            cursor: pointer; min-height: 220px; position: relative; overflow: hidden;
+        }
+        
+        .bento-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+        .bento-card:active { transform: scale(0.97); }
+
+        .bento-icon { font-size: 4rem; margin-bottom: 15px; z-index: 2; transition: transform 0.3s; }
+        .bento-card:hover .bento-icon { transform: scale(1.1); }
+        .bento-title { font-size: 1.3rem; font-weight: 700; z-index: 2; margin-bottom: 5px; }
+        .bento-desc { font-size: 0.9rem; color: #64748b; z-index: 2; line-height: 1.4; }
+
+        /* Card Themes */
+        .card-students { border-color: #bfdbfe; }
+        .card-students:hover { border-color: var(--blue-main); background: #eff6ff; }
+        .card-students .bento-icon { color: var(--blue-main); }
+
+        .card-semester { border-color: #fed7aa; }
+        .card-semester:hover { border-color: var(--orange-main); background: #fff7ed; }
+        .card-semester .bento-icon { color: var(--orange-main); }
+
+        .card-placeholder { border-color: #e2e8f0; background: #f8fafc; opacity: 0.8; }
+        .card-placeholder:hover { opacity: 1; border-color: var(--gray-main); }
+        .card-placeholder .bento-icon { color: var(--gray-main); }
+
+        /* Terminal Console */
+        .terminal-panel { background: #1e1e1e; border-radius: 16px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #333; height: 250px; display: flex; flex-direction: column; }
+        .terminal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
+        .terminal-dots span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+        .terminal-body { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.9rem; color: #4ade80; line-height: 1.6; }
+        .log-info { color: #60a5fa; } .log-warning { color: #facc15; } .log-success { color: #4ade80; } .log-error { color: #f87171; font-weight: bold; }
+        
+        /* Table Sync */
+        .sync-table th { background: #f1f5f9; font-size: 0.85rem; font-weight: bold; color: #475569; }
+        .sync-table td { vertical-align: middle; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="top-navbar">
+        <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="rounded-circle bg-white p-1 me-3" style="width: 45px; height: 45px;">
+        <div class="flex-grow-1">
+            <h4 class="m-0 fw-bold font-prompt text-white">ระบบแอดมิน E-POINT</h4>
+            <div class="small text-white-50">ศูนย์ควบคุมคะแนนพฤติกรรม</div>
+        </div>
+        <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-house-door"></i> ออกจากระบบ</a>
+    </div>
+
+    <div class="main-content" id="view-dashboard">
+        
+        <div class="alert bg-white border shadow-sm rounded-4 mb-4 d-flex align-items-center">
+            <i class="bi bi-shield-lock-fill fs-1 text-primary me-3"></i>
+            <div>
+                <h5 class="fw-bold text-dark m-0 font-prompt">ยินดีต้อนรับสู่ระบบผู้ดูแล</h5>
+                <p class="text-muted small m-0">กรุณาเลือกเมนูการจัดการที่ท่านต้องการใช้งานด้านล่าง</p>
+            </div>
+        </div>
+
+        <!-- 🍱 Bento Grid Menu -->
+        <div class="bento-grid">
+            <div class="bento-card card-students" onclick="openSyncModal()">
+                <i class="bi bi-people-fill bento-icon"></i>
+                <div class="bento-title font-prompt">1. จัดการนักเรียน (Sync)</div>
+                <div class="bento-desc">เพิ่ม ลบ แก้ไข ข้อมูลนักเรียน<br>อัปเดตตรงจากฐานข้อมูลกลาง</div>
+            </div>
+
+            <div class="bento-card card-semester" onclick="openSemesterModal()">
+                <i class="bi bi-arrow-repeat bento-icon"></i>
+                <div class="bento-title font-prompt">2. เริ่มภาคเรียนใหม่</div>
+                <div class="bento-desc">สำรองข้อมูล ล้างกระดาน<br>และโอนย้ายนักเรียนครบวงจร</div>
+            </div>
+
+            <div class="bento-card card-placeholder" onclick="alert('ตั้งไว้ก่อนครับ')">
+                <i class="bi bi-gear-fill bento-icon"></i>
+                <div class="bento-title font-prompt">3. ตั้งไว้</div>
+                <div class="bento-desc">เมนูเตรียมพร้อมสำหรับการพัฒนา<br>ฟีเจอร์เพิ่มเติมในอนาคต</div>
+            </div>
+
+            <div class="bento-card card-placeholder" onclick="alert('ตั้งไว้ก่อนครับ')">
+                <i class="bi bi-grid-1x2-fill bento-icon"></i>
+                <div class="bento-title font-prompt">4. ตั้งไว้</div>
+                <div class="bento-desc">เมนูเตรียมพร้อมสำหรับการพัฒนา<br>ฟีเจอร์เพิ่มเติมในอนาคต</div>
+            </div>
+        </div>
+
+        <div class="terminal-panel mt-4">
+            <div class="terminal-header">
+                <div class="terminal-dots"><span style="background: #ef4444;"></span><span style="background: #f59e0b;"></span><span style="background: #10b981;"></span></div>
+                <div class="text-white-50 small">System Logs</div>
+            </div>
+            <div class="terminal-body" id="console-output">
+                <div class="log-info">> ระบบพร้อมทำงาน รอคำสั่งจากผู้ดูแล...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 🚀 หน้าต่าง จัดการนักเรียน (Sync ข้อมูล) เมนู 1 -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="syncModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white border-0 px-4 py-3">
+                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-arrow-repeat me-2"></i>อัปเดตข้อมูลนักเรียนให้ตรงกับส่วนกลาง</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="alert alert-info border-0 shadow-sm small rounded-3 mb-4">
+                        <i class="bi bi-shield-check text-primary fs-5 me-2"></i>
+                        <b class="text-dark">ความปลอดภัย:</b> ระบบนี้จะทำการเปรียบเทียบชื่อนักเรียนกับฐานข้อมูลกลาง หากพบการเปลี่ยนแปลงจะทำการดึงมาอัปเดต โดย <b>คะแนนพฤติกรรมเดิมจะไม่สูญหาย 100%</b>
+                    </div>
+
+                    <div class="d-flex gap-2 mb-4">
+                        <select id="syncLevelSelect" class="form-select fw-bold text-primary w-auto">
+                            <option value="">- เลือกระดับชั้น -</option>
+                            <option value="1">ม.1</option><option value="2">ม.2</option><option value="3">ม.3</option>
+                            <option value="4">ม.4</option><option value="5">ม.5</option><option value="6">ม.6</option>
+                        </select>
+                        <button class="btn btn-primary px-4 fw-bold shadow-sm" id="btn-check-sync" onclick="processCheckSync()">
+                            <i class="bi bi-search"></i> ตรวจสอบการเปลี่ยนแปลง
+                        </button>
+                    </div>
+
+                    <div id="sync-preview-container" style="display: none;">
+                        <h6 class="fw-bold text-dark font-prompt border-bottom pb-2 mb-3">รายการอัปเดตที่พบ</h6>
+                        
+                        <div class="table-responsive bg-white rounded-3 shadow-sm border mb-4">
+                            <table class="table table-hover sync-table mb-0">
+                                <thead><tr><th width="15%">รหัส</th><th>ชื่อ-สกุล</th><th width="20%">ห้อง/เลขที่</th><th width="25%">การดำเนินการ</th></tr></thead>
+                                <tbody id="sync-tbody">
+                                    <!-- Data Fills Here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-4"><div class="bg-success bg-opacity-10 text-success p-2 rounded text-center small fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มใหม่: <span id="sync-add">0</span></div></div>
+                            <div class="col-4"><div class="bg-warning bg-opacity-10 text-dark p-2 rounded text-center small fw-bold"><i class="bi bi-pencil-square"></i> แก้ไข/ย้าย: <span id="sync-update">0</span></div></div>
+                            <div class="col-4"><div class="bg-danger bg-opacity-10 text-danger p-2 rounded text-center small fw-bold"><i class="bi bi-trash"></i> ย้ายออก: <span id="sync-remove">0</span></div></div>
+                        </div>
+
+                        <button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm fs-5" id="btn-commit-sync" onclick="processCommitSync()">
+                            <i class="bi bi-cloud-check-fill me-2"></i> ยืนยันการซิงค์ข้อมูล (อัปเดตลงระบบ)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 🚀 หน้าต่างเริ่มภาคเรียนใหม่ (New Semester Workflow) เมนู 2 -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="semesterModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-danger text-white border-0 px-4 py-3">
+                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-exclamation-triangle-fill me-2"></i>ระบบเริ่มภาคเรียนใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="btn-close-modal"></button>
+                </div>
+                
+                <div class="modal-body p-4 bg-light">
+                    <!-- Step 1: Backup & Clear -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm mb-3" id="step-1-box">
+                        <h6 class="fw-bold text-danger font-prompt"><span class="badge bg-danger rounded-circle me-2">1</span>สำรองข้อมูล และ ล้างกระดาน</h6>
+                        <p class="small text-muted mb-3">ระบบจะคัดลอกไฟล์เดิมไปเก็บไว้ในโฟลเดอร์ และทำการลบข้อมูลนักเรียนเดิมทิ้งทั้งหมด (ยกเว้นชีตระบบ)</p>
+                        
+                        <div class="input-group mb-3">
+                            <span class="input-group-text fw-bold">ชื่อไฟล์สำรอง</span>
+                            <input type="text" id="backupName" class="form-control fw-bold text-primary" placeholder="เช่น Backup_เทอม1_2569">
+                        </div>
+                        <button class="btn btn-danger w-100 fw-bold rounded-pill shadow-sm" id="btn-backup" onclick="processBackupAndClear()">
+                            <i class="bi bi-hdd-fill me-1"></i> เริ่มสำรองข้อมูลและล้างกระดาน
+                        </button>
+                    </div>
+
+                    <!-- Step 2: Transfer Data -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm" id="step-2-box" style="opacity: 0.5; pointer-events: none;">
+                        <h6 class="fw-bold text-primary font-prompt"><span class="badge bg-primary rounded-circle me-2">2</span>ดึงข้อมูลนักเรียนใหม่ (พร้อมให้คะแนน 100)</h6>
+                        <p class="small text-muted mb-3">กรุณากดดำเนินการทีละระดับชั้น เพื่อป้องกันระบบหลังบ้านทำงานหนักเกินไป</p>
+                        
+                        <div class="row g-2">
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(1, this)">ม.1</button></div>
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(2, this)">ม.2</button></div>
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(3, this)">ม.3</button></div>
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(4, this)">ม.4</button></div>
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(5, this)">ม.5</button></div>
+                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(6, this)">ม.6</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ====================================================
+        // ⚠️ ใส่ลิงก์ Web App API ที่ Deploy ใหม่ตรงนี้ ⚠️
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyakYWpM-tK6_yF4k5cBmMXPCF5iy9lOQomHKOZIb_G2SbwwFpRBRVAt9VcnqFufOCAkA/exec"; 
+
+        const semesterModal = new bootstrap.Modal(document.getElementById('semesterModal'));
+        const syncModal = new bootstrap.Modal(document.getElementById('syncModal'));
+
+        function openSemesterModal() {
+            const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+            document.getElementById('backupName').value = `Backup_EPoint_${dateStr}`;
+            semesterModal.show();
+        }
+
+        function openSyncModal() {
+            document.getElementById('sync-preview-container').style.display = 'none';
+            document.getElementById('syncLevelSelect').value = '';
+            syncModal.show();
+        }
+
+        function logConsole(msg, type = "info") {
+            const terminal = document.getElementById('console-output');
+            const time = new Date().toLocaleTimeString('th-TH');
+            const line = document.createElement('div');
+            line.className = `log-${type}`;
+            line.innerHTML = `[${time}] ${msg}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function fetchAPI(payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง" };
+            }
+        }
+
+        // ==========================================
+        // เมนู 1: ซิงค์ข้อมูล (ตรวจสอบและแสดงผล)
+        // ==========================================
+        let currentSyncData = null;
+
+        async function processCheckSync() {
+            const level = document.getElementById('syncLevelSelect').value;
+            if(!level) return alert("กรุณาเลือกระดับชั้น");
+
+            const btn = document.getElementById('btn-check-sync');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> รอสักครู่...';
+            btn.disabled = true;
+
+            logConsole(`> กำลังดึงข้อมูลและเปรียบเทียบ ม.${level}...`, 'warning');
+
+            const res = await fetchAPI({ action: 'checkSyncStudents', level: level });
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (res.success) {
+                currentSyncData = res;
+                let html = '';
+                
+                // 1. เพิ่มใหม่ (สีเขียว)
+                res.toAdd.forEach(s => {
+                    html += `<tr class="table-success">
+                        <td class="fw-bold">${s.id}</td><td>${s.name}</td>
+                        <td>ม.${s.room} <small class="text-muted">(ที่ ${s.no})</small></td>
+                        <td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มเป็นเด็กใหม่<br><small class="text-muted">จะได้คะแนน 100</small></td>
+                    </tr>`;
+                });
+
+                // 2. แก้ไข (สีเหลือง)
+                res.toUpdate.forEach(s => {
+                    let changes = [];
+                    if(s.oldRoom !== s.newRoom) changes.push(`ย้ายจาก ม.${s.oldRoom}`);
+                    if(s.oldName !== s.newName) changes.push(`เปลี่ยนชื่อ`);
+                    html += `<tr class="table-warning">
+                        <td class="fw-bold">${s.id}</td><td>${s.newName}</td>
+                        <td>ม.${s.newRoom}</td>
+                        <td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดตข้อมูล<br><small class="text-muted">${changes.join(', ')} (มี ${s.score} คะแนน)</small></td>
+                    </tr>`;
+                });
+
+                // 3. ย้ายออก (สีแดง)
+                res.toRemove.forEach(s => {
+                    html += `<tr class="table-danger">
+                        <td class="fw-bold">${s.id}</td><td>${s.name}</td>
+                        <td>ม.${s.room}</td>
+                        <td class="text-danger fw-bold"><i class="bi bi-trash"></i> ย้ายออกจากระบบ</td>
+                    </tr>`;
+                });
+
+                if(html === '') {
+                    html = '<tr><td colspan="4" class="text-center py-4 text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ข้อมูลตรงกับส่วนกลางเป๊ะ 100% ไม่มีใครต้องอัปเดตครับ</td></tr>';
+                    document.getElementById('btn-commit-sync').disabled = true;
+                } else {
+                    document.getElementById('btn-commit-sync').disabled = false;
+                }
+
+                document.getElementById('sync-tbody').innerHTML = html;
+                document.getElementById('sync-add').innerText = res.toAdd.length;
+                document.getElementById('sync-update').innerText = res.toUpdate.length;
+                document.getElementById('sync-remove').innerText = res.toRemove.length;
+                
+                document.getElementById('sync-preview-container').style.display = 'block';
+                logConsole(`> โหลดพรีวิวสำเร็จ พบการเปลี่ยนแปลงทั้งหมด ${res.toAdd.length + res.toUpdate.length + res.toRemove.length} รายการ`, 'info');
+
+            } else {
+                alert("เกิดข้อผิดพลาด: " + res.error);
+                logConsole(`> [ERROR] ${res.error}`, 'error');
+            }
+        }
+
+        async function processCommitSync() {
+            const level = document.getElementById('syncLevelSelect').value;
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการซิงค์ข้อมูล?',
+                html: `<span class="text-primary fw-bold">ระบบจะทำการเขียนทับข้อมูลในระดับชั้น ม.${level}</span><br>โดยข้อมูลจะยึดตามฐานข้อมูลกลาง และคะแนนจะถูกโอนตามไปให้ถูกคน`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันอัปเดต', confirmButtonColor: '#10b981'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-commit-sync');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึกข้อมูลลงฐานข้อมูล...';
+            btn.disabled = true;
+
+            logConsole(`> กำลังดึงคะแนนเก่าเก็บไว้ และล้างกระดานเพื่อจัดเรียงใหม่...`, 'warning');
+
+            const res = await fetchAPI({ action: 'commitSyncStudents', level: level });
+
+            if (res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                Swal.fire('ซิงค์สำเร็จ!', res.message, 'success');
+                syncModal.hide();
+            } else {
+                logConsole(`> [ERROR] ${res.error}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', res.error, 'error');
+                btn.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i> ยืนยันการซิงค์ข้อมูล (อัปเดตลงระบบ)';
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // เมนู 2: สำรองและล้างกระดาน
+        // ==========================================
+        async function processBackupAndClear() {
+            const backupName = document.getElementById('backupName').value.trim();
+            if(!backupName) return alert("กรุณาตั้งชื่อไฟล์สำรองข้อมูลครับ");
+
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการล้างกระดาน?',
+                html: '<span class="text-danger fw-bold">ข้อมูลนักเรียนและคะแนนเดิมทั้งหมดจะถูกลบทิ้ง!</span><br>ระบบจะทำการสำรองไฟล์เก็บไว้ให้ก่อนดำเนินการ',
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ยืนยันลบข้อมูล',
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-backup');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังดำเนินการ... (อาจใช้เวลา 1-2 นาที)';
+            btn.disabled = true;
+            document.getElementById('btn-close-modal').style.display = 'none';
+
+            logConsole(`> กำลังสร้างไฟล์ Backup ชื่อ "${backupName}"...`, "warning");
+
+            const res = await fetchAPI({ action: 'backupAndClear', backupName: backupName });
+
+            if (res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                logConsole(`> ไฟล์สำรอง: <a href="${res.url}" target="_blank" class="text-info">คลิกดูไฟล์</a>`, "info");
+                
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ล้างกระดานสำเร็จ';
+                btn.classList.replace('btn-danger', 'btn-success');
+                document.getElementById('step-2-box').style.opacity = '1';
+                document.getElementById('step-2-box').style.pointerEvents = 'auto';
+                
+                Swal.fire('สำเร็จ', 'ล้างกระดานและสำรองข้อมูลเรียบร้อย เข้าสู่ขั้นตอนที่ 2 ได้เลยครับ', 'success');
+            } else {
+                logConsole(`> [ERROR] ${res.error}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', res.error, 'error');
+                btn.innerHTML = '<i class="bi bi-hdd-fill me-1"></i> เริ่มสำรองข้อมูลและล้างกระดาน';
+                btn.disabled = false;
+            }
+            document.getElementById('btn-close-modal').style.display = 'block';
+        }
+
+        async function transferData(level, btnElement) {
+            btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btnElement.disabled = true;
+            document.getElementById('btn-close-modal').style.display = 'none';
+
+            logConsole(`> กำลังดึงรายชื่อ ม.${level} (รีเซ็ตคะแนนเป็น 100)...`, "warning");
+
+            const res = await fetchAPI({ action: 'transferLevelData', level: level });
+
+            if (res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                btnElement.innerHTML = '<i class="bi bi-check2"></i> สำเร็จ';
+                btnElement.classList.replace('btn-outline-primary', 'btn-success');
+                btnElement.classList.add('text-white');
+            } else {
+                logConsole(`> [ERROR] ม.${level} -> ${res.error}`, "error");
+                btnElement.innerHTML = 'ลองใหม่';
+                btnElement.classList.replace('btn-outline-primary', 'btn-danger');
+                btnElement.disabled = false;
+            }
+            document.getElementById('btn-close-modal').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
