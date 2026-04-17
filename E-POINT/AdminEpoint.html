@@ -17,11 +17,13 @@
             --blue-main: #2563eb;
             --orange-main: #f97316;
             --gray-main: #64748b;
+            --green-main: #10b981;
         }
 
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
         h1, h2, h3, h4, h5, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
 
+        /* Top Navbar */
         .top-navbar {
             background: linear-gradient(135deg, #0f172a, #1e293b);
             color: white; height: 75px; display: flex; align-items: center; padding: 0 20px;
@@ -58,6 +60,10 @@
         .card-semester { border-color: #fed7aa; }
         .card-semester:hover { border-color: var(--orange-main); background: #fff7ed; }
         .card-semester .bento-icon { color: var(--orange-main); }
+
+        .card-report { border-color: #a7f3d0; }
+        .card-report:hover { border-color: var(--green-main); background: #ecfdf5; }
+        .card-report .bento-icon { color: var(--green-main); }
 
         .card-placeholder { border-color: #e2e8f0; background: #f8fafc; opacity: 0.8; }
         .card-placeholder:hover { opacity: 1; border-color: var(--gray-main); }
@@ -110,10 +116,10 @@
                 <div class="bento-desc">สำรองข้อมูล ล้างกระดาน<br>และโอนย้ายนักเรียนครบวงจร</div>
             </div>
 
-            <div class="bento-card card-placeholder" onclick="alert('ตั้งไว้ก่อนครับ')">
-                <i class="bi bi-gear-fill bento-icon"></i>
-                <div class="bento-title font-prompt">3. ตั้งไว้</div>
-                <div class="bento-desc">เมนูเตรียมพร้อมสำหรับการพัฒนา<br>ฟีเจอร์เพิ่มเติมในอนาคต</div>
+            <div class="bento-card card-report" onclick="openReportModal()">
+                <i class="bi bi-pie-chart-fill bento-icon"></i>
+                <div class="bento-title font-prompt">3. สารสนเทศสิ้นภาคเรียน</div>
+                <div class="bento-desc">ประมวลผลสถิติภาพรวม 4 หมวด<br>และส่งออกรายงาน Excel คลุมทั้ง รร.</div>
             </div>
 
             <div class="bento-card card-placeholder" onclick="alert('ตั้งไว้ก่อนครับ')">
@@ -201,7 +207,6 @@
                 </div>
                 
                 <div class="modal-body p-4 bg-light">
-                    <!-- Step 1: Backup & Clear -->
                     <div class="bg-white p-3 rounded-4 border shadow-sm mb-3" id="step-1-box">
                         <h6 class="fw-bold text-danger font-prompt"><span class="badge bg-danger rounded-circle me-2">1</span>สำรองข้อมูล และ ล้างกระดาน</h6>
                         <p class="small text-muted mb-3">ระบบจะคัดลอกไฟล์เดิมไปเก็บไว้ในโฟลเดอร์ และทำการลบข้อมูลนักเรียนเดิมทิ้งทั้งหมด (ยกเว้นชีตระบบ)</p>
@@ -215,7 +220,6 @@
                         </button>
                     </div>
 
-                    <!-- Step 2: Transfer Data -->
                     <div class="bg-white p-3 rounded-4 border shadow-sm" id="step-2-box" style="opacity: 0.5; pointer-events: none;">
                         <h6 class="fw-bold text-primary font-prompt"><span class="badge bg-primary rounded-circle me-2">2</span>ดึงข้อมูลนักเรียนใหม่ (พร้อมให้คะแนน 100)</h6>
                         <p class="small text-muted mb-3">กรุณากดดำเนินการทีละระดับชั้น เพื่อป้องกันระบบหลังบ้านทำงานหนักเกินไป</p>
@@ -234,15 +238,103 @@
         </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- 🚀 หน้าต่างรายงานสรุปสารสนเทศสิ้นภาคเรียน เมนู 3 -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="reportModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-success text-white border-0 px-4 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-bar-chart-steps me-2"></i>ระบบประมวลผลสารสนเทศสิ้นภาคเรียน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-4 align-items-center mb-4">
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-success font-prompt mb-1">สร้างรายงานสรุป (Excel)</h4>
+                            <p class="text-muted small mb-0">ระบบจะทำการคํานวณสถิติ 4 หมวด ได้แก่ ความดี (Top 60), คะแนนพฤติกรรม (รวมห้อง/ชั้น), สถิติมาสาย และสถิติโดดเรียน พร้อมสร้างเป็นไฟล์ Excel ให้อัตโนมัติ</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-white p-3 rounded-4 border shadow-sm">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small fw-bold text-muted mb-1">ปีการศึกษา</label>
+                                        <select id="reportYear" class="form-select fw-bold border-success text-success"></select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small fw-bold text-muted mb-1">ภาคเรียน</label>
+                                        <select id="reportTerm" class="form-select fw-bold border-success text-success">
+                                            <option value="1">ภาคเรียนที่ 1</option>
+                                            <option value="2">ภาคเรียนที่ 2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success w-100 fw-bold py-2 shadow-sm" id="btn-generate-report" onclick="processGenerateReport()">
+                                    <i class="bi bi-file-earmark-excel-fill me-1"></i> เริ่มประมวลผลและสร้างไฟล์
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cards แสดงรายละเอียดที่จะอยู่ในรายงาน -->
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-4 border shadow-sm text-center h-100">
+                                <i class="bi bi-award-fill text-warning display-4 mb-2"></i>
+                                <h6 class="fw-bold font-prompt text-dark">บันทึกความดี</h6>
+                                <p class="small text-muted mb-0">ประมวลผลผู้มีคะแนนสูงสุด 10 อันดับ/ระดับชั้น (ใช้คะแนนความผิดชี้ขาด)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-4 border shadow-sm text-center h-100">
+                                <i class="bi bi-person-bounding-box text-primary display-4 mb-2"></i>
+                                <h6 class="fw-bold font-prompt text-dark">คะแนนพฤติกรรม</h6>
+                                <p class="small text-muted mb-0">หาค่าเฉลี่ยรายห้องและระดับชั้น (คัดกรองกลุ่มสถานะพิเศษออก)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-4 border shadow-sm text-center h-100">
+                                <i class="bi bi-clock-history text-danger display-4 mb-2"></i>
+                                <h6 class="fw-bold font-prompt text-dark">สถิติมาสาย</h6>
+                                <p class="small text-muted mb-0">สรุปยอดมาสายรายเดือน / รายห้อง และ Top 10 คนมาสายบ่อยสุด</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-white p-3 rounded-4 border shadow-sm text-center h-100">
+                                <i class="bi bi-door-open-fill text-secondary display-4 mb-2"></i>
+                                <h6 class="fw-bold font-prompt text-dark">สถิติโดดเรียน</h6>
+                                <p class="small text-muted mb-0">รวบรวมพฤติกรรมโดดเรียนจากบันทึกการเข้าเรียน พร้อมรายงานระดับชั้น</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ที่ Deploy ใหม่ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyakYWpM-tK6_yF4k5cBmMXPCF5iy9lOQomHKOZIb_G2SbwwFpRBRVAt9VcnqFufOCAkA/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbwqZ1VnQnXY-D3oU3Hn6E_h-r2yM8KxN9kPjZtXhY0-fH8_n4yK8Tz0L_hPzL8G1y8N/exec"; 
 
         const semesterModal = new bootstrap.Modal(document.getElementById('semesterModal'));
         const syncModal = new bootstrap.Modal(document.getElementById('syncModal'));
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+
+        // 🌟 สร้างตัวเลือกปีการศึกษาอัตโนมัติเมื่อโหลดหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentYear = new Date().getFullYear() + 543;
+            let yearOptions = '';
+            for(let i = 0; i < 5; i++) {
+                let y = currentYear - i;
+                yearOptions += `<option value="${y}">${y}</option>`;
+            }
+            const reportYearEl = document.getElementById('reportYear');
+            if(reportYearEl) reportYearEl.innerHTML = yearOptions;
+        });
 
         function openSemesterModal() {
             const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -254,6 +346,10 @@
             document.getElementById('sync-preview-container').style.display = 'none';
             document.getElementById('syncLevelSelect').value = '';
             syncModal.show();
+        }
+
+        function openReportModal() {
+            reportModal.show();
         }
 
         function logConsole(msg, type = "info") {
@@ -276,6 +372,47 @@
                 return await response.json();
             } catch (error) {
                 return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง" };
+            }
+        }
+
+        // ==========================================
+        // เมนู 3: สร้างรายงานสารสนเทศ (Excel)
+        // ==========================================
+        async function processGenerateReport() {
+            const year = document.getElementById('reportYear').value;
+            const term = document.getElementById('reportTerm').value;
+            const termName = `${term}/${year}`;
+
+            const btn = document.getElementById('btn-generate-report');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังดึงข้อมูล...';
+            btn.disabled = true;
+
+            logConsole(`> เริ่มประมวลผล สารสนเทศสิ้นภาคเรียน: ${termName} (อาจใช้เวลา 1-2 นาที)`, 'warning');
+
+            const payload = { action: 'generateEndSemesterReport', termName: termName };
+            const res = await fetchAPI(payload);
+
+            btn.innerHTML = '<i class="bi bi-file-earmark-excel-fill me-1"></i> เริ่มประมวลผลและสร้างไฟล์';
+            btn.disabled = false;
+
+            if (res && res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                logConsole(`> ไฟล์ Excel สรุปผล: <a href="${res.url}" target="_blank" class="text-info">คลิกดูไฟล์</a>`, "info");
+                
+                Swal.fire({
+                    title: 'ประมวลผลสำเร็จ!',
+                    text: 'ระบบได้สร้างไฟล์ Excel สรุปสารสนเทศให้ท่านเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="bi bi-file-earmark-excel-fill"></i> เปิดดูไฟล์ Excel',
+                    cancelButtonText: 'ปิด',
+                    confirmButtonColor: '#10b981'
+                }).then((result) => {
+                    if(result.isConfirmed) { window.open(res.url, '_blank'); }
+                });
+            } else {
+                logConsole(`> [ERROR] ${res ? res.error : 'Unknown Error'}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res ? res.error : 'ไม่สามารถประมวลผลได้', 'error');
             }
         }
 
@@ -304,34 +441,15 @@
                 currentSyncData = res;
                 let html = '';
                 
-                // 1. เพิ่มใหม่ (สีเขียว)
                 res.toAdd.forEach(s => {
-                    html += `<tr class="table-success">
-                        <td class="fw-bold">${s.id}</td><td>${s.name}</td>
-                        <td>ม.${s.room} <small class="text-muted">(ที่ ${s.no})</small></td>
-                        <td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มเป็นเด็กใหม่<br><small class="text-muted">จะได้คะแนน 100</small></td>
-                    </tr>`;
+                    html += `<tr class="table-success"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room} <small class="text-muted">(ที่ ${s.no})</small></td><td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มเป็นเด็กใหม่<br><small class="text-muted">จะได้คะแนน 100</small></td></tr>`;
                 });
-
-                // 2. แก้ไข (สีเหลือง)
                 res.toUpdate.forEach(s => {
-                    let changes = [];
-                    if(s.oldRoom !== s.newRoom) changes.push(`ย้ายจาก ม.${s.oldRoom}`);
-                    if(s.oldName !== s.newName) changes.push(`เปลี่ยนชื่อ`);
-                    html += `<tr class="table-warning">
-                        <td class="fw-bold">${s.id}</td><td>${s.newName}</td>
-                        <td>ม.${s.newRoom}</td>
-                        <td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดตข้อมูล<br><small class="text-muted">${changes.join(', ')} (มี ${s.score} คะแนน)</small></td>
-                    </tr>`;
+                    let changes = []; if(s.oldRoom !== s.newRoom) changes.push(`ย้ายจาก ม.${s.oldRoom}`); if(s.oldName !== s.newName) changes.push(`เปลี่ยนชื่อ`);
+                    html += `<tr class="table-warning"><td class="fw-bold">${s.id}</td><td>${s.newName}</td><td>ม.${s.newRoom}</td><td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดตข้อมูล<br><small class="text-muted">${changes.join(', ')} (มี ${s.score} คะแนน)</small></td></tr>`;
                 });
-
-                // 3. ย้ายออก (สีแดง)
                 res.toRemove.forEach(s => {
-                    html += `<tr class="table-danger">
-                        <td class="fw-bold">${s.id}</td><td>${s.name}</td>
-                        <td>ม.${s.room}</td>
-                        <td class="text-danger fw-bold"><i class="bi bi-trash"></i> ย้ายออกจากระบบ</td>
-                    </tr>`;
+                    html += `<tr class="table-danger"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room}</td><td class="text-danger fw-bold"><i class="bi bi-trash"></i> ย้ายออกจากระบบ</td></tr>`;
                 });
 
                 if(html === '') {
