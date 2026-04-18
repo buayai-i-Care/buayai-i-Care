@@ -147,13 +147,7 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1">ระดับชั้น / ห้องเรียน <span class="text-rose-500">*</span></label>
                         <select id="info-room" onchange="loadStudents()" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
-                            <option value="">-- เลือกห้องเรียน --</option>
-                            <optgroup label="มัธยมศึกษาตอนต้น">
-                                <option value="1/1">ม.1/1</option><option value="2/1">ม.2/1</option><option value="3/1">ม.3/1</option>
-                            </optgroup>
-                            <optgroup label="มัธยมศึกษาตอนปลาย">
-                                <option value="4/1">ม.4/1</option><option value="5/1">ม.5/1</option><option value="6/1">ม.6/1</option>
-                            </optgroup>
+                            <!-- จะถูกใส่ข้อมูลด้วย JS อัตโนมัติ -->
                         </select>
                     </div>
 
@@ -162,6 +156,8 @@
                         <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
                             <option value="">-- โปรดเลือกห้องก่อน --</option>
                         </select>
+                        <!-- 🌟 ข้อความแจ้งเตือนกรณียกชื่อออก -->
+                        <div id="assessed-notice" class="text-danger small mt-2 p-2 bg-red-50 rounded-2 border border-red-200" style="display:none; line-height: 1.4;"></div>
                     </div>
                     
                     <input type="hidden" id="info-id">
@@ -332,17 +328,36 @@
         
         let currentRoomStudents = [];
 
+        // --- 🌟 สร้างตัวเลือกระดับชั้นอัตโนมัติ ---
+        window.addEventListener('DOMContentLoaded', () => {
+            let optionsHtml = '<option value="">-- เลือกห้องเรียน --</option>';
+            for (let m = 1; m <= 6; m++) {
+                let maxRooms = 10;
+                if (m === 4) maxRooms = 12;
+                if (m === 5) maxRooms = 11;
+                
+                optionsHtml += `<optgroup label="มัธยมศึกษาตอน${m<=3?'ต้น':'ปลาย'} ม.${m}">`;
+                for (let r = 1; r <= maxRooms; r++) {
+                    optionsHtml += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
+                }
+                optionsHtml += `</optgroup>`;
+            }
+            document.getElementById('info-room').innerHTML = optionsHtml;
+        });
+
         // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
             const room = document.getElementById('info-room').value;
             const studentSelect = document.getElementById('info-student');
             const previewCard = document.getElementById('student-preview-card');
+            const noticeEl = document.getElementById('assessed-notice');
 
             // Reset
             studentSelect.innerHTML = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
             document.getElementById('info-id').value = '';
             document.getElementById('info-name').value = '';
             previewCard.classList.add('hidden');
+            noticeEl.style.display = 'none';
 
             if (!room) {
                 studentSelect.innerHTML = '<option value="">-- โปรดเลือกห้องก่อน --</option>';
@@ -356,18 +371,41 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'getStudents', room: room })
+                    // ส่งโหมดผู้ประเมินไปให้หลังบ้านตรวจสอบคนทำซ้ำด้วย
+                    body: JSON.stringify({ action: 'getStudents', room: room, assessorType: selectedRole })
                 });
                 const res = await response.json();
 
                 if (res.success) {
                     currentRoomStudents = res.data;
                     let html = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
+                    let assessedCount = 0;
+
                     res.data.forEach(s => {
-                        html += `<option value="${s.id}">${s.no}. ${s.name}</option>`;
+                        // 🌟 หากประเมินแล้ว ให้นับจำนวนและไม่ใส่ใน dropdown
+                        if (s.isAssessed) {
+                            assessedCount++;
+                        } else {
+                            html += `<option value="${s.id}">${s.no ? s.no + '.' : ''} ${s.name}</option>`;
+                        }
                     });
+                    
                     studentSelect.innerHTML = html;
-                    studentSelect.disabled = false;
+                    
+                    // ถ้าทำครบทุกคนแล้วในห้อง
+                    if (res.data.length > 0 && assessedCount === res.data.length) {
+                        studentSelect.innerHTML = '<option value="">ประเมินครบทุกคนแล้ว</option>';
+                        studentSelect.disabled = true;
+                    } else {
+                        studentSelect.disabled = false;
+                    }
+
+                    // 🌟 แสดงแจ้งเตือนคนถูกตัดออก
+                    if (assessedCount > 0) {
+                        noticeEl.innerHTML = `<i class="bi bi-info-circle-fill"></i> มีนักเรียน <b>${assessedCount}</b> คน ได้รับการประเมินในโหมด "${selectedRole}" ไปแล้ว ระบบจึงซ่อนรายชื่อออกไปครับ หากต้องการเปลี่ยนแปลงแก้ไขโปรดติดต่อครูที่ปรึกษา`;
+                        noticeEl.style.display = 'block';
+                    }
+
                 } else {
                     studentSelect.innerHTML = '<option value="">ไม่พบข้อมูลห้องนี้</option>';
                     Swal.fire('ข้อผิดพลาด', res.error, 'error');
@@ -401,12 +439,21 @@
                 document.getElementById('preview-dob').innerText = student.dob || '-';
                 document.getElementById('preview-cid').innerText = student.cid || '-';
 
+                // 🌟 ระบบจัดการรูปภาพแบบใหม่ รองรับทั้ง id= และ /d/
                 let photoUrl = student.photo;
-                if (photoUrl && photoUrl.includes("id=")) {
-                    let fileId = photoUrl.split("id=")[1].split("&")[0];
-                    photoUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
+                let fileId = null;
+                if (photoUrl) {
+                    let matchD = photoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                    let matchId = photoUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (matchD) fileId = matchD[1];
+                    else if (matchId) fileId = matchId[1];
                 }
-                document.getElementById('preview-photo').src = photoUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                
+                if (fileId) {
+                    document.getElementById('preview-photo').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
+                } else {
+                    document.getElementById('preview-photo').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // รูปแทนกรณีหาไม่เจอ
+                }
 
                 previewCard.classList.remove('hidden');
             }
@@ -476,6 +523,12 @@
             document.getElementById('btn-prev').classList.toggle('hidden', currentStep === 1);
             document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
+
+            // เคลียร์รายชื่อเพื่อบังคับโหลดใหม่ให้ตัดคนประเมินแล้วออก ถ้าย้อนกลับมา
+            if (currentStep === 2 && dir === 1) {
+                document.getElementById('info-room').value = '';
+                fillStudentInfo();
+            }
 
             if (currentStep === 1 && !document.querySelector('input[name="assessorRole"]:checked')) disableNextBtn();
             else enableNextBtn(); 
