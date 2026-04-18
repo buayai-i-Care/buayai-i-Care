@@ -40,6 +40,7 @@
             color: #64748b; background: white; transition: all 0.2s ease;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        /* เมื่อกดเลือกข้อ จะเปลี่ยนเป็นสีชมพูกลีบบัว */
         .radio-group input[type="radio"]:checked + label {
             background-color: #fdf2f8; border-color: #db2777; color: #be185d; font-weight: 600;
             box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.1);
@@ -50,6 +51,7 @@
             border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 16px;
             cursor: pointer; transition: all 0.2s ease; background: white; height: 100%;
         }
+        /* เมื่อกดเลือก Role จะเปลี่ยนเป็นฟ้าน้ำทะเล */
         .role-card input[type="radio"]:checked + label {
             border-color: #0369a1; background-color: #f0f9ff; box-shadow: 0 10px 15px -3px rgba(3, 105, 161, 0.1);
         }
@@ -349,7 +351,7 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // 🌟 Fetch API Helper
+        // 🌟 แก้ไขด่วน: Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -364,9 +366,9 @@
                 btn.disabled = true;
             }
             try {
+                // 🚀 ลบ headers ออกทั้งหมด บังคับให้เป็น Simple Request ไม่ถูก Google/Browser บล็อก
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 
@@ -375,11 +377,11 @@
                     return JSON.parse(responseText);
                 } catch(e) {
                     console.error("Parse Error:", responseText);
-                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (ตรวจสอบการ Deploy ให้เป็น 'ทุกคน/Anyone')" };
+                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (โปรดตรวจสอบการ Deploy ให้เป็น 'ทุกคน' หรือ 'Anyone')" };
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือ URL ไม่ถูกต้อง" };
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือลิงก์ Web App ไม่ถูกต้อง" };
             } finally {
                 if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
             }
