@@ -74,7 +74,7 @@
             <div class="flex items-center gap-3">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
-                    <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
+                    <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h1>
                     <p class="text-xs text-ocean-100 hidden sm:block">ระบบคัดกรองนักเรียน Buayai I-Care School</p>
                 </div>
             </div>
@@ -310,7 +310,7 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwqZ1VnQnXY-D3oU3Hn6E_h-r2yM8KxN9kPjZtXhY0-fH8_n4yK8Tz0L_hPzL8G1y8N/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
 
         // --- Data Definitions ---
         const questionSets = {
@@ -351,7 +351,7 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // 🌟 แก้ไขด่วน: Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
+        // 🌟 Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) แบบ No-CORS
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -366,7 +366,7 @@
                 btn.disabled = true;
             }
             try {
-                // 🚀 ลบ headers ออกทั้งหมด บังคับให้เป็น Simple Request ไม่ถูก Google/Browser บล็อก
+                // ส่งแบบ Simple Request (ไม่มี Header) เพื่อป้องกันการโดนบล็อก CORS จากบางเครื่อง
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -387,15 +387,91 @@
             }
         }
 
-        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (คืนค่าสู่ระบบคลาสสิก ดั้งเดิม) ---
+        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (อัปเดต: มีระบบ Login และข้ามหน้าจอสำหรับครู) ---
         function handleRoleSelection(role) {
-            selectedRole = role;
-            setupFormByRole(selectedRole);
-            document.getElementById('info-room').disabled = false;
-            enableNextBtn();
+            if (role === 'ครู') {
+                checkTeacherLogin();
+            } else {
+                selectedRole = role;
+                setupFormByRole(selectedRole);
+                document.getElementById('info-room').disabled = false;
+                enableNextBtn();
+            }
         }
 
-        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (ใส่ Popup ใส่รหัสผ่านเหมือนเดิม) ---
+        // --- 🌟 หน้าต่าง Login ครู และ การพาทะลุหน้าจอ ---
+        async function checkTeacherLogin() {
+            const { value: formValues } = await Swal.fire({
+                title: 'เข้าสู่ระบบครูที่ปรึกษา',
+                html:
+                    '<input id="swal-input-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น t11, t24)">' +
+                    '<input id="swal-input-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0ea5e9',
+                preConfirm: () => {
+                    const user = document.getElementById('swal-input-user').value;
+                    const pass = document.getElementById('swal-input-pass').value;
+                    if(!user || !pass) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
+                    }
+                    return { user, pass };
+                }
+            });
+
+            if (formValues) {
+                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                
+                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                
+                if (res && res.success) {
+                    selectedRole = "ครู";
+                    setupFormByRole(selectedRole);
+                    
+                    // 🌟 ล็อกและเลือกห้องให้ครูโดยอัตโนมัติ
+                    let assignedRoom = res.room.replace('ม.', '').trim(); 
+                    let roomSelect = document.getElementById('info-room');
+                    roomSelect.value = assignedRoom;
+                    roomSelect.disabled = true; // ป้องกันครูเลือกห้องผิด
+                    
+                    // ดึงรายชื่อนักเรียนมาให้เลย (กันคนที่เคยทำแล้วออกด้วย)
+                    await loadStudents();
+                    enableNextBtn();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เข้าสู่ระบบสำเร็จ!',
+                        text: 'ระบบกำลังพาท่านไปทำประเมินนักเรียนห้อง ม.' + assignedRoom,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // พาทะลุไป Step 2 โดยอัตโนมัติ ไม่ต้องกดปุ่มถัดไปเอง
+                        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+                        currentStep = 2;
+                        document.getElementById(`step-2`).classList.add('active');
+                        
+                        document.getElementById('btn-prev').classList.remove('hidden');
+                        document.getElementById('btn-next').classList.remove('hidden');
+                        document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
+                        window.scrollTo(0, 0);
+                    });
+
+                } else {
+                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error').then(() => {
+                        document.getElementById('role-teacher').checked = false;
+                        disableNextBtn();
+                    });
+                }
+            } else {
+                document.getElementById('role-teacher').checked = false;
+                disableNextBtn();
+            }
+        }
+
+        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (Popup ใส่รหัสผ่าน) ---
         async function accessReportSDQ() {
             const { value: formValues } = await Swal.fire({
                 title: 'ประมวลผล SDQ',
@@ -446,7 +522,6 @@
             const previewCard = document.getElementById('student-preview-card');
             const noticeEl = document.getElementById('assessed-notice');
 
-            // Reset
             studentSelect.innerHTML = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
             document.getElementById('info-id').value = '';
             document.getElementById('info-name').value = '';
@@ -470,6 +545,7 @@
                 let assessedCount = 0;
 
                 res.data.forEach(s => {
+                    // หากถูกประเมินไปแล้วในโหมดนี้ ให้นับจำนวนไว้ ไม่ให้ขึ้นเป็น Option
                     if (s.isAssessed) {
                         assessedCount++;
                     } else {
@@ -606,9 +682,11 @@
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
             if (currentStep === 2 && dir === 1) {
-                // เมื่อมาหน้า 2 ให้สามารถเลือกห้องได้อิสระ ไม่ว่าจะโหมดไหน
-                document.getElementById('info-room').disabled = false;
-                if (document.getElementById('info-room').value) {
+                // หากย้อนมาหน้า 2 แล้วเป็นโหมดปกตินักเรียน/ผู้ปกครอง ให้เลือกห้องได้
+                if (selectedRole !== 'ครู') {
+                    document.getElementById('info-room').disabled = false;
+                }
+                if (document.getElementById('info-room').value && document.getElementById('info-student').options.length <= 1) {
                     loadStudents();
                 }
             }
@@ -801,11 +879,19 @@
             if (res && res.success) {
                 Swal.fire({
                     title: 'บันทึกสำเร็จ!',
-                    text: 'ขอบคุณที่ให้ความร่วมมือในการทำแบบประเมินครับ',
+                    text: 'ระบบได้จัดเก็บข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว',
                     icon: 'success',
-                    confirmButtonColor: '#0369a1'
+                    confirmButtonColor: '#0ea5e9',
+                    timer: 1500,
+                    showConfirmButton: false
                 }).then(() => {
-                    location.reload(); 
+                    if (selectedRole === 'ครู') {
+                        // 🌟 หากเป็นครู ให้ระบบดึงรายชื่อคนถัดไปมาให้เลย ไม่ต้องกลับไปหน้าแรก
+                        handleNextStudentAuto();
+                    } else {
+                        // นักเรียน/ผู้ปกครอง ทำเสร็จ 1 ครั้ง รีโหลดเริ่มใหม่
+                        location.reload(); 
+                    }
                 });
             } else {
                 Swal.fire('ข้อผิดพลาด', res ? res.error : 'บันทึกข้อมูลล้มเหลว', 'error');
@@ -813,6 +899,82 @@
                 btn.disabled = false;
             }
         }
+
+        // --- 🌟 ฟังก์ชันเลื่อนนักเรียนคนต่อไปอัตโนมัติ สำหรับครู ---
+        async function handleNextStudentAuto() {
+            // ล้างจุดติ๊กต่างๆ ในฟอร์ม 25 ข้อให้เกลี้ยง
+            resetAssessmentForm();
+            
+            // โหลดข้อมูลนักเรียนในห้องที่ครูล็อกไว้อีกครั้ง (เพื่อตัดคนที่ทำแล้วออกไปจากลิสต์)
+            await loadStudents();
+            
+            const studentSelect = document.getElementById('info-student');
+            
+            // เช็คว่ายังมีนักเรียนเหลือในตัวเลือกไหม (ช่องแรกคือ placeholder "--เลือกชื่อ--")
+            if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
+                let nextStudentName = studentSelect.options[1].text; 
+                studentSelect.selectedIndex = 1; // บังคับเลือกคนแรกสุดที่เหลือในลิสต์ให้เลย
+                fillStudentInfo(); // อัปเดตรูป/ข้อมูลการ์ด
+                
+                // พาย้อนกลับไปที่หน้าแสดงรูป (Step 2)
+                document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+                currentStep = 2;
+                document.getElementById(`step-2`).classList.add('active');
+                
+                document.getElementById('btn-prev').classList.remove('hidden');
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
+                enableNextBtn();
+                window.scrollTo(0, 0);
+
+                Swal.fire({
+                    title: 'เตรียมประเมินคนถัดไป',
+                    html: `นักเรียนคนต่อไป:<br><span class="text-xl font-bold text-ocean-600 mt-2 block">${nextStudentName}</span>`,
+                    icon: 'info',
+                    confirmButtonText: 'เริ่มประเมิน',
+                    confirmButtonColor: '#0ea5e9',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                
+            } else {
+                // หากทำจนลิสต์นักเรียนหมดแล้ว
+                Swal.fire({
+                    title: 'ยอดเยี่ยม!',
+                    text: 'ท่านได้ประเมินนักเรียนครบทุกคนในห้องนี้แล้วครับ 🎉',
+                    icon: 'success',
+                    confirmButtonText: 'กลับหน้าแรก',
+                    confirmButtonColor: '#0369a1'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+            
+            // คืนค่าปุ่มส่ง
+            const btn = document.getElementById('btn-final-submit');
+            btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
+            btn.disabled = false;
+        }
+
+        // ล้างฟอร์ม
+        function resetAssessmentForm() {
+            for(let i=1; i<=25; i++) {
+                document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
+            }
+            document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
+            
+            const details = document.getElementById('impact-details');
+            details.classList.add('hidden');
+            details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
+            
+            const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
+            names.forEach(n => {
+                document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
+            });
+            
+            finalResults = {};
+        }
+
     </script>
 </body>
 </html>
