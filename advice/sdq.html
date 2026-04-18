@@ -17,9 +17,7 @@
                 extend: {
                     fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
                     colors: {
-                        /* 🌊 โทนสีฟ้าน้ำทะเลลึก (Deep Sea Blue) */
                         ocean: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#082f49' },
-                        /* 🪷 โทนสีชมพูกลีบดอกบัว (Lotus Petal Pink) */
                         lotus: { 50: '#fdf2f8', 100: '#fce7f3', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 900: '#831843' }
                     }
                 }
@@ -42,7 +40,6 @@
             color: #64748b; background: white; transition: all 0.2s ease;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        /* เมื่อกดเลือกข้อ จะเปลี่ยนเป็นสีชมพูกลีบบัว */
         .radio-group input[type="radio"]:checked + label {
             background-color: #fdf2f8; border-color: #db2777; color: #be185d; font-weight: 600;
             box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.1);
@@ -53,7 +50,6 @@
             border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 16px;
             cursor: pointer; transition: all 0.2s ease; background: white; height: 100%;
         }
-        /* เมื่อกดเลือก Role จะเปลี่ยนเป็นฟ้าน้ำทะเล */
         .role-card input[type="radio"]:checked + label {
             border-color: #0369a1; background-color: #f0f9ff; box-shadow: 0 10px 15px -3px rgba(3, 105, 161, 0.1);
         }
@@ -70,21 +66,20 @@
 </head>
 <body class="antialiased">
 
-    <!-- Navbar ธีมฟ้าน้ำทะเลลึก -->
+    <!-- Navbar -->
     <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between text-white">
             <div class="flex items-center gap-3">
-                <!-- 🌟 เพิ่มโลโก้โรงเรียนบัวใหญ่ -->
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
                     <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
-                    <p class="text-xs text-ocean-100 hidden sm:block">ระบบคัดกรองนักเรียน Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+                    <p class="text-xs text-ocean-100 hidden sm:block">ระบบคัดกรองนักเรียน Buayai I-Care School</p>
                 </div>
             </div>
             
             <div class="flex items-center gap-2">
                 <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
-                <!-- 🌟 ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
+                <!-- ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
                 <button onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition hidden md:flex items-center">
                     <i class="ph-bold ph-chart-pie-slice me-1"></i> ประมวลผล SDQ
                 </button>
@@ -93,7 +88,6 @@
                 </button>
             </div>
         </div>
-        <!-- Progress Bar สีชมพูกลีบดอกบัว -->
         <div class="w-full bg-ocean-800 h-1.5">
             <div id="progress-bar" class="bg-lotus-500 h-1.5 transition-all duration-300" style="width: 20%"></div>
         </div>
@@ -111,7 +105,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <!-- ตนเอง -->
                 <div class="role-card text-center">
                     <input type="radio" name="assessorRole" id="role-student" value="นักเรียน" onchange="handleRoleSelection('นักเรียน')">
                     <label for="role-student" class="flex flex-col items-center">
@@ -120,7 +113,6 @@
                         <p class="text-sm text-slate-500 mt-1">ประเมินพฤติกรรมและความรู้สึกของตนเอง</p>
                     </label>
                 </div>
-                <!-- ผู้ปกครอง -->
                 <div class="role-card text-center">
                     <input type="radio" name="assessorRole" id="role-parent" value="ผู้ปกครอง" onchange="handleRoleSelection('ผู้ปกครอง')">
                     <label for="role-parent" class="flex flex-col items-center">
@@ -129,7 +121,6 @@
                         <p class="text-sm text-slate-500 mt-1">ประเมินบุตรหลานในความดูแลของท่าน</p>
                     </label>
                 </div>
-                <!-- ครู -->
                 <div class="role-card text-center">
                     <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="handleRoleSelection('ครู')">
                     <label for="role-teacher" class="flex flex-col items-center">
@@ -166,7 +157,6 @@
                         <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
                             <option value="">-- โปรดเลือกห้องก่อน --</option>
                         </select>
-                        <!-- 🌟 ข้อความแจ้งเตือนกรณียกชื่อออก -->
                         <div id="assessed-notice" class="text-danger small mt-2 p-2 bg-red-50 rounded-2 border border-red-200" style="display:none; line-height: 1.4;"></div>
                     </div>
                     
@@ -314,7 +304,7 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbwqZ1VnQnXY-D3oU3Hn6E_h-r2yM8KxN9kPjZtXhY0-fH8_n4yK8Tz0L_hPzL8G1y8N/exec"; 
 
         // --- Data Definitions ---
         const questionSets = {
@@ -338,7 +328,7 @@
         
         let currentRoomStudents = [];
 
-        // --- 🌟 สร้างตัวเลือกระดับชั้นอัตโนมัติ ---
+        // 🌟 สร้างตัวเลือกระดับชั้นอัตโนมัติ
         window.addEventListener('DOMContentLoaded', () => {
             let optionsHtml = '<option value="">-- เลือกห้องเรียน --</option>';
             for (let m = 1; m <= 6; m++) {
@@ -355,6 +345,43 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
+        // 🌟 แก้ไข: Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) พร้อมเพิ่ม Content-Type text/plain
+        async function fetchAPI(payload, btnId) {
+            if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
+                Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
+                return { success: false, error: "Missing API URL" };
+            }
+
+            let btn, originalText;
+            if(btnId) {
+                btn = document.getElementById(btnId);
+                originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังประมวลผล...';
+                btn.disabled = true;
+            }
+            try {
+                // บังคับส่งแบบ text/plain เพื่อป้องกันเบราว์เซอร์บางตัว (เช่น Safari) ติดปัญหา CORS Preflight
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const responseText = await response.text();
+                try {
+                    return JSON.parse(responseText);
+                } catch(e) {
+                    console.error("Parse Error:", responseText);
+                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (ตรวจสอบการ Deploy ให้เป็น Anyone)" };
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือ URL ไม่ถูกต้อง" };
+            } finally {
+                if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
+            }
+        }
+
         // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (รวมการ Login ของครู) ---
         function handleRoleSelection(role) {
             if (role === 'ครู') {
@@ -366,7 +393,7 @@
             }
         }
 
-        // --- 🌟 หน้าต่าง Login ครู และ การประมวลผล ---
+        // --- 🌟 หน้าต่าง Login ครู และ การประมวลผล (แก้ไขให้พาทะลุไป Step 2) ---
         async function checkTeacherLogin() {
             const { value: formValues } = await Swal.fire({
                 title: 'เข้าสู่ระบบครูที่ปรึกษา',
@@ -391,31 +418,38 @@
 
             if (formValues) {
                 Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-                try {
-                    const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
-                    if (res && res.success) {
-                        Swal.close();
-                        selectedRole = "ครู";
-                        setupFormByRole(selectedRole);
-                        
-                        // ล็อกและเลือกห้องให้ครูโดยอัตโนมัติ
-                        let assignedRoom = res.room.replace('ม.', '').trim(); 
-                        let roomSelect = document.getElementById('info-room');
-                        roomSelect.value = assignedRoom;
-                        roomSelect.disabled = true; // ป้องกันการเลือกห้องผิด
-                        
-                        loadStudents(); // ดึงรายชื่ออัตโนมัติ
-                        enableNextBtn();
-                    } else {
-                        Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error').then(() => {
-                            document.getElementById('role-teacher').checked = false;
-                            disableNextBtn();
-                        });
-                    }
-                } catch(e) {
-                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error');
-                    document.getElementById('role-teacher').checked = false;
-                    disableNextBtn();
+                
+                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                
+                if (res && res.success) {
+                    selectedRole = "ครู";
+                    setupFormByRole(selectedRole);
+                    
+                    // ล็อกและเลือกห้องให้ครูโดยอัตโนมัติ
+                    let assignedRoom = res.room.replace('ม.', '').trim(); 
+                    let roomSelect = document.getElementById('info-room');
+                    roomSelect.value = assignedRoom;
+                    roomSelect.disabled = true; // ป้องกันการเลือกห้องผิด
+                    
+                    loadStudents(); // ดึงรายชื่ออัตโนมัติ
+                    enableNextBtn();
+
+                    // 🌟 พาทะลุไป Step 2 โดยอัตโนมัติ ไม่ต้องให้ครูกด "ถัดไป" เอง
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เข้าสู่ระบบสำเร็จ!',
+                        text: 'กำลังพาท่านไปยังหน้าถัดไป...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        navigate(1);
+                    });
+
+                } else {
+                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'การเชื่อมต่อผิดพลาด', 'error').then(() => {
+                        document.getElementById('role-teacher').checked = false;
+                        disableNextBtn();
+                    });
                 }
             } else {
                 document.getElementById('role-teacher').checked = false;
@@ -449,23 +483,20 @@
 
             if (formValues) {
                 Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-                try {
-                    const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
-                    if (res && res.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'ยืนยันสำเร็จ',
-                            text: 'กำลังเปิดหน้ารายงาน...',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.href = 'report_sdq.html'; // พาไปหน้ารายงาน
-                        });
-                    } else {
-                        Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
-                    }
-                } catch(e) {
-                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error');
+                
+                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                if (res && res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ยืนยันสำเร็จ',
+                        text: 'กำลังเปิดหน้ารายงาน...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'report_sdq.html'; // พาไปหน้ารายงาน
+                    });
+                } else {
+                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'การเชื่อมต่อผิดพลาด', 'error');
                 }
             }
         }
@@ -493,51 +524,38 @@
             studentSelect.innerHTML = '<option value="">กำลังโหลดรายชื่อ...</option>';
             studentSelect.disabled = true;
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    // ส่งโหมดผู้ประเมินไปให้หลังบ้านตรวจสอบคนทำซ้ำด้วย
-                    body: JSON.stringify({ action: 'getStudents', room: room, assessorType: selectedRole })
-                });
-                const res = await response.json();
+            const res = await fetchAPI({ action: 'getStudents', room: room, assessorType: selectedRole }, null);
 
-                if (res.success) {
-                    currentRoomStudents = res.data;
-                    let html = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
-                    let assessedCount = 0;
+            if (res && res.success) {
+                currentRoomStudents = res.data;
+                let html = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
+                let assessedCount = 0;
 
-                    res.data.forEach(s => {
-                        // 🌟 หากประเมินแล้ว ให้นับจำนวนและไม่ใส่ใน dropdown
-                        if (s.isAssessed) {
-                            assessedCount++;
-                        } else {
-                            html += `<option value="${s.id}">${s.no ? s.no + '.' : ''} ${s.name}</option>`;
-                        }
-                    });
-                    
-                    studentSelect.innerHTML = html;
-                    
-                    // ถ้าทำครบทุกคนแล้วในห้อง
-                    if (res.data.length > 0 && assessedCount === res.data.length) {
-                        studentSelect.innerHTML = '<option value="">ประเมินครบทุกคนแล้ว</option>';
-                        studentSelect.disabled = true;
+                res.data.forEach(s => {
+                    if (s.isAssessed) {
+                        assessedCount++;
                     } else {
-                        studentSelect.disabled = false;
+                        html += `<option value="${s.id}">${s.no ? s.no + '.' : ''} ${s.name}</option>`;
                     }
-
-                    // 🌟 แสดงแจ้งเตือนคนถูกตัดออก
-                    if (assessedCount > 0) {
-                        noticeEl.innerHTML = `<i class="bi bi-info-circle-fill"></i> มีนักเรียน <b>${assessedCount}</b> คน ได้รับการประเมินในโหมด "${selectedRole}" ไปแล้ว ระบบจึงซ่อนรายชื่อออกไปครับ หากต้องการเปลี่ยนแปลงแก้ไขโปรดติดต่อครูที่ปรึกษา`;
-                        noticeEl.style.display = 'block';
-                    }
-
+                });
+                
+                studentSelect.innerHTML = html;
+                
+                if (res.data.length > 0 && assessedCount === res.data.length) {
+                    studentSelect.innerHTML = '<option value="">ประเมินครบทุกคนแล้ว</option>';
+                    studentSelect.disabled = true;
                 } else {
-                    studentSelect.innerHTML = '<option value="">ไม่พบข้อมูลห้องนี้</option>';
-                    Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                    studentSelect.disabled = false;
                 }
-            } catch(e) {
+
+                if (assessedCount > 0) {
+                    noticeEl.innerHTML = `<i class="bi bi-info-circle-fill"></i> มีนักเรียน <b>${assessedCount}</b> คน ได้รับการประเมินในโหมด "${selectedRole}" ไปแล้ว ระบบจึงซ่อนรายชื่อออกไปครับ หากต้องการเปลี่ยนแปลงแก้ไขโปรดติดต่อครูที่ปรึกษา`;
+                    noticeEl.style.display = 'block';
+                }
+
+            } else {
                 studentSelect.innerHTML = '<option value="">เชื่อมต่อล้มเหลว</option>';
-                Swal.fire('การเชื่อมต่อล้มเหลว', 'โปรดตรวจสอบสัญญาณอินเทอร์เน็ตของท่าน', 'error');
+                Swal.fire('ข้อผิดพลาด', res ? res.error : 'ไม่สามารถดึงข้อมูลได้', 'error');
             }
         }
 
@@ -564,7 +582,6 @@
                 document.getElementById('preview-dob').innerText = student.dob || '-';
                 document.getElementById('preview-cid').innerText = student.cid || '-';
 
-                // 🌟 ระบบจัดการรูปภาพแบบใหม่ รองรับทั้ง id= และ /d/
                 let photoUrl = student.photo;
                 let fileId = null;
                 if (photoUrl) {
@@ -577,7 +594,7 @@
                 if (fileId) {
                     document.getElementById('preview-photo').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
                 } else {
-                    document.getElementById('preview-photo').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // รูปแทนกรณีหาไม่เจอ
+                    document.getElementById('preview-photo').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
                 }
 
                 previewCard.classList.remove('hidden');
@@ -649,7 +666,6 @@
             document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
-            // Reload students if returning to step 2 so exclusion logic is applied correctly for the role
             if (currentStep === 2 && dir === 1) {
                 if (selectedRole !== 'ครู') {
                     document.getElementById('info-room').disabled = false;
@@ -789,7 +805,6 @@
             }
             interpret.impact = impactStr;
 
-            // รวบรวมคำตอบดิบ
             let rawAns = [];
             for(let i=1; i<=25; i++) rawAns.push(document.querySelector(`input[name="q${i}"]:checked`).value);
 
@@ -843,30 +858,19 @@
                 interpret: finalResults.interpret
             };
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
+            const res = await fetchAPI(payload, null);
+            
+            if (res && res.success) {
+                Swal.fire({
+                    title: 'บันทึกสำเร็จ!',
+                    text: 'ขอบคุณที่ให้ความร่วมมือในการทำแบบประเมินครับ',
+                    icon: 'success',
+                    confirmButtonColor: '#0369a1'
+                }).then(() => {
+                    location.reload(); 
                 });
-                const res = await response.json();
-
-                if (res.success) {
-                    Swal.fire({
-                        title: 'บันทึกสำเร็จ!',
-                        text: 'ขอบคุณที่ให้ความร่วมมือในการทำแบบประเมินครับ',
-                        icon: 'success',
-                        confirmButtonColor: '#0369a1'
-                    }).then(() => {
-                        location.reload(); 
-                    });
-                } else {
-                    Swal.fire('ข้อผิดพลาด', res.error, 'error');
-                    btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                Swal.fire('เชื่อมต่อล้มเหลว', 'ตรวจสอบอินเทอร์เน็ตของท่านอีกครั้ง', 'error');
+            } else {
+                Swal.fire('ข้อผิดพลาด', res ? res.error : 'บันทึกข้อมูลล้มเหลว', 'error');
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
                 btn.disabled = false;
             }
