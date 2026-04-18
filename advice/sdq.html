@@ -17,7 +17,9 @@
                 extend: {
                     fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
                     colors: {
+                        /* 🌊 โทนสีฟ้าน้ำทะเลลึก (Deep Sea Blue) */
                         ocean: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#082f49' },
+                        /* 🪷 โทนสีชมพูกลีบดอกบัว (Lotus Petal Pink) */
                         lotus: { 50: '#fdf2f8', 100: '#fce7f3', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 900: '#831843' }
                     }
                 }
@@ -310,7 +312,7 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbwqZ1VnQnXY-D3oU3Hn6E_h-r2yM8KxN9kPjZtXhY0-fH8_n4yK8Tz0L_hPzL8G1y8N/exec"; 
 
         // --- Data Definitions ---
         const questionSets = {
@@ -892,6 +894,7 @@
             
             // ถ้ายังมีนักเรียนให้ประเมินต่อ (ช่องแรกคือ placeholder, ช่องสองคือชื่อนักเรียนจริงๆ)
             if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
+                let nextStudentName = studentSelect.options[1].text; // ดึงชื่อเด็กออกมาแสดงให้ครูเห็น
                 studentSelect.selectedIndex = 1; // บังคับเลือกคนแรกสุดในลิสต์ที่ยังไม่ได้ทำ
                 fillStudentInfo(); // ดึงรูปและข้อมูลมาโชว์ที่การ์ดพรีวิว
                 
@@ -907,15 +910,15 @@
                 
                 window.scrollTo(0, 0);
 
-                // เด้งแจ้งเตือนแบบ Toast (เล็กๆ มุมขวาบน) ไม่เกะกะจอ
+                // 🌟 สื่อสารให้ชัดเจนขึ้น แจ้งชื่อเด็กให้ครูทราบอย่างโดดเด่นกลางหน้าจอ
                 Swal.fire({
-                    title: 'เตรียมประเมินคนถัดไป',
-                    text: 'ระบบได้ดึงรายชื่อนักเรียนคนถัดไปให้ท่านอัตโนมัติแล้วครับ',
+                    title: 'ระบบเลือกนักเรียนคนถัดไป',
+                    html: `กำลังเตรียมแบบประเมินสำหรับ:<br><span class="text-xl font-bold text-ocean-600 mt-2 block">${nextStudentName}</span><br><span class="text-sm text-slate-500">กรุณาตรวจสอบข้อมูลก่อนเริ่มทำแบบประเมินครับ</span>`,
                     icon: 'info',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
+                    confirmButtonText: 'รับทราบและเริ่มประเมิน',
+                    confirmButtonColor: '#0ea5e9',
+                    timer: 4000,
+                    timerProgressBar: true
                 });
                 
             } else {
