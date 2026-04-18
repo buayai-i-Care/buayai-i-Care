@@ -310,7 +310,7 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwqZ1VnQnXY-D3oU3Hn6E_h-r2yM8KxN9kPjZtXhY0-fH8_n4yK8Tz0L_hPzL8G1y8N/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
 
         // --- Data Definitions ---
         const questionSets = {
@@ -412,7 +412,7 @@
             }
         }
 
-        // 🌟 Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) พร้อมเพิ่ม Content-Type text/plain
+        // 🌟 แก้ไขด่วน: Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -427,10 +427,9 @@
                 btn.disabled = true;
             }
             try {
-                // บังคับส่งแบบ text/plain เพื่อป้องกันเบราว์เซอร์บางตัว (เช่น Safari) ติดปัญหา CORS Preflight
+                // 🚀 ลบ headers ออกทั้งหมด บังคับให้เป็น Simple Request ไม่ถูก Google/Browser บล็อก
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 
@@ -439,11 +438,11 @@
                     return JSON.parse(responseText);
                 } catch(e) {
                     console.error("Parse Error:", responseText);
-                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (ตรวจสอบการ Deploy ให้เป็น Anyone)" };
+                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (ตรวจสอบการ Deploy ให้เป็น 'ทุกคน/Anyone')" };
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือ URL ไม่ถูกต้อง" };
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง กรุณาตรวจสอบลิงก์ Web App" };
             } finally {
                 if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
             }
