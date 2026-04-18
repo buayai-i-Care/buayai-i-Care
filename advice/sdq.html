@@ -17,9 +17,7 @@
                 extend: {
                     fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
                     colors: {
-                        /* 🌊 โทนสีฟ้าน้ำทะเลลึก (Deep Sea Blue) */
                         ocean: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#082f49' },
-                        /* 🪷 โทนสีชมพูกลีบดอกบัว (Lotus Petal Pink) */
                         lotus: { 50: '#fdf2f8', 100: '#fce7f3', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 900: '#831843' }
                     }
                 }
@@ -42,7 +40,6 @@
             color: #64748b; background: white; transition: all 0.2s ease;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        /* เมื่อกดเลือกข้อ จะเปลี่ยนเป็นสีชมพูกลีบบัว */
         .radio-group input[type="radio"]:checked + label {
             background-color: #fdf2f8; border-color: #db2777; color: #be185d; font-weight: 600;
             box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.1);
@@ -53,7 +50,6 @@
             border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 16px;
             cursor: pointer; transition: all 0.2s ease; background: white; height: 100%;
         }
-        /* เมื่อกดเลือก Role จะเปลี่ยนเป็นฟ้าน้ำทะเล */
         .role-card input[type="radio"]:checked + label {
             border-color: #0369a1; background-color: #f0f9ff; box-shadow: 0 10px 15px -3px rgba(3, 105, 161, 0.1);
         }
@@ -70,10 +66,10 @@
 </head>
 <body class="antialiased">
 
-    <!-- Navbar ธีมฟ้าน้ำทะเลลึก -->
+    <!-- Navbar -->
     <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between text-white">
-            <div class="flex items-center gap-3" style="cursor: pointer;" onclick="handleLogoClick()" title="แตะ 5 ครั้งเพื่อบังคับเปิดโหมดครู (สำหรับทดสอบ)">
+            <div class="flex items-center gap-3" style="cursor: pointer;" onclick="handleLogoClick()" title="แตะ 5 ครั้งเพื่อบังคับเปิดโหมดครู">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
                     <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
@@ -83,7 +79,6 @@
             
             <div class="flex items-center gap-2">
                 <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
-                <!-- 🌟 ปุ่มเข้าสู่หน้าประมวลผล SDQ (จะถูกซ่อนโดยปริยาย และเปิดให้เฉพาะครู/แอดมินที่ล็อกอินมาแล้ว) -->
                 <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center d-none">
                     <i class="ph-bold ph-chart-pie-slice me-1"></i> ประมวลผล SDQ
                 </button>
@@ -92,7 +87,6 @@
                 </button>
             </div>
         </div>
-        <!-- Progress Bar สีชมพูกลีบดอกบัว -->
         <div class="w-full bg-ocean-800 h-1.5">
             <div id="progress-bar" class="bg-lotus-500 h-1.5 transition-all duration-300" style="width: 20%"></div>
         </div>
@@ -128,7 +122,7 @@
                         <p class="text-sm text-slate-500 mt-1">ประเมินบุตรหลานในความดูแลของท่าน</p>
                     </label>
                 </div>
-                <!-- ครู (จะถูกซ่อนหากไม่ได้ล็อกอินมาจากหน้า Portal) -->
+                <!-- ครู -->
                 <div class="role-card text-center" id="card-role-teacher" style="display: none;">
                     <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="handleRoleSelection('ครู')">
                     <label for="role-teacher" class="flex flex-col items-center">
@@ -165,6 +159,7 @@
                         <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
                             <option value="">-- โปรดเลือกห้องก่อน --</option>
                         </select>
+                        <!-- ข้อความแจ้งเตือนกรณียกชื่อออก -->
                         <div id="assessed-notice" class="text-danger small mt-2 p-2 bg-red-50 rounded-2 border border-red-200" style="display:none; line-height: 1.4;"></div>
                     </div>
                     
@@ -339,10 +334,9 @@
         // 🌟 ตัวแปรเก็บรหัสผู้ใช้งานและสถานะแอดมิน
         let currentUserUid = null;
         let isTeacherOrAdmin = false;
-        let logoClickCount = 0; // ตัวแปรสำหรับทริกเกอร์สูตรลับ
+        let logoClickCount = 0; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            // 1. ตรวจสอบสิทธิ์จาก URL Parameter หรือ Storage (ดึงจากหน้า Portal)
             const urlParams = new URLSearchParams(window.location.search);
             currentUserUid = urlParams.get('uid') || sessionStorage.getItem('teacher_pw_auto') || sessionStorage.getItem('admin_pw_auto') || sessionStorage.getItem('superadmin_pw_auto') || localStorage.getItem('teacher_pw_auto');
 
@@ -352,23 +346,19 @@
             const btnDesktop = document.getElementById('btn-process-sdq-desktop');
             const btnMobile = document.getElementById('btn-process-sdq-mobile');
 
-            // 🌟 2. แสดงเมนูและปุ่ม ตามสถานะผู้ใช้งาน
             if (currentUserUid && (currentUserUid.startsWith('t') || currentUserUid.startsWith('m') || currentUserUid === 'kkss')) {
                 isTeacherOrAdmin = true;
-                // แสดงการ์ดเมนูครู
                 if (cardTeacher) cardTeacher.style.display = 'block'; 
-                // แสดงปุ่มประมวลผล SDQ ด้านบน
                 if (btnDesktop) btnDesktop.classList.remove('d-none'); 
                 if (btnMobile) btnMobile.classList.remove('d-none');
             } else {
                 isTeacherOrAdmin = false;
-                // หากเป็นนักเรียน/ผู้ปกครอง ให้ซ่อนการ์ดครูและปุ่มด้านบนทิ้งไปเลย
                 if (cardTeacher) cardTeacher.style.display = 'none';
                 if (btnDesktop) btnDesktop.classList.add('d-none');
                 if (btnMobile) btnMobile.classList.add('d-none');
             }
 
-            // 3. สร้างตัวเลือกระดับชั้นอัตโนมัติ
+            // สร้างตัวเลือกระดับชั้นอัตโนมัติ
             let optionsHtml = '<option value="">-- เลือกห้องเรียน --</option>';
             for (let m = 1; m <= 6; m++) {
                 let maxRooms = 10;
@@ -388,7 +378,7 @@
         function handleLogoClick() {
             logoClickCount++;
             if (logoClickCount >= 5) {
-                logoClickCount = 0; // รีเซ็ต
+                logoClickCount = 0; 
                 if (!isTeacherOrAdmin) {
                     Swal.fire({
                         title: '🔒 โหมดผู้ดูแลระบบ',
@@ -403,7 +393,6 @@
                         if (result.isConfirmed && result.value) {
                             currentUserUid = result.value.toLowerCase();
                             isTeacherOrAdmin = true;
-                            // โชว์เมนูที่ถูกซ่อน
                             document.getElementById('card-role-teacher').style.display = 'block';
                             document.getElementById('btn-process-sdq-desktop').classList.remove('d-none');
                             document.getElementById('btn-process-sdq-mobile').classList.remove('d-none');
@@ -444,13 +433,13 @@
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง กรุณาตรวจสอบลิงก์ Web App" };
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือสัญญาณอินเทอร์เน็ตมีปัญหา" };
             } finally {
                 if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
             }
         }
 
-        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (อัปเดตใหม่ ไม่ต้องใช้รหัสผ่านซ้ำซ้อน) ---
+        // --- ฟังก์ชันจัดการการเลือกรุปแบบ ---
         function handleRoleSelection(role) {
             if (role === 'ครู') {
                 if (isTeacherOrAdmin) {
@@ -469,14 +458,12 @@
                         roomSelect.value = assignedRoom;
                         roomSelect.disabled = true; // ล็อกไม่ให้ครูเปลี่ยนห้องผิด
                     } else {
-                        // แอดมิน (m1-m6, kkss) ให้เลือกห้องเองได้อิสระ
                         roomSelect.disabled = false;
                     }
                     
                     enableNextBtn();
                     navigate(1); // 🌟 พาทะลุไป Step 2 อัตโนมัติ โดยไม่ต้องให้ครูกด "ถัดไป"
                 } else {
-                    // กันเหนียวกรณีเข้ามาแบบนักเรียนแต่พยายามแฮกปุ่ม
                     Swal.fire('ปฏิเสธการเข้าถึง', 'ท่านไม่มีสิทธิ์เข้าถึงเมนูสำหรับคุณครูครับ', 'warning');
                     document.getElementById('role-teacher').checked = false;
                 }
@@ -487,7 +474,6 @@
             }
         }
 
-        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (อัปเดตใหม่ ไม่ต้องกรอกรหัสผ่าน) ---
         function accessReportSDQ() {
             if (isTeacherOrAdmin) {
                 Swal.fire({
@@ -497,13 +483,12 @@
                     timer: 1500,
                     didOpen: () => Swal.showLoading()
                 }).then(() => {
-                    // ส่ง uid ไปให้หน้ารายงาน เพื่อให้ระบบเปิดล็อกห้องอัตโนมัติ
                     window.location.href = 'report_sdq.html?uid=' + encodeURIComponent(currentUserUid);
                 });
             }
         }
 
-        // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
+        // --- ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
             const room = document.getElementById('info-room').value;
             const studentSelect = document.getElementById('info-student');
@@ -562,7 +547,6 @@
             }
         }
 
-        // --- 🌟 ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว ---
         function fillStudentInfo() {
             const studentId = document.getElementById('info-student').value;
             const previewCard = document.getElementById('student-preview-card');
@@ -670,8 +654,8 @@
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
             if (currentStep === 2 && dir === 1) {
-                // 🌟 หากเดินหน้ามาที่หน้า 2 ให้ดึงรายชื่อ (ป้องกันการดึงซ้ำจากการกด Role Selection)
-                if (document.getElementById('info-room').value) {
+                // หากหน้า 2 เปิดขึ้น และมีห้องเลือกไว้อยู่แล้ว (กรณีครูล็อกอิน) ให้ดึงรายชื่อ
+                if (document.getElementById('info-room').value && document.getElementById('info-student').options.length <= 1) {
                     loadStudents();
                 }
             }
@@ -682,7 +666,6 @@
             window.scrollTo(0, 0);
         }
 
-        // --- Dynamic Form Generation ---
         function setupFormByRole(role) {
             const badge = document.getElementById('header-role-badge');
             let roleText = role === 'นักเรียน' ? 'นักเรียนประเมินตนเอง' : (role === 'ผู้ปกครอง' ? 'ผู้ปกครองประเมิน' : 'ครูประเมินนักเรียน');
@@ -740,7 +723,6 @@
             }
         }
 
-        // --- Calculation Logic ---
         function calculateFinalScores() {
             let s = { emotion: 0, conduct: 0, hyper: 0, peer: 0, prosocial: 0 };
             
@@ -868,7 +850,6 @@
                     icon: 'success',
                     confirmButtonColor: '#0369a1'
                 }).then(() => {
-                    // 🌟 ถ้าเป็นโหมดครู ให้ดึงนักเรียนคนถัดไปให้เลยอัตโนมัติ
                     if (selectedRole === 'ครู') {
                         handleNextStudentAuto();
                     } else {
@@ -882,23 +863,16 @@
             }
         }
 
-        // 🌟 ฟังก์ชันจัดการนักเรียนคนถัดไปอัตโนมัติ (เฉพาะโหมดครู)
         async function handleNextStudentAuto() {
-            // ล้างข้อมูลในฟอร์มให้เกลี้ยง
             resetAssessmentForm();
-            
-            // โหลดข้อมูลนักเรียนในห้องอีกครั้ง เพื่อกรองคนที่ทำไปแล้วออก
             await loadStudents();
-            
             const studentSelect = document.getElementById('info-student');
             
-            // ถ้ายังมีนักเรียนให้ประเมินต่อ (ช่องแรกคือ placeholder, ช่องสองคือชื่อนักเรียนจริงๆ)
             if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
-                let nextStudentName = studentSelect.options[1].text; // ดึงชื่อเด็กออกมาแสดงให้ครูเห็น
-                studentSelect.selectedIndex = 1; // บังคับเลือกคนแรกสุดในลิสต์ที่ยังไม่ได้ทำ
-                fillStudentInfo(); // ดึงรูปและข้อมูลมาโชว์ที่การ์ดพรีวิว
+                let nextStudentName = studentSelect.options[1].text; 
+                studentSelect.selectedIndex = 1; 
+                fillStudentInfo(); 
                 
-                // พาย้อนกลับไปที่ Step 2 (หน้าข้อมูลนักเรียน) เพื่อให้ครูดูรูปและชื่อก่อนกดทำประเมิน
                 document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
                 currentStep = 2;
                 document.getElementById(`step-2`).classList.add('active');
@@ -910,7 +884,6 @@
                 
                 window.scrollTo(0, 0);
 
-                // 🌟 สื่อสารให้ชัดเจนขึ้น แจ้งชื่อเด็กให้ครูทราบอย่างโดดเด่นกลางหน้าจอ
                 Swal.fire({
                     title: 'ระบบเลือกนักเรียนคนถัดไป',
                     html: `กำลังเตรียมแบบประเมินสำหรับ:<br><span class="text-xl font-bold text-ocean-600 mt-2 block">${nextStudentName}</span><br><span class="text-sm text-slate-500">กรุณาตรวจสอบข้อมูลก่อนเริ่มทำแบบประเมินครับ</span>`,
@@ -922,7 +895,6 @@
                 });
                 
             } else {
-                // ถ้าทำครบทั้งห้องแล้ว
                 Swal.fire({
                     title: 'ยอดเยี่ยม!',
                     text: 'ท่านได้ประเมินนักเรียนครบทุกคนในห้องนี้แล้วครับ 🎉',
@@ -934,22 +906,17 @@
                 });
             }
             
-            // คืนค่าปุ่มส่งข้อมูลเผื่อไว้
             const btn = document.getElementById('btn-final-submit');
             btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
             btn.disabled = false;
         }
 
-        // 🌟 ฟังก์ชันล้างข้อมูลฟอร์ม
         function resetAssessmentForm() {
-            // ล้างจุดติ๊ก 25 ข้อ
             for(let i=1; i<=25; i++) {
                 document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
             }
-            // ล้างผลกระทบ
             document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
             
-            // ซ่อนและล้างคำถามย่อยของผลกระทบ
             const details = document.getElementById('impact-details');
             details.classList.add('hidden');
             details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
@@ -959,7 +926,7 @@
                 document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
             });
             
-            finalResults = {}; // ล้างคะแนนในหน่วยความจำ
+            finalResults = {};
         }
     </script>
 </body>
