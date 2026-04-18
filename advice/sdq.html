@@ -72,7 +72,6 @@
     <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between text-white">
             <div class="flex items-center gap-3">
-                <!-- 🌟 เพิ่มโลโก้โรงเรียนบัวใหญ่ -->
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
                     <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
@@ -109,7 +108,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <!-- ตนเอง -->
                 <div class="role-card text-center">
                     <input type="radio" name="assessorRole" id="role-student" value="นักเรียน" onchange="handleRoleSelection('นักเรียน')">
                     <label for="role-student" class="flex flex-col items-center">
@@ -118,7 +116,6 @@
                         <p class="text-sm text-slate-500 mt-1">ประเมินพฤติกรรมและความรู้สึกของตนเอง</p>
                     </label>
                 </div>
-                <!-- ผู้ปกครอง -->
                 <div class="role-card text-center">
                     <input type="radio" name="assessorRole" id="role-parent" value="ผู้ปกครอง" onchange="handleRoleSelection('ผู้ปกครอง')">
                     <label for="role-parent" class="flex flex-col items-center">
@@ -164,7 +161,6 @@
                         <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
                             <option value="">-- โปรดเลือกห้องก่อน --</option>
                         </select>
-                        <!-- 🌟 ข้อความแจ้งเตือนกรณียกชื่อออก -->
                         <div id="assessed-notice" class="text-danger small mt-2 p-2 bg-red-50 rounded-2 border border-red-200" style="display:none; line-height: 1.4;"></div>
                     </div>
                     
@@ -379,7 +375,7 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // 🌟 แก้ไข: Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) พร้อมเพิ่ม Content-Type text/plain
+        // 🌟 Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) พร้อมเพิ่ม Content-Type text/plain
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -416,7 +412,7 @@
             }
         }
 
-        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (อัปเดตใหม่ ไม่ต้องใช้รหัสผ่านซ้ำซ้อน) ---
+        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ ---
         function handleRoleSelection(role) {
             if (role === 'ครู') {
                 if (isTeacherOrAdmin) {
@@ -453,7 +449,7 @@
             }
         }
 
-        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (อัปเดตใหม่ ไม่ต้องกรอกรหัสผ่าน) ---
+        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน ---
         function accessReportSDQ() {
             if (isTeacherOrAdmin) {
                 Swal.fire({
@@ -522,8 +518,9 @@
                 }
 
             } else {
-                studentSelect.innerHTML = '<option value="">เชื่อมต่อล้มเหลว</option>';
-                Swal.fire('ข้อผิดพลาด', res ? res.error : 'ไม่สามารถดึงข้อมูลได้', 'error');
+                let errorMsg = res && res.error ? res.error : 'ไม่สามารถดึงข้อมูลได้';
+                studentSelect.innerHTML = `<option value="">❌ ${errorMsg}</option>`;
+                Swal.fire('ข้อผิดพลาด', errorMsg, 'error');
             }
         }
 
