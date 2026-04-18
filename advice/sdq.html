@@ -72,16 +72,26 @@
 
     <!-- Navbar ธีมฟ้าน้ำทะเลลึก -->
     <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between text-white">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between text-white">
             <div class="flex items-center gap-3">
                 <!-- 🌟 เพิ่มโลโก้โรงเรียนบัวใหญ่ -->
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
                     <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
-                    <p class="text-xs text-ocean-100">ระบบคัดกรองนักเรียน Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+                    <p class="text-xs text-ocean-100 hidden sm:block">ระบบคัดกรองนักเรียน Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
                 </div>
             </div>
-            <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
+            
+            <div class="flex items-center gap-2">
+                <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
+                <!-- 🌟 ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
+                <button onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition hidden md:flex items-center">
+                    <i class="ph-bold ph-chart-pie-slice me-1"></i> ประมวลผล SDQ
+                </button>
+                <button onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white p-2 rounded-full text-xs font-bold font-heading shadow-sm transition md:hidden flex items-center justify-center">
+                    <i class="ph-bold ph-chart-pie-slice"></i>
+                </button>
+            </div>
         </div>
         <!-- Progress Bar สีชมพูกลีบดอกบัว -->
         <div class="w-full bg-ocean-800 h-1.5">
@@ -103,7 +113,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <!-- ตนเอง -->
                 <div class="role-card text-center">
-                    <input type="radio" name="assessorRole" id="role-student" value="นักเรียน" onchange="enableNextBtn()">
+                    <input type="radio" name="assessorRole" id="role-student" value="นักเรียน" onchange="handleRoleSelection('นักเรียน')">
                     <label for="role-student" class="flex flex-col items-center">
                         <i class="ph-fill ph-student text-5xl text-ocean-500 mb-3"></i>
                         <h3 class="font-heading font-bold text-lg text-slate-800">นักเรียนประเมินตนเอง</h3>
@@ -112,7 +122,7 @@
                 </div>
                 <!-- ผู้ปกครอง -->
                 <div class="role-card text-center">
-                    <input type="radio" name="assessorRole" id="role-parent" value="ผู้ปกครอง" onchange="enableNextBtn()">
+                    <input type="radio" name="assessorRole" id="role-parent" value="ผู้ปกครอง" onchange="handleRoleSelection('ผู้ปกครอง')">
                     <label for="role-parent" class="flex flex-col items-center">
                         <i class="ph-fill ph-users-three text-5xl text-lotus-500 mb-3"></i>
                         <h3 class="font-heading font-bold text-lg text-slate-800">ผู้ปกครองประเมิน</h3>
@@ -121,7 +131,7 @@
                 </div>
                 <!-- ครู -->
                 <div class="role-card text-center">
-                    <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="enableNextBtn()">
+                    <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="handleRoleSelection('ครู')">
                     <label for="role-teacher" class="flex flex-col items-center">
                         <i class="ph-fill ph-chalkboard-teacher text-5xl text-blue-500 mb-3"></i>
                         <h3 class="font-heading font-bold text-lg text-slate-800">ครูประเมินนักเรียน</h3>
@@ -291,7 +301,7 @@
     </main>
 
     <!-- Sticky Footer Navigation -->
-    <div class="sticky-footer flex justify-between items-center max-w-3xl mx-auto">
+    <div class="sticky-footer flex justify-between items-center max-w-4xl mx-auto">
         <button id="btn-prev" class="px-5 py-2.5 rounded-xl font-bold text-ocean-700 bg-ocean-50 hover:bg-ocean-100 hidden transition duration-200" onclick="navigate(-1)">
             <i class="ph-bold ph-caret-left mr-1"></i> ย้อนกลับ
         </button>
@@ -302,7 +312,7 @@
 
     <script>
         // ====================================================
-        // ⚠️ ใส่ลิงก์ Web App API (ที่อัปเดตใหม่) ตรงนี้ ⚠️
+        // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
 
@@ -344,6 +354,121 @@
             }
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
+
+        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (รวมการ Login ของครู) ---
+        function handleRoleSelection(role) {
+            if (role === 'ครู') {
+                checkTeacherLogin();
+            } else {
+                selectedRole = role;
+                document.getElementById('info-room').disabled = false;
+                enableNextBtn();
+            }
+        }
+
+        // --- 🌟 หน้าต่าง Login ครู และ การประมวลผล ---
+        async function checkTeacherLogin() {
+            const { value: formValues } = await Swal.fire({
+                title: 'เข้าสู่ระบบครูที่ปรึกษา',
+                html:
+                    '<input id="swal-input-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น t11)">' +
+                    '<input id="swal-input-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0ea5e9',
+                preConfirm: () => {
+                    const user = document.getElementById('swal-input-user').value;
+                    const pass = document.getElementById('swal-input-pass').value;
+                    if(!user || !pass) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
+                    }
+                    return { user, pass };
+                }
+            });
+
+            if (formValues) {
+                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                try {
+                    const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                    if (res && res.success) {
+                        Swal.close();
+                        selectedRole = "ครู";
+                        setupFormByRole(selectedRole);
+                        
+                        // ล็อกและเลือกห้องให้ครูโดยอัตโนมัติ
+                        let assignedRoom = res.room.replace('ม.', '').trim(); 
+                        let roomSelect = document.getElementById('info-room');
+                        roomSelect.value = assignedRoom;
+                        roomSelect.disabled = true; // ป้องกันการเลือกห้องผิด
+                        
+                        loadStudents(); // ดึงรายชื่ออัตโนมัติ
+                        enableNextBtn();
+                    } else {
+                        Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error').then(() => {
+                            document.getElementById('role-teacher').checked = false;
+                            disableNextBtn();
+                        });
+                    }
+                } catch(e) {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error');
+                    document.getElementById('role-teacher').checked = false;
+                    disableNextBtn();
+                }
+            } else {
+                document.getElementById('role-teacher').checked = false;
+                disableNextBtn();
+            }
+        }
+
+        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน ---
+        async function accessReportSDQ() {
+            const { value: formValues } = await Swal.fire({
+                title: 'ประมวลผล SDQ',
+                html:
+                    '<div class="text-muted small mb-3">เฉพาะผู้ดูแลระบบและครูที่ปรึกษา</div>' +
+                    '<input id="swal-rep-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น m2, t11)">' +
+                    '<input id="swal-rep-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#db2777',
+                preConfirm: () => {
+                    const user = document.getElementById('swal-rep-user').value;
+                    const pass = document.getElementById('swal-rep-pass').value;
+                    if(!user || !pass) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
+                    }
+                    return { user, pass };
+                }
+            });
+
+            if (formValues) {
+                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                try {
+                    const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                    if (res && res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ยืนยันสำเร็จ',
+                            text: 'กำลังเปิดหน้ารายงาน...',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = 'report_sdq.html'; // พาไปหน้ารายงาน
+                        });
+                    } else {
+                        Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
+                    }
+                } catch(e) {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error');
+                }
+            }
+        }
 
         // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
@@ -524,10 +649,14 @@
             document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
-            // เคลียร์รายชื่อเพื่อบังคับโหลดใหม่ให้ตัดคนประเมินแล้วออก ถ้าย้อนกลับมา
+            // Reload students if returning to step 2 so exclusion logic is applied correctly for the role
             if (currentStep === 2 && dir === 1) {
-                document.getElementById('info-room').value = '';
-                fillStudentInfo();
+                if (selectedRole !== 'ครู') {
+                    document.getElementById('info-room').disabled = false;
+                }
+                if (document.getElementById('info-room').value) {
+                    loadStudents();
+                }
             }
 
             if (currentStep === 1 && !document.querySelector('input[name="assessorRole"]:checked')) disableNextBtn();
