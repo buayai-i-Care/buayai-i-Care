@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมิน SDQ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
+                    colors: {
+                        /* 🌊 โทนสีฟ้าน้ำทะเลลึก (Deep Sea Blue) */
+                        ocean: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#082f49' },
+                        /* 🪷 โทนสีชมพูกลีบดอกบัว (Lotus Petal Pink) */
+                        lotus: { 50: '#fdf2f8', 100: '#fce7f3', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 900: '#831843' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; padding-bottom: 80px; }
+        h1, h2, h3, h4, h5, .font-heading { font-family: 'Prompt', sans-serif; }
+
+        .step-container { display: none; animation: fadeIn 0.4s ease-out forwards; }
+        .step-container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .radio-group input[type="radio"] { display: none; }
+        .radio-group label {
+            flex: 1; text-align: center; padding: 12px 8px; border: 2px solid #e2e8f0;
+            border-radius: 12px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+            color: #64748b; background: white; transition: all 0.2s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        /* เมื่อกดเลือกข้อ จะเปลี่ยนเป็นสีชมพูกลีบบัว */
+        .radio-group input[type="radio"]:checked + label {
+            background-color: #fdf2f8; border-color: #db2777; color: #be185d; font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.1);
+        }
+
+        .role-card input[type="radio"] { display: none; }
+        .role-card label {
+            border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px 16px;
+            cursor: pointer; transition: all 0.2s ease; background: white; height: 100%;
+        }
+        /* เมื่อกดเลือก Role จะเปลี่ยนเป็นฟ้าน้ำทะเล */
+        .role-card input[type="radio"]:checked + label {
+            border-color: #0369a1; background-color: #f0f9ff; box-shadow: 0 10px 15px -3px rgba(3, 105, 161, 0.1);
+        }
+        
+        .q-number { background: #082f49; color: white; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.85rem; font-weight: bold; flex-shrink: 0; }
+        
+        .result-badge { padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+        .res-normal { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .res-risk { background: #fef9c3; color: #b45309; border: 1px solid #fef08a; }
+        .res-problem { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        
+        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); padding: 15px 20px; z-index: 50; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navbar ธีมฟ้าน้ำทะเลลึก -->
+    <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between text-white">
+            <div class="flex items-center gap-3">
+                <!-- 🌟 เพิ่มโลโก้โรงเรียนบัวใหญ่ -->
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
+                <div>
+                    <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
+                    <p class="text-xs text-ocean-100">ระบบคัดกรองนักเรียน Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+                </div>
+            </div>
+            <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
+        </div>
+        <!-- Progress Bar สีชมพูกลีบดอกบัว -->
+        <div class="w-full bg-ocean-800 h-1.5">
+            <div id="progress-bar" class="bg-lotus-500 h-1.5 transition-all duration-300" style="width: 20%"></div>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto p-4 md:p-6 w-full">
+
+        <!-- ========================================== -->
+        <!-- STEP 1: ROLE SELECTION -->
+        <!-- ========================================== -->
+        <div id="step-1" class="step-container active">
+            <div class="text-center mb-8 mt-4">
+                <h2 class="font-heading text-2xl font-bold text-ocean-900">เลือกรูปแบบการประเมิน</h2>
+                <p class="text-slate-500 mt-2">กรุณาเลือกสถานะของผู้ทำการประเมิน เพื่อให้ระบบเตรียมชุดคำถามและเกณฑ์การแปลผลที่ถูกต้อง</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- ตนเอง -->
+                <div class="role-card text-center">
+                    <input type="radio" name="assessorRole" id="role-student" value="นักเรียน" onchange="enableNextBtn()">
+                    <label for="role-student" class="flex flex-col items-center">
+                        <i class="ph-fill ph-student text-5xl text-ocean-500 mb-3"></i>
+                        <h3 class="font-heading font-bold text-lg text-slate-800">นักเรียนประเมินตนเอง</h3>
+                        <p class="text-sm text-slate-500 mt-1">ประเมินพฤติกรรมและความรู้สึกของตนเอง</p>
+                    </label>
+                </div>
+                <!-- ผู้ปกครอง -->
+                <div class="role-card text-center">
+                    <input type="radio" name="assessorRole" id="role-parent" value="ผู้ปกครอง" onchange="enableNextBtn()">
+                    <label for="role-parent" class="flex flex-col items-center">
+                        <i class="ph-fill ph-users-three text-5xl text-lotus-500 mb-3"></i>
+                        <h3 class="font-heading font-bold text-lg text-slate-800">ผู้ปกครองประเมิน</h3>
+                        <p class="text-sm text-slate-500 mt-1">ประเมินบุตรหลานในความดูแลของท่าน</p>
+                    </label>
+                </div>
+                <!-- ครู -->
+                <div class="role-card text-center">
+                    <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="enableNextBtn()">
+                    <label for="role-teacher" class="flex flex-col items-center">
+                        <i class="ph-fill ph-chalkboard-teacher text-5xl text-blue-500 mb-3"></i>
+                        <h3 class="font-heading font-bold text-lg text-slate-800">ครูประเมินนักเรียน</h3>
+                        <p class="text-sm text-slate-500 mt-1">ประเมินนักเรียนในชั้นเรียนที่รับผิดชอบ</p>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 2: STUDENT INFO -->
+        <!-- ========================================== -->
+        <div id="step-2" class="step-container">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <h2 class="font-heading text-xl font-bold text-ocean-800 mb-4 flex items-center border-b pb-3"><i class="ph-fill ph-identification-card text-2xl mr-2 text-ocean-600"></i> ข้อมูลนักเรียนที่ถูกประเมิน</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">ภาคเรียน / ปีการศึกษา</label>
+                        <input type="text" id="info-term" class="w-full p-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-ocean-700" value="1/2569" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">ระดับชั้น / ห้องเรียน <span class="text-rose-500">*</span></label>
+                        <select id="info-room" onchange="loadStudents()" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
+                            <option value="">-- เลือกห้องเรียน --</option>
+                            <optgroup label="มัธยมศึกษาตอนต้น">
+                                <option value="1/1">ม.1/1</option><option value="2/1">ม.2/1</option><option value="3/1">ม.3/1</option>
+                            </optgroup>
+                            <optgroup label="มัธยมศึกษาตอนปลาย">
+                                <option value="4/1">ม.4/1</option><option value="5/1">ม.5/1</option><option value="6/1">ม.6/1</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">ชื่อ - นามสกุล <span class="text-rose-500">*</span></label>
+                        <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
+                            <option value="">-- โปรดเลือกห้องก่อน --</option>
+                        </select>
+                    </div>
+                    
+                    <input type="hidden" id="info-id">
+                    <input type="hidden" id="info-name">
+
+                    <div class="md:col-span-2 bg-ocean-50 p-4 rounded-xl border border-ocean-100 mt-2 hidden" id="student-preview-card">
+                        <div class="flex items-center gap-4">
+                            <img id="preview-photo" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="w-20 h-20 rounded-full object-cover border-2 border-ocean-500 bg-white p-1">
+                            <div>
+                                <div class="text-sm text-slate-500 font-bold mb-1">เลขที่ <span id="preview-no" class="text-ocean-600">-</span> | รหัส: <span id="preview-id" class="text-ocean-800">-</span></div>
+                                <div class="font-bold text-lg text-ocean-900" id="preview-name">-</div>
+                                <div class="text-xs text-slate-500 mt-1">วันเกิด: <span id="preview-dob">-</span> | ปชช: <span id="preview-cid">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 3: SDQ 25 QUESTIONS -->
+        <!-- ========================================== -->
+        <div id="step-3" class="step-container">
+            <div class="bg-lotus-50 border border-lotus-200 p-4 rounded-xl mb-6 shadow-sm flex gap-3 items-start">
+                <i class="ph-fill ph-info text-2xl text-lotus-600"></i>
+                <div>
+                    <h3 class="font-bold text-lotus-900 font-heading">คำชี้แจงการประเมิน</h3>
+                    <p class="text-sm text-lotus-700 mt-1">กรุณาตอบให้ตรงกับความเป็นจริงที่เกิดขึ้นในช่วง <b class="text-lotus-900">6 เดือนที่ผ่านมา</b> มากที่สุด</p>
+                </div>
+            </div>
+            <div id="questions-wrapper" class="space-y-4"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 4: IMPACT SUPPLEMENT -->
+        <!-- ========================================== -->
+        <div id="step-4" class="step-container">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <h2 class="font-heading text-xl font-bold text-lotus-600 mb-4 flex items-center border-b pb-3"><i class="ph-fill ph-warning-circle text-2xl mr-2"></i> ด้านผลกระทบ (Impact Supplement)</h2>
+                
+                <div class="mb-6">
+                    <p class="font-bold text-slate-800 mb-3" id="q-impact-main">โดยรวมคิดว่ามีปัญหาในด้านอารมณ์ ด้านสมาธิ ด้านพฤติกรรม หรือความสามารถเข้ากับผู้อื่น ด้านใดด้านหนึ่งหรือไม่?</p>
+                    <div class="radio-group flex gap-2">
+                        <input type="radio" name="impact_main" id="im_0" value="0" onchange="toggleImpactDetails()"><label for="im_0">ไม่มีปัญหา</label>
+                        <input type="radio" name="impact_main" id="im_1" value="1" onchange="toggleImpactDetails()"><label for="im_1">มีปัญหา<br>เล็กน้อย</label>
+                        <input type="radio" name="impact_main" id="im_2" value="2" onchange="toggleImpactDetails()"><label for="im_2">มีปัญหา<br>ชัดเจน</label>
+                        <input type="radio" name="impact_main" id="im_3" value="3" onchange="toggleImpactDetails()"><label for="im_3">มีปัญหา<br>อย่างรุนแรง</label>
+                    </div>
+                </div>
+
+                <div id="impact-details" class="hidden bg-lotus-50 border border-lotus-200 rounded-xl p-5 space-y-6">
+                    <div class="text-sm font-bold text-lotus-600 flex items-center gap-2"><i class="ph-bold ph-arrow-elbow-right-down"></i> โปรดตอบคำถามเพิ่มเติมต่อไปนี้</div>
+                    
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm mb-2">1) ปัญหาที่มี เกิดขึ้นมานานเท่าไรแล้ว?</p>
+                        <div class="radio-group flex flex-wrap gap-2">
+                            <input type="radio" name="im_duration" id="imd_0" value="0"><label for="imd_0">น้อยกว่า 1 เดือน</label>
+                            <input type="radio" name="im_duration" id="imd_1" value="1"><label for="imd_1">1-5 เดือน</label>
+                            <input type="radio" name="im_duration" id="imd_2" value="2"><label for="imd_2">6-12 เดือน</label>
+                            <input type="radio" name="im_duration" id="imd_3" value="3"><label for="imd_3">มากกว่า 1 ปี</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm mb-2" id="q-impact-distress">2) รู้สึกหงุดหงิดหรือไม่สบายใจกับปัญหาที่มีหรือไม่?</p>
+                        <div class="radio-group flex gap-2">
+                            <input type="radio" name="im_distress" id="ims_0" value="0"><label for="ims_0">ไม่เลย</label>
+                            <input type="radio" name="im_distress" id="ims_1" value="1"><label for="ims_1">เล็กน้อย</label>
+                            <input type="radio" name="im_distress" id="ims_2" value="2"><label for="ims_2">ค่อนข้างมาก</label>
+                            <input type="radio" name="im_distress" id="ims_3" value="3"><label for="ims_3">มากที่สุด</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm mb-3" id="q-impact-impair">3) ปัญหาที่มีรบกวนชีวิตประจำวันในด้านต่างๆ ต่อไปนี้หรือไม่?</p>
+                        <div class="space-y-3 pl-2 border-l-2 border-lotus-200">
+                            <div>
+                                <span class="text-sm font-semibold text-slate-600 block mb-1">- ความเป็นอยู่ที่บ้าน</span>
+                                <div class="radio-group flex gap-2"><input type="radio" name="im_home" id="imh_0" value="0"><label for="imh_0">ไม่เลย</label><input type="radio" name="im_home" id="imh_1" value="1"><label for="imh_1">เล็กน้อย</label><input type="radio" name="im_home" id="imh_2" value="2"><label for="imh_2">ค่อนข้างมาก</label><input type="radio" name="im_home" id="imh_3" value="3"><label for="imh_3">มากที่สุด</label></div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-600 block mb-1">- การคบเพื่อน</span>
+                                <div class="radio-group flex gap-2"><input type="radio" name="im_friend" id="imf_0" value="0"><label for="imf_0">ไม่เลย</label><input type="radio" name="im_friend" id="imf_1" value="1"><label for="imf_1">เล็กน้อย</label><input type="radio" name="im_friend" id="imf_2" value="2"><label for="imf_2">ค่อนข้างมาก</label><input type="radio" name="im_friend" id="imf_3" value="3"><label for="imf_3">มากที่สุด</label></div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-600 block mb-1">- การเรียนในห้องเรียน</span>
+                                <div class="radio-group flex gap-2"><input type="radio" name="im_class" id="imc_0" value="0"><label for="imc_0">ไม่เลย</label><input type="radio" name="im_class" id="imc_1" value="1"><label for="imc_1">เล็กน้อย</label><input type="radio" name="im_class" id="imc_2" value="2"><label for="imc_2">ค่อนข้างมาก</label><input type="radio" name="im_class" id="imc_3" value="3"><label for="imc_3">มากที่สุด</label></div>
+                            </div>
+                            <div id="wrap_im_leisure">
+                                <span class="text-sm font-semibold text-slate-600 block mb-1">- กิจกรรมยามว่าง</span>
+                                <div class="radio-group flex gap-2"><input type="radio" name="im_leisure" id="iml_0" value="0"><label for="iml_0">ไม่เลย</label><input type="radio" name="im_leisure" id="iml_1" value="1"><label for="iml_1">เล็กน้อย</label><input type="radio" name="im_leisure" id="iml_2" value="2"><label for="iml_2">ค่อนข้างมาก</label><input type="radio" name="im_leisure" id="iml_3" value="3"><label for="iml_3">มากที่สุด</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm mb-2" id="q-impact-burden">4) ปัญหาที่มีทำให้คนรอบข้างเกิดความยุ่งยากหรือไม่?</p>
+                        <div class="radio-group flex gap-2">
+                            <input type="radio" name="im_burden" id="imb_0" value="0"><label for="imb_0">ไม่เลย</label>
+                            <input type="radio" name="im_burden" id="imb_1" value="1"><label for="imb_1">เล็กน้อย</label>
+                            <input type="radio" name="im_burden" id="imb_2" value="2"><label for="imb_2">ค่อนข้างมาก</label>
+                            <input type="radio" name="im_burden" id="imb_3" value="3"><label for="imb_3">มากที่สุด</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 5: REVIEW & RESULT -->
+        <!-- ========================================== -->
+        <div id="step-5" class="step-container">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 text-center">
+                <i class="ph-fill ph-check-circle text-6xl text-ocean-500 mb-2"></i>
+                <h2 class="font-heading text-2xl font-bold text-slate-800">ทำแบบประเมินครบถ้วน</h2>
+                <p class="text-slate-500 mb-6">ระบบได้ทำการประมวลผลคะแนนเบื้องต้นตามเกณฑ์มาตรฐานเรียบร้อยแล้ว กรุณากดยืนยันเพื่อบันทึกข้อมูลเข้าสู่ระบบส่วนกลาง</p>
+
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left mb-6">
+                    <h4 class="font-bold text-slate-700 mb-3 border-b pb-2">ผลการประเมินเบื้องต้น</h4>
+                    <div class="space-y-2 text-sm" id="result-details">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <button class="w-full bg-lotus-600 hover:bg-lotus-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 font-heading text-lg" onclick="submitData()" id="btn-final-submit">
+                    <i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sticky Footer Navigation -->
+    <div class="sticky-footer flex justify-between items-center max-w-3xl mx-auto">
+        <button id="btn-prev" class="px-5 py-2.5 rounded-xl font-bold text-ocean-700 bg-ocean-50 hover:bg-ocean-100 hidden transition duration-200" onclick="navigate(-1)">
+            <i class="ph-bold ph-caret-left mr-1"></i> ย้อนกลับ
+        </button>
+        <button id="btn-next" class="px-8 py-2.5 rounded-xl font-bold text-white bg-lotus-600 hover:bg-lotus-700 ml-auto transition duration-200 shadow-md opacity-50 cursor-not-allowed" onclick="navigate(1)" disabled>
+            ถัดไป <i class="ph-bold ph-caret-right ml-1"></i>
+        </button>
+    </div>
+
+    <script>
+        // ====================================================
+        // ⚠️ ใส่ลิงก์ Web App API (ที่อัปเดตใหม่) ตรงนี้ ⚠️
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
+
+        // --- Data Definitions ---
+        const questionSets = {
+            student: ["1. ฉันพยายามทำดีต่อผู้อื่น ฉันใส่ใจความรู้สึกของผู้อื่น", "2. ฉันอยู่ไม่นิ่ง ฉันนั่งนิ่งๆ ไม่ได้", "3. ฉันปวดศีรษะ ปวดท้องหรือคลื่นไส้บ่อยๆ", "4. โดยปกติแล้ว ฉันแบ่งปันกับผู้อื่น (อาหาร เกมส์ ปากกา ฯลฯ)", "5. ฉันโกรธรุนแรงและมักควบคุมอารมณ์ไม่ได้", "6. ฉันมักอยู่กับตัวเอง ฉันมักเล่นคนเดียวหรืออยู่ตามลำพัง", "7. โดยปกติแล้ว ฉันทำตามที่คนอื่นบอก", "8. ฉันกังวลมาก", "9. ฉันช่วยเหลือถ้ามีใครบาดเจ็บ ไม่สบายใจหรือเจ็บป่วย", "10. ฉันหยุกหยิก หรือดิ้นไปดิ้นมาตลอดเวลา", "11. ฉันมีเพื่อนสนิทอย่างน้อยหนึ่งคน", "12. ฉันมีเรื่องต่อสู้บ่อยๆ ฉันบังคับให้ผู้อื่นทำตามที่ฉันต้องการได้", "13. ฉันมักไม่มีความสุข เศร้าหรือร้องไห้บ่อย", "14. คนอื่นในวัยเดียวกันมักชอบฉัน", "15. ฉันวอกแวกง่าย ฉันมีความลำบากที่จะใช้สมาธิ", "16. ฉันวิตกกังวลเมื่ออยู่ในสถานการณ์ใหม่ๆ ฉันเสียความมั่นใจง่าย", "17. ฉันใจดีกับเด็กที่อายุน้อยกว่า", "18. ฉันถูกกล่าวหาว่า พูดปดหรือขี้โกงบ่อยๆ", "19. เด็กคนอื่นๆ แกล้งหรือรังแกฉัน", "20. ฉันมักอาสาช่วยเหลือผู้อื่น (พ่อแม่ ครู เด็ก)", "21. ฉันคิดก่อนทำ", "22. ฉันเอาของที่ไม่ใช่ของฉันออกจากบ้าน โรงเรียนหรือที่อื่น", "23. ฉันเข้ากับผู้ใหญ่ได้ดีกว่าเข้ากับเด็กวัยเดียวกัน", "24. ฉันมีความกลัวหลายอย่าง ฉันหวาดกลัวง่าย", "25. ฉันทำงานที่ทำอยู่ได้เสร็จ ฉันมีสมาธิ"],
+            others: ["1. ใส่ใจความรู้สึกของผู้อื่น", "2. อยู่ไม่สุข เคลื่อนไหวมาก ไม่สามารถอยู่นิ่งได้นาน", "3. บ่นปวดศีรษะ ปวดท้องหรือคลื่นไส้บ่อยๆ", "4. เต็มใจแบ่งปันกับผู้อื่น (ขนม ของเล่น ดินสอ ฯลฯ)", "5. แผลงฤทธิ์บ่อย หรืออารมณ์ร้อน", "6. ค่อนข้างอยู่โดดเดี่ยว มักเล่นตามลำพัง", "7. โดยปกติแล้ว เชื่อฟัง ทำตามที่ผู้ใหญ่บอก", "8. มีความกังวลหลายเรื่อง ดูเหมือนกังวลบ่อย", "9. ช่วยเหลือถ้ามีใครบาดเจ็บ ไม่สบายใจ หรือเจ็บป่วย", "10. หยุกหยิก หรือดิ้นไปดิ้นมาตลอดเวลา", "11. มีเพื่อนสนิทอย่างน้อยหนึ่งคน", "12. มีเรื่องต่อสู้หรือรังแกเด็กอื่นบ่อยๆ", "13. ไม่มีความสุข เศร้าหรือร้องไห้บ่อย", "14. โดยทั่วไปเป็นที่ชอบพอของเด็กอื่น", "15. วอกแวกง่าย ไม่มีสมาธิ", "16. วิตกกังวลหรือติดแจเมื่ออยู่ในสถานการณ์ใหม่ เสียความมั่นใจง่าย", "17. ใจดีกับเด็กที่อายุน้อยกว่า", "18. พูดปดหรือขี้โกงบ่อยๆ", "19. ถูกเด็กคนอื่นแกล้งหรือรังแก", "20. มักอาสาช่วยเหลือผู้อื่น (พ่อแม่ ครู เด็กอื่น)", "21. คิดก่อนทำ", "22. ขโมยของที่บ้าน ที่โรงเรียน หรือที่อื่น", "23. เข้ากับผู้ใหญ่ได้ดีกว่าเข้ากับเด็กอื่น", "24. มีความกลัวหลายเรื่อง หวาดกลัวง่าย", "25. มีสมาธิในการติดตามทำงานจนเสร็จ"]
+        };
+
+        const reverseItems = [7, 11, 14, 21, 25];
+
+        const thresholds = {
+            student: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,5], r:[6,6], p:[7,10] }, conduct: { n:[0,3], r:[4,4], p:[5,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,5], p:[6,10] } },
+            parent: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,3], r:[4,4], p:[5,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,2], r:[3,3], p:[4,10] } },
+            teacher: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,4], r:[5,5], p:[6,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,4], p:[5,10] } }
+        };
+
+        // --- Application State ---
+        let currentStep = 1;
+        const totalSteps = 5;
+        let selectedRole = "";
+        let finalResults = {};
+        
+        let currentRoomStudents = [];
+
+        // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
+        async function loadStudents() {
+            const room = document.getElementById('info-room').value;
+            const studentSelect = document.getElementById('info-student');
+            const previewCard = document.getElementById('student-preview-card');
+
+            // Reset
+            studentSelect.innerHTML = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
+            document.getElementById('info-id').value = '';
+            document.getElementById('info-name').value = '';
+            previewCard.classList.add('hidden');
+
+            if (!room) {
+                studentSelect.innerHTML = '<option value="">-- โปรดเลือกห้องก่อน --</option>';
+                studentSelect.disabled = true;
+                return;
+            }
+
+            studentSelect.innerHTML = '<option value="">กำลังโหลดรายชื่อ...</option>';
+            studentSelect.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getStudents', room: room })
+                });
+                const res = await response.json();
+
+                if (res.success) {
+                    currentRoomStudents = res.data;
+                    let html = '<option value="">-- เลือกชื่อ - นามสกุล --</option>';
+                    res.data.forEach(s => {
+                        html += `<option value="${s.id}">${s.no}. ${s.name}</option>`;
+                    });
+                    studentSelect.innerHTML = html;
+                    studentSelect.disabled = false;
+                } else {
+                    studentSelect.innerHTML = '<option value="">ไม่พบข้อมูลห้องนี้</option>';
+                    Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                }
+            } catch(e) {
+                studentSelect.innerHTML = '<option value="">เชื่อมต่อล้มเหลว</option>';
+                Swal.fire('การเชื่อมต่อล้มเหลว', 'โปรดตรวจสอบสัญญาณอินเทอร์เน็ตของท่าน', 'error');
+            }
+        }
+
+        // --- 🌟 ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว ---
+        function fillStudentInfo() {
+            const studentId = document.getElementById('info-student').value;
+            const previewCard = document.getElementById('student-preview-card');
+
+            if (!studentId) {
+                previewCard.classList.add('hidden');
+                document.getElementById('info-id').value = '';
+                document.getElementById('info-name').value = '';
+                return;
+            }
+
+            const student = currentRoomStudents.find(s => s.id === studentId);
+            if (student) {
+                document.getElementById('info-id').value = student.id;
+                document.getElementById('info-name').value = student.name;
+
+                document.getElementById('preview-id').innerText = student.id;
+                document.getElementById('preview-no').innerText = student.no || '-';
+                document.getElementById('preview-name').innerText = student.name;
+                document.getElementById('preview-dob').innerText = student.dob || '-';
+                document.getElementById('preview-cid').innerText = student.cid || '-';
+
+                let photoUrl = student.photo;
+                if (photoUrl && photoUrl.includes("id=")) {
+                    let fileId = photoUrl.split("id=")[1].split("&")[0];
+                    photoUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
+                }
+                document.getElementById('preview-photo').src = photoUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+                previewCard.classList.remove('hidden');
+            }
+        }
+
+        // --- UI Navigation Logic ---
+        function enableNextBtn() {
+            const btn = document.getElementById('btn-next');
+            btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function disableNextBtn() {
+            const btn = document.getElementById('btn-next');
+            btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        function validateStep(step) {
+            if (step === 1) {
+                const role = document.querySelector('input[name="assessorRole"]:checked');
+                if (role) { selectedRole = role.value; setupFormByRole(selectedRole); return true; }
+                return false;
+            }
+            if (step === 2) {
+                const id = document.getElementById('info-id').value;
+                const name = document.getElementById('info-name').value;
+                const room = document.getElementById('info-room').value;
+                if(id && name && room) return true;
+                Swal.fire('ข้อมูลไม่ครบ', "กรุณาเลือกห้องและชื่อนักเรียนให้ครบถ้วน", 'warning');
+                return false;
+            }
+            if (step === 3) {
+                for (let i = 1; i <= 25; i++) {
+                    if (!document.querySelector(`input[name="q${i}"]:checked`)) {
+                        Swal.fire('ตอบคำถามไม่ครบ', `กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อ ${i})`, 'warning');
+                        document.getElementById(`q-row-${i}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return false;
+                    }
+                }
+                return true;
+            }
+            if (step === 4) {
+                const main = document.querySelector('input[name="impact_main"]:checked');
+                if (!main) { Swal.fire("ข้อมูลไม่ครบ", "กรุณาประเมินผลกระทบด้านล่างสุดด้วยครับ", "warning"); return false; }
+                if (main.value !== "0") {
+                    const req = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_burden'];
+                    if (selectedRole !== 'ครู') req.push('im_leisure'); 
+                    for (let r of req) {
+                        if (!document.querySelector(`input[name="${r}"]:checked`)) {
+                            Swal.fire("ข้อมูลไม่ครบ", "กรุณาตอบคำถามย่อยด้านผลกระทบให้ครบถ้วน", "warning");
+                            return false;
+                        }
+                    }
+                }
+                calculateFinalScores(); 
+                return true;
+            }
+            return true;
+        }
+
+        function navigate(dir) {
+            if (dir === 1 && !validateStep(currentStep)) return;
+
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            currentStep += dir;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+
+            document.getElementById('btn-prev').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
+            document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
+
+            if (currentStep === 1 && !document.querySelector('input[name="assessorRole"]:checked')) disableNextBtn();
+            else enableNextBtn(); 
+
+            window.scrollTo(0, 0);
+        }
+
+        // --- Dynamic Form Generation ---
+        function setupFormByRole(role) {
+            const badge = document.getElementById('header-role-badge');
+            let roleText = role === 'นักเรียน' ? 'นักเรียนประเมินตนเอง' : (role === 'ผู้ปกครอง' ? 'ผู้ปกครองประเมิน' : 'ครูประเมินนักเรียน');
+            badge.innerText = roleText;
+            badge.classList.remove('hidden');
+
+            const qArray = role === 'นักเรียน' ? questionSets.student : questionSets.others;
+            const container = document.getElementById('questions-wrapper');
+            let html = '';
+
+            qArray.forEach((qText, index) => {
+                let qNum = index + 1;
+                html += `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200" id="q-row-${qNum}">
+                    <p class="font-bold text-slate-800 mb-3 text-sm md:text-base leading-relaxed flex items-start gap-2">
+                        <span class="q-number">${qNum}</span> <span>${qText.substring(3)}</span>
+                    </p>
+                    <div class="radio-group flex gap-2">
+                        <input type="radio" name="q${qNum}" id="q${qNum}_0" value="0"><label for="q${qNum}_0">ไม่จริง</label>
+                        <input type="radio" name="q${qNum}" id="q${qNum}_1" value="1"><label for="q${qNum}_1">จริงบ้าง</label>
+                        <input type="radio" name="q${qNum}" id="q${qNum}_2" value="2"><label for="q${qNum}_2">จริงแน่นอน</label>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            if (role !== 'นักเรียน') {
+                document.getElementById('q-impact-main').innerText = "โดยรวมคิดว่าเด็กมีปัญหาในด้านอารมณ์ ด้านสมาธิ ด้านพฤติกรรม หรือความสามารถเข้ากับผู้อื่น ด้านใดด้านหนึ่งหรือไม่?";
+                document.getElementById('q-impact-distress').innerText = "2) เด็กรู้สึกหงุดหงิดหรือไม่สบายใจกับปัญหาที่มีหรือไม่?";
+                document.getElementById('q-impact-impair').innerText = "3) ปัญหาที่มีรบกวนชีวิตประจำวันของเด็กในด้านต่างๆ ต่อไปนี้หรือไม่?";
+                document.getElementById('q-impact-burden').innerText = "4) ปัญหาที่มีทำให้คุณหรือชั้นเรียนเกิดความยุ่งยากหรือไม่?";
+            } else {
+                document.getElementById('q-impact-main').innerText = "โดยรวมคิดว่ามีปัญหาในด้านอารมณ์ ด้านสมาธิ ด้านพฤติกรรม หรือความสามารถเข้ากับผู้อื่น ด้านใดด้านหนึ่งหรือไม่?";
+                document.getElementById('q-impact-distress').innerText = "2) รู้สึกหงุดหงิดหรือไม่สบายใจกับปัญหาที่มีหรือไม่?";
+                document.getElementById('q-impact-impair').innerText = "3) ปัญหาที่มีรบกวนชีวิตประจำวันในด้านต่างๆ ต่อไปนี้หรือไม่?";
+                document.getElementById('q-impact-burden').innerText = "4) ปัญหาที่มีทำให้คนรอบข้างเกิดความยุ่งยากหรือไม่?";
+            }
+
+            document.getElementById('wrap_im_leisure').style.display = (role === 'ครู') ? 'none' : 'block';
+        }
+
+        function toggleImpactDetails() {
+            const val = document.querySelector('input[name="impact_main"]:checked').value;
+            const details = document.getElementById('impact-details');
+            if (val !== "0") {
+                details.classList.remove('hidden');
+                details.classList.add('block', 'animate-[fadeIn_0.3s_ease]');
+            } else {
+                details.classList.add('hidden');
+                details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
+                const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
+                names.forEach(n => {
+                    document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
+                });
+            }
+        }
+
+        // --- Calculation Logic ---
+        function calculateFinalScores() {
+            let s = { emotion: 0, conduct: 0, hyper: 0, peer: 0, prosocial: 0 };
+            
+            const getScore = (qNum) => {
+                let val = parseInt(document.querySelector(`input[name="q${qNum}"]:checked`).value);
+                if (reverseItems.includes(qNum)) {
+                    if (val === 0) return 2;
+                    if (val === 1) return 1;
+                    if (val === 2) return 0;
+                }
+                return val;
+            };
+
+            [3, 8, 13, 16, 24].forEach(q => s.emotion += getScore(q));
+            [5, 7, 12, 18, 22].forEach(q => s.conduct += getScore(q));
+            [2, 10, 15, 21, 25].forEach(q => s.hyper += getScore(q));
+            [6, 11, 14, 19, 23].forEach(q => s.peer += getScore(q));
+            [1, 4, 9, 17, 20].forEach(q => s.prosocial += getScore(q));
+
+            const totalDifficulty = s.emotion + s.conduct + s.hyper + s.peer;
+
+            let internalRole = selectedRole === 'นักเรียน' ? 'student' : (selectedRole === 'ผู้ปกครอง' ? 'parent' : 'teacher');
+            const t = thresholds[internalRole];
+            
+            const getGroup = (score, bounds) => {
+                if (score >= bounds.n[0] && score <= bounds.n[1]) return "ปกติ";
+                if (score >= bounds.r[0] && score <= bounds.r[1]) return "เสี่ยง";
+                return "มีปัญหา";
+            };
+
+            let interpret = {
+                emotion: getGroup(s.emotion, t.emotion),
+                conduct: getGroup(s.conduct, t.conduct),
+                hyper: getGroup(s.hyper, t.hyper),
+                peer: getGroup(s.peer, t.peer),
+                prosocial: getGroup(s.prosocial, t.prosocial)
+            };
+
+            let totalInt = "ปกติ";
+            if (totalDifficulty >= 16 && totalDifficulty <= 19) totalInt = "เสี่ยง";
+            if (totalDifficulty >= 20) totalInt = "มีปัญหา";
+            interpret.total = totalInt;
+
+            const mainImpact = parseInt(document.querySelector('input[name="impact_main"]:checked').value);
+            let impactStr = "ไม่มีปัญหา";
+            let impactObj = { main: mainImpact };
+
+            if (mainImpact > 0) {
+                const getImp = (name) => {
+                    let el = document.querySelector(`input[name="${name}"]:checked`);
+                    let val = el ? parseInt(el.value) : 0;
+                    impactObj[name] = val;
+                    return val;
+                };
+                const calcImp = (val) => (val === 2 ? 1 : (val === 3 ? 2 : 0)); 
+                
+                let impScore = calcImp(getImp('im_distress')) + calcImp(getImp('im_home')) + calcImp(getImp('im_friend')) + calcImp(getImp('im_class')) + calcImp(getImp('im_burden'));
+                if(selectedRole !== 'ครู') impScore += calcImp(getImp('im_leisure'));
+
+                if (impScore >= 2) impactStr = "มีปัญหา";
+                else if (impScore === 1) impactStr = "เสี่ยง";
+                else impactStr = "ปกติ"; 
+            }
+            interpret.impact = impactStr;
+
+            // รวบรวมคำตอบดิบ
+            let rawAns = [];
+            for(let i=1; i<=25; i++) rawAns.push(document.querySelector(`input[name="q${i}"]:checked`).value);
+
+            finalResults = { 
+                rawAnswers: rawAns.join(','),
+                impactAnswers: JSON.stringify(impactObj),
+                scores: s, 
+                total: totalDifficulty, 
+                interpret: interpret 
+            };
+            
+            renderSummary();
+        }
+
+        function renderSummary() {
+            const c = document.getElementById('result-details');
+            const getBadge = (text) => {
+                if (text.includes("ปกติ")) return `<span class="result-badge res-normal">${text}</span>`;
+                if (text.includes("เสี่ยง")) return `<span class="result-badge res-risk">${text}</span>`;
+                return `<span class="result-badge res-problem">${text}</span>`;
+            };
+
+            c.innerHTML = `
+                <div class="flex justify-between py-1"><span>ด้านอารมณ์:</span> <span>${finalResults.scores.emotion} คะแนน ${getBadge(finalResults.interpret.emotion)}</span></div>
+                <div class="flex justify-content py-1"><span>ด้านพฤติกรรมเกเร:</span> <span>${finalResults.scores.conduct} คะแนน ${getBadge(finalResults.interpret.conduct)}</span></div>
+                <div class="flex justify-between py-1"><span>ด้านพฤติกรรมไม่อยู่นิ่ง:</span> <span>${finalResults.scores.hyper} คะแนน ${getBadge(finalResults.interpret.hyper)}</span></div>
+                <div class="flex justify-between py-1"><span>ด้านความสัมพันธ์กับเพื่อน:</span> <span>${finalResults.scores.peer} คะแนน ${getBadge(finalResults.interpret.peer)}</span></div>
+                <div class="flex justify-between py-1 border-t mt-1 pt-2 font-bold text-ocean-700"><span>คะแนนรวม 4 ด้าน:</span> <span>${finalResults.total} คะแนน ${getBadge(finalResults.interpret.total)}</span></div>
+                <div class="flex justify-between py-1 border-t mt-1 pt-2"><span>ด้านสังคม (จุดแข็ง):</span> <span>${finalResults.scores.prosocial} คะแนน ${getBadge(finalResults.interpret.prosocial)}</span></div>
+                <div class="flex justify-between py-1 border-t mt-1 pt-2 font-bold text-rose-600"><span>ผลกระทบ (Impact):</span> ${getBadge(finalResults.interpret.impact)}</div>
+            `;
+        }
+
+        // --- 6. Submit Data ---
+        async function submitData() {
+            const btn = document.getElementById('btn-final-submit');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...';
+            btn.disabled = true;
+
+            const payload = {
+                action: 'saveSDQ',
+                assessorType: selectedRole,
+                term: document.getElementById('info-term').value,
+                studentId: document.getElementById('info-id').value,
+                studentName: document.getElementById('info-name').value,
+                room: document.getElementById('info-room').value,
+                rawAnswers: finalResults.rawAnswers,
+                impactAnswers: finalResults.impactAnswers,
+                scores: finalResults.scores,
+                total: finalResults.total,
+                interpret: finalResults.interpret
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+
+                if (res.success) {
+                    Swal.fire({
+                        title: 'บันทึกสำเร็จ!',
+                        text: 'ขอบคุณที่ให้ความร่วมมือในการทำแบบประเมินครับ',
+                        icon: 'success',
+                        confirmButtonColor: '#0369a1'
+                    }).then(() => {
+                        location.reload(); 
+                    });
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.error, 'error');
+                    btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                Swal.fire('เชื่อมต่อล้มเหลว', 'ตรวจสอบอินเทอร์เน็ตของท่านอีกครั้ง', 'error');
+                btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
