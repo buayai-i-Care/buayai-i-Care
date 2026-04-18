@@ -866,13 +866,97 @@
                     icon: 'success',
                     confirmButtonColor: '#0369a1'
                 }).then(() => {
-                    location.reload(); 
+                    // 🌟 ถ้าเป็นโหมดครู ให้ดึงนักเรียนคนถัดไปให้เลยอัตโนมัติ
+                    if (selectedRole === 'ครู') {
+                        handleNextStudentAuto();
+                    } else {
+                        location.reload(); 
+                    }
                 });
             } else {
                 Swal.fire('ข้อผิดพลาด', res ? res.error : 'บันทึกข้อมูลล้มเหลว', 'error');
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
                 btn.disabled = false;
             }
+        }
+
+        // 🌟 ฟังก์ชันจัดการนักเรียนคนถัดไปอัตโนมัติ (เฉพาะโหมดครู)
+        async function handleNextStudentAuto() {
+            // ล้างข้อมูลในฟอร์มให้เกลี้ยง
+            resetAssessmentForm();
+            
+            // โหลดข้อมูลนักเรียนในห้องอีกครั้ง เพื่อกรองคนที่ทำไปแล้วออก
+            await loadStudents();
+            
+            const studentSelect = document.getElementById('info-student');
+            
+            // ถ้ายังมีนักเรียนให้ประเมินต่อ (ช่องแรกคือ placeholder, ช่องสองคือชื่อนักเรียนจริงๆ)
+            if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
+                studentSelect.selectedIndex = 1; // บังคับเลือกคนแรกสุดในลิสต์ที่ยังไม่ได้ทำ
+                fillStudentInfo(); // ดึงรูปและข้อมูลมาโชว์ที่การ์ดพรีวิว
+                
+                // พาย้อนกลับไปที่ Step 2 (หน้าข้อมูลนักเรียน) เพื่อให้ครูดูรูปและชื่อก่อนกดทำประเมิน
+                document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+                currentStep = 2;
+                document.getElementById(`step-2`).classList.add('active');
+                
+                document.getElementById('btn-prev').classList.remove('hidden');
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
+                enableNextBtn();
+                
+                window.scrollTo(0, 0);
+
+                // เด้งแจ้งเตือนแบบ Toast (เล็กๆ มุมขวาบน) ไม่เกะกะจอ
+                Swal.fire({
+                    title: 'เตรียมประเมินคนถัดไป',
+                    text: 'ระบบได้ดึงรายชื่อนักเรียนคนถัดไปให้ท่านอัตโนมัติแล้วครับ',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                
+            } else {
+                // ถ้าทำครบทั้งห้องแล้ว
+                Swal.fire({
+                    title: 'ยอดเยี่ยม!',
+                    text: 'ท่านได้ประเมินนักเรียนครบทุกคนในห้องนี้แล้วครับ 🎉',
+                    icon: 'success',
+                    confirmButtonText: 'กลับหน้าแรก',
+                    confirmButtonColor: '#0369a1'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+            
+            // คืนค่าปุ่มส่งข้อมูลเผื่อไว้
+            const btn = document.getElementById('btn-final-submit');
+            btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
+            btn.disabled = false;
+        }
+
+        // 🌟 ฟังก์ชันล้างข้อมูลฟอร์ม
+        function resetAssessmentForm() {
+            // ล้างจุดติ๊ก 25 ข้อ
+            for(let i=1; i<=25; i++) {
+                document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
+            }
+            // ล้างผลกระทบ
+            document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
+            
+            // ซ่อนและล้างคำถามย่อยของผลกระทบ
+            const details = document.getElementById('impact-details');
+            details.classList.add('hidden');
+            details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
+            
+            const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
+            names.forEach(n => {
+                document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
+            });
+            
+            finalResults = {}; // ล้างคะแนนในหน่วยความจำ
         }
     </script>
 </body>
