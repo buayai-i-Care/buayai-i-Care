@@ -521,15 +521,19 @@
     // 🌟 ระบบเข้าสู่หน้าหลักหัวหน้าระดับ (Level Head)
     // ==========================================
     function openLevelHead(event, levelStr) {
-        event.preventDefault();
-        
-        let pw = sessionStorage.getItem('admin_pw_auto');
-        if (!pw) {
-            unlockAdmin();
-            pw = sessionStorage.getItem('admin_pw_auto');
-            if(!pw) return; 
-        }
+    if (event) event.preventDefault();
+    
+    // ดึงรหัสผ่านปัจจุบัน
+    let pw = sessionStorage.getItem('admin_pw_auto');
+    
+    // ถ้ายังไม่ได้เข้าสู่ระบบ ให้ปลดล็อกก่อน
+    if (!pw) {
+        unlockAdmin();
+        pw = sessionStorage.getItem('admin_pw_auto'); // ตรวจสอบอีกครั้งหลัง prompt
+    }
 
+    // หากปลดล็อกสำเร็จ (มีค่า pw)
+    if (pw) {
         let levelNumber = levelStr.replace('m', '');
         const userData = {
             username: pw, 
@@ -539,8 +543,10 @@
         };
         localStorage.setItem('buayai_user', JSON.stringify(userData));
 
-        window.open('level_head.html', '_self'); 
+        // ตรวจสอบ Path: ถ้าไฟล์อยู่ในโฟลเดอร์ Level_Head ต้องใส่ชื่อโฟลเดอร์ด้วย
+        window.location.href = 'Level_Head/level_head.html'; 
     }
+}
 
     // ==========================================
     // 🌟 ฟังก์ชันการเชื่อมโยงระบบโฮมรูม (Auto-Login)
