@@ -66,10 +66,10 @@
 </head>
 <body class="antialiased">
 
-    <!-- Navbar -->
+    <!-- Navbar ธีมฟ้าน้ำทะเลลึก -->
     <nav class="bg-ocean-900 shadow-md sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between text-white">
-            <div class="flex items-center gap-3" style="cursor: pointer;" onclick="handleLogoClick()" title="แตะ 5 ครั้งเพื่อบังคับเปิดโหมดครู">
+            <div class="flex items-center gap-3">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
                     <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
@@ -79,14 +79,16 @@
             
             <div class="flex items-center gap-2">
                 <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
-                <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center d-none">
+                <!-- ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
+                <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center">
                     <i class="ph-bold ph-chart-pie-slice me-1"></i> ประมวลผล SDQ
                 </button>
-                <button id="btn-process-sdq-mobile" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white p-2 rounded-full text-xs font-bold font-heading shadow-sm transition flex md:hidden items-center justify-center d-none">
+                <button id="btn-process-sdq-mobile" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white p-2 rounded-full text-xs font-bold font-heading shadow-sm transition flex md:hidden items-center justify-center">
                     <i class="ph-bold ph-chart-pie-slice"></i>
                 </button>
             </div>
         </div>
+        <!-- Progress Bar สีชมพูกลีบดอกบัว -->
         <div class="w-full bg-ocean-800 h-1.5">
             <div id="progress-bar" class="bg-lotus-500 h-1.5 transition-all duration-300" style="width: 20%"></div>
         </div>
@@ -123,7 +125,7 @@
                     </label>
                 </div>
                 <!-- ครู -->
-                <div class="role-card text-center" id="card-role-teacher" style="display: none;">
+                <div class="role-card text-center" id="card-role-teacher">
                     <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="handleRoleSelection('ครู')">
                     <label for="role-teacher" class="flex flex-col items-center">
                         <i class="ph-fill ph-chalkboard-teacher text-5xl text-blue-500 mb-3"></i>
@@ -159,7 +161,6 @@
                         <select id="info-student" onchange="fillStudentInfo()" disabled class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500 outline-none font-bold text-slate-700">
                             <option value="">-- โปรดเลือกห้องก่อน --</option>
                         </select>
-                        <!-- ข้อความแจ้งเตือนกรณียกชื่อออก -->
                         <div id="assessed-notice" class="text-danger small mt-2 p-2 bg-red-50 rounded-2 border border-red-200" style="display:none; line-height: 1.4;"></div>
                     </div>
                     
@@ -330,34 +331,8 @@
         let finalResults = {};
         
         let currentRoomStudents = [];
-        
-        // 🌟 ตัวแปรเก็บรหัสผู้ใช้งานและสถานะแอดมิน
-        let currentUserUid = null;
-        let isTeacherOrAdmin = false;
-        let logoClickCount = 0; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            currentUserUid = urlParams.get('uid') || sessionStorage.getItem('teacher_pw_auto') || sessionStorage.getItem('admin_pw_auto') || sessionStorage.getItem('superadmin_pw_auto') || localStorage.getItem('teacher_pw_auto');
-
-            if (currentUserUid) currentUserUid = currentUserUid.toLowerCase();
-
-            const cardTeacher = document.getElementById('card-role-teacher');
-            const btnDesktop = document.getElementById('btn-process-sdq-desktop');
-            const btnMobile = document.getElementById('btn-process-sdq-mobile');
-
-            if (currentUserUid && (currentUserUid.startsWith('t') || currentUserUid.startsWith('m') || currentUserUid === 'kkss')) {
-                isTeacherOrAdmin = true;
-                if (cardTeacher) cardTeacher.style.display = 'block'; 
-                if (btnDesktop) btnDesktop.classList.remove('d-none'); 
-                if (btnMobile) btnMobile.classList.remove('d-none');
-            } else {
-                isTeacherOrAdmin = false;
-                if (cardTeacher) cardTeacher.style.display = 'none';
-                if (btnDesktop) btnDesktop.classList.add('d-none');
-                if (btnMobile) btnMobile.classList.add('d-none');
-            }
-
             // สร้างตัวเลือกระดับชั้นอัตโนมัติ
             let optionsHtml = '<option value="">-- เลือกห้องเรียน --</option>';
             for (let m = 1; m <= 6; m++) {
@@ -374,36 +349,7 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // 🌟 ฟังก์ชันลับ (Backdoor) สำหรับทดสอบระบบ: กดที่โลโก้ 5 ครั้ง
-        function handleLogoClick() {
-            logoClickCount++;
-            if (logoClickCount >= 5) {
-                logoClickCount = 0; 
-                if (!isTeacherOrAdmin) {
-                    Swal.fire({
-                        title: '🔒 โหมดผู้ดูแลระบบ',
-                        text: 'กรุณากรอกรหัสประจำตัว (เช่น t11, m2, kkss)',
-                        input: 'text',
-                        inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
-                        showCancelButton: true,
-                        confirmButtonText: 'เข้าสู่ระบบ',
-                        cancelButtonText: 'ยกเลิก',
-                        confirmButtonColor: '#0ea5e9'
-                    }).then((result) => {
-                        if (result.isConfirmed && result.value) {
-                            currentUserUid = result.value.toLowerCase();
-                            isTeacherOrAdmin = true;
-                            document.getElementById('card-role-teacher').style.display = 'block';
-                            document.getElementById('btn-process-sdq-desktop').classList.remove('d-none');
-                            document.getElementById('btn-process-sdq-mobile').classList.remove('d-none');
-                            Swal.fire('สำเร็จ', 'เปิดโหมดครู/แอดมินจำลองเรียบร้อยแล้ว', 'success');
-                        }
-                    });
-                }
-            }
-        }
-
-        // 🌟 แก้ไขด่วน: Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
+        // 🌟 Fetch API Helper
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -418,9 +364,9 @@
                 btn.disabled = true;
             }
             try {
-                // 🚀 ลบ headers ออกทั้งหมด บังคับให้เป็น Simple Request ไม่ถูก Google/Browser บล็อก
                 const response = await fetch(API_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 
@@ -433,62 +379,65 @@
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือสัญญาณอินเทอร์เน็ตมีปัญหา" };
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือ URL ไม่ถูกต้อง" };
             } finally {
                 if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
             }
         }
 
-        // --- ฟังก์ชันจัดการการเลือกรุปแบบ ---
+        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (คืนค่าสู่ระบบคลาสสิก ดั้งเดิม) ---
         function handleRoleSelection(role) {
-            if (role === 'ครู') {
-                if (isTeacherOrAdmin) {
-                    selectedRole = "ครู";
-                    setupFormByRole(selectedRole);
-                    
-                    let roomSelect = document.getElementById('info-room');
-                    
-                    // 🌟 ล็อกและเลือกห้องให้ครูอัตโนมัติจาก UID
-                    if (currentUserUid && currentUserUid.startsWith('t')) {
-                        let rNum = currentUserUid.substring(1); 
-                        let m = rNum.substring(0, 1);
-                        let r = rNum.substring(1) || '1';
-                        let assignedRoom = `${m}/${r}`;
-                        
-                        roomSelect.value = assignedRoom;
-                        roomSelect.disabled = true; // ล็อกไม่ให้ครูเปลี่ยนห้องผิด
-                    } else {
-                        roomSelect.disabled = false;
+            selectedRole = role;
+            setupFormByRole(selectedRole);
+            document.getElementById('info-room').disabled = false;
+            enableNextBtn();
+        }
+
+        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (ใส่ Popup ใส่รหัสผ่านเหมือนเดิม) ---
+        async function accessReportSDQ() {
+            const { value: formValues } = await Swal.fire({
+                title: 'ประมวลผล SDQ',
+                html:
+                    '<div class="text-muted small mb-3">เฉพาะผู้ดูแลระบบและครูที่ปรึกษา</div>' +
+                    '<input id="swal-rep-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น m2, t11)">' +
+                    '<input id="swal-rep-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#db2777',
+                preConfirm: () => {
+                    const user = document.getElementById('swal-rep-user').value;
+                    const pass = document.getElementById('swal-rep-pass').value;
+                    if(!user || !pass) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
                     }
-                    
-                    enableNextBtn();
-                    navigate(1); // 🌟 พาทะลุไป Step 2 อัตโนมัติ โดยไม่ต้องให้ครูกด "ถัดไป"
-                } else {
-                    Swal.fire('ปฏิเสธการเข้าถึง', 'ท่านไม่มีสิทธิ์เข้าถึงเมนูสำหรับคุณครูครับ', 'warning');
-                    document.getElementById('role-teacher').checked = false;
+                    return { user, pass };
                 }
-            } else {
-                selectedRole = role;
-                document.getElementById('info-room').disabled = false;
-                enableNextBtn();
+            });
+
+            if (formValues) {
+                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                
+                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
+                if (res && res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ยืนยันสำเร็จ',
+                        text: 'กำลังเปิดหน้ารายงาน...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'report_sdq.html?uid=' + encodeURIComponent(formValues.user);
+                    });
+                } else {
+                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'การเชื่อมต่อผิดพลาด', 'error');
+                }
             }
         }
 
-        function accessReportSDQ() {
-            if (isTeacherOrAdmin) {
-                Swal.fire({
-                    title: 'กำลังเปิดหน้ารายงาน...',
-                    html: 'ระบบกำลังพาท่านเข้าสู่หน้าประมวลผล SDQ สรุปผลภาพรวม',
-                    allowOutsideClick: false,
-                    timer: 1500,
-                    didOpen: () => Swal.showLoading()
-                }).then(() => {
-                    window.location.href = 'report_sdq.html?uid=' + encodeURIComponent(currentUserUid);
-                });
-            }
-        }
-
-        // --- ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
+        // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
             const room = document.getElementById('info-room').value;
             const studentSelect = document.getElementById('info-student');
@@ -547,6 +496,7 @@
             }
         }
 
+        // --- 🌟 ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว ---
         function fillStudentInfo() {
             const studentId = document.getElementById('info-student').value;
             const previewCard = document.getElementById('student-preview-card');
@@ -654,8 +604,9 @@
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
             if (currentStep === 2 && dir === 1) {
-                // หากหน้า 2 เปิดขึ้น และมีห้องเลือกไว้อยู่แล้ว (กรณีครูล็อกอิน) ให้ดึงรายชื่อ
-                if (document.getElementById('info-room').value && document.getElementById('info-student').options.length <= 1) {
+                // เมื่อมาหน้า 2 ให้สามารถเลือกห้องได้อิสระ ไม่ว่าจะโหมดไหน
+                document.getElementById('info-room').disabled = false;
+                if (document.getElementById('info-room').value) {
                     loadStudents();
                 }
             }
@@ -666,6 +617,7 @@
             window.scrollTo(0, 0);
         }
 
+        // --- Dynamic Form Generation ---
         function setupFormByRole(role) {
             const badge = document.getElementById('header-role-badge');
             let roleText = role === 'นักเรียน' ? 'นักเรียนประเมินตนเอง' : (role === 'ผู้ปกครอง' ? 'ผู้ปกครองประเมิน' : 'ครูประเมินนักเรียน');
@@ -723,6 +675,7 @@
             }
         }
 
+        // --- Calculation Logic ---
         function calculateFinalScores() {
             let s = { emotion: 0, conduct: 0, hyper: 0, peer: 0, prosocial: 0 };
             
@@ -850,83 +803,13 @@
                     icon: 'success',
                     confirmButtonColor: '#0369a1'
                 }).then(() => {
-                    if (selectedRole === 'ครู') {
-                        handleNextStudentAuto();
-                    } else {
-                        location.reload(); 
-                    }
+                    location.reload(); 
                 });
             } else {
                 Swal.fire('ข้อผิดพลาด', res ? res.error : 'บันทึกข้อมูลล้มเหลว', 'error');
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
                 btn.disabled = false;
             }
-        }
-
-        async function handleNextStudentAuto() {
-            resetAssessmentForm();
-            await loadStudents();
-            const studentSelect = document.getElementById('info-student');
-            
-            if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
-                let nextStudentName = studentSelect.options[1].text; 
-                studentSelect.selectedIndex = 1; 
-                fillStudentInfo(); 
-                
-                document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-                currentStep = 2;
-                document.getElementById(`step-2`).classList.add('active');
-                
-                document.getElementById('btn-prev').classList.remove('hidden');
-                document.getElementById('btn-next').classList.remove('hidden');
-                document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
-                enableNextBtn();
-                
-                window.scrollTo(0, 0);
-
-                Swal.fire({
-                    title: 'ระบบเลือกนักเรียนคนถัดไป',
-                    html: `กำลังเตรียมแบบประเมินสำหรับ:<br><span class="text-xl font-bold text-ocean-600 mt-2 block">${nextStudentName}</span><br><span class="text-sm text-slate-500">กรุณาตรวจสอบข้อมูลก่อนเริ่มทำแบบประเมินครับ</span>`,
-                    icon: 'info',
-                    confirmButtonText: 'รับทราบและเริ่มประเมิน',
-                    confirmButtonColor: '#0ea5e9',
-                    timer: 4000,
-                    timerProgressBar: true
-                });
-                
-            } else {
-                Swal.fire({
-                    title: 'ยอดเยี่ยม!',
-                    text: 'ท่านได้ประเมินนักเรียนครบทุกคนในห้องนี้แล้วครับ 🎉',
-                    icon: 'success',
-                    confirmButtonText: 'กลับหน้าแรก',
-                    confirmButtonColor: '#0369a1'
-                }).then(() => {
-                    location.reload();
-                });
-            }
-            
-            const btn = document.getElementById('btn-final-submit');
-            btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
-            btn.disabled = false;
-        }
-
-        function resetAssessmentForm() {
-            for(let i=1; i<=25; i++) {
-                document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
-            }
-            document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
-            
-            const details = document.getElementById('impact-details');
-            details.classList.add('hidden');
-            details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
-            
-            const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
-            names.forEach(n => {
-                document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
-            });
-            
-            finalResults = {};
         }
     </script>
 </body>
