@@ -377,9 +377,9 @@
         const reverseItems = [7, 11, 14, 21, 25];
 
         const thresholds = {
-            student: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,5], r:[6,6], p:[7,10] }, conduct: { n:[0,3], r:[4,4], p:[5,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,5], p:[6,10] } },
-            parent: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,3], r:[4,4], p:[5,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,2], r:[3,3], p:[4,10] } },
-            teacher: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,4], r:[5,5], p:[6,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,4], p:[5,10] } }
+            student: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,5], r:[6,6], p:[7,10] }, conduct: { n:[0,3], r:[4,4], p:[5,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,5], p:[6,10] }, total: { n:[0,15], r:[16,19], p:[20,40] } },
+            parent: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,4], r:[5,5], p:[6,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,2], r:[3,3], p:[4,10] }, total: { n:[0,13], r:[14,16], p:[17,40] } },
+            teacher: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,4], r:[5,5], p:[6,10] }, conduct: { n:[0,2], r:[3,3], p:[4,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,4], p:[5,10] }, total: { n:[0,11], r:[12,15], p:[16,40] } }
         };
 
         // --- Application State ---
@@ -837,9 +837,7 @@
                 prosocial: getGroup(s.prosocial, t.prosocial)
             };
 
-            let totalInt = "ปกติ";
-            if (totalDifficulty >= 16 && totalDifficulty <= 19) totalInt = "เสี่ยง";
-            if (totalDifficulty >= 20) totalInt = "มีปัญหา";
+            let totalInt = getGroup(totalDifficulty, t.total);
             interpret.total = totalInt;
 
             const mainImpact = parseInt(document.querySelector('input[name="impact_main"]:checked').value);
@@ -891,7 +889,7 @@
                 <div class="flex justify-content py-1"><span>ด้านพฤติกรรมเกเร:</span> <span>${finalResults.scores.conduct} คะแนน ${getBadge(finalResults.interpret.conduct)}</span></div>
                 <div class="flex justify-between py-1"><span>ด้านพฤติกรรมไม่อยู่นิ่ง:</span> <span>${finalResults.scores.hyper} คะแนน ${getBadge(finalResults.interpret.hyper)}</span></div>
                 <div class="flex justify-between py-1"><span>ด้านความสัมพันธ์กับเพื่อน:</span> <span>${finalResults.scores.peer} คะแนน ${getBadge(finalResults.interpret.peer)}</span></div>
-                <div class="flex justify-between py-1 border-t mt-1 pt-2 font-bold text-ocean-700"><span>คะแนนรวม 4 ด้าน:</span> <span>${finalResults.total} คะแนน ${getBadge(finalResults.interpret.total)}</span></div>
+                <div class="flex justify-between py-1 border-t mt-1 pt-2 font-bold text-ocean-700"><span>คะแนนรวมปัญหา:</span> <span>${finalResults.total} คะแนน ${getBadge(finalResults.interpret.total)}</span></div>
                 <div class="flex justify-between py-1 border-t mt-1 pt-2"><span>ด้านสังคม (จุดแข็ง):</span> <span>${finalResults.scores.prosocial} คะแนน ${getBadge(finalResults.interpret.prosocial)}</span></div>
                 <div class="flex justify-between py-1 border-t mt-1 pt-2 font-bold text-rose-600"><span>ผลกระทบ (Impact):</span> ${getBadge(finalResults.interpret.impact)}</div>
             `;
