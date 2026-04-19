@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประมวลผล SDQ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
+    <title>ระบบประมวลผล SDQ - Buayai I-Care School</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -31,7 +31,7 @@
         /* 🍱 Bento Grid Styles */
         .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
         .bento-card {
-            background: white; border-radius: 24px; padding: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white; border-radius: 24px; padding: 25px; transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 2px solid transparent; cursor: pointer;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
         }
@@ -59,14 +59,29 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Status Badges */
-        .badge-normal { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-        .badge-risk { background: #fef9c3; color: #b45309; border: 1px solid #fef08a; }
-        .badge-problem { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-normal { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;}
+        .badge-risk { background: #fef9c3; color: #b45309; border: 1px solid #fef08a; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;}
+        .badge-problem { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;}
+        .badge-neutral { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;}
 
         /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Concordance Table Cells */
+        .cell-match { background-color: rgba(220, 252, 231, 0.4) !important; border-left: 3px solid #22c55e; }
+        .cell-mismatch { background-color: rgba(254, 226, 226, 0.4) !important; border-left: 3px solid #ef4444; }
+        
+        /* Checkbox Toggles */
+        .toggle-label {
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; cursor: pointer;
+            border: 2px solid #e2e8f0; background: white; font-weight: bold; color: #64748b; transition: 0.2s;
+            user-select: none;
+        }
+        .toggle-label:hover { background: #f8fafc; }
+        input[type="checkbox"]:checked + .toggle-label { border-color: #0d9488; background: #f0fdfa; color: #0f766e; }
+        input[type="checkbox"] { display: none; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -77,10 +92,10 @@
             <div class="w-20 h-20 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <i class="bi bi-pie-chart-fill text-4xl"></i>
             </div>
-            <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2">เข้าสู่ระบบประมวลผล SDQ ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</h2>
-            <p class="text-slate-500 text-sm mb-6">กรุณาระบุรหัสประจำตัว (เช่น t35, m2)</p>
+            <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2">เข้าสู่ระบบประมวลผล SDQ</h2>
+            <p class="text-slate-500 text-sm mb-6">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</p>
             
-            <input type="text" id="login-id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg mb-4 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" placeholder="รหัสผ่านเข้าใช้งาน">
+            <input type="text" id="login-id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg mb-4 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" placeholder="รหัสผู้ใช้งาน (เช่น t35, m2, kkss)">
             
             <button onclick="handleLogin()" id="btn-login" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200">
                 เข้าสู่ระบบ
@@ -92,7 +107,6 @@
     <!-- 📱 App Screen -->
     <div id="app-view" class="view-section flex-grow flex flex-col hidden">
         
-        <!-- Navbar -->
         <nav class="bg-teacher-900 text-white shadow-md sticky top-0 z-40">
             <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -123,9 +137,7 @@
                     <!-- เมนู 1: สถิติภาพรวม (การ์ดใหญ่) -->
                     <div class="bento-card card-main" onclick="switchView('overview')">
                         <div class="flex justify-between items-start mb-4">
-                            <div class="bento-icon-wrapper bg-white/20 text-white">
-                                <i class="bi bi-bar-chart-fill"></i>
-                            </div>
+                            <div class="bento-icon-wrapper bg-white/20 text-white"><i class="bi bi-bar-chart-fill"></i></div>
                             <span class="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">อัปเดตล่าสุดวันนี้</span>
                         </div>
                         <h3 class="font-heading text-3xl font-bold mb-2">1. สถิติภาพรวม</h3>
@@ -147,46 +159,40 @@
                         </div>
                     </div>
 
-                    <!-- เมนู 2: Excel -->
+                    <!-- เมนู 2-5 -->
                     <div class="bento-card card-sub" onclick="downloadExcel()">
-                        <div class="bento-icon-wrapper bg-green-50 text-green-600">
-                            <i class="bi bi-file-earmark-excel-fill"></i>
-                        </div>
+                        <div class="bento-icon-wrapper bg-green-50 text-green-600"><i class="bi bi-file-earmark-excel-fill"></i></div>
                         <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">2. ดาวน์โหลด Excel</h3>
                         <p class="text-slate-500 text-sm mb-4">สรุปรายด้าน 5 ด้าน และรายบุคคล</p>
-                        <div class="mt-auto flex justify-between items-center text-green-600 font-bold text-sm">
-                            <span>สร้างไฟล์ <i class="bi bi-arrow-right"></i></span>
-                        </div>
                     </div>
 
-                    <!-- เมนู 3: PDF -->
                     <div class="bento-card card-sub" onclick="downloadPDF()">
-                        <div class="bento-icon-wrapper bg-red-50 text-red-600">
-                            <i class="bi bi-file-earmark-pdf-fill"></i>
-                        </div>
+                        <div class="bento-icon-wrapper bg-red-50 text-red-600"><i class="bi bi-file-earmark-pdf-fill"></i></div>
                         <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">3. ดาวน์โหลด PDF</h3>
                         <p class="text-slate-500 text-sm mb-4">จัดหน้าพร้อมพิมพ์ (A4)</p>
-                        <div class="mt-auto flex justify-between items-center text-red-600 font-bold text-sm">
-                            <span>สร้างไฟล์ <i class="bi bi-arrow-right"></i></span>
-                        </div>
                     </div>
 
-                    <!-- เมนู 4: รายงานหัวหน้า -->
                     <div class="bento-card card-sub" onclick="reportToHead()">
-                        <div class="bento-icon-wrapper bg-blue-50 text-blue-600">
-                            <i class="bi bi-send-check-fill"></i>
-                        </div>
+                        <div class="bento-icon-wrapper bg-blue-50 text-blue-600"><i class="bi bi-send-check-fill"></i></div>
                         <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">4. รายงานหัวหน้า</h3>
                         <p class="text-slate-500 text-sm">ส่งสรุปยอดคัดกรองให้หัวหน้าระดับรับทราบ</p>
                     </div>
 
-                    <!-- เมนู 5: เพื่อนสนิท -->
                     <div class="bento-card card-sub" onclick="switchView('friends')">
-                        <div class="bento-icon-wrapper bg-purple-50 text-purple-600">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
+                        <div class="bento-icon-wrapper bg-purple-50 text-purple-600"><i class="bi bi-people-fill"></i></div>
                         <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">5. รายชื่อเพื่อนสนิท</h3>
                         <p class="text-slate-500 text-sm">ข้อมูลเครือข่ายเพื่อนจากแบบประเมิน</p>
+                    </div>
+
+                    <!-- 🌟 เมนู 6: ความสอดคล้องของการประเมิน -->
+                    <div class="bento-card card-main" style="grid-column: span 12; background: white; border: 2px solid #e2e8f0; color: #1e293b;" onclick="switchView('concordance')">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="bento-icon-wrapper bg-orange-50 text-orange-600 m-0"><i class="bi bi-intersect"></i></div>
+                            <div>
+                                <h3 class="font-heading text-xl font-bold text-slate-800">6. ความสอดคล้องของการประเมิน (Triangulation)</h3>
+                                <p class="text-slate-500 text-sm">เปรียบเทียบผลประเมินระหว่าง นักเรียน ครู และผู้ปกครอง</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -197,10 +203,8 @@
                     <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
                 </button>
 
-                <!-- ส่วนที่ 1: สรุปยอดรวม & กราฟแท่ง -->
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
                     <h3 class="font-heading text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="bi bi-1-circle-fill text-teal-600 me-2"></i>สรุปผลคัดกรอง (Total Difficulties)</h3>
-                    
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-200">
                             <div class="text-sm font-bold text-slate-500 mb-1">ประเมินแล้วทั้งหมด</div>
@@ -219,62 +223,29 @@
                             <div class="font-heading text-3xl font-bold text-red-600" id="stat-prob">0</div>
                         </div>
                     </div>
-
-                    <div class="h-[300px] w-full relative">
-                        <canvas id="mainBarChart"></canvas>
-                    </div>
-                    <p class="text-center text-sm text-slate-500 mt-2"><i class="bi bi-info-circle"></i> คลิกที่แท่งกราฟ เพื่อกรองรายชื่อในตารางด้านล่าง</p>
+                    <div class="h-[300px] w-full relative"><canvas id="mainBarChart"></canvas></div>
                 </div>
 
-                <!-- ส่วนที่ 2: สารสนเทศรายด้าน (ปัญหา 4 ด้าน) -->
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
-                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="bi bi-2-circle-fill text-teal-600 me-2"></i>กลุ่มที่มีปัญหา แยกรายด้าน</h3>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
-                            <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-emoji-frown-fill"></i></div>
-                            <div class="text-sm font-bold text-slate-600 mb-1">ด้านอารมณ์</div>
-                            <div class="font-heading text-2xl font-bold text-rose-600"><span id="dom-emo">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
-                        </div>
-                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
-                            <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                            <div class="text-sm font-bold text-slate-600 mb-1">พฤติกรรมเกเร</div>
-                            <div class="font-heading text-2xl font-bold text-orange-600"><span id="dom-cond">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
-                        </div>
-                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
-                            <div class="w-12 h-12 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-lightning-fill"></i></div>
-                            <div class="text-sm font-bold text-slate-600 mb-1">ไม่อยู่นิ่ง</div>
-                            <div class="font-heading text-2xl font-bold text-purple-600"><span id="dom-hyper">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
-                        </div>
-                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
-                            <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-people-fill"></i></div>
-                            <div class="text-sm font-bold text-slate-600 mb-1">สัมพันธ์กับเพื่อน</div>
-                            <div class="font-heading text-2xl font-bold text-blue-600"><span id="dom-peer">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ส่วนที่ 3: สารสนเทศรายบุคคล (ตาราง) -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-heading text-xl font-bold text-slate-800 m-0"><i class="bi bi-3-circle-fill text-teal-600 me-2"></i>สารสนเทศรายบุคคล</h3>
+                        <h3 class="font-heading text-xl font-bold text-slate-800 m-0"><i class="bi bi-2-circle-fill text-teal-600 me-2"></i>สารสนเทศรายบุคคล</h3>
                         <div class="text-sm font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full" id="table-filter-badge">แสดงทั้งหมด</div>
                     </div>
-                    
                     <div class="overflow-x-auto custom-scroll max-h-[500px]">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead class="bg-white sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ห้อง</th>
-                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">รหัส</th>
-                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ชื่อ-สกุล</th>
-                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">คะแนนรวม</th>
-                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">แปลผล</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ห้อง</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">รหัส</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ชื่อ-สกุล</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">อารมณ์</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">เกเร</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">ไม่อยู่นิ่ง</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">เพื่อน</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center bg-slate-50">รวม 4 ด้าน</th>
                                 </tr>
                             </thead>
-                            <tbody id="studentTableBody" class="text-slate-700">
-                                <!-- Data fills here -->
-                            </tbody>
+                            <tbody id="studentTableBody" class="text-slate-700 text-sm"></tbody>
                         </table>
                     </div>
                 </div>
@@ -286,20 +257,63 @@
                     <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
                 </button>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-2"><i class="bi bi-people-fill text-purple-600 me-2"></i>ข้อมูลเพื่อนสนิท (จากแบบประเมิน SDQ)</h3>
+                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-2"><i class="bi bi-people-fill text-purple-600 me-2"></i>ข้อมูลเพื่อนสนิท</h3>
                     <p class="text-slate-500 mb-6 text-sm">ข้อมูลจากการตอบคำถามข้อ 11: "ฉันมีเพื่อนสนิทอย่างน้อยหนึ่งคน"</p>
-                    
                     <div class="overflow-x-auto custom-scroll">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-50">
+                                <tr><th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">รหัส</th><th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ชื่อ-สกุล</th><th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">การมีเพื่อนสนิท</th></tr>
+                            </thead>
+                            <tbody id="friendsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🌟 หน้า ความสอดคล้อง (Concordance) -->
+            <div id="view-concordance" class="view-section hidden">
+                <button onclick="switchView('home')" class="mb-4 text-teal-700 font-bold hover:text-teal-900 flex items-center gap-1 bg-teal-50 px-3 py-1.5 rounded-lg w-fit transition">
+                    <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
+                </button>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+                    <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2"><i class="bi bi-intersect text-orange-500 me-2"></i>ความสอดคล้องของการประเมิน</h2>
+                    <p class="text-slate-500 mb-4">แสดงผลเปรียบเทียบมุมมองของผู้ประเมิน 3 ฝ่าย หากผลออกมาตรงกันจะแสดง <span class="badge bg-success bg-opacity-25 text-success">สีเขียว</span> หากขัดแย้งกันจะแสดง <span class="badge bg-danger bg-opacity-25 text-danger">สีแดง</span></p>
+                    
+                    <div class="flex flex-wrap gap-3 mb-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="text-sm font-bold text-slate-600 w-full mb-1">เลือกผู้ประเมินที่ต้องการเปรียบเทียบ:</div>
+                        
+                        <div>
+                            <input type="checkbox" id="chk-student" checked onchange="renderConcordanceTable()">
+                            <label for="chk-student" class="toggle-label shadow-sm"><i class="bi bi-person-fill"></i> นักเรียนประเมินตนเอง</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="chk-teacher" checked onchange="renderConcordanceTable()">
+                            <label for="chk-teacher" class="toggle-label shadow-sm"><i class="bi bi-person-video3"></i> ครูประเมิน</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="chk-parent" checked onchange="renderConcordanceTable()">
+                            <label for="chk-parent" class="toggle-label shadow-sm"><i class="bi bi-people-fill"></i> ผู้ปกครองประเมิน</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scroll max-h-[600px]">
+                        <table class="w-full text-left border-collapse min-w-[1000px]">
+                            <thead class="bg-slate-800 text-white sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">รหัส</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ชื่อ-สกุล</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">การมีเพื่อนสนิท</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center">รหัส</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b">ชื่อ-สกุล</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center w-32">อารมณ์</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center w-32">เกเร</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center w-32">ไม่อยู่นิ่ง</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center w-32">เพื่อน</th>
+                                    <th class="py-3 px-3 font-heading font-bold border-b text-center w-32 bg-slate-900">รวม 4 ด้าน</th>
                                 </tr>
                             </thead>
-                            <tbody id="friendsTableBody">
-                                <!-- Data fills here -->
+                            <tbody id="concordanceTableBody" class="text-sm border-b">
+                                <!-- Populated by JS -->
                             </tbody>
                         </table>
                     </div>
@@ -317,7 +331,7 @@
 
     <script>
         // ====================================================
-        // ⚠️ ลิงก์ API หลังบ้าน (ตามที่ให้มา)
+        // ⚠️ ใส่ลิงก์ API หลังบ้านตรงนี้ (ต้องเป็นของ backend_sdq_dashboard.gs)
         // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwKTzB3n3sNze4GVsbl2_SEhXjVtnHbN7Rsn8zRKHCektAhmYGmio4w_vFVaZaQafaM/exec";
 
@@ -345,7 +359,7 @@
             const err = document.getElementById('login-error');
             const btn = document.getElementById('btn-login');
 
-            if (!uid) { err.innerText = "กรุณาระบุรหัสผ่าน"; err.classList.remove('hidden'); return; }
+            if (!uid) { err.innerText = "กรุณาระบุรหัสผู้ใช้งาน"; err.classList.remove('hidden'); return; }
             err.classList.add('hidden');
             
             let scopeName = "";
@@ -358,7 +372,7 @@
             } else if (uid === 'kkss') {
                 scopeName = "ผู้ดูแลระบบส่วนกลาง (ดูทั้งหมด)";
             } else {
-                err.innerText = "รหัสไม่ถูกต้อง (ต้องขึ้นต้นด้วย m หรือ t)"; err.classList.remove('hidden'); return;
+                err.innerText = "รหัสไม่ถูกต้อง (ต้องขึ้นต้นด้วย m, t หรือ kkss)"; err.classList.remove('hidden'); return;
             }
 
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังเข้าระบบ...';
@@ -368,12 +382,10 @@
             document.getElementById('user-scope').innerText = scopeName;
             sessionStorage.setItem('sdq_admin_uid', uid);
 
-            // Fetch Data
             await loadDashboardData(uid);
 
             document.getElementById('login-view').classList.remove('active');
-            setTimeout(() => document.getElementById('login-view').classList.add('hidden'), 400); // Wait for fade out
-            
+            setTimeout(() => document.getElementById('login-view').classList.add('hidden'), 400); 
             document.getElementById('app-view').classList.remove('hidden');
             setTimeout(() => document.getElementById('app-view').classList.add('active'), 50);
             
@@ -405,9 +417,8 @@
                 target.classList.remove('hidden');
                 setTimeout(() => target.classList.add('active'), 50);
                 
-                if(viewId === 'overview' && rawData.length > 0) {
-                    renderOverview(rawData);
-                }
+                if(viewId === 'overview' && rawData.length > 0) renderOverview(rawData);
+                if(viewId === 'concordance' && rawData.length > 0) renderConcordanceTable();
             }, 400);
         }
 
@@ -419,58 +430,34 @@
             document.getElementById('loader-overlay').classList.add('hidden');
         }
 
-        // --- 3. Data Fetching & Mocking (Fallback) ---
+        // --- 3. Data Fetching ---
         async function loadDashboardData(uid) {
-            showLoader('กำลังดึงข้อมูลและประมวลผล...');
+            showLoader('กำลังดึงข้อมูลจากฐานข้อมูลส่วนกลาง...');
             try {
-                // ติดต่อ Backend จริง
+                // บังคับส่งแบบ text/plain ป้องกัน CORS
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'getDashboardData', uid: uid })
                 });
-                const res = await response.json();
+                
+                const resText = await response.text();
+                let res;
+                try { res = JSON.parse(resText); } catch(e) { throw new Error("การตั้งค่า Web App ขัดข้อง"); }
                 
                 if (res.success) {
                     rawData = res.data;
                 } else {
-                    throw new Error(res.error || "No data");
+                    throw new Error(res.error || "ไม่มีข้อมูลในขอบเขตนี้");
                 }
             } catch (error) {
-                console.warn("API Error, using MOCK DATA for demonstration.", error);
-                // 🌟 MOCK DATA (ใช้ในกรณี API เออเร่อ หรือยังพัฒนาไม่เสร็จ เพื่อให้ UI ทำงานได้)
-                rawData = generateMockData(uid);
+                console.error("Fetch Error:", error);
+                Swal.fire('ข้อผิดพลาด', error.message, 'warning');
+                rawData = [];
             }
             
             updateBentoStats();
             renderFriendsTable();
             hideLoader();
-        }
-
-        function generateMockData(uid) {
-            const data = [];
-            const isLevel = uid.startsWith('m');
-            const roomPrefix = isLevel ? `ม.${uid.replace('m','')}/` : `ม.${uid.substring(1,2)}/${uid.substring(2)||'1'}`;
-            
-            for(let i=1; i<= (isLevel ? 150 : 35); i++) {
-                let rm = isLevel ? `${roomPrefix}${Math.floor(Math.random()*5)+1}` : roomPrefix;
-                let tScore = Math.floor(Math.random() * 30);
-                let interpret = tScore <= 15 ? 'ปกติ' : (tScore <= 19 ? 'เสี่ยง' : 'มีปัญหา');
-                
-                data.push({
-                    id: `660${i.toString().padStart(3,'0')}`,
-                    name: `นักเรียน สมมติคนที่ ${i}`,
-                    room: rm,
-                    totalScore: tScore,
-                    interpretTotal: interpret,
-                    emo: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
-                    cond: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
-                    hyper: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
-                    peer: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
-                    q11_friend: Math.random() > 0.2 ? 'จริงแน่นอน' : 'ไม่จริง' // ข้อ 11 มีเพื่อน
-                });
-            }
-            return data;
         }
 
         // --- 4. Rendering Views ---
@@ -484,14 +471,20 @@
             document.getElementById('bento-prob').innerText = prob;
         }
 
+        function getBadgeClass(status) {
+            if(!status) return "badge-neutral";
+            if(status.includes("ปกติ")) return "badge-normal";
+            if(status.includes("เสี่ยง")) return "badge-risk";
+            if(status.includes("มีปัญหา")) return "badge-problem";
+            return "badge-neutral";
+        }
+
         function renderOverview(dataToRender, filterType = 'all') {
-            // Update Top 4 KPIs based on FULL data (not filtered)
-            const total = rawData.length;
             const norm = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
             const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
             const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
 
-            document.getElementById('stat-all').innerText = total;
+            document.getElementById('stat-all').innerText = rawData.length;
             document.getElementById('stat-normal').innerText = norm;
             document.getElementById('stat-risk').innerText = risk;
             document.getElementById('stat-prob').innerText = prob;
@@ -525,20 +518,13 @@
                     },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false }, ticks: { font: { family: "'Prompt', sans-serif", size: 14 } } }
+                        x: { grid: { display: false }, ticks: { font: { family: "'Prompt', sans-serif" } } }
                     },
                     plugins: { legend: { display: false } },
                     onHover: (e, elements) => { e.native.target.style.cursor = elements.length ? 'pointer' : 'default'; }
                 }
             });
 
-            // Domain Stats (ปัญหา 4 ด้าน)
-            document.getElementById('dom-emo').innerText = rawData.filter(d => d.emo === 'มีปัญหา').length;
-            document.getElementById('dom-cond').innerText = rawData.filter(d => d.cond === 'มีปัญหา').length;
-            document.getElementById('dom-hyper').innerText = rawData.filter(d => d.hyper === 'มีปัญหา').length;
-            document.getElementById('dom-peer').innerText = rawData.filter(d => d.peer === 'มีปัญหา').length;
-
-            // Table
             renderTable(dataToRender, filterType);
         }
 
@@ -552,26 +538,27 @@
         function renderTable(dataList, type) {
             const tbody = document.getElementById('studentTableBody');
             if (dataList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 font-bold">ไม่มีข้อมูลนักเรียนในกลุ่มนี้</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 font-bold">ไม่มีข้อมูลนักเรียนในกลุ่มนี้</td></tr>`;
                 return;
             }
 
             let html = '';
-            // เรียงห้อง แล้วคะแนน
             let sorted = [...dataList].sort((a,b) => {
                 if(a.room !== b.room) return a.room.localeCompare(b.room);
                 return b.totalScore - a.totalScore;
             });
 
             sorted.forEach(s => {
-                let bClass = s.interpretTotal === 'ปกติ' ? 'bg-normal' : (s.interpretTotal === 'เสี่ยง' ? 'bg-risk' : 'bg-problem');
                 html += `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="py-3 px-4 font-bold text-slate-600">${s.room}</td>
-                    <td class="py-3 px-4 text-slate-500">${s.id}</td>
-                    <td class="py-3 px-4 font-bold text-slate-800">${s.name}</td>
-                    <td class="py-3 px-4 text-center font-bold">${s.totalScore}</td>
-                    <td class="py-3 px-4 text-center"><span class="stat-badge ${bClass}">${s.interpretTotal}</span></td>
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    <td class="py-2 px-4 font-bold text-slate-600">${s.room}</td>
+                    <td class="py-2 px-4 text-slate-500">${s.id}</td>
+                    <td class="py-2 px-4 font-bold text-slate-800">${s.name}</td>
+                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.emo)}">${s.emo}</span></td>
+                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.cond)}">${s.cond}</span></td>
+                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.hyper)}">${s.hyper}</span></td>
+                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.peer)}">${s.peer}</span></td>
+                    <td class="py-2 px-4 text-center bg-slate-50"><span class="${getBadgeClass(s.interpretTotal)} text-sm">${s.interpretTotal}</span></td>
                 </tr>`;
             });
             tbody.innerHTML = html;
@@ -584,8 +571,8 @@
             let html = '';
             rawData.forEach(s => {
                 let badge = s.q11_friend === 'ไม่จริง' 
-                            ? '<span class="stat-badge bg-problem"><i class="bi bi-x-circle"></i> ค่อนข้างโดดเดี่ยว</span>' 
-                            : '<span class="stat-badge bg-normal"><i class="bi bi-check-circle"></i> มีเพื่อนสนิท</span>';
+                            ? '<span class="badge-problem px-3 py-1 rounded-full text-xs">ค่อนข้างโดดเดี่ยว</span>' 
+                            : '<span class="badge-normal px-3 py-1 rounded-full text-xs">มีเพื่อนสนิท</span>';
                 html += `
                 <tr class="hover:bg-slate-50 border-b border-slate-100">
                     <td class="py-3 px-4 text-slate-500">${s.id}</td>
@@ -596,11 +583,65 @@
             tbody.innerHTML = html;
         }
 
-        // --- 5. Actions ---
+        // 🌟 ระบบความสอดคล้องอัจฉริยะ (Triangulation)
+        function renderConcordanceTable() {
+            const showStd = document.getElementById('chk-student').checked;
+            const showTch = document.getElementById('chk-teacher').checked;
+            const showPar = document.getElementById('chk-parent').checked;
+
+            const tbody = document.getElementById('concordanceTableBody');
+            
+            if(!showStd && !showTch && !showPar) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-slate-400 font-bold">กรุณาเลือกผู้ประเมินอย่างน้อย 1 ฝ่ายเพื่อแสดงข้อมูล</td></tr>';
+                return;
+            }
+
+            let html = '';
+            rawData.forEach(s => {
+                const buildCell = (domainKey) => {
+                    let vals = [];
+                    let badges = '';
+                    
+                    if (showStd && s.raw && s.raw.student) {
+                        let st = s.raw.student[domainKey];
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-info text-dark w-100 text-start shadow-sm border border-info"><i class="bi bi-person"></i> นร: ${st}</span></div>`; }
+                    }
+                    if (showTch && s.raw && s.raw.teacher) {
+                        let st = s.raw.teacher[domainKey];
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-primary w-100 text-start shadow-sm border border-primary"><i class="bi bi-person-video3"></i> ครู: ${st}</span></div>`; }
+                    }
+                    if (showPar && s.raw && s.raw.parent) {
+                        let st = s.raw.parent[domainKey];
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-0"><span class="badge bg-warning text-dark w-100 text-start shadow-sm border border-warning"><i class="bi bi-people"></i> ผปค: ${st}</span></div>`; }
+                    }
+
+                    if (vals.length === 0) return '<td class="text-center text-slate-300 border-b border-r">-</td>';
+
+                    let isMatch = new Set(vals).size === 1;
+                    let bgClass = vals.length > 1 ? (isMatch ? 'cell-match' : 'cell-mismatch') : '';
+
+                    return `<td class="${bgClass} p-2 align-top border-b border-r border-slate-200">${badges}</td>`;
+                };
+
+                html += `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="text-center text-slate-500 border-b border-slate-200 border-r">${s.id}</td>
+                    <td class="font-bold text-slate-800 border-b border-slate-200 border-r">${s.name} <div class="text-xs text-slate-400 font-normal">${s.room}</div></td>
+                    ${buildCell('emo')}
+                    ${buildCell('cond')}
+                    ${buildCell('hyper')}
+                    ${buildCell('peer')}
+                    ${buildCell('interpretTotal')}
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // --- 5. Actions (Export, Report) ---
         async function downloadExcel() {
-            showLoader('กำลังเตรียมไฟล์ Excel (ใช้เวลาสักครู่)...');
+            showLoader('กำลังเตรียมไฟล์ Excel (อาจใช้เวลาสักครู่)...');
             try {
-                const res = await fetchAPI({ action: 'exportExcel', uid: sessionStorage.getItem('sdq_admin_uid') });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'exportExcel', uid: sessionStorage.getItem('sdq_admin_uid') }) }).then(r => r.json());
                 hideLoader();
                 if(res && res.success) {
                     Swal.fire({
@@ -609,15 +650,14 @@
                     }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
                 } else { throw new Error(res?res.error:"Failed"); }
             } catch(e) {
-                hideLoader();
-                Swal.fire('ข้อผิดพลาด', 'ยังไม่ได้ตั้งค่าโฟลเดอร์หรือ API สำหรับสร้างไฟล์ในระบบหลังบ้าน', 'warning');
+                hideLoader(); Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการสร้างไฟล์: ' + e.message, 'warning');
             }
         }
 
         async function downloadPDF() {
-            showLoader('กำลังสร้างเอกสาร PDF (โฟลเดอร์ 1TpZUp0TQYQ4hTg3KnxJYVb5S-Ac8jq26)...');
+            showLoader('กำลังสร้างเอกสาร PDF...');
             try {
-                const res = await fetchAPI({ action: 'exportPDF', uid: sessionStorage.getItem('sdq_admin_uid') });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'exportPDF', uid: sessionStorage.getItem('sdq_admin_uid') }) }).then(r => r.json());
                 hideLoader();
                 if(res && res.success) {
                     Swal.fire({
@@ -626,25 +666,24 @@
                     }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
                 } else { throw new Error(res?res.error:"Failed"); }
             } catch(e) {
-                hideLoader();
-                Swal.fire('ข้อผิดพลาด', 'ยังไม่ได้ตั้งค่าการสร้าง PDF ในระบบหลังบ้าน', 'warning');
+                hideLoader(); Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการสร้างไฟล์ PDF', 'warning');
             }
         }
 
-        async function reportToHead() {
-            const res = await Swal.fire({
+        function reportToHead() {
+            Swal.fire({
                 title: 'ยืนยันการรายงานผล?', text: `ส่งข้อมูลสรุปการคัดกรอง SDQ (${currentScope}) ไปยังหัวหน้าระดับ`,
                 icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันส่งรายงาน', confirmButtonColor: '#0d9488'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    showLoader('กำลังส่งรายงาน...');
+                    // จำลองการส่งสำเร็จ
+                    setTimeout(() => {
+                        hideLoader();
+                        Swal.fire('สำเร็จ!', 'รายงานผลการคัดกรองถูกส่งให้หัวหน้าระดับเรียบร้อยแล้ว', 'success');
+                    }, 1000);
+                }
             });
-
-            if (res.isConfirmed) {
-                showLoader('กำลังส่งรายงาน...');
-                // จำลองการส่ง
-                setTimeout(() => {
-                    hideLoader();
-                    Swal.fire('สำเร็จ!', 'รายงานผลการคัดกรองถูกส่งให้หัวหน้าระดับเรียบร้อยแล้ว', 'success');
-                }, 1000);
-            }
         }
     </script>
 </body>
