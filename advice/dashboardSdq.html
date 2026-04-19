@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประมวลผล SDQ - Buayai I-Care School</title>
+    <title>ระบบประมวลผล SDQ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
     
     <!-- 🌟 เพิ่ม Bootstrap CSS ที่ตกหล่นไป เพื่อให้หน้าต่าง Modal ซ่อนตัวได้ถูกต้อง -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -86,8 +86,9 @@
             user-select: none;
         }
         .toggle-label:hover { background: #f8fafc; }
-        input[type="checkbox"]:checked + .toggle-label { border-color: #0d9488; background: #f0fdfa; color: #0f766e; }
-        input[type="checkbox"] { display: none; }
+        /* 🌟 อัปเดต CSS เพื่อให้รองรับทั้ง Checkbox และ Radio */
+        input.toggle-check:checked + .toggle-label, input.toggle-radio:checked + .toggle-label { border-color: #0d9488; background: #f0fdfa; color: #0f766e; }
+        input.toggle-check, input.toggle-radio { display: none; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -139,7 +140,7 @@
                     </div>
                 </div>
 
-                <!-- 🌟 ส่วนบน: กล่องสถิติที่คลิกเพื่อดูรายชื่อได้ -->
+                <!-- 🌟 กล่องสถิติภาพรวม 4 ช่อง -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-200 cursor-pointer hover:bg-slate-100 transition shadow-sm" onclick="openStudentListModal('all')">
                         <div class="text-sm font-bold text-slate-500 mb-1">ประเมินแล้วทั้งหมด</div>
@@ -166,9 +167,27 @@
                 <div class="row g-4">
                     <!-- 🌟 ส่วนกลางซ้าย: กราฟวงกลม -->
                     <div class="col-lg-5">
-                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 h-100 d-flex flex-column justify-content-center">
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 h-100 d-flex flex-column justify-content-center position-relative">
+                            
+                            <!-- 🌟 เพิ่มระบบตัวกรอง (Radio Button) แยกชุดข้อมูล -->
+                            <div class="flex flex-wrap gap-2 mb-4 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="text-xs font-bold text-slate-500 w-full mb-1 px-2"><i class="bi bi-funnel-fill"></i> เลือกดูสถิติจากชุดข้อมูล:</div>
+                                <div>
+                                    <input type="radio" name="assessorType" class="toggle-radio" id="assessor-student" value="student" checked onchange="changeAssessorType('student')">
+                                    <label for="assessor-student" class="toggle-label shadow-sm text-xs py-1 px-2"><i class="bi bi-person-fill"></i> นร.ประเมิน</label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="assessorType" class="toggle-radio" id="assessor-teacher" value="teacher" onchange="changeAssessorType('teacher')">
+                                    <label for="assessor-teacher" class="toggle-label shadow-sm text-xs py-1 px-2"><i class="bi bi-person-video3"></i> ครูประเมิน</label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="assessorType" class="toggle-radio" id="assessor-parent" value="parent" onchange="changeAssessorType('parent')">
+                                    <label for="assessor-parent" class="toggle-label shadow-sm text-xs py-1 px-2"><i class="bi bi-people-fill"></i> ผปค.ประเมิน</label>
+                                </div>
+                            </div>
+
                             <h5 class="font-heading text-lg font-bold text-slate-800 mb-3 text-center">สัดส่วนกลุ่มนักเรียน</h5>
-                            <div style="position: relative; height: 280px; width: 100%;">
+                            <div style="position: relative; height: 220px; width: 100%;">
                                 <canvas id="mainPieChart"></canvas>
                             </div>
                             <p class="text-center text-sm text-slate-500 mt-4"><i class="bi bi-hand-index-thumb"></i> คลิกที่ส่วนของกราฟเพื่อดูรายชื่อ</p>
@@ -253,15 +272,15 @@
                         <div class="text-sm font-bold text-slate-600 w-full mb-1">เลือกผู้ประเมินที่ต้องการเปรียบเทียบ:</div>
                         
                         <div>
-                            <input type="checkbox" id="chk-student" checked onchange="renderConcordanceTable()">
+                            <input type="checkbox" class="toggle-check" id="chk-student" checked onchange="renderConcordanceTable()">
                             <label for="chk-student" class="toggle-label shadow-sm"><i class="bi bi-person-fill"></i> นักเรียนประเมินตนเอง</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="chk-teacher" checked onchange="renderConcordanceTable()">
+                            <input type="checkbox" class="toggle-check" id="chk-teacher" checked onchange="renderConcordanceTable()">
                             <label for="chk-teacher" class="toggle-label shadow-sm"><i class="bi bi-person-video3"></i> ครูประเมิน</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="chk-parent" checked onchange="renderConcordanceTable()">
+                            <input type="checkbox" class="toggle-check" id="chk-parent" checked onchange="renderConcordanceTable()">
                             <label for="chk-parent" class="toggle-label shadow-sm"><i class="bi bi-people-fill"></i> ผู้ปกครองประเมิน</label>
                         </div>
                     </div>
@@ -342,11 +361,13 @@
         // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwKTzB3n3sNze4GVsbl2_SEhXjVtnHbN7Rsn8zRKHCektAhmYGmio4w_vFVaZaQafaM/exec";
         
-        // 🌟 รหัสครุฑสำหรับเอกสาร (แก้ไขเป็นลิงก์ Thumbnail ตรง เพื่อป้องกันการบล็อก)
+        // รหัสครุฑสำหรับเอกสาร
         const GARUDA_URL = "https://drive.google.com/thumbnail?id=1LbOYGcXlXRD51dQ57wb83kHdeTfAo9uB&sz=w400";
 
         let currentScope = ""; 
         let rawData = [];
+        let activeData = []; // 🌟 เก็บข้อมูลเฉพาะที่ถูกกรองตามผู้ประเมินปัจจุบัน
+        let currentAssessor = 'student'; // 🌟 ผู้ประเมินเริ่มต้น
         let chartInstance = null;
 
         // --- 1. Initialization & Auth ---
@@ -428,7 +449,7 @@
                     setTimeout(() => target.classList.add('active'), 50);
                 }
                 
-                if(viewId === 'home' && rawData.length > 0) renderOverview(rawData);
+                if(viewId === 'home' && activeData.length > 0) renderOverview();
                 if(viewId === 'concordance' && rawData.length > 0) renderConcordanceTable();
             }, 400);
         }
@@ -467,14 +488,51 @@
                 rawData = [];
             }
             
-            updateBentoStats();
+            updateActiveData(); // 🌟 กรองข้อมูลตามผู้ประเมินเริ่มต้น
             renderFriendsTable();
             hideLoader();
         }
 
+        // 🌟 ฟังก์ชันอัปเดตข้อมูลเมื่อเปลี่ยนผู้ประเมิน
+        function changeAssessorType(type) {
+            currentAssessor = type;
+            updateActiveData();
+            renderOverview();
+        }
+
+        // 🌟 กรองเอาเฉพาะข้อมูลของผู้ประเมินที่เลือกมาใส่ใน activeData
+        function updateActiveData() {
+            activeData = [];
+            if (!rawData || rawData.length === 0) return;
+
+            rawData.forEach(d => {
+                // เช็คว่ามีข้อมูลดิบของผู้ประเมินคนนี้หรือไม่
+                if (d.raw && d.raw[currentAssessor]) {
+                    let r = d.raw[currentAssessor];
+                    if (r.interpretTotal && r.interpretTotal !== '-') {
+                        activeData.push({
+                            id: d.id,
+                            name: d.name,
+                            room: d.room,
+                            emo: r.emo || '-',
+                            cond: r.cond || '-',
+                            hyper: r.hyper || '-',
+                            peer: r.peer || '-',
+                            prosocial: r.prosocial || '-',
+                            totalScore: r.totalScore || 0,
+                            interpretTotal: r.interpretTotal || '-',
+                            impact: r.impact || '-',
+                            q11_friend: r.q11_friend || d.q11_friend || '-' // เผื่อ fallback
+                        });
+                    }
+                }
+            });
+            updateBentoStats();
+        }
+
         // --- 4. Rendering Views ---
         function updateBentoStats() {
-            // Stats อัปเดตในตอน renderOverview แทน
+            // Stats อัปเดตในตอน renderOverview
         }
 
         function getBadgeClass(status) {
@@ -485,12 +543,13 @@
             return "badge-neutral";
         }
 
-        function renderOverview(dataToRender) {
-            const norm = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
-            const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
-            const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
+        // 🌟 เปลี่ยนให้ใช้ activeData แทน rawData
+        function renderOverview() {
+            const norm = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+            const risk = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+            const prob = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
-            document.getElementById('stat-all').innerText = rawData.length;
+            document.getElementById('stat-all').innerText = activeData.length;
             document.getElementById('stat-normal').innerText = norm;
             document.getElementById('stat-risk').innerText = risk;
             document.getElementById('stat-prob').innerText = prob;
@@ -530,11 +589,14 @@
             });
         }
 
-        // 🌟 เปิดหน้าต่าง Modal ตารางรายชื่อ
+        // 🌟 เปิดหน้าต่าง Modal ตารางรายชื่อ โดยใช้ activeData
         function openStudentListModal(type) {
-            let filtered = type === 'all' ? rawData : rawData.filter(d => d.interpretTotal && d.interpretTotal.includes(type));
+            let filtered = type === 'all' ? activeData : activeData.filter(d => d.interpretTotal && d.interpretTotal.includes(type));
             let groupName = type === 'all' ? '(ทั้งหมด)' : `(กลุ่ม${type})`;
-            document.getElementById('modal-group-name').innerText = groupName;
+            
+            // เพิ่มคำอธิบายผู้ประเมินต่อท้าย
+            let assessorName = currentAssessor === 'student' ? 'นร.ประเมิน' : (currentAssessor === 'teacher' ? 'ครูประเมิน' : 'ผปค.ประเมิน');
+            document.getElementById('modal-group-name').innerHTML = `${groupName} <span class="badge bg-secondary ms-2" style="font-size: 0.8rem;">${assessorName}</span>`;
             
             const tbody = document.getElementById('modalStudentTableBody');
             if (filtered.length === 0) {
@@ -567,10 +629,10 @@
 
         function renderFriendsTable() {
             const tbody = document.getElementById('friendsTableBody');
-            if (rawData.length === 0) return;
+            if (activeData.length === 0) return;
 
             let html = '';
-            rawData.forEach(s => {
+            activeData.forEach(s => {
                 let badge = s.q11_friend === 'ไม่จริง' 
                             ? '<span class="badge-problem px-3 py-1 rounded-full text-xs" style="padding: 2px 8px; border-radius: 8px;">ค่อนข้างโดดเดี่ยว</span>' 
                             : '<span class="badge-normal px-3 py-1 rounded-full text-xs" style="padding: 2px 8px; border-radius: 8px;">มีเพื่อนสนิท</span>';
@@ -584,7 +646,7 @@
             tbody.innerHTML = html;
         }
 
-        // 🌟 ระบบความสอดคล้องอัจฉริยะ (Triangulation)
+        // 🌟 ระบบความสอดคล้องอัจฉริยะ (Triangulation) ใช้ rawData ดั้งเดิม เพราะต้องเปรียบเทียบทุกคน
         function renderConcordanceTable() {
             const showStd = document.getElementById('chk-student').checked;
             const showTch = document.getElementById('chk-teacher').checked;
@@ -640,26 +702,26 @@
 
         // --- 5. Actions (Export Excel Local & Official PDF Print) ---
         
-        // 🌟 สร้างไฟล์ Excel ทันทีบนหน้าเว็บด้วย SheetJS
+        // 🌟 สร้างไฟล์ Excel ทันทีบนหน้าเว็บด้วย SheetJS (ดึงจาก activeData ล้วนๆ)
         function generateExcelLocal() {
-            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างไฟล์ Excel', 'warning');
+            if(activeData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างไฟล์ Excel', 'warning');
             
             showLoader('กำลังสร้างไฟล์ Excel บนอุปกรณ์ของคุณ...');
             
             try {
-                // 1. คำนวณสถิติภาพรวม
-                const total = rawData.length;
-                const normal = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
-                const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
-                const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
+                const total = activeData.length;
+                const normal = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+                const risk = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+                const prob = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
-                // 2. จัดเตรียมข้อมูลแต่ละชีต
                 let wb = XLSX.utils.book_new();
                 
-                // Sheet 1: สรุปภาพรวม
+                // ถอดชื่อผู้ประเมินปัจจุบันมาแสดงในหัวตาราง
+                let assessorName = currentAssessor === 'student' ? 'นักเรียนประเมินตนเอง' : (currentAssessor === 'teacher' ? 'ครูประเมิน' : 'ผู้ปกครองประเมิน');
+
                 let summaryData = [
                     ["รายงานผลการคัดกรอง SDQ (Strengths and Difficulties Questionnaire)"],
-                    [`ข้อมูลประมวลผลสำหรับขอบเขต: ${currentScope}`],
+                    [`ข้อมูลประมวลผลสำหรับขอบเขต: ${currentScope} (ชุดข้อมูล: ${assessorName})`],
                     [],
                     ["จำนวนนักเรียนทั้งหมด", total, "คน"],
                     ["กลุ่มปกติ", normal, "คน"],
@@ -669,10 +731,9 @@
                 let wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
                 XLSX.utils.book_append_sheet(wb, wsSummary, "สรุปภาพรวม");
 
-                // Helper สำหรับสร้างชีตรายด้าน
                 const createDomainSheet = (sheetName, domainKey) => {
                     let domainData = [["รหัสนักเรียน", "ชื่อ-สกุล", "ห้องเรียน", "ผลการประเมิน"]];
-                    rawData.forEach(d => { domainData.push([d.id, d.name, d.room, d[domainKey]]); });
+                    activeData.forEach(d => { domainData.push([d.id, d.name, d.room, d[domainKey]]); });
                     let ws = XLSX.utils.aoa_to_sheet(domainData);
                     XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 };
@@ -683,16 +744,14 @@
                 createDomainSheet("ด้านสัมพันธ์กับเพื่อน", "peer");
                 createDomainSheet("ด้านสังคม(จุดแข็ง)", "prosocial");
 
-                // Sheet: รายบุคคล(เต็ม)
                 let allDetailData = [["รหัส", "ชื่อ-สกุล", "ห้อง", "คะแนนรวม", "แปลผลรวม", "ผลกระทบ", "ด้านอารมณ์", "ด้านเกเร", "ด้านไม่อยู่นิ่ง", "ด้านเพื่อน", "ด้านสังคม"]];
-                rawData.forEach(d => {
+                activeData.forEach(d => {
                     allDetailData.push([d.id, d.name, d.room, d.totalScore, d.interpretTotal, d.impact, d.emo, d.cond, d.hyper, d.peer, d.prosocial]);
                 });
                 let wsAll = XLSX.utils.aoa_to_sheet(allDetailData);
                 XLSX.utils.book_append_sheet(wb, wsAll, "รายบุคคล(เต็ม)");
 
-                // 3. สร้างและดาวน์โหลดไฟล์
-                let fileName = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}.xlsx`;
+                let fileName = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}_${assessorName}.xlsx`;
                 XLSX.writeFile(wb, fileName);
                 
                 hideLoader();
@@ -704,15 +763,14 @@
             }
         }
 
-        // 🌟 สร้างหน้าสำหรับพิมพ์ PDF ตามแบบฟอร์มราชการ (มีครุฑ)
+        // 🌟 สร้างหน้าสำหรับพิมพ์ PDF ตามแบบฟอร์มราชการ
         function generateOfficialPDF() {
-            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
+            if(activeData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
             
             showLoader('กำลังเตรียมแบบฟอร์มเอกสาร...');
 
             try {
-                // คำนวณสถิติตามฟอร์ม
-                const total = rawData.length;
+                const total = activeData.length;
                 let cEmo = { normal: 0, risk: 0, prob: 0 };
                 let cCond = { normal: 0, risk: 0, prob: 0 };
                 let cHyper = { normal: 0, risk: 0, prob: 0 };
@@ -720,7 +778,7 @@
                 let cTotal = { normal: 0, risk: 0, prob: 0 };
                 let cProsocial = { strength: 0, noStrength: 0 }; 
 
-                rawData.forEach(d => {
+                activeData.forEach(d => {
                     if(d.emo.includes("ปกติ")) cEmo.normal++; else if(d.emo.includes("เสี่ยง")) cEmo.risk++; else cEmo.prob++;
                     if(d.cond.includes("ปกติ")) cCond.normal++; else if(d.cond.includes("เสี่ยง")) cCond.risk++; else cCond.prob++;
                     if(d.hyper.includes("ปกติ")) cHyper.normal++; else if(d.hyper.includes("เสี่ยง")) cHyper.risk++; else cHyper.prob++;
@@ -730,8 +788,8 @@
                 });
 
                 const termDisplay = "1 / 2569"; 
+                let assessorName = currentAssessor === 'student' ? 'นักเรียนประเมินตนเอง' : (currentAssessor === 'teacher' ? 'ครูประเมิน' : 'ผู้ปกครองประเมิน');
                 
-                // สร้างหน้าต่างใหม่เพื่อเตรียมพิมพ์
                 const printWindow = window.open('', '_blank');
                 let html = `
                 <html>
@@ -771,7 +829,7 @@
                     <p><b>เรียน</b> ผู้อำนวยการโรงเรียนบัวใหญ่</p>
                     <p><b>อ้างถึง</b> คำสั่งโรงเรียนบัวใหญ่ เรื่องแต่งตั้งคณะกรรมการเยี่ยมบ้านนักเรียนและคัดกรองนักเรียน ประจำปีการศึกษา 2569</p>
                     <br>
-                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้ <br><b>(อ้างอิงข้อมูลจากชุดข้อมูล: ${assessorName})</b></p>
                     
                     <table>
                         <tr>
@@ -860,6 +918,7 @@
 
                     <!-- หน้าที่ 2: รายละเอียดรายบุคคล -->
                     <h3 class="text-center fw-bold">สรุปแบบประเมินพฤติกรรมนักเรียน SDQ ${currentScope} ภาคเรียนที่ ${termDisplay}</h3>
+                    <p class="text-center mb-4">(ข้อมูลอ้างอิงจากชุดข้อมูล: ${assessorName})</p>
                     
                     <table style="font-size: 12px;">
                         <thead>
@@ -885,7 +944,7 @@
                 `;
 
                 // จัดเรียงข้อมูลตามห้องและชื่อ
-                let sortedData = [...rawData].sort((a,b) => {
+                let sortedData = [...activeData].sort((a,b) => {
                     if(a.room !== b.room) return a.room.localeCompare(b.room);
                     return a.name.localeCompare(b.name);
                 });
@@ -942,26 +1001,26 @@
 
         // ฟังก์ชันสร้าง Word (บีบเส้นชิดตามฟอร์ม)
         function generateWordLocal() {
-            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
+            if(activeData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
             showLoader('กำลังเตรียมไฟล์ Word...');
 
             setTimeout(() => {
-                const total = rawData.length;
+                const total = activeData.length;
                 let cEmo = { normal: 0, risk: 0, prob: 0 };
                 let cCond = { normal: 0, risk: 0, prob: 0 };
                 let cHyper = { normal: 0, risk: 0, prob: 0 };
                 let cPeer = { normal: 0, risk: 0, prob: 0 };
                 let cProsocial = { strength: 0, noStrength: 0 };
-                rawData.forEach(d => {
+                activeData.forEach(d => {
                     if(d.emo.includes("ปกติ")) cEmo.normal++; else if(d.emo.includes("เสี่ยง")) cEmo.risk++; else cEmo.prob++;
                     if(d.cond.includes("ปกติ")) cCond.normal++; else if(d.cond.includes("เสี่ยง")) cCond.risk++; else cCond.prob++;
                     if(d.hyper.includes("ปกติ")) cHyper.normal++; else if(d.hyper.includes("เสี่ยง")) cHyper.risk++; else cHyper.prob++;
                     if(d.peer.includes("ปกติ")) cPeer.normal++; else if(d.peer.includes("เสี่ยง")) cPeer.risk++; else cPeer.prob++;
                     if(d.prosocial.includes("ปกติ")) cProsocial.strength++; else cProsocial.noStrength++;
                 });
-                const normal = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
-                const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
-                const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
+                const normal = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+                const risk = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+                const prob = activeData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
                 // ดึงกราฟวงกลมแบบ Base64
                 const canvas = document.getElementById('mainPieChart');
@@ -972,7 +1031,7 @@
                 }
 
                 let tableRowsHtml = '';
-                let sortedData = [...rawData].sort((a,b) => {
+                let sortedData = [...activeData].sort((a,b) => {
                     if(a.room !== b.room) return a.room.localeCompare(b.room);
                     return a.name.localeCompare(b.name);
                 });
@@ -984,7 +1043,7 @@
                     tableRowsHtml += `
                         <tr>
                             <td>${idx + 1}</td>
-                            <td>${s.name}</td>
+                            <td class="text-left">${s.name}</td>
                             <td>${s.room}</td>
                             <td>${check(s.interpretTotal, 'ปกติ')}</td>
                             <td>${check(s.interpretTotal, 'เสี่ยง')}</td>
@@ -996,6 +1055,8 @@
                             <td>${proStat}</td>
                         </tr>`;
                 });
+
+                let assessorName = currentAssessor === 'student' ? 'นักเรียนประเมินตนเอง' : (currentAssessor === 'teacher' ? 'ครูประเมิน' : 'ผู้ปกครองประเมิน');
 
                 const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -1034,7 +1095,7 @@
                     <hr style="border: 0; border-bottom: 1px solid #000; margin: 8px 0;">
                     <p><b>เรียน</b> ผู้อำนวยการโรงเรียนบัวใหญ่</p>
                     <p><b>อ้างถึง</b> คำสั่งโรงเรียนบัวใหญ่ เรื่องแต่งตั้งคณะกรรมการเยี่ยมบ้านนักเรียนและคัดกรองนักเรียน ประจำปีการศึกษา 2569</p>
-                    <p style="text-indent: 40px;">ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้</p>
+                    <p style="text-indent: 40px;">ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้ (อ้างอิงจากชุดข้อมูล: ${assessorName})</p>
                     
                     <table class="data-table">
                         <tr>
@@ -1049,14 +1110,14 @@
                         </tr>
                         <tr>
                             <td rowspan="6">${total}</td>
-                            <td>1. อารมณ์</td>
+                            <td class="text-left">1. อารมณ์</td>
                             <td>${cEmo.normal}</td><td>${cEmo.risk}</td><td>${cEmo.prob}</td>
                         </tr>
-                        <tr><td>2. ความประพฤติ</td><td>${cCond.normal}</td><td>${cCond.risk}</td><td>${cCond.prob}</td></tr>
-                        <tr><td>3. ไม่อยู่นิ่ง</td><td>${cHyper.normal}</td><td>${cHyper.risk}</td><td>${cHyper.prob}</td></tr>
-                        <tr><td>4. สัมพันธภาพกับเพื่อน</td><td>${cPeer.normal}</td><td>${cPeer.risk}</td><td>${cPeer.prob}</td></tr>
+                        <tr><td class="text-left">2. ความประพฤติ</td><td>${cCond.normal}</td><td>${cCond.risk}</td><td>${cCond.prob}</td></tr>
+                        <tr><td class="text-left">3. ไม่อยู่นิ่ง</td><td>${cHyper.normal}</td><td>${cHyper.risk}</td><td>${cHyper.prob}</td></tr>
+                        <tr><td class="text-left">4. สัมพันธภาพกับเพื่อน</td><td>${cPeer.normal}</td><td>${cPeer.risk}</td><td>${cPeer.prob}</td></tr>
                         <tr class="bold" style="background-color: #f9f9f9;">
-                            <td>ภาพรวมทั้ง 4 ด้าน</td>
+                            <td class="text-left">ภาพรวมทั้ง 4 ด้าน</td>
                             <td>${normal}</td><td>${risk}</td><td>${prob}</td>
                         </tr>
                     </table>
@@ -1074,6 +1135,7 @@
 
                     <!-- 📄 หน้า 2: ตารางรายบุคคล -->
                     <h3 class="center bold" style="font-size:16pt;">สรุปแบบประเมินพฤติกรรมนักเรียน SDQ ${currentScope} ภาคเรียนที่ 1/2569</h3>
+                    <p class="center">(ข้อมูลอ้างอิงจากชุดข้อมูล: ${assessorName})</p>
                     <table class="data-table" style="font-size: 14pt;">
                         <thead>
                             <tr>
@@ -1105,7 +1167,7 @@
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+                link.download = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9]/g, '_')}_${assessorName}.doc`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
