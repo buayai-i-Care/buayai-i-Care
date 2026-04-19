@@ -64,6 +64,53 @@
         .res-problem { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
         
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); padding: 15px 20px; z-index: 50; }
+
+        /* 🌟 สไตล์กล่องรูปนักเรียนแบบลอย (Floating Profile) */
+        #floating-profile {
+            position: fixed;
+            top: 80px; /* ให้อยู่ใต้ Navbar พอดี */
+            right: 15px;
+            z-index: 45; /* ลอยทับข้อคำถาม แต่น้อยกว่า Navbar */
+            background: rgba(255, 255, 255, 0.85); /* พื้นหลังกึ่งโปร่งใส ไม่บังตัวหนังสือ */
+            backdrop-filter: blur(8px);
+            border: 2px solid #0ea5e9;
+            border-radius: 50px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(150%); /* ซ่อนไว้ทางขวาก่อน */
+            opacity: 0;
+            pointer-events: none;
+        }
+        #floating-profile:hover {
+            background: rgba(255, 255, 255, 1); /* ทึบแสงเมื่อเอาเมาส์ชี้ */
+            opacity: 1;
+        }
+        #floating-profile.show {
+            transform: translateX(0); /* สไลด์โชว์ขึ้นมา */
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .float-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: white;
+        }
+        .float-info {
+            display: none; /* ซ่อนชื่อในจอมือถือเล็กๆ ป้องกันบังจอ */
+            padding-right: 12px;
+        }
+        @media (min-width: 640px) {
+            .float-info { display: block; max-width: 150px; }
+        }
+        .float-name { font-size: 0.8rem; font-weight: 700; color: #082f49; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .float-room { font-size: 0.7rem; color: #0284c7; font-weight: 600; white-space: nowrap; }
+
     </style>
 </head>
 <body class="antialiased">
@@ -74,7 +121,7 @@
             <div class="flex items-center gap-3">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="โลโก้โรงเรียน" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm" style="object-fit: contain;">
                 <div>
-                    <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h1>
+                    <h1 class="font-heading font-bold text-lg leading-tight">แบบประเมิน SDQ</h1>
                     <p class="text-xs text-ocean-100 hidden sm:block">ระบบคัดกรองนักเรียน Buayai I-Care School</p>
                 </div>
             </div>
@@ -82,10 +129,10 @@
             <div class="flex items-center gap-2">
                 <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
                 <!-- ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
-                <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center">
+                <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center d-none">
                     <i class="ph-bold ph-chart-pie-slice me-1"></i> ประมวลผล SDQ
                 </button>
-                <button id="btn-process-sdq-mobile" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white p-2 rounded-full text-xs font-bold font-heading shadow-sm transition flex md:hidden items-center justify-center">
+                <button id="btn-process-sdq-mobile" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white p-2 rounded-full text-xs font-bold font-heading shadow-sm transition flex md:hidden items-center justify-center d-none">
                     <i class="ph-bold ph-chart-pie-slice"></i>
                 </button>
             </div>
@@ -95,6 +142,15 @@
             <div id="progress-bar" class="bg-lotus-500 h-1.5 transition-all duration-300" style="width: 20%"></div>
         </div>
     </nav>
+
+    <!-- 🌟 วิดเจ็ตรูปนักเรียนแบบลอย (Floating Profile Widget) -->
+    <div id="floating-profile" title="นักเรียนที่กำลังประเมิน">
+        <img id="float-img" src="" class="float-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+        <div class="float-info">
+            <div id="float-name" class="float-name">-</div>
+            <div id="float-room" class="float-room">-</div>
+        </div>
+    </div>
 
     <main class="max-w-3xl mx-auto p-4 md:p-6 w-full">
 
@@ -127,7 +183,7 @@
                     </label>
                 </div>
                 <!-- ครู -->
-                <div class="role-card text-center" id="card-role-teacher">
+                <div class="role-card text-center" id="card-role-teacher" style="display: none;">
                     <input type="radio" name="assessorRole" id="role-teacher" value="ครู" onchange="handleRoleSelection('ครู')">
                     <label for="role-teacher" class="flex flex-col items-center">
                         <i class="ph-fill ph-chalkboard-teacher text-5xl text-blue-500 mb-3"></i>
@@ -333,9 +389,34 @@
         let finalResults = {};
         
         let currentRoomStudents = [];
+        
+        // ตัวแปรเก็บรหัสผู้ใช้งานและสถานะแอดมิน
+        let currentUserUid = null;
+        let isTeacherOrAdmin = false;
+        let logoClickCount = 0; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            // สร้างตัวเลือกระดับชั้นอัตโนมัติ
+            const urlParams = new URLSearchParams(window.location.search);
+            currentUserUid = urlParams.get('uid') || sessionStorage.getItem('teacher_pw_auto') || sessionStorage.getItem('admin_pw_auto') || sessionStorage.getItem('superadmin_pw_auto') || localStorage.getItem('teacher_pw_auto');
+
+            if (currentUserUid) currentUserUid = currentUserUid.toLowerCase();
+
+            const cardTeacher = document.getElementById('card-role-teacher');
+            const btnDesktop = document.getElementById('btn-process-sdq-desktop');
+            const btnMobile = document.getElementById('btn-process-sdq-mobile');
+
+            if (currentUserUid && (currentUserUid.startsWith('t') || currentUserUid.startsWith('m') || currentUserUid === 'kkss')) {
+                isTeacherOrAdmin = true;
+                if (cardTeacher) cardTeacher.style.display = 'block'; 
+                if (btnDesktop) btnDesktop.classList.remove('d-none'); 
+                if (btnMobile) btnMobile.classList.remove('d-none');
+            } else {
+                isTeacherOrAdmin = false;
+                if (cardTeacher) cardTeacher.style.display = 'none';
+                if (btnDesktop) btnDesktop.classList.add('d-none');
+                if (btnMobile) btnMobile.classList.add('d-none');
+            }
+
             let optionsHtml = '<option value="">-- เลือกห้องเรียน --</option>';
             for (let m = 1; m <= 6; m++) {
                 let maxRooms = 10;
@@ -351,7 +432,36 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // 🌟 Fetch API Helper (ดักจับ Error กรณีเซิร์ฟเวอร์ปฏิเสธ) แบบ No-CORS
+        // ฟังก์ชันลับ (Backdoor) สำหรับทดสอบระบบ: กดที่โลโก้ 5 ครั้ง
+        function handleLogoClick() {
+            logoClickCount++;
+            if (logoClickCount >= 5) {
+                logoClickCount = 0; 
+                if (!isTeacherOrAdmin) {
+                    Swal.fire({
+                        title: '🔒 โหมดผู้ดูแลระบบ',
+                        text: 'กรุณากรอกรหัสประจำตัว (เช่น t11, m2, kkss)',
+                        input: 'text',
+                        inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
+                        showCancelButton: true,
+                        confirmButtonText: 'เข้าสู่ระบบ',
+                        cancelButtonText: 'ยกเลิก',
+                        confirmButtonColor: '#0ea5e9'
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value) {
+                            currentUserUid = result.value.toLowerCase();
+                            isTeacherOrAdmin = true;
+                            document.getElementById('card-role-teacher').style.display = 'block';
+                            document.getElementById('btn-process-sdq-desktop').classList.remove('d-none');
+                            document.getElementById('btn-process-sdq-mobile').classList.remove('d-none');
+                            Swal.fire('สำเร็จ', 'เปิดโหมดครู/แอดมินจำลองเรียบร้อยแล้ว', 'success');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -366,7 +476,7 @@
                 btn.disabled = true;
             }
             try {
-                // ส่งแบบ Simple Request (ไม่มี Header) เพื่อป้องกันการโดนบล็อก CORS จากบางเครื่อง
+                // ส่งแบบ Simple Request (ไม่มี Header)
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -377,145 +487,67 @@
                     return JSON.parse(responseText);
                 } catch(e) {
                     console.error("Parse Error:", responseText);
-                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (โปรดตรวจสอบการ Deploy ให้เป็น 'ทุกคน' หรือ 'Anyone')" };
+                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับผิดพลาด (ตรวจสอบการ Deploy ให้เป็น 'ทุกคน/Anyone')" };
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง หรือลิงก์ Web App ไม่ถูกต้อง" };
+                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง กรุณาตรวจสอบลิงก์ Web App" };
             } finally {
                 if(btnId) { btn.innerHTML = originalText; btn.disabled = false; }
             }
         }
 
-        // --- 🌟 ฟังก์ชันจัดการการเลือกรุปแบบ (อัปเดต: มีระบบ Login และข้ามหน้าจอสำหรับครู) ---
+        // --- ฟังก์ชันจัดการการเลือกรุปแบบ ---
         function handleRoleSelection(role) {
             if (role === 'ครู') {
-                checkTeacherLogin();
+                if (isTeacherOrAdmin) {
+                    selectedRole = "ครู";
+                    setupFormByRole(selectedRole);
+                    
+                    let roomSelect = document.getElementById('info-room');
+                    
+                    if (currentUserUid && currentUserUid.startsWith('t')) {
+                        let rNum = currentUserUid.substring(1); 
+                        let m = rNum.substring(0, 1);
+                        let r = rNum.substring(1) || '1';
+                        let assignedRoom = `${m}/${r}`;
+                        
+                        roomSelect.value = assignedRoom;
+                        roomSelect.disabled = true; 
+                        loadStudents(); 
+                    } else {
+                        roomSelect.disabled = false;
+                    }
+                    
+                    enableNextBtn();
+                    navigate(1); 
+                } else {
+                    Swal.fire('ปฏิเสธการเข้าถึง', 'ท่านไม่มีสิทธิ์เข้าถึงเมนูสำหรับคุณครูครับ', 'warning');
+                    document.getElementById('role-teacher').checked = false;
+                }
             } else {
                 selectedRole = role;
-                setupFormByRole(selectedRole);
                 document.getElementById('info-room').disabled = false;
                 enableNextBtn();
             }
         }
 
-        // --- 🌟 หน้าต่าง Login ครู และ การพาทะลุหน้าจอ ---
-        async function checkTeacherLogin() {
-            const { value: formValues } = await Swal.fire({
-                title: 'เข้าสู่ระบบครูที่ปรึกษา',
-                html:
-                    '<input id="swal-input-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น t11, t24)">' +
-                    '<input id="swal-input-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: 'เข้าสู่ระบบ',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#0ea5e9',
-                preConfirm: () => {
-                    const user = document.getElementById('swal-input-user').value;
-                    const pass = document.getElementById('swal-input-pass').value;
-                    if(!user || !pass) {
-                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
-                        return false;
-                    }
-                    return { user, pass };
-                }
-            });
-
-            if (formValues) {
-                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-                
-                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
-                
-                if (res && res.success) {
-                    selectedRole = "ครู";
-                    setupFormByRole(selectedRole);
-                    
-                    // 🌟 ล็อกและเลือกห้องให้ครูโดยอัตโนมัติ
-                    let assignedRoom = res.room.replace('ม.', '').trim(); 
-                    let roomSelect = document.getElementById('info-room');
-                    roomSelect.value = assignedRoom;
-                    roomSelect.disabled = true; // ป้องกันครูเลือกห้องผิด
-                    
-                    // ดึงรายชื่อนักเรียนมาให้เลย (กันคนที่เคยทำแล้วออกด้วย)
-                    await loadStudents();
-                    enableNextBtn();
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'เข้าสู่ระบบสำเร็จ!',
-                        text: 'ระบบกำลังพาท่านไปทำประเมินนักเรียนห้อง ม.' + assignedRoom,
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        // พาทะลุไป Step 2 โดยอัตโนมัติ ไม่ต้องกดปุ่มถัดไปเอง
-                        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-                        currentStep = 2;
-                        document.getElementById(`step-2`).classList.add('active');
-                        
-                        document.getElementById('btn-prev').classList.remove('hidden');
-                        document.getElementById('btn-next').classList.remove('hidden');
-                        document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
-                        window.scrollTo(0, 0);
-                    });
-
-                } else {
-                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error').then(() => {
-                        document.getElementById('role-teacher').checked = false;
-                        disableNextBtn();
-                    });
-                }
-            } else {
-                document.getElementById('role-teacher').checked = false;
-                disableNextBtn();
+        // --- ปุ่มประมวลผล SDQ ที่มุมขวาบน ---
+        function accessReportSDQ() {
+            if (isTeacherOrAdmin) {
+                Swal.fire({
+                    title: 'กำลังเปิดหน้ารายงาน...',
+                    html: 'ระบบกำลังพาท่านเข้าสู่หน้าประมวลผล SDQ สรุปผลภาพรวม',
+                    allowOutsideClick: false,
+                    timer: 1500,
+                    didOpen: () => Swal.showLoading()
+                }).then(() => {
+                    window.location.href = 'report_sdq.html?uid=' + encodeURIComponent(currentUserUid);
+                });
             }
         }
 
-        // --- 🌟 ปุ่มประมวลผล SDQ ที่มุมขวาบน (Popup ใส่รหัสผ่าน) ---
-        async function accessReportSDQ() {
-            const { value: formValues } = await Swal.fire({
-                title: 'ประมวลผล SDQ',
-                html:
-                    '<div class="text-muted small mb-3">เฉพาะผู้ดูแลระบบและครูที่ปรึกษา</div>' +
-                    '<input id="swal-rep-user" class="form-control mb-3 text-center" placeholder="ชื่อผู้ใช้งาน (เช่น m2, t11)">' +
-                    '<input id="swal-rep-pass" type="password" class="form-control text-center" placeholder="รหัสผ่าน">',
-                focusConfirm: false,
-                showCancelButton: true,
-                confirmButtonText: 'เข้าสู่ระบบ',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#db2777',
-                preConfirm: () => {
-                    const user = document.getElementById('swal-rep-user').value;
-                    const pass = document.getElementById('swal-rep-pass').value;
-                    if(!user || !pass) {
-                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
-                        return false;
-                    }
-                    return { user, pass };
-                }
-            });
-
-            if (formValues) {
-                Swal.fire({title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-                
-                const res = await fetchAPI({ action: 'teacherLogin', username: formValues.user, password: formValues.pass }, null);
-                if (res && res.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ยืนยันสำเร็จ',
-                        text: 'กำลังเปิดหน้ารายงาน...',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = 'report_sdq.html?uid=' + encodeURIComponent(formValues.user);
-                    });
-                } else {
-                    Swal.fire('เข้าสู่ระบบล้มเหลว', res ? res.error : 'การเชื่อมต่อผิดพลาด', 'error');
-                }
-            }
-        }
-
-        // --- 🌟 ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
+        // --- ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
             const room = document.getElementById('info-room').value;
             const studentSelect = document.getElementById('info-student');
@@ -545,7 +577,6 @@
                 let assessedCount = 0;
 
                 res.data.forEach(s => {
-                    // หากถูกประเมินไปแล้วในโหมดนี้ ให้นับจำนวนไว้ ไม่ให้ขึ้นเป็น Option
                     if (s.isAssessed) {
                         assessedCount++;
                     } else {
@@ -574,7 +605,7 @@
             }
         }
 
-        // --- 🌟 ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว ---
+        // --- ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว และอัปเดต Floating Profile ---
         function fillStudentInfo() {
             const studentId = document.getElementById('info-student').value;
             const previewCard = document.getElementById('student-preview-card');
@@ -597,6 +628,10 @@
                 document.getElementById('preview-dob').innerText = student.dob || '-';
                 document.getElementById('preview-cid').innerText = student.cid || '-';
 
+                // 🌟 อัปเดตข้อมูลในกล่องลอย (Floating Profile)
+                document.getElementById('float-name').innerText = student.name;
+                document.getElementById('float-room').innerText = "ม." + student.room;
+
                 let photoUrl = student.photo;
                 let fileId = null;
                 if (photoUrl) {
@@ -608,8 +643,10 @@
                 
                 if (fileId) {
                     document.getElementById('preview-photo').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
+                    document.getElementById('float-img').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w100"; // รูปกล่องลอย
                 } else {
                     document.getElementById('preview-photo').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
+                    document.getElementById('float-img').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
                 }
 
                 previewCard.classList.remove('hidden');
@@ -655,7 +692,7 @@
                 const main = document.querySelector('input[name="impact_main"]:checked');
                 if (!main) { Swal.fire("ข้อมูลไม่ครบ", "กรุณาประเมินผลกระทบด้านล่างสุดด้วยครับ", "warning"); return false; }
                 if (main.value !== "0") {
-                    const req = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_burden'];
+                    const req = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
                     if (selectedRole !== 'ครู') req.push('im_leisure'); 
                     for (let r of req) {
                         if (!document.querySelector(`input[name="${r}"]:checked`)) {
@@ -682,17 +719,23 @@
             document.getElementById('progress-bar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
             if (currentStep === 2 && dir === 1) {
-                // หากย้อนมาหน้า 2 แล้วเป็นโหมดปกตินักเรียน/ผู้ปกครอง ให้เลือกห้องได้
                 if (selectedRole !== 'ครู') {
                     document.getElementById('info-room').disabled = false;
                 }
-                if (document.getElementById('info-room').value && document.getElementById('info-student').options.length <= 1) {
+                if (document.getElementById('info-room').value) {
                     loadStudents();
                 }
             }
 
             if (currentStep === 1 && !document.querySelector('input[name="assessorRole"]:checked')) disableNextBtn();
             else enableNextBtn(); 
+
+            // 🌟 ควบคุมการแสดงผล รูปนักเรียนแบบลอย (Floating Profile)
+            if ((currentStep === 3 || currentStep === 4) && document.getElementById('info-id').value) {
+                document.getElementById('floating-profile').classList.add('show');
+            } else {
+                document.getElementById('floating-profile').classList.remove('show');
+            }
 
             window.scrollTo(0, 0);
         }
@@ -886,7 +929,7 @@
                     showConfirmButton: false
                 }).then(() => {
                     if (selectedRole === 'ครู') {
-                        // 🌟 หากเป็นครู ให้ระบบดึงรายชื่อคนถัดไปมาให้เลย ไม่ต้องกลับไปหน้าแรก
+                        // หากเป็นครู ให้ระบบดึงรายชื่อคนถัดไปมาให้เลย ไม่ต้องกลับไปหน้าแรก
                         handleNextStudentAuto();
                     } else {
                         // นักเรียน/ผู้ปกครอง ทำเสร็จ 1 ครั้ง รีโหลดเริ่มใหม่
@@ -902,7 +945,7 @@
 
         // --- 🌟 ฟังก์ชันเลื่อนนักเรียนคนต่อไปอัตโนมัติ สำหรับครู ---
         async function handleNextStudentAuto() {
-            // ล้างจุดติ๊กต่างๆ ในฟอร์ม 25 ข้อให้เกลี้ยง
+            // ล้างจุดติ๊กต่างๆ ในฟอร์มให้เกลี้ยง
             resetAssessmentForm();
             
             // โหลดข้อมูลนักเรียนในห้องที่ครูล็อกไว้อีกครั้ง (เพื่อตัดคนที่ทำแล้วออกไปจากลิสต์)
@@ -910,11 +953,10 @@
             
             const studentSelect = document.getElementById('info-student');
             
-            // เช็คว่ายังมีนักเรียนเหลือในตัวเลือกไหม (ช่องแรกคือ placeholder "--เลือกชื่อ--")
             if (studentSelect.options.length > 1 && studentSelect.options[1].value !== "") {
                 let nextStudentName = studentSelect.options[1].text; 
-                studentSelect.selectedIndex = 1; // บังคับเลือกคนแรกสุดที่เหลือในลิสต์ให้เลย
-                fillStudentInfo(); // อัปเดตรูป/ข้อมูลการ์ด
+                studentSelect.selectedIndex = 1; 
+                fillStudentInfo(); 
                 
                 // พาย้อนกลับไปที่หน้าแสดงรูป (Step 2)
                 document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
@@ -925,6 +967,10 @@
                 document.getElementById('btn-next').classList.remove('hidden');
                 document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
                 enableNextBtn();
+                
+                // 🌟 ปิด Floating Profile เมื่อย้อนกลับมา Step 2
+                document.getElementById('floating-profile').classList.remove('show');
+                
                 window.scrollTo(0, 0);
 
                 Swal.fire({
