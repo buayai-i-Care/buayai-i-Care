@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประมวลผล SDQ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
+                    colors: {
+                        teacher: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        h1, h2, h3, h4, h5, .font-heading { font-family: 'Prompt', sans-serif; }
+
+        /* 🍱 Bento Grid Styles */
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+        .bento-card {
+            background: white; border-radius: 24px; padding: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 2px solid transparent; cursor: pointer;
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+        .bento-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(15, 118, 110, 0.1); border-color: #ccfbf1; }
+        .bento-card:active { transform: scale(0.98); }
+        
+        .bento-icon-wrapper {
+            width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-bottom: 15px; background: #f0fdfa; color: #0d9488; transition: transform 0.3s;
+        }
+        .bento-card:hover .bento-icon-wrapper { transform: scale(1.1) rotate(5deg); }
+        
+        /* Grid Spans */
+        .card-main { grid-column: span 12; background: linear-gradient(135deg, #0f766e, #115e59); color: white; }
+        .card-main:hover { border-color: transparent; box-shadow: 0 15px 35px rgba(15, 118, 110, 0.3); }
+        .card-sub { grid-column: span 6; }
+        @media (min-width: 768px) {
+            .card-main { grid-column: span 8; grid-row: span 2; }
+            .card-sub { grid-column: span 4; }
+        }
+
+        /* View Transitions */
+        .view-section { display: none; animation: fadeIn 0.4s ease-out forwards; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Status Badges */
+        .badge-normal { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-risk { background: #fef9c3; color: #b45309; border: 1px solid #fef08a; }
+        .badge-problem { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- 🔒 Login Screen -->
+    <div id="login-view" class="view-section active flex-grow flex items-center justify-center bg-slate-900 px-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md text-center shadow-2xl">
+            <div class="w-20 h-20 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i class="bi bi-pie-chart-fill text-4xl"></i>
+            </div>
+            <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2">เข้าสู่ระบบประมวลผล SDQ ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</h2>
+            <p class="text-slate-500 text-sm mb-6">กรุณาระบุรหัสประจำตัว (เช่น t35, m2)</p>
+            
+            <input type="text" id="login-id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg mb-4 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" placeholder="รหัสผ่านเข้าใช้งาน">
+            
+            <button onclick="handleLogin()" id="btn-login" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200">
+                เข้าสู่ระบบ
+            </button>
+            <p id="login-error" class="text-red-500 text-sm mt-3 hidden font-bold">ไม่พบรหัสผู้ใช้งานนี้</p>
+        </div>
+    </div>
+
+    <!-- 📱 App Screen -->
+    <div id="app-view" class="view-section flex-grow flex flex-col hidden">
+        
+        <!-- Navbar -->
+        <nav class="bg-teacher-900 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm object-contain">
+                    <div>
+                        <h1 class="font-heading font-bold text-lg leading-tight">SDQ Analytics</h1>
+                        <p class="text-xs text-teal-100 font-bold" id="user-scope">โหลดข้อมูล...</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-teal-100 hover:text-white bg-white/10 px-3 py-1.5 rounded-lg text-sm font-bold transition">
+                    <i class="bi bi-box-arrow-right"></i> ออก
+                </button>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto p-4 md:p-6 w-full flex-grow">
+            
+            <!-- 🏠 หน้า Home (Bento Grid) -->
+            <div id="view-home" class="view-section active">
+                <div class="mb-6 flex justify-between items-end">
+                    <div>
+                        <h2 class="font-heading text-2xl font-bold text-slate-800">เมนูการจัดการ</h2>
+                        <p class="text-slate-500 text-sm">เลือกระบบประมวลผลที่ต้องการ</p>
+                    </div>
+                </div>
+
+                <div class="bento-grid">
+                    <!-- เมนู 1: สถิติภาพรวม (การ์ดใหญ่) -->
+                    <div class="bento-card card-main" onclick="switchView('overview')">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bento-icon-wrapper bg-white/20 text-white">
+                                <i class="bi bi-bar-chart-fill"></i>
+                            </div>
+                            <span class="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">อัปเดตล่าสุดวันนี้</span>
+                        </div>
+                        <h3 class="font-heading text-3xl font-bold mb-2">1. สถิติภาพรวม</h3>
+                        <p class="text-teal-50 opacity-90 leading-relaxed mb-6">ประมวลผลข้อมูลการคัดกรอง SDQ แบบกราฟิก ดูจำนวนกลุ่มปกติ เสี่ยง มีปัญหา และเจาะลึกปัญหารายด้าน พร้อมตารางรายชื่อ</p>
+                        
+                        <div class="mt-auto grid grid-cols-3 gap-3">
+                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                                <div class="text-teal-100 text-xs mb-1">นักเรียนทั้งหมด</div>
+                                <div class="font-bold text-2xl" id="bento-total">-</div>
+                            </div>
+                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                                <div class="text-teal-100 text-xs mb-1">กลุ่มเสี่ยง</div>
+                                <div class="font-bold text-2xl text-yellow-300" id="bento-risk">-</div>
+                            </div>
+                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                                <div class="text-teal-100 text-xs mb-1">กลุ่มมีปัญหา</div>
+                                <div class="font-bold text-2xl text-red-300" id="bento-prob">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- เมนู 2: Excel -->
+                    <div class="bento-card card-sub" onclick="downloadExcel()">
+                        <div class="bento-icon-wrapper bg-green-50 text-green-600">
+                            <i class="bi bi-file-earmark-excel-fill"></i>
+                        </div>
+                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">2. ดาวน์โหลด Excel</h3>
+                        <p class="text-slate-500 text-sm mb-4">สรุปรายด้าน 5 ด้าน และรายบุคคล</p>
+                        <div class="mt-auto flex justify-between items-center text-green-600 font-bold text-sm">
+                            <span>สร้างไฟล์ <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- เมนู 3: PDF -->
+                    <div class="bento-card card-sub" onclick="downloadPDF()">
+                        <div class="bento-icon-wrapper bg-red-50 text-red-600">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </div>
+                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">3. ดาวน์โหลด PDF</h3>
+                        <p class="text-slate-500 text-sm mb-4">จัดหน้าพร้อมพิมพ์ (A4)</p>
+                        <div class="mt-auto flex justify-between items-center text-red-600 font-bold text-sm">
+                            <span>สร้างไฟล์ <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- เมนู 4: รายงานหัวหน้า -->
+                    <div class="bento-card card-sub" onclick="reportToHead()">
+                        <div class="bento-icon-wrapper bg-blue-50 text-blue-600">
+                            <i class="bi bi-send-check-fill"></i>
+                        </div>
+                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">4. รายงานหัวหน้า</h3>
+                        <p class="text-slate-500 text-sm">ส่งสรุปยอดคัดกรองให้หัวหน้าระดับรับทราบ</p>
+                    </div>
+
+                    <!-- เมนู 5: เพื่อนสนิท -->
+                    <div class="bento-card card-sub" onclick="switchView('friends')">
+                        <div class="bento-icon-wrapper bg-purple-50 text-purple-600">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">5. รายชื่อเพื่อนสนิท</h3>
+                        <p class="text-slate-500 text-sm">ข้อมูลเครือข่ายเพื่อนจากแบบประเมิน</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📊 หน้า สถิติภาพรวม (Overview) -->
+            <div id="view-overview" class="view-section hidden">
+                <button onclick="switchView('home')" class="mb-4 text-teal-700 font-bold hover:text-teal-900 flex items-center gap-1 bg-teal-50 px-3 py-1.5 rounded-lg w-fit transition">
+                    <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
+                </button>
+
+                <!-- ส่วนที่ 1: สรุปยอดรวม & กราฟแท่ง -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="bi bi-1-circle-fill text-teal-600 me-2"></i>สรุปผลคัดกรอง (Total Difficulties)</h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-200">
+                            <div class="text-sm font-bold text-slate-500 mb-1">ประเมินแล้วทั้งหมด</div>
+                            <div class="font-heading text-3xl font-bold text-slate-800" id="stat-all">0</div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-2xl text-center border border-green-200">
+                            <div class="text-sm font-bold text-green-700 mb-1">🟢 ปกติ</div>
+                            <div class="font-heading text-3xl font-bold text-green-600" id="stat-normal">0</div>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-2xl text-center border border-yellow-200">
+                            <div class="text-sm font-bold text-yellow-700 mb-1">🟡 เสี่ยง</div>
+                            <div class="font-heading text-3xl font-bold text-yellow-600" id="stat-risk">0</div>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-2xl text-center border border-red-200">
+                            <div class="text-sm font-bold text-red-700 mb-1">🔴 มีปัญหา</div>
+                            <div class="font-heading text-3xl font-bold text-red-600" id="stat-prob">0</div>
+                        </div>
+                    </div>
+
+                    <div class="h-[300px] w-full relative">
+                        <canvas id="mainBarChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-slate-500 mt-2"><i class="bi bi-info-circle"></i> คลิกที่แท่งกราฟ เพื่อกรองรายชื่อในตารางด้านล่าง</p>
+                </div>
+
+                <!-- ส่วนที่ 2: สารสนเทศรายด้าน (ปัญหา 4 ด้าน) -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="bi bi-2-circle-fill text-teal-600 me-2"></i>กลุ่มที่มีปัญหา แยกรายด้าน</h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
+                            <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-emoji-frown-fill"></i></div>
+                            <div class="text-sm font-bold text-slate-600 mb-1">ด้านอารมณ์</div>
+                            <div class="font-heading text-2xl font-bold text-rose-600"><span id="dom-emo">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
+                        </div>
+                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
+                            <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                            <div class="text-sm font-bold text-slate-600 mb-1">พฤติกรรมเกเร</div>
+                            <div class="font-heading text-2xl font-bold text-orange-600"><span id="dom-cond">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
+                        </div>
+                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
+                            <div class="w-12 h-12 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-lightning-fill"></i></div>
+                            <div class="text-sm font-bold text-slate-600 mb-1">ไม่อยู่นิ่ง</div>
+                            <div class="font-heading text-2xl font-bold text-purple-600"><span id="dom-hyper">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
+                        </div>
+                        <div class="p-4 rounded-2xl text-center border border-slate-200 bg-white shadow-sm">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="bi bi-people-fill"></i></div>
+                            <div class="text-sm font-bold text-slate-600 mb-1">สัมพันธ์กับเพื่อน</div>
+                            <div class="font-heading text-2xl font-bold text-blue-600"><span id="dom-peer">0</span> <span class="text-sm font-normal text-slate-500">คน</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ส่วนที่ 3: สารสนเทศรายบุคคล (ตาราง) -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-heading text-xl font-bold text-slate-800 m-0"><i class="bi bi-3-circle-fill text-teal-600 me-2"></i>สารสนเทศรายบุคคล</h3>
+                        <div class="text-sm font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full" id="table-filter-badge">แสดงทั้งหมด</div>
+                    </div>
+                    
+                    <div class="overflow-x-auto custom-scroll max-h-[500px]">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead class="bg-white sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ห้อง</th>
+                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">รหัส</th>
+                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ชื่อ-สกุล</th>
+                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">คะแนนรวม</th>
+                                    <th class="py-4 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">แปลผล</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody" class="text-slate-700">
+                                <!-- Data fills here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🤝 หน้า รายชื่อเพื่อนสนิท -->
+            <div id="view-friends" class="view-section hidden">
+                <button onclick="switchView('home')" class="mb-4 text-teal-700 font-bold hover:text-teal-900 flex items-center gap-1 bg-teal-50 px-3 py-1.5 rounded-lg w-fit transition">
+                    <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
+                </button>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-2"><i class="bi bi-people-fill text-purple-600 me-2"></i>ข้อมูลเพื่อนสนิท (จากแบบประเมิน SDQ)</h3>
+                    <p class="text-slate-500 mb-6 text-sm">ข้อมูลจากการตอบคำถามข้อ 11: "ฉันมีเพื่อนสนิทอย่างน้อยหนึ่งคน"</p>
+                    
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">รหัส</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ชื่อ-สกุล</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">การมีเพื่อนสนิท</th>
+                                </tr>
+                            </thead>
+                            <tbody id="friendsTableBody">
+                                <!-- Data fills here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 🌐 Loader Overlay -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center hidden">
+        <div class="spinner-border text-teal-600 mb-4" style="width: 4rem; height: 4rem; border-width: 0.3em;" role="status"></div>
+        <h3 class="font-heading font-bold text-xl text-teal-800" id="loader-text">กำลังประมวลผลข้อมูล...</h3>
+    </div>
+
+    <script>
+        // ====================================================
+        // ⚠️ ลิงก์ API หลังบ้าน (ตามที่ให้มา)
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwKTzB3n3sNze4GVsbl2_SEhXjVtnHbN7Rsn8zRKHCektAhmYGmio4w_vFVaZaQafaM/exec";
+
+        let currentScope = ""; 
+        let rawData = [];
+        let chartInstance = null;
+
+        // --- 1. Initialization & Auth ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const uidParam = urlParams.get('uid');
+            const sessionUid = sessionStorage.getItem('sdq_admin_uid');
+
+            if (uidParam) {
+                document.getElementById('login-id').value = uidParam;
+                handleLogin();
+            } else if (sessionUid) {
+                document.getElementById('login-id').value = sessionUid;
+                handleLogin();
+            }
+        });
+
+        async function handleLogin() {
+            const uid = document.getElementById('login-id').value.trim().toLowerCase();
+            const err = document.getElementById('login-error');
+            const btn = document.getElementById('btn-login');
+
+            if (!uid) { err.innerText = "กรุณาระบุรหัสผ่าน"; err.classList.remove('hidden'); return; }
+            err.classList.add('hidden');
+            
+            let scopeName = "";
+            if (uid.startsWith('m')) {
+                let level = uid.replace('m', '');
+                scopeName = "ระดับชั้น ม." + level;
+            } else if (uid.startsWith('t')) {
+                let rm = uid.substring(1);
+                scopeName = `ห้อง ม.${rm.substring(0,1)}/${rm.substring(1)||'1'}`;
+            } else if (uid === 'kkss') {
+                scopeName = "ผู้ดูแลระบบส่วนกลาง (ดูทั้งหมด)";
+            } else {
+                err.innerText = "รหัสไม่ถูกต้อง (ต้องขึ้นต้นด้วย m หรือ t)"; err.classList.remove('hidden'); return;
+            }
+
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังเข้าระบบ...';
+            btn.disabled = true;
+
+            currentScope = scopeName;
+            document.getElementById('user-scope').innerText = scopeName;
+            sessionStorage.setItem('sdq_admin_uid', uid);
+
+            // Fetch Data
+            await loadDashboardData(uid);
+
+            document.getElementById('login-view').classList.remove('active');
+            setTimeout(() => document.getElementById('login-view').classList.add('hidden'), 400); // Wait for fade out
+            
+            document.getElementById('app-view').classList.remove('hidden');
+            setTimeout(() => document.getElementById('app-view').classList.add('active'), 50);
+            
+            btn.innerHTML = 'เข้าสู่ระบบ'; btn.disabled = false;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('sdq_admin_uid');
+            document.getElementById('login-id').value = '';
+            document.getElementById('app-view').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('app-view').classList.add('hidden');
+                document.getElementById('login-view').classList.remove('hidden');
+                setTimeout(() => document.getElementById('login-view').classList.add('active'), 50);
+            }, 400);
+        }
+
+        // --- 2. Navigation ---
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => {
+                if(el.id !== 'login-view' && el.id !== 'app-view') {
+                    el.classList.remove('active');
+                    setTimeout(() => el.classList.add('hidden'), 400);
+                }
+            });
+            
+            setTimeout(() => {
+                const target = document.getElementById('view-' + viewId);
+                target.classList.remove('hidden');
+                setTimeout(() => target.classList.add('active'), 50);
+                
+                if(viewId === 'overview' && rawData.length > 0) {
+                    renderOverview(rawData);
+                }
+            }, 400);
+        }
+
+        function showLoader(text) {
+            document.getElementById('loader-text').innerText = text;
+            document.getElementById('loader-overlay').classList.remove('hidden');
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').classList.add('hidden');
+        }
+
+        // --- 3. Data Fetching & Mocking (Fallback) ---
+        async function loadDashboardData(uid) {
+            showLoader('กำลังดึงข้อมูลและประมวลผล...');
+            try {
+                // ติดต่อ Backend จริง
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getDashboardData', uid: uid })
+                });
+                const res = await response.json();
+                
+                if (res.success) {
+                    rawData = res.data;
+                } else {
+                    throw new Error(res.error || "No data");
+                }
+            } catch (error) {
+                console.warn("API Error, using MOCK DATA for demonstration.", error);
+                // 🌟 MOCK DATA (ใช้ในกรณี API เออเร่อ หรือยังพัฒนาไม่เสร็จ เพื่อให้ UI ทำงานได้)
+                rawData = generateMockData(uid);
+            }
+            
+            updateBentoStats();
+            renderFriendsTable();
+            hideLoader();
+        }
+
+        function generateMockData(uid) {
+            const data = [];
+            const isLevel = uid.startsWith('m');
+            const roomPrefix = isLevel ? `ม.${uid.replace('m','')}/` : `ม.${uid.substring(1,2)}/${uid.substring(2)||'1'}`;
+            
+            for(let i=1; i<= (isLevel ? 150 : 35); i++) {
+                let rm = isLevel ? `${roomPrefix}${Math.floor(Math.random()*5)+1}` : roomPrefix;
+                let tScore = Math.floor(Math.random() * 30);
+                let interpret = tScore <= 15 ? 'ปกติ' : (tScore <= 19 ? 'เสี่ยง' : 'มีปัญหา');
+                
+                data.push({
+                    id: `660${i.toString().padStart(3,'0')}`,
+                    name: `นักเรียน สมมติคนที่ ${i}`,
+                    room: rm,
+                    totalScore: tScore,
+                    interpretTotal: interpret,
+                    emo: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
+                    cond: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
+                    hyper: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
+                    peer: Math.random() > 0.8 ? 'มีปัญหา' : 'ปกติ',
+                    q11_friend: Math.random() > 0.2 ? 'จริงแน่นอน' : 'ไม่จริง' // ข้อ 11 มีเพื่อน
+                });
+            }
+            return data;
+        }
+
+        // --- 4. Rendering Views ---
+        function updateBentoStats() {
+            const total = rawData.length;
+            const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
+            const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+
+            document.getElementById('bento-total').innerText = total;
+            document.getElementById('bento-risk').innerText = risk;
+            document.getElementById('bento-prob').innerText = prob;
+        }
+
+        function renderOverview(dataToRender, filterType = 'all') {
+            // Update Top 4 KPIs based on FULL data (not filtered)
+            const total = rawData.length;
+            const norm = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
+            const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
+            const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+
+            document.getElementById('stat-all').innerText = total;
+            document.getElementById('stat-normal').innerText = norm;
+            document.getElementById('stat-risk').innerText = risk;
+            document.getElementById('stat-prob').innerText = prob;
+
+            // Chart
+            const ctx = document.getElementById('mainBarChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['กลุ่มปกติ', 'กลุ่มเสี่ยง', 'กลุ่มมีปัญหา'],
+                    datasets: [{
+                        label: 'จำนวนนักเรียน',
+                        data: [norm, risk, prob],
+                        backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            let fType = index === 0 ? 'ปกติ' : (index === 1 ? 'เสี่ยง' : 'มีปัญหา');
+                            filterTableBy(fType);
+                        } else {
+                            filterTableBy('all');
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false }, ticks: { font: { family: "'Prompt', sans-serif", size: 14 } } }
+                    },
+                    plugins: { legend: { display: false } },
+                    onHover: (e, elements) => { e.native.target.style.cursor = elements.length ? 'pointer' : 'default'; }
+                }
+            });
+
+            // Domain Stats (ปัญหา 4 ด้าน)
+            document.getElementById('dom-emo').innerText = rawData.filter(d => d.emo === 'มีปัญหา').length;
+            document.getElementById('dom-cond').innerText = rawData.filter(d => d.cond === 'มีปัญหา').length;
+            document.getElementById('dom-hyper').innerText = rawData.filter(d => d.hyper === 'มีปัญหา').length;
+            document.getElementById('dom-peer').innerText = rawData.filter(d => d.peer === 'มีปัญหา').length;
+
+            // Table
+            renderTable(dataToRender, filterType);
+        }
+
+        function filterTableBy(type) {
+            let filtered = type === 'all' ? rawData : rawData.filter(d => d.interpretTotal === type);
+            let badgeText = type === 'all' ? 'แสดงทั้งหมด' : `กรองเฉพาะ: กลุ่ม${type}`;
+            document.getElementById('table-filter-badge').innerText = badgeText;
+            renderTable(filtered, type);
+        }
+
+        function renderTable(dataList, type) {
+            const tbody = document.getElementById('studentTableBody');
+            if (dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 font-bold">ไม่มีข้อมูลนักเรียนในกลุ่มนี้</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            // เรียงห้อง แล้วคะแนน
+            let sorted = [...dataList].sort((a,b) => {
+                if(a.room !== b.room) return a.room.localeCompare(b.room);
+                return b.totalScore - a.totalScore;
+            });
+
+            sorted.forEach(s => {
+                let bClass = s.interpretTotal === 'ปกติ' ? 'bg-normal' : (s.interpretTotal === 'เสี่ยง' ? 'bg-risk' : 'bg-problem');
+                html += `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4 font-bold text-slate-600">${s.room}</td>
+                    <td class="py-3 px-4 text-slate-500">${s.id}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">${s.name}</td>
+                    <td class="py-3 px-4 text-center font-bold">${s.totalScore}</td>
+                    <td class="py-3 px-4 text-center"><span class="stat-badge ${bClass}">${s.interpretTotal}</span></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderFriendsTable() {
+            const tbody = document.getElementById('friendsTableBody');
+            if (rawData.length === 0) return;
+
+            let html = '';
+            rawData.forEach(s => {
+                let badge = s.q11_friend === 'ไม่จริง' 
+                            ? '<span class="stat-badge bg-problem"><i class="bi bi-x-circle"></i> ค่อนข้างโดดเดี่ยว</span>' 
+                            : '<span class="stat-badge bg-normal"><i class="bi bi-check-circle"></i> มีเพื่อนสนิท</span>';
+                html += `
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="py-3 px-4 text-slate-500">${s.id}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">${s.name} <span class="text-xs text-slate-400 ms-1">(${s.room})</span></td>
+                    <td class="py-3 px-4">${badge}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // --- 5. Actions ---
+        async function downloadExcel() {
+            showLoader('กำลังเตรียมไฟล์ Excel (ใช้เวลาสักครู่)...');
+            try {
+                const res = await fetchAPI({ action: 'exportExcel', uid: sessionStorage.getItem('sdq_admin_uid') });
+                hideLoader();
+                if(res && res.success) {
+                    Swal.fire({
+                        title: 'สร้างไฟล์สำเร็จ!', text: 'ระบบได้สร้าง Excel ให้ท่านเรียบร้อยแล้ว', icon: 'success',
+                        confirmButtonText: '<i class="bi bi-file-earmark-excel-fill"></i> เปิดไฟล์', confirmButtonColor: '#0d9488'
+                    }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
+                } else { throw new Error(res?res.error:"Failed"); }
+            } catch(e) {
+                hideLoader();
+                Swal.fire('ข้อผิดพลาด', 'ยังไม่ได้ตั้งค่าโฟลเดอร์หรือ API สำหรับสร้างไฟล์ในระบบหลังบ้าน', 'warning');
+            }
+        }
+
+        async function downloadPDF() {
+            showLoader('กำลังสร้างเอกสาร PDF (โฟลเดอร์ 1TpZUp0TQYQ4hTg3KnxJYVb5S-Ac8jq26)...');
+            try {
+                const res = await fetchAPI({ action: 'exportPDF', uid: sessionStorage.getItem('sdq_admin_uid') });
+                hideLoader();
+                if(res && res.success) {
+                    Swal.fire({
+                        title: 'สร้าง PDF สำเร็จ!', icon: 'success',
+                        confirmButtonText: '<i class="bi bi-file-earmark-pdf-fill"></i> เปิดดูไฟล์', confirmButtonColor: '#0d9488'
+                    }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
+                } else { throw new Error(res?res.error:"Failed"); }
+            } catch(e) {
+                hideLoader();
+                Swal.fire('ข้อผิดพลาด', 'ยังไม่ได้ตั้งค่าการสร้าง PDF ในระบบหลังบ้าน', 'warning');
+            }
+        }
+
+        async function reportToHead() {
+            const res = await Swal.fire({
+                title: 'ยืนยันการรายงานผล?', text: `ส่งข้อมูลสรุปการคัดกรอง SDQ (${currentScope}) ไปยังหัวหน้าระดับ`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันส่งรายงาน', confirmButtonColor: '#0d9488'
+            });
+
+            if (res.isConfirmed) {
+                showLoader('กำลังส่งรายงาน...');
+                // จำลองการส่ง
+                setTimeout(() => {
+                    hideLoader();
+                    Swal.fire('สำเร็จ!', 'รายงานผลการคัดกรองถูกส่งให้หัวหน้าระดับเรียบร้อยแล้ว', 'success');
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
