@@ -366,7 +366,7 @@
         // ====================================================
         // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ ⚠️
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbz2XP6CnwpZt-z2J1MwH2lmfUGbetXFtpd5-KmikGwbuRbvwh6IcDcMGhyAFz8c7ekM/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbycR8vB4z4m6e0mOq_v8iK-uS6P3PZzZ049r6j9s7p6gK25wL-eS_43K-3qM4WzM6w/exec"; 
 
         // --- Data Definitions ---
         const questionSets = {
@@ -375,6 +375,16 @@
         };
 
         const reverseItems = [7, 11, 14, 21, 25];
+        
+        // 🌟 ค่า Auto-fill เริ่มต้นสำหรับครู 
+        // 0=ไม่จริง, 1=จริงบ้าง, 2=จริงแน่นอน
+        const teacherDefaults = { 
+            1:2, 2:0, 3:0, 4:2, 5:0, 
+            6:0, 7:2, 8:0, 9:1, 10:0, 
+            11:2, 12:0, 13:0, 14:2, 15:0, 
+            16:1, 17:2, 18:0, 19:0, 20:1, 
+            21:1, 22:0, 23:0, 24:0, 25:2 
+        };
 
         const thresholds = {
             student: { prosocial: { n:[6,10], r:[5,5], p:[0,4] }, emotion: { n:[0,5], r:[6,6], p:[7,10] }, conduct: { n:[0,3], r:[4,4], p:[5,10] }, hyper: { n:[0,5], r:[6,6], p:[7,10] }, peer: { n:[0,3], r:[4,5], p:[6,10] }, total: { n:[0,15], r:[16,19], p:[20,40] } },
@@ -432,7 +442,6 @@
             document.getElementById('info-room').innerHTML = optionsHtml;
         });
 
-        // ฟังก์ชันลับ (Backdoor) สำหรับทดสอบระบบ: กดที่โลโก้ 5 ครั้ง
         function handleLogoClick() {
             logoClickCount++;
             if (logoClickCount >= 5) {
@@ -461,7 +470,6 @@
             }
         }
 
-        // Fetch API Helper (ถอด Headers ออกเพื่อทะลวงบล็อก CORS 100%)
         async function fetchAPI(payload, btnId) {
             if (!API_URL || API_URL.includes("ใส่_ลิงก์")) {
                 Swal.fire('ข้อผิดพลาด', 'คุณครูยังไม่ได้นำลิงก์ Web App ใหม่มาใส่ในโค้ดครับ', 'error');
@@ -476,7 +484,6 @@
                 btn.disabled = true;
             }
             try {
-                // ส่งแบบ Simple Request (ไม่มี Header)
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -527,12 +534,12 @@
                 }
             } else {
                 selectedRole = role;
+                setupFormByRole(selectedRole); // ให้ Render ฟอร์มใหม่ทุกครั้งที่เลือกเปลี่ยน Role
                 document.getElementById('info-room').disabled = false;
                 enableNextBtn();
             }
         }
 
-        // --- ปุ่มประมวลผล SDQ ที่มุมขวาบน ---
         function accessReportSDQ() {
             if (isTeacherOrAdmin) {
                 Swal.fire({
@@ -547,7 +554,6 @@
             }
         }
 
-        // --- ฟังก์ชันดึงรายชื่อจากฐานข้อมูล ---
         async function loadStudents() {
             const room = document.getElementById('info-room').value;
             const studentSelect = document.getElementById('info-student');
@@ -605,7 +611,6 @@
             }
         }
 
-        // --- ฟังก์ชันใส่ข้อมูลลงการ์ดพรีวิว และอัปเดต Floating Profile ---
         function fillStudentInfo() {
             const studentId = document.getElementById('info-student').value;
             const previewCard = document.getElementById('student-preview-card');
@@ -628,7 +633,6 @@
                 document.getElementById('preview-dob').innerText = student.dob || '-';
                 document.getElementById('preview-cid').innerText = student.cid || '-';
 
-                // 🌟 อัปเดตข้อมูลในกล่องลอย (Floating Profile)
                 document.getElementById('float-name').innerText = student.name;
                 document.getElementById('float-room').innerText = "ม." + student.room;
 
@@ -643,7 +647,7 @@
                 
                 if (fileId) {
                     document.getElementById('preview-photo').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w200";
-                    document.getElementById('float-img').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w100"; // รูปกล่องลอย
+                    document.getElementById('float-img').src = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w100"; 
                 } else {
                     document.getElementById('preview-photo').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
                     document.getElementById('float-img').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
@@ -653,7 +657,6 @@
             }
         }
 
-        // --- UI Navigation Logic ---
         function enableNextBtn() {
             const btn = document.getElementById('btn-next');
             btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -730,7 +733,6 @@
             if (currentStep === 1 && !document.querySelector('input[name="assessorRole"]:checked')) disableNextBtn();
             else enableNextBtn(); 
 
-            // 🌟 ควบคุมการแสดงผล รูปนักเรียนแบบลอย (Floating Profile)
             if ((currentStep === 3 || currentStep === 4) && document.getElementById('info-id').value) {
                 document.getElementById('floating-profile').classList.add('show');
             } else {
@@ -740,7 +742,7 @@
             window.scrollTo(0, 0);
         }
 
-        // --- Dynamic Form Generation ---
+        // --- Dynamic Form Generation & Auto-fill ---
         function setupFormByRole(role) {
             const badge = document.getElementById('header-role-badge');
             let roleText = role === 'นักเรียน' ? 'นักเรียนประเมินตนเอง' : (role === 'ผู้ปกครอง' ? 'ผู้ปกครองประเมิน' : 'ครูประเมินนักเรียน');
@@ -751,17 +753,32 @@
             const container = document.getElementById('questions-wrapper');
             let html = '';
 
+            // 🌟 แจ้งเตือนออโต้ฟิล (Auto-fill Notice)
+            if (role === 'ครู') {
+                html += `
+                <div class="bg-ocean-50 border border-ocean-200 p-4 rounded-xl mb-6 shadow-sm flex items-start gap-3">
+                    <i class="ph-fill ph-magic-wand text-2xl text-ocean-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-ocean-800 font-heading">ระบบอำนวยความสะดวก (Auto-fill)</h4>
+                        <p class="text-sm text-ocean-700 mt-1">ระบบได้ทำการเลือก <b>"ค่าเริ่มต้นสำหรับนักเรียนปกติ"</b> ให้ครบทุกข้อแล้ว รวมถึงด้านผลกระทบ คุณครูสามารถตรวจทานและกดผ่านไปประมวลผลได้เลย (หากข้อไหนไม่ตรง สามารถคลิกเปลี่ยนได้ทันทีครับ)</p>
+                    </div>
+                </div>`;
+            }
+
             qArray.forEach((qText, index) => {
                 let qNum = index + 1;
+                // 🌟 หากเป็นครู ให้ติ๊กตาม teacherDefaults อัตโนมัติ
+                let dVal = (role === 'ครู') ? teacherDefaults[qNum] : -1;
+
                 html += `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200" id="q-row-${qNum}">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-4" id="q-row-${qNum}">
                     <p class="font-bold text-slate-800 mb-3 text-sm md:text-base leading-relaxed flex items-start gap-2">
                         <span class="q-number">${qNum}</span> <span>${qText.substring(3)}</span>
                     </p>
                     <div class="radio-group flex gap-2">
-                        <input type="radio" name="q${qNum}" id="q${qNum}_0" value="0"><label for="q${qNum}_0">ไม่จริง</label>
-                        <input type="radio" name="q${qNum}" id="q${qNum}_1" value="1"><label for="q${qNum}_1">จริงบ้าง</label>
-                        <input type="radio" name="q${qNum}" id="q${qNum}_2" value="2"><label for="q${qNum}_2">จริงแน่นอน</label>
+                        <input type="radio" name="q${qNum}" id="q${qNum}_0" value="0" ${dVal === 0 ? 'checked' : ''}><label for="q${qNum}_0">ไม่จริง</label>
+                        <input type="radio" name="q${qNum}" id="q${qNum}_1" value="1" ${dVal === 1 ? 'checked' : ''}><label for="q${qNum}_1">จริงบ้าง</label>
+                        <input type="radio" name="q${qNum}" id="q${qNum}_2" value="2" ${dVal === 2 ? 'checked' : ''}><label for="q${qNum}_2">จริงแน่นอน</label>
                     </div>
                 </div>`;
             });
@@ -780,12 +797,29 @@
             }
 
             document.getElementById('wrap_im_leisure').style.display = (role === 'ครู') ? 'none' : 'block';
+
+            // 🌟 ตั้งค่าผลกระทบอัตโนมัติ สำหรับครู
+            if (role === 'ครู') {
+                setTimeout(() => {
+                    const im0 = document.getElementById('im_0');
+                    if (im0) {
+                        im0.checked = true;
+                        toggleImpactDetails(); // ซ่อนรายละเอียดผลกระทบ
+                    }
+                }, 50);
+            } else {
+                // กรณีเปลี่ยน Role เป็นอย่างอื่น เคลียร์ให้ชัวร์
+                setTimeout(() => {
+                    document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
+                    toggleImpactDetails();
+                }, 50);
+            }
         }
 
         function toggleImpactDetails() {
-            const val = document.querySelector('input[name="impact_main"]:checked').value;
+            const checkedEl = document.querySelector('input[name="impact_main"]:checked');
             const details = document.getElementById('impact-details');
-            if (val !== "0") {
+            if (checkedEl && checkedEl.value !== "0") {
                 details.classList.remove('hidden');
                 details.classList.add('block', 'animate-[fadeIn_0.3s_ease]');
             } else {
@@ -798,7 +832,6 @@
             }
         }
 
-        // --- Calculation Logic ---
         function calculateFinalScores() {
             let s = { emotion: 0, conduct: 0, hyper: 0, peer: 0, prosocial: 0 };
             
@@ -895,7 +928,6 @@
             `;
         }
 
-        // --- 6. Submit Data ---
         async function submitData() {
             const btn = document.getElementById('btn-final-submit');
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...';
@@ -927,10 +959,8 @@
                     showConfirmButton: false
                 }).then(() => {
                     if (selectedRole === 'ครู') {
-                        // หากเป็นครู ให้ระบบดึงรายชื่อคนถัดไปมาให้เลย ไม่ต้องกลับไปหน้าแรก
                         handleNextStudentAuto();
                     } else {
-                        // นักเรียน/ผู้ปกครอง ทำเสร็จ 1 ครั้ง รีโหลดเริ่มใหม่
                         location.reload(); 
                     }
                 });
@@ -941,12 +971,39 @@
             }
         }
 
-        // --- 🌟 ฟังก์ชันเลื่อนนักเรียนคนต่อไปอัตโนมัติ สำหรับครู ---
+        // 🌟 รีเซ็ตฟอร์ม (พร้อมใส่ค่าออโต้กลับคืนให้ครูด้วย)
+        function resetAssessmentForm() {
+            if (selectedRole === 'ครู') {
+                for(let i=1; i<=25; i++) {
+                    let dVal = teacherDefaults[i];
+                    let r = document.getElementById(`q${i}_${dVal}`);
+                    if (r) r.checked = true;
+                }
+                let im0 = document.getElementById('im_0');
+                if (im0) {
+                    im0.checked = true;
+                    toggleImpactDetails();
+                }
+            } else {
+                for(let i=1; i<=25; i++) {
+                    document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
+                }
+                document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
+                toggleImpactDetails();
+            }
+            
+            const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
+            names.forEach(n => {
+                document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
+            });
+            
+            finalResults = {};
+        }
+
         async function handleNextStudentAuto() {
-            // ล้างจุดติ๊กต่างๆ ในฟอร์มให้เกลี้ยง
             resetAssessmentForm();
             
-            // โหลดข้อมูลนักเรียนในห้องที่ครูล็อกไว้อีกครั้ง (เพื่อตัดคนที่ทำแล้วออกไปจากลิสต์)
+            // โหลดรายชื่อใหม่เพื่อเช็คว่าทำใครไปแล้วบ้าง
             await loadStudents();
             
             const studentSelect = document.getElementById('info-student');
@@ -956,7 +1013,6 @@
                 studentSelect.selectedIndex = 1; 
                 fillStudentInfo(); 
                 
-                // พาย้อนกลับไปที่หน้าแสดงรูป (Step 2)
                 document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
                 currentStep = 2;
                 document.getElementById(`step-2`).classList.add('active');
@@ -966,7 +1022,6 @@
                 document.getElementById('progress-bar').style.width = `${(2 / totalSteps) * 100}%`;
                 enableNextBtn();
                 
-                // 🌟 ปิด Floating Profile เมื่อย้อนกลับมา Step 2
                 document.getElementById('floating-profile').classList.remove('show');
                 
                 window.scrollTo(0, 0);
@@ -982,7 +1037,6 @@
                 });
                 
             } else {
-                // หากทำจนลิสต์นักเรียนหมดแล้ว
                 Swal.fire({
                     title: 'ยอดเยี่ยม!',
                     text: 'ท่านได้ประเมินนักเรียนครบทุกคนในห้องนี้แล้วครับ 🎉',
@@ -994,29 +1048,9 @@
                 });
             }
             
-            // คืนค่าปุ่มส่ง
             const btn = document.getElementById('btn-final-submit');
             btn.innerHTML = '<i class="ph-bold ph-paper-plane-right mr-2"></i> ยืนยันและส่งข้อมูล';
             btn.disabled = false;
-        }
-
-        // ล้างฟอร์ม
-        function resetAssessmentForm() {
-            for(let i=1; i<=25; i++) {
-                document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.checked = false);
-            }
-            document.querySelectorAll('input[name="impact_main"]').forEach(r => r.checked = false);
-            
-            const details = document.getElementById('impact-details');
-            details.classList.add('hidden');
-            details.classList.remove('block', 'animate-[fadeIn_0.3s_ease]');
-            
-            const names = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
-            names.forEach(n => {
-                document.querySelectorAll(`input[name="${n}"]`).forEach(r => r.checked = false);
-            });
-            
-            finalResults = {};
         }
 
     </script>
