@@ -486,9 +486,9 @@
         }
 
         function renderOverview(dataToRender) {
-            const norm = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
-            const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
-            const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+            const norm = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+            const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+            const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
             document.getElementById('stat-all').innerText = rawData.length;
             document.getElementById('stat-normal').innerText = norm;
@@ -532,7 +532,7 @@
 
         // 🌟 เปิดหน้าต่าง Modal ตารางรายชื่อ
         function openStudentListModal(type) {
-            let filtered = type === 'all' ? rawData : rawData.filter(d => d.interpretTotal === type);
+            let filtered = type === 'all' ? rawData : rawData.filter(d => d.interpretTotal && d.interpretTotal.includes(type));
             let groupName = type === 'all' ? '(ทั้งหมด)' : `(กลุ่ม${type})`;
             document.getElementById('modal-group-name').innerText = groupName;
             
@@ -649,9 +649,9 @@
             try {
                 // 1. คำนวณสถิติภาพรวม
                 const total = rawData.length;
-                const normal = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
-                const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
-                const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+                const normal = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+                const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+                const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
                 // 2. จัดเตรียมข้อมูลแต่ละชีต
                 let wb = XLSX.utils.book_new();
@@ -959,9 +959,9 @@
                     if(d.peer.includes("ปกติ")) cPeer.normal++; else if(d.peer.includes("เสี่ยง")) cPeer.risk++; else cPeer.prob++;
                     if(d.prosocial.includes("ปกติ")) cProsocial.strength++; else cProsocial.noStrength++;
                 });
-                const normal = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
-                const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
-                const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+                const normal = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('ปกติ')).length;
+                const risk = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('เสี่ยง')).length;
+                const prob = rawData.filter(d => d.interpretTotal && d.interpretTotal.includes('มีปัญหา')).length;
 
                 // ดึงกราฟวงกลมแบบ Base64
                 const canvas = document.getElementById('mainPieChart');
