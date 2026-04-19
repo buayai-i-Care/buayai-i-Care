@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบประมวลผล SDQ - Buayai I-Care School</title>
     
+    <!-- 🌟 เพิ่ม Bootstrap CSS ที่ตกหล่นไป เพื่อให้หน้าต่าง Modal ซ่อนตัวได้ถูกต้อง -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- เปลี่ยนมาใช้ ExcelJS และ FileSaver เพื่อให้สามารถแทรกรูปภาพกราฟลง Excel ได้ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -47,10 +54,9 @@
         /* Grid Spans */
         .card-main { grid-column: span 12; background: linear-gradient(135deg, #0f766e, #115e59); color: white; }
         .card-main:hover { border-color: transparent; box-shadow: 0 15px 35px rgba(15, 118, 110, 0.3); }
-        .card-sub { grid-column: span 6; }
+        .card-sub { grid-column: span 4; } 
         @media (min-width: 768px) {
-            .card-main { grid-column: span 8; grid-row: span 2; }
-            .card-sub { grid-column: span 4; }
+            .card-main { grid-column: span 12; grid-row: span 1; }
         }
 
         /* View Transitions */
@@ -124,129 +130,92 @@
 
         <main class="max-w-6xl mx-auto p-4 md:p-6 w-full flex-grow">
             
-            <!-- 🏠 หน้า Home (Bento Grid) -->
+            <!-- 🏠 หน้า Home (Dashboard + Bento Grid) -->
             <div id="view-home" class="view-section active">
                 <div class="mb-6 flex justify-between items-end">
                     <div>
-                        <h2 class="font-heading text-2xl font-bold text-slate-800">เมนูการจัดการ</h2>
-                        <p class="text-slate-500 text-sm">เลือกระบบประมวลผลที่ต้องการ</p>
+                        <h2 class="font-heading text-2xl font-bold text-slate-800">แดชบอร์ดสรุปผล SDQ</h2>
+                        <p class="text-slate-500 text-sm">สถิติภาพรวมและเมนูการจัดการระบบ</p>
                     </div>
                 </div>
 
-                <div class="bento-grid">
-                    <!-- เมนู 1: สถิติภาพรวม (การ์ดใหญ่) -->
-                    <div class="bento-card card-main" onclick="switchView('overview')">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="bento-icon-wrapper bg-white/20 text-white"><i class="bi bi-bar-chart-fill"></i></div>
-                            <span class="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">อัปเดตล่าสุดวันนี้</span>
-                        </div>
-                        <h3 class="font-heading text-3xl font-bold mb-2">1. สถิติภาพรวม</h3>
-                        <p class="text-teal-50 opacity-90 leading-relaxed mb-6">ประมวลผลข้อมูลการคัดกรอง SDQ แบบกราฟิก ดูจำนวนกลุ่มปกติ เสี่ยง มีปัญหา และเจาะลึกปัญหารายด้าน พร้อมตารางรายชื่อ</p>
-                        
-                        <div class="mt-auto grid grid-cols-3 gap-3">
-                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-                                <div class="text-teal-100 text-xs mb-1">นักเรียนทั้งหมด</div>
-                                <div class="font-bold text-2xl" id="bento-total">-</div>
-                            </div>
-                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-                                <div class="text-teal-100 text-xs mb-1">กลุ่มเสี่ยง</div>
-                                <div class="font-bold text-2xl text-yellow-300" id="bento-risk">-</div>
-                            </div>
-                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-                                <div class="text-teal-100 text-xs mb-1">กลุ่มมีปัญหา</div>
-                                <div class="font-bold text-2xl text-red-300" id="bento-prob">-</div>
-                            </div>
-                        </div>
+                <!-- 🌟 ส่วนบน: กล่องสถิติที่คลิกเพื่อดูรายชื่อได้ -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-200 cursor-pointer hover:bg-slate-100 transition shadow-sm" onclick="openStudentListModal('all')">
+                        <div class="text-sm font-bold text-slate-500 mb-1">ประเมินแล้วทั้งหมด</div>
+                        <div class="font-heading text-3xl font-bold text-slate-800" id="stat-all">0</div>
+                        <div class="text-xs text-slate-400 mt-2"><i class="bi bi-search"></i> คลิกดูรายชื่อ</div>
                     </div>
-
-                    <!-- เมนู 2-5 -->
-                    <div class="bento-card card-sub" onclick="downloadExcel()">
-                        <div class="bento-icon-wrapper bg-green-50 text-green-600"><i class="bi bi-file-earmark-excel-fill"></i></div>
-                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">2. ดาวน์โหลด Excel</h3>
-                        <p class="text-slate-500 text-sm mb-4">สรุปรายด้าน 5 ด้าน และรายบุคคล</p>
+                    <div class="bg-green-50 p-4 rounded-2xl text-center border border-green-200 cursor-pointer hover:bg-green-100 transition shadow-sm" onclick="openStudentListModal('ปกติ')">
+                        <div class="text-sm font-bold text-green-700 mb-1">🟢 ปกติ</div>
+                        <div class="font-heading text-3xl font-bold text-green-600" id="stat-normal">0</div>
+                        <div class="text-xs text-green-600 opacity-75 mt-2"><i class="bi bi-search"></i> คลิกดูรายชื่อ</div>
                     </div>
-
-                    <div class="bento-card card-sub" onclick="downloadPDF()">
-                        <div class="bento-icon-wrapper bg-red-50 text-red-600"><i class="bi bi-file-earmark-pdf-fill"></i></div>
-                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">3. ดาวน์โหลด PDF</h3>
-                        <p class="text-slate-500 text-sm mb-4">จัดหน้าพร้อมพิมพ์ (A4)</p>
+                    <div class="bg-yellow-50 p-4 rounded-2xl text-center border border-yellow-200 cursor-pointer hover:bg-yellow-100 transition shadow-sm" onclick="openStudentListModal('เสี่ยง')">
+                        <div class="text-sm font-bold text-yellow-700 mb-1">🟡 เสี่ยง</div>
+                        <div class="font-heading text-3xl font-bold text-yellow-600" id="stat-risk">0</div>
+                        <div class="text-xs text-yellow-700 opacity-75 mt-2"><i class="bi bi-search"></i> คลิกดูรายชื่อ</div>
                     </div>
-
-                    <div class="bento-card card-sub" onclick="reportToHead()">
-                        <div class="bento-icon-wrapper bg-blue-50 text-blue-600"><i class="bi bi-send-check-fill"></i></div>
-                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">4. รายงานหัวหน้า</h3>
-                        <p class="text-slate-500 text-sm">ส่งสรุปยอดคัดกรองให้หัวหน้าระดับรับทราบ</p>
-                    </div>
-
-                    <div class="bento-card card-sub" onclick="switchView('friends')">
-                        <div class="bento-icon-wrapper bg-purple-50 text-purple-600"><i class="bi bi-people-fill"></i></div>
-                        <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">5. รายชื่อเพื่อนสนิท</h3>
-                        <p class="text-slate-500 text-sm">ข้อมูลเครือข่ายเพื่อนจากแบบประเมิน</p>
-                    </div>
-
-                    <!-- 🌟 เมนู 6: ความสอดคล้องของการประเมิน -->
-                    <div class="bento-card card-main" style="grid-column: span 12; background: white; border: 2px solid #e2e8f0; color: #1e293b;" onclick="switchView('concordance')">
-                        <div class="flex items-center gap-4 mb-2">
-                            <div class="bento-icon-wrapper bg-orange-50 text-orange-600 m-0"><i class="bi bi-intersect"></i></div>
-                            <div>
-                                <h3 class="font-heading text-xl font-bold text-slate-800">6. ความสอดคล้องของการประเมิน (Triangulation)</h3>
-                                <p class="text-slate-500 text-sm">เปรียบเทียบผลประเมินระหว่าง นักเรียน ครู และผู้ปกครอง</p>
-                            </div>
-                        </div>
+                    <div class="bg-red-50 p-4 rounded-2xl text-center border border-red-200 cursor-pointer hover:bg-red-100 transition shadow-sm" onclick="openStudentListModal('มีปัญหา')">
+                        <div class="text-sm font-bold text-red-700 mb-1">🔴 มีปัญหา</div>
+                        <div class="font-heading text-3xl font-bold text-red-600" id="stat-prob">0</div>
+                        <div class="text-xs text-red-600 opacity-75 mt-2"><i class="bi bi-search"></i> คลิกดูรายชื่อ</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 📊 หน้า สถิติภาพรวม (Overview) -->
-            <div id="view-overview" class="view-section hidden">
-                <button onclick="switchView('home')" class="mb-4 text-teal-700 font-bold hover:text-teal-900 flex items-center gap-1 bg-teal-50 px-3 py-1.5 rounded-lg w-fit transition">
-                    <i class="bi bi-arrow-left"></i> กลับเมนูหลัก
-                </button>
-
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
-                    <h3 class="font-heading text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="bi bi-1-circle-fill text-teal-600 me-2"></i>สรุปผลคัดกรอง (Total Difficulties)</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-200">
-                            <div class="text-sm font-bold text-slate-500 mb-1">ประเมินแล้วทั้งหมด</div>
-                            <div class="font-heading text-3xl font-bold text-slate-800" id="stat-all">0</div>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-2xl text-center border border-green-200">
-                            <div class="text-sm font-bold text-green-700 mb-1">🟢 ปกติ</div>
-                            <div class="font-heading text-3xl font-bold text-green-600" id="stat-normal">0</div>
-                        </div>
-                        <div class="bg-yellow-50 p-4 rounded-2xl text-center border border-yellow-200">
-                            <div class="text-sm font-bold text-yellow-700 mb-1">🟡 เสี่ยง</div>
-                            <div class="font-heading text-3xl font-bold text-yellow-600" id="stat-risk">0</div>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-2xl text-center border border-red-200">
-                            <div class="text-sm font-bold text-red-700 mb-1">🔴 มีปัญหา</div>
-                            <div class="font-heading text-3xl font-bold text-red-600" id="stat-prob">0</div>
+                <div class="row g-4">
+                    <!-- 🌟 ส่วนกลางซ้าย: กราฟวงกลม -->
+                    <div class="col-lg-5">
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 h-100 d-flex flex-column justify-content-center">
+                            <h5 class="font-heading text-lg font-bold text-slate-800 mb-3 text-center">สัดส่วนกลุ่มนักเรียน</h5>
+                            <div style="position: relative; height: 280px; width: 100%;">
+                                <canvas id="mainPieChart"></canvas>
+                            </div>
+                            <p class="text-center text-sm text-slate-500 mt-4"><i class="bi bi-hand-index-thumb"></i> คลิกที่ส่วนของกราฟเพื่อดูรายชื่อ</p>
                         </div>
                     </div>
-                    <div class="h-[300px] w-full relative"><canvas id="mainBarChart"></canvas></div>
-                </div>
 
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-heading text-xl font-bold text-slate-800 m-0"><i class="bi bi-2-circle-fill text-teal-600 me-2"></i>สารสนเทศรายบุคคล</h3>
-                        <div class="text-sm font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full" id="table-filter-badge">แสดงทั้งหมด</div>
-                    </div>
-                    <div class="overflow-x-auto custom-scroll max-h-[500px]">
-                        <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead class="bg-white sticky top-0 z-10 shadow-sm">
-                                <tr>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ห้อง</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">รหัส</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b">ชื่อ-สกุล</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">อารมณ์</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">เกเร</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">ไม่อยู่นิ่ง</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center">เพื่อน</th>
-                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b text-center bg-slate-50">รวม 4 ด้าน</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentTableBody" class="text-slate-700 text-sm"></tbody>
-                        </table>
+                    <!-- 🌟 ส่วนกลางขวา: เมนูคำสั่งต่างๆ -->
+                    <div class="col-lg-7">
+                        <div class="bento-grid" style="grid-template-columns: repeat(6, 1fr);">
+                            <div class="bento-card card-sub" style="grid-column: span 2; min-height: 160px; padding: 20px 10px;" onclick="generateExcelLocal()">
+                                <div class="bento-icon-wrapper bg-green-50 text-green-600" style="width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;"><i class="bi bi-file-earmark-excel-fill"></i></div>
+                                <h3 class="font-heading text-md font-bold text-slate-800 mb-1">1. Excel</h3>
+                                <p class="text-slate-500 text-xs mb-0">ตารางรายด้าน</p>
+                            </div>
+
+                            <div class="bento-card card-sub" style="grid-column: span 2; min-height: 160px; padding: 20px 10px;" onclick="generateWordLocal()">
+                                <div class="bento-icon-wrapper bg-blue-50 text-blue-600" style="width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;"><i class="bi bi-file-earmark-word-fill"></i></div>
+                                <h3 class="font-heading text-md font-bold text-slate-800 mb-1">2. Word</h3>
+                                <p class="text-slate-500 text-xs mb-0">บันทึกข้อความ</p>
+                            </div>
+
+                            <div class="bento-card card-sub" style="grid-column: span 2; min-height: 160px; padding: 20px 10px;" onclick="generateOfficialPDF()">
+                                <div class="bento-icon-wrapper bg-red-50 text-red-600" style="width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                                <h3 class="font-heading text-md font-bold text-slate-800 mb-1">3. PDF</h3>
+                                <p class="text-slate-500 text-xs mb-0">พร้อมพิมพ์ (มีครุฑ)</p>
+                            </div>
+
+                            <div class="bento-card" style="grid-column: span 3; min-height: 140px; border-color: #c7d2fe; background: #f8fafc; padding: 20px;" onclick="reportToHead()">
+                                <div class="bento-icon-wrapper bg-indigo-50 text-indigo-600" style="width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;"><i class="bi bi-send-check-fill"></i></div>
+                                <h3 class="font-heading text-md font-bold text-slate-800 mb-1">4. รายงานหัวหน้า</h3>
+                                <p class="text-slate-500 text-xs mb-0">ส่งผลสรุปให้หัวหน้าระดับ</p>
+                            </div>
+
+                            <div class="bento-card" style="grid-column: span 3; min-height: 140px; border-color: #f5d0fe; background: #fdf4ff; padding: 20px;" onclick="switchView('friends')">
+                                <div class="bento-icon-wrapper bg-purple-50 text-purple-600" style="width: 45px; height: 45px; font-size: 1.2rem; margin-bottom: 10px;"><i class="bi bi-people-fill"></i></div>
+                                <h3 class="font-heading text-md font-bold text-slate-800 mb-1">5. เพื่อนสนิท</h3>
+                                <p class="text-slate-500 text-xs mb-0">เครือข่ายเพื่อน (ข้อ 11)</p>
+                            </div>
+
+                            <div class="bento-card card-main" style="grid-column: span 6; background: white; border: 2px solid #e2e8f0; color: #1e293b; min-height: 100px; flex-direction: row; text-align: left; padding: 15px 25px;" onclick="switchView('concordance')">
+                                <div class="bento-icon-wrapper bg-orange-50 text-orange-600 m-0 me-4" style="flex-shrink: 0; width: 50px; height: 50px; font-size: 1.4rem;"><i class="bi bi-intersect"></i></div>
+                                <div>
+                                    <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">6. ความสอดคล้องของการประเมิน (Triangulation)</h3>
+                                    <p class="text-slate-500 text-xs mb-0">เปรียบเทียบผลประเมินระหว่าง นักเรียน ครู และผู้ปกครอง</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -278,7 +247,7 @@
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
                     <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2"><i class="bi bi-intersect text-orange-500 me-2"></i>ความสอดคล้องของการประเมิน</h2>
-                    <p class="text-slate-500 mb-4">แสดงผลเปรียบเทียบมุมมองของผู้ประเมิน 3 ฝ่าย หากผลออกมาตรงกันจะแสดง <span class="badge bg-success bg-opacity-25 text-success">สีเขียว</span> หากขัดแย้งกันจะแสดง <span class="badge bg-danger bg-opacity-25 text-danger">สีแดง</span></p>
+                    <p class="text-slate-500 mb-4">แสดงผลเปรียบเทียบมุมมองของผู้ประเมิน 3 ฝ่าย หากผลออกมาตรงกันจะแสดง <span class="badge bg-success bg-opacity-25 text-success" style="font-size: 0.8rem; padding: 2px 6px;">สีเขียว</span> หากขัดแย้งกันจะแสดง <span class="badge bg-danger bg-opacity-25 text-danger" style="font-size: 0.8rem; padding: 2px 6px;">สีแดง</span></p>
                     
                     <div class="flex flex-wrap gap-3 mb-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <div class="text-sm font-bold text-slate-600 w-full mb-1">เลือกผู้ประเมินที่ต้องการเปรียบเทียบ:</div>
@@ -323,17 +292,58 @@
         </main>
     </div>
 
+    <!-- 🌟 Modal: รายชื่อนักเรียนเมื่อคลิกที่กราฟ -->
+    <div class="modal fade" id="studentListModal" tabindex="-1" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-slate-800 text-white border-0 px-4 py-3">
+                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-list-ul me-2"></i>รายชื่อนักเรียน <span id="modal-group-name" class="text-warning"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 bg-slate-50">
+                    <div class="table-responsive custom-scroll">
+                        <table class="w-full text-left border-collapse min-w-[900px] table-custom mb-0">
+                            <thead class="bg-white sticky top-0 shadow-sm z-10">
+                                <tr>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ห้อง</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">รหัส</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200">ชื่อ-สกุล</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">อารมณ์</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">เกเร</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">ไม่อยู่นิ่ง</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center">เพื่อน</th>
+                                    <th class="py-3 px-4 font-heading font-bold text-slate-700 border-b border-slate-200 text-center bg-slate-100">รวม 4 ด้าน</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalStudentTableBody" class="text-slate-700 text-sm bg-white">
+                                <!-- Data fills here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-white pb-3 pt-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-5" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 🌐 Loader Overlay -->
-    <div id="loader-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center hidden">
+    <div id="loader-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center hidden" style="display: none;">
         <div class="spinner-border text-teal-600 mb-4" style="width: 4rem; height: 4rem; border-width: 0.3em;" role="status"></div>
         <h3 class="font-heading font-bold text-xl text-teal-800" id="loader-text">กำลังประมวลผลข้อมูล...</h3>
     </div>
 
+    <!-- สคริปต์การทำงาน -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ====================================================
-        // ⚠️ ใส่ลิงก์ API หลังบ้านตรงนี้ (ต้องเป็นของ backend_sdq_dashboard.gs)
+        // ⚠️ ลิงก์ API หลังบ้าน
         // ====================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwKTzB3n3sNze4GVsbl2_SEhXjVtnHbN7Rsn8zRKHCektAhmYGmio4w_vFVaZaQafaM/exec";
+        
+        // 🌟 รหัสครุฑสำหรับเอกสาร (แก้ไขเป็นลิงก์ Thumbnail ตรง เพื่อป้องกันการบล็อก)
+        const GARUDA_URL = "https://drive.google.com/thumbnail?id=1LbOYGcXlXRD51dQ57wb83kHdeTfAo9uB&sz=w400";
 
         let currentScope = ""; 
         let rawData = [];
@@ -411,30 +421,32 @@
                     setTimeout(() => el.classList.add('hidden'), 400);
                 }
             });
-            
             setTimeout(() => {
                 const target = document.getElementById('view-' + viewId);
-                target.classList.remove('hidden');
-                setTimeout(() => target.classList.add('active'), 50);
+                if(target) {
+                    target.classList.remove('hidden');
+                    setTimeout(() => target.classList.add('active'), 50);
+                }
                 
-                if(viewId === 'overview' && rawData.length > 0) renderOverview(rawData);
+                if(viewId === 'home' && rawData.length > 0) renderOverview(rawData);
                 if(viewId === 'concordance' && rawData.length > 0) renderConcordanceTable();
             }, 400);
         }
 
-        function showLoader(text) {
-            document.getElementById('loader-text').innerText = text;
-            document.getElementById('loader-overlay').classList.remove('hidden');
+        function showLoader(text) { 
+            document.getElementById('loader-text').innerText = text; 
+            document.getElementById('loader-overlay').style.display = 'flex';
+            document.getElementById('loader-overlay').classList.remove('hidden'); 
         }
-        function hideLoader() {
-            document.getElementById('loader-overlay').classList.add('hidden');
+        function hideLoader() { 
+            document.getElementById('loader-overlay').style.display = 'none';
+            document.getElementById('loader-overlay').classList.add('hidden'); 
         }
 
         // --- 3. Data Fetching ---
         async function loadDashboardData(uid) {
             showLoader('กำลังดึงข้อมูลจากฐานข้อมูลส่วนกลาง...');
             try {
-                // บังคับส่งแบบ text/plain ป้องกัน CORS
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'getDashboardData', uid: uid })
@@ -462,13 +474,7 @@
 
         // --- 4. Rendering Views ---
         function updateBentoStats() {
-            const total = rawData.length;
-            const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
-            const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
-
-            document.getElementById('bento-total').innerText = total;
-            document.getElementById('bento-risk').innerText = risk;
-            document.getElementById('bento-prob').innerText = prob;
+            // Stats อัปเดตในตอน renderOverview แทน
         }
 
         function getBadgeClass(status) {
@@ -479,7 +485,7 @@
             return "badge-neutral";
         }
 
-        function renderOverview(dataToRender, filterType = 'all') {
+        function renderOverview(dataToRender) {
             const norm = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
             const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
             const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
@@ -489,79 +495,74 @@
             document.getElementById('stat-risk').innerText = risk;
             document.getElementById('stat-prob').innerText = prob;
 
-            // Chart
-            const ctx = document.getElementById('mainBarChart').getContext('2d');
+            const ctx = document.getElementById('mainPieChart').getContext('2d');
             if(chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
                     labels: ['กลุ่มปกติ', 'กลุ่มเสี่ยง', 'กลุ่มมีปัญหา'],
                     datasets: [{
-                        label: 'จำนวนนักเรียน',
                         data: [norm, risk, prob],
                         backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
-                        borderRadius: 8,
-                        barPercentage: 0.6
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
+                    cutout: '60%',
                     onClick: (e, elements) => {
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             let fType = index === 0 ? 'ปกติ' : (index === 1 ? 'เสี่ยง' : 'มีปัญหา');
-                            filterTableBy(fType);
+                            openStudentListModal(fType);
                         } else {
-                            filterTableBy('all');
+                            openStudentListModal('all');
                         }
                     },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false }, ticks: { font: { family: "'Prompt', sans-serif" } } }
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { family: "'Prompt', sans-serif", size: 14 } } }
                     },
-                    plugins: { legend: { display: false } },
                     onHover: (e, elements) => { e.native.target.style.cursor = elements.length ? 'pointer' : 'default'; }
                 }
             });
-
-            renderTable(dataToRender, filterType);
         }
 
-        function filterTableBy(type) {
+        // 🌟 เปิดหน้าต่าง Modal ตารางรายชื่อ
+        function openStudentListModal(type) {
             let filtered = type === 'all' ? rawData : rawData.filter(d => d.interpretTotal === type);
-            let badgeText = type === 'all' ? 'แสดงทั้งหมด' : `กรองเฉพาะ: กลุ่ม${type}`;
-            document.getElementById('table-filter-badge').innerText = badgeText;
-            renderTable(filtered, type);
-        }
-
-        function renderTable(dataList, type) {
-            const tbody = document.getElementById('studentTableBody');
-            if (dataList.length === 0) {
+            let groupName = type === 'all' ? '(ทั้งหมด)' : `(กลุ่ม${type})`;
+            document.getElementById('modal-group-name').innerText = groupName;
+            
+            const tbody = document.getElementById('modalStudentTableBody');
+            if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 font-bold">ไม่มีข้อมูลนักเรียนในกลุ่มนี้</td></tr>`;
-                return;
+            } else {
+                let html = '';
+                let sorted = [...filtered].sort((a,b) => {
+                    if(a.room !== b.room) return a.room.localeCompare(b.room);
+                    return b.totalScore - a.totalScore;
+                });
+
+                sorted.forEach(s => {
+                    html += `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td class="py-2 px-4 font-bold text-slate-600">${s.room}</td>
+                        <td class="py-2 px-4 text-slate-500">${s.id}</td>
+                        <td class="py-2 px-4 font-bold text-slate-800">${s.name}</td>
+                        <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.emo)}">${s.emo}</span></td>
+                        <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.cond)}">${s.cond}</span></td>
+                        <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.hyper)}">${s.hyper}</span></td>
+                        <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.peer)}">${s.peer}</span></td>
+                        <td class="py-2 px-4 text-center bg-slate-50"><span class="${getBadgeClass(s.interpretTotal)} text-sm">${s.interpretTotal}</span></td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
             }
-
-            let html = '';
-            let sorted = [...dataList].sort((a,b) => {
-                if(a.room !== b.room) return a.room.localeCompare(b.room);
-                return b.totalScore - a.totalScore;
-            });
-
-            sorted.forEach(s => {
-                html += `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                    <td class="py-2 px-4 font-bold text-slate-600">${s.room}</td>
-                    <td class="py-2 px-4 text-slate-500">${s.id}</td>
-                    <td class="py-2 px-4 font-bold text-slate-800">${s.name}</td>
-                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.emo)}">${s.emo}</span></td>
-                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.cond)}">${s.cond}</span></td>
-                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.hyper)}">${s.hyper}</span></td>
-                    <td class="py-2 px-4 text-center"><span class="${getBadgeClass(s.peer)}">${s.peer}</span></td>
-                    <td class="py-2 px-4 text-center bg-slate-50"><span class="${getBadgeClass(s.interpretTotal)} text-sm">${s.interpretTotal}</span></td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
+            
+            new bootstrap.Modal(document.getElementById('studentListModal')).show();
         }
 
         function renderFriendsTable() {
@@ -571,8 +572,8 @@
             let html = '';
             rawData.forEach(s => {
                 let badge = s.q11_friend === 'ไม่จริง' 
-                            ? '<span class="badge-problem px-3 py-1 rounded-full text-xs">ค่อนข้างโดดเดี่ยว</span>' 
-                            : '<span class="badge-normal px-3 py-1 rounded-full text-xs">มีเพื่อนสนิท</span>';
+                            ? '<span class="badge-problem px-3 py-1 rounded-full text-xs" style="padding: 2px 8px; border-radius: 8px;">ค่อนข้างโดดเดี่ยว</span>' 
+                            : '<span class="badge-normal px-3 py-1 rounded-full text-xs" style="padding: 2px 8px; border-radius: 8px;">มีเพื่อนสนิท</span>';
                 html += `
                 <tr class="hover:bg-slate-50 border-b border-slate-100">
                     <td class="py-3 px-4 text-slate-500">${s.id}</td>
@@ -604,15 +605,15 @@
                     
                     if (showStd && s.raw && s.raw.student) {
                         let st = s.raw.student[domainKey];
-                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-info text-dark w-100 text-start shadow-sm border border-info"><i class="bi bi-person"></i> นร: ${st}</span></div>`; }
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-info text-dark w-100 text-start shadow-sm border border-info" style="font-size: 0.75rem; padding: 4px 6px;"><i class="bi bi-person"></i> นร: ${st}</span></div>`; }
                     }
                     if (showTch && s.raw && s.raw.teacher) {
                         let st = s.raw.teacher[domainKey];
-                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-primary w-100 text-start shadow-sm border border-primary"><i class="bi bi-person-video3"></i> ครู: ${st}</span></div>`; }
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-1"><span class="badge bg-primary w-100 text-start shadow-sm border border-primary" style="font-size: 0.75rem; padding: 4px 6px;"><i class="bi bi-person-video3"></i> ครู: ${st}</span></div>`; }
                     }
                     if (showPar && s.raw && s.raw.parent) {
                         let st = s.raw.parent[domainKey];
-                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-0"><span class="badge bg-warning text-dark w-100 text-start shadow-sm border border-warning"><i class="bi bi-people"></i> ผปค: ${st}</span></div>`; }
+                        if(st && st !== '-') { vals.push(st); badges += `<div class="mb-0"><span class="badge bg-warning text-dark w-100 text-start shadow-sm border border-warning" style="font-size: 0.75rem; padding: 4px 6px;"><i class="bi bi-people"></i> ผปค: ${st}</span></div>`; }
                     }
 
                     if (vals.length === 0) return '<td class="text-center text-slate-300 border-b border-r">-</td>';
@@ -637,37 +638,481 @@
             tbody.innerHTML = html;
         }
 
-        // --- 5. Actions (Export, Report) ---
-        async function downloadExcel() {
-            showLoader('กำลังเตรียมไฟล์ Excel (อาจใช้เวลาสักครู่)...');
+        // --- 5. Actions (Export Excel Local & Official PDF Print) ---
+        
+        // 🌟 สร้างไฟล์ Excel ทันทีบนหน้าเว็บด้วย SheetJS
+        function generateExcelLocal() {
+            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างไฟล์ Excel', 'warning');
+            
+            showLoader('กำลังสร้างไฟล์ Excel บนอุปกรณ์ของคุณ...');
+            
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'exportExcel', uid: sessionStorage.getItem('sdq_admin_uid') }) }).then(r => r.json());
+                // 1. คำนวณสถิติภาพรวม
+                const total = rawData.length;
+                const normal = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
+                const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
+                const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+
+                // 2. จัดเตรียมข้อมูลแต่ละชีต
+                let wb = XLSX.utils.book_new();
+                
+                // Sheet 1: สรุปภาพรวม
+                let summaryData = [
+                    ["รายงานผลการคัดกรอง SDQ (Strengths and Difficulties Questionnaire)"],
+                    [`ข้อมูลประมวลผลสำหรับขอบเขต: ${currentScope}`],
+                    [],
+                    ["จำนวนนักเรียนทั้งหมด", total, "คน"],
+                    ["กลุ่มปกติ", normal, "คน"],
+                    ["กลุ่มเสี่ยง", risk, "คน"],
+                    ["กลุ่มมีปัญหา", prob, "คน"]
+                ];
+                let wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsSummary, "สรุปภาพรวม");
+
+                // Helper สำหรับสร้างชีตรายด้าน
+                const createDomainSheet = (sheetName, domainKey) => {
+                    let domainData = [["รหัสนักเรียน", "ชื่อ-สกุล", "ห้องเรียน", "ผลการประเมิน"]];
+                    rawData.forEach(d => { domainData.push([d.id, d.name, d.room, d[domainKey]]); });
+                    let ws = XLSX.utils.aoa_to_sheet(domainData);
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                };
+
+                createDomainSheet("ด้านอารมณ์", "emo");
+                createDomainSheet("ด้านพฤติกรรมเกเร", "cond");
+                createDomainSheet("ด้านไม่อยู่นิ่ง", "hyper");
+                createDomainSheet("ด้านสัมพันธ์กับเพื่อน", "peer");
+                createDomainSheet("ด้านสังคม(จุดแข็ง)", "prosocial");
+
+                // Sheet: รายบุคคล(เต็ม)
+                let allDetailData = [["รหัส", "ชื่อ-สกุล", "ห้อง", "คะแนนรวม", "แปลผลรวม", "ผลกระทบ", "ด้านอารมณ์", "ด้านเกเร", "ด้านไม่อยู่นิ่ง", "ด้านเพื่อน", "ด้านสังคม"]];
+                rawData.forEach(d => {
+                    allDetailData.push([d.id, d.name, d.room, d.totalScore, d.interpretTotal, d.impact, d.emo, d.cond, d.hyper, d.peer, d.prosocial]);
+                });
+                let wsAll = XLSX.utils.aoa_to_sheet(allDetailData);
+                XLSX.utils.book_append_sheet(wb, wsAll, "รายบุคคล(เต็ม)");
+
+                // 3. สร้างและดาวน์โหลดไฟล์
+                let fileName = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9ก-๙]/g, '_')}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
                 hideLoader();
-                if(res && res.success) {
-                    Swal.fire({
-                        title: 'สร้างไฟล์สำเร็จ!', text: 'ระบบได้สร้าง Excel ให้ท่านเรียบร้อยแล้ว', icon: 'success',
-                        confirmButtonText: '<i class="bi bi-file-earmark-excel-fill"></i> เปิดไฟล์', confirmButtonColor: '#0d9488'
-                    }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
-                } else { throw new Error(res?res.error:"Failed"); }
+                Swal.fire('สำเร็จ', 'ดาวน์โหลดไฟล์ Excel ลงอุปกรณ์เรียบร้อยแล้ว', 'success');
+                
             } catch(e) {
-                hideLoader(); Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการสร้างไฟล์: ' + e.message, 'warning');
+                hideLoader();
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ Excel ได้: ' + e.message, 'error');
             }
         }
 
-        async function downloadPDF() {
-            showLoader('กำลังสร้างเอกสาร PDF...');
+        // 🌟 สร้างหน้าสำหรับพิมพ์ PDF ตามแบบฟอร์มราชการ (มีครุฑ)
+        function generateOfficialPDF() {
+            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
+            
+            showLoader('กำลังเตรียมแบบฟอร์มเอกสาร...');
+
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'exportPDF', uid: sessionStorage.getItem('sdq_admin_uid') }) }).then(r => r.json());
+                // คำนวณสถิติตามฟอร์ม
+                const total = rawData.length;
+                let cEmo = { normal: 0, risk: 0, prob: 0 };
+                let cCond = { normal: 0, risk: 0, prob: 0 };
+                let cHyper = { normal: 0, risk: 0, prob: 0 };
+                let cPeer = { normal: 0, risk: 0, prob: 0 };
+                let cTotal = { normal: 0, risk: 0, prob: 0 };
+                let cProsocial = { strength: 0, noStrength: 0 }; 
+
+                rawData.forEach(d => {
+                    if(d.emo.includes("ปกติ")) cEmo.normal++; else if(d.emo.includes("เสี่ยง")) cEmo.risk++; else cEmo.prob++;
+                    if(d.cond.includes("ปกติ")) cCond.normal++; else if(d.cond.includes("เสี่ยง")) cCond.risk++; else cCond.prob++;
+                    if(d.hyper.includes("ปกติ")) cHyper.normal++; else if(d.hyper.includes("เสี่ยง")) cHyper.risk++; else cHyper.prob++;
+                    if(d.peer.includes("ปกติ")) cPeer.normal++; else if(d.peer.includes("เสี่ยง")) cPeer.risk++; else cPeer.prob++;
+                    if(d.interpretTotal.includes("ปกติ")) cTotal.normal++; else if(d.interpretTotal.includes("เสี่ยง")) cTotal.risk++; else cTotal.prob++;
+                    if(d.prosocial.includes("ปกติ")) cProsocial.strength++; else cProsocial.noStrength++;
+                });
+
+                const termDisplay = "1 / 2569"; 
+                
+                // สร้างหน้าต่างใหม่เพื่อเตรียมพิมพ์
+                const printWindow = window.open('', '_blank');
+                let html = `
+                <html>
+                <head>
+                    <title>รายงานผลการคัดกรอง SDQ</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Sarabun', sans-serif; font-size: 14px; margin: 0; padding: 20px 40px; color: #000; }
+                        .text-center { text-align: center; }
+                        .fw-bold { font-weight: 700; }
+                        .garuda { width: 80px; height: auto; display: block; margin: 0 auto 10px; }
+                        h3 { font-size: 18px; margin: 5px 0; }
+                        p { margin: 5px 0; line-height: 1.5; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: center; vertical-align: middle; }
+                        th { background-color: #f2f2f2; }
+                        .text-left { text-align: left; }
+                        .signature-section { margin-top: 40px; display: flex; flex-direction: column; gap: 30px; }
+                        .sig-block { text-align: center; margin-left: 40%; }
+                        .sig-block-inline { text-align: center; display: inline-block; width: 45%; }
+                        .dotted-line { border-bottom: 1px dotted #000; display: inline-block; width: 200px; margin-bottom: 5px; }
+                        .page-break { page-break-before: always; }
+                        @media print { 
+                            @page { size: A4 portrait; margin: 20mm 15mm; }
+                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <!-- หน้าที่ 1: บันทึกข้อความ (Memo) -->
+                    <img src="${GARUDA_URL}" class="garuda">
+                    <h3 class="text-center fw-bold">บันทึกข้อความ</h3>
+                    <p><b>ส่วนราชการ</b> โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</p>
+                    <p><b>ที่</b> ............................/2569 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>วันที่</b> ..............................................................</p>
+                    <p><b>เรื่อง</b> รายงานผลการคัดกรองนักเรียน (SDQ) ${currentScope.includes('ห้อง') ? currentScope : 'ระดับชั้น ' + currentScope}</p>
+                    <hr style="border: 0; border-bottom: 1px solid #000; margin: 15px 0;">
+                    <p><b>เรียน</b> ผู้อำนวยการโรงเรียนบัวใหญ่</p>
+                    <p><b>อ้างถึง</b> คำสั่งโรงเรียนบัวใหญ่ เรื่องแต่งตั้งคณะกรรมการเยี่ยมบ้านนักเรียนและคัดกรองนักเรียน ประจำปีการศึกษา 2569</p>
+                    <br>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้</p>
+                    
+                    <table>
+                        <tr>
+                            <th rowspan="2">จำนวนนักเรียน<br>ทั้งหมด</th>
+                            <th rowspan="2">การประเมินรายด้าน</th>
+                            <th colspan="3">ผลการประเมิน SDQ</th>
+                        </tr>
+                        <tr>
+                            <th>กลุ่มปกติ(คน)</th>
+                            <th>กลุ่มเสี่ยง(คน)</th>
+                            <th>กลุ่มมีปัญหา(คน)</th>
+                        </tr>
+                        <tr>
+                            <td rowspan="6">${total}</td>
+                            <td class="text-left">1. อารมณ์</td>
+                            <td>${cEmo.normal}</td><td>${cEmo.risk}</td><td>${cEmo.prob}</td>
+                        </tr>
+                        <tr><td class="text-left">2. ความประพฤติ</td><td>${cCond.normal}</td><td>${cCond.risk}</td><td>${cCond.prob}</td></tr>
+                        <tr><td class="text-left">3. ไม่อยู่นิ่ง</td><td>${cHyper.normal}</td><td>${cHyper.risk}</td><td>${cHyper.prob}</td></tr>
+                        <tr><td class="text-left">4. สัมพันธภาพกับเพื่อน</td><td>${cPeer.normal}</td><td>${cPeer.risk}</td><td>${cPeer.prob}</td></tr>
+                        <tr class="fw-bold" style="background-color: #f9f9f9;">
+                            <td class="text-left">ภาพรวมทั้ง 4 ด้าน</td>
+                            <td>${cTotal.normal}</td><td>${cTotal.risk}</td><td>${cTotal.prob}</td>
+                        </tr>
+                        <tr class="fw-bold" style="background-color: #f9f9f9;">
+                            <td class="text-left">ร้อยละของภาพรวมทั้ง 4 ด้าน</td>
+                            <td>${((cTotal.normal/total)*100).toFixed(2)}%</td>
+                            <td>${((cTotal.risk/total)*100).toFixed(2)}%</td>
+                            <td>${((cTotal.prob/total)*100).toFixed(2)}%</td>
+                        </tr>
+                    </table>
+
+                    <table>
+                        <tr>
+                            <th>จำนวนนักเรียน<br>ทั้งหมด</th>
+                            <th>การประเมินรายด้าน</th>
+                            <th>มีจุดแข็ง(คน)</th>
+                            <th>ไม่มีจุดแข็ง(คน)</th>
+                        </tr>
+                        <tr>
+                            <td>${total}</td>
+                            <td class="text-left fw-bold">ด้านสัมพันธภาพทางสังคม</td>
+                            <td>${cProsocial.strength}</td>
+                            <td>${cProsocial.noStrength}</td>
+                        </tr>
+                    </table>
+
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;จึงเรียนมาเพื่อโปรดทราบ</p>
+                    
+                    <div class="signature-section">
+                        <div class="sig-block">
+                            ลงชื่อ <span class="dotted-line"></span> ครูที่ปรึกษา<br>
+                            (......................................................)
+                        </div>
+                        
+                        <div>
+                            <p class="fw-bold">ความคิดเห็นของหัวหน้าระดับชั้น / หัวหน้างานกิจการนักเรียน</p>
+                            <p>.........................................................................................................................................................................</p>
+                            <div class="sig-block">
+                                ลงชื่อ <span class="dotted-line"></span><br>
+                                (......................................................)
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="fw-bold">ความคิดเห็นของรองผู้อำนวยการกลุ่มบริหารงานบุคคล</p>
+                            <p>.........................................................................................................................................................................</p>
+                            <div class="sig-block">
+                                ลงชื่อ <span class="dotted-line"></span><br>
+                                (......................................................)
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="fw-bold">การพิจารณาของผู้อำนวยการโรงเรียน</p>
+                            <p><input type="checkbox"> ทราบ &nbsp;&nbsp;&nbsp;&nbsp; <input type="checkbox"> สั่งการ ..........................................................................................................</p>
+                            <div class="sig-block">
+                                ลงชื่อ <span class="dotted-line"></span><br>
+                                (......................................................)<br>
+                                ผู้อำนวยการโรงเรียนบัวใหญ่
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="page-break"></div>
+
+                    <!-- หน้าที่ 2: รายละเอียดรายบุคคล -->
+                    <h3 class="text-center fw-bold">สรุปแบบประเมินพฤติกรรมนักเรียน SDQ ${currentScope} ภาคเรียนที่ ${termDisplay}</h3>
+                    
+                    <table style="font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">ที่</th>
+                                <th rowspan="2" style="width:20%">ชื่อ - สกุล</th>
+                                <th rowspan="2">ห้อง</th>
+                                <th colspan="3">ภาพรวม 4 ด้าน</th>
+                                <th colspan="4">ปัญหา (อารมณ์, เกเร, ไม่อยู่นิ่ง, เพื่อน)</th>
+                                <th rowspan="2">สัมพันธภาพ<br>ทางสังคม</th>
+                            </tr>
+                            <tr>
+                                <th>ปกติ</th>
+                                <th>เสี่ยง</th>
+                                <th>มีปัญหา</th>
+                                <th>อารมณ์</th>
+                                <th>ประพฤติ</th>
+                                <th>ไม่อยู่นิ่ง</th>
+                                <th>เพื่อน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                // จัดเรียงข้อมูลตามห้องและชื่อ
+                let sortedData = [...rawData].sort((a,b) => {
+                    if(a.room !== b.room) return a.room.localeCompare(b.room);
+                    return a.name.localeCompare(b.name);
+                });
+
+                sortedData.forEach((s, idx) => {
+                    const check = (val, target) => val.includes(target) ? '✓' : '-';
+                    const getShortProblem = (val) => {
+                        if(val.includes('มีปัญหา')) return 'มีปัญหา';
+                        if(val.includes('เสี่ยง')) return 'เสี่ยง';
+                        return '-';
+                    };
+                    
+                    let proStat = s.prosocial.includes('ปกติ') ? 'จุดแข็ง' : (s.prosocial.includes('เสี่ยง') ? 'เสี่ยง' : 'ไม่มีจุดแข็ง');
+
+                    html += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td class="text-left">${s.name}</td>
+                            <td>${s.room}</td>
+                            <td>${check(s.interpretTotal, 'ปกติ')}</td>
+                            <td>${check(s.interpretTotal, 'เสี่ยง')}</td>
+                            <td>${check(s.interpretTotal, 'มีปัญหา')}</td>
+                            <td>${getShortProblem(s.emo)}</td>
+                            <td>${getShortProblem(s.cond)}</td>
+                            <td>${getShortProblem(s.hyper)}</td>
+                            <td>${getShortProblem(s.peer)}</td>
+                            <td>${proStat}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+                `;
+
+                printWindow.document.write(html);
+                printWindow.document.close(); // จบการเขียน
+                
                 hideLoader();
-                if(res && res.success) {
-                    Swal.fire({
-                        title: 'สร้าง PDF สำเร็จ!', icon: 'success',
-                        confirmButtonText: '<i class="bi bi-file-earmark-pdf-fill"></i> เปิดดูไฟล์', confirmButtonColor: '#0d9488'
-                    }).then((r) => { if(r.isConfirmed) window.open(res.url, '_blank'); });
-                } else { throw new Error(res?res.error:"Failed"); }
+                
+                // รอให้หน้าต่างใหม่โหลด CSS เสร็จก่อนสั่ง Print
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+
             } catch(e) {
-                hideLoader(); Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการสร้างไฟล์ PDF', 'warning');
+                hideLoader();
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างรายงาน PDF ได้: ' + e.message, 'error');
             }
+        }
+
+        // ฟังก์ชันสร้าง Word (บีบเส้นชิดตามฟอร์ม)
+        function generateWordLocal() {
+            if(rawData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับสร้างรายงาน', 'warning');
+            showLoader('กำลังเตรียมไฟล์ Word...');
+
+            setTimeout(() => {
+                const total = rawData.length;
+                let cEmo = { normal: 0, risk: 0, prob: 0 };
+                let cCond = { normal: 0, risk: 0, prob: 0 };
+                let cHyper = { normal: 0, risk: 0, prob: 0 };
+                let cPeer = { normal: 0, risk: 0, prob: 0 };
+                let cProsocial = { strength: 0, noStrength: 0 };
+                rawData.forEach(d => {
+                    if(d.emo.includes("ปกติ")) cEmo.normal++; else if(d.emo.includes("เสี่ยง")) cEmo.risk++; else cEmo.prob++;
+                    if(d.cond.includes("ปกติ")) cCond.normal++; else if(d.cond.includes("เสี่ยง")) cCond.risk++; else cCond.prob++;
+                    if(d.hyper.includes("ปกติ")) cHyper.normal++; else if(d.hyper.includes("เสี่ยง")) cHyper.risk++; else cHyper.prob++;
+                    if(d.peer.includes("ปกติ")) cPeer.normal++; else if(d.peer.includes("เสี่ยง")) cPeer.risk++; else cPeer.prob++;
+                    if(d.prosocial.includes("ปกติ")) cProsocial.strength++; else cProsocial.noStrength++;
+                });
+                const normal = rawData.filter(d => d.interpretTotal === 'ปกติ').length;
+                const risk = rawData.filter(d => d.interpretTotal === 'เสี่ยง').length;
+                const prob = rawData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+
+                // ดึงกราฟวงกลมแบบ Base64
+                const canvas = document.getElementById('mainPieChart');
+                let chartImgTag = '';
+                if(canvas) {
+                    const chartBase64 = canvas.toDataURL('image/png');
+                    chartImgTag = `<div class="center"><img src="${chartBase64}" style="width: 400px; height: auto; margin-top: 15px;"></div>`;
+                }
+
+                let tableRowsHtml = '';
+                let sortedData = [...rawData].sort((a,b) => {
+                    if(a.room !== b.room) return a.room.localeCompare(b.room);
+                    return a.name.localeCompare(b.name);
+                });
+                sortedData.forEach((s, idx) => {
+                    const check = (val, target) => val.includes(target) ? '&#10003;' : '-';
+                    const getShortProblem = (val) => val.includes('มีปัญหา') ? 'มีปัญหา' : (val.includes('เสี่ยง') ? 'เสี่ยง' : '-');
+                    let proStat = s.prosocial.includes('ปกติ') ? 'จุดแข็ง' : (s.prosocial.includes('เสี่ยง') ? 'เสี่ยง' : 'ไม่มีจุดแข็ง');
+                    
+                    tableRowsHtml += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${s.name}</td>
+                            <td>${s.room}</td>
+                            <td>${check(s.interpretTotal, 'ปกติ')}</td>
+                            <td>${check(s.interpretTotal, 'เสี่ยง')}</td>
+                            <td>${check(s.interpretTotal, 'มีปัญหา')}</td>
+                            <td>${getShortProblem(s.emo)}</td>
+                            <td>${getShortProblem(s.cond)}</td>
+                            <td>${getShortProblem(s.hyper)}</td>
+                            <td>${getShortProblem(s.peer)}</td>
+                            <td>${proStat}</td>
+                        </tr>`;
+                });
+
+                const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>รายงานผล SDQ</title>
+                    <style>
+                        body { font-family: 'TH SarabunPSK', 'Sarabun', sans-serif; font-size: 16pt; line-height: 1.1; }
+                        .center { text-align: center; }
+                        .bold { font-weight: bold; }
+                        table.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px;}
+                        table.data-table th, table.data-table td { border: 1px solid #000; padding: 4pt 5px; text-align: center; vertical-align: middle; line-height: normal; } 
+                        table.data-table th { background-color: #f2f2f2; } 
+                        p { margin: 0; padding: 0; } 
+                        .header-table { width: 100%; border: none; margin-bottom: 5pt; }
+                        .header-table td { border: none; padding: 0; }
+                    </style>
+                </head>
+                <body>
+                    <!-- 📄 หน้า 1: บันทึกข้อความและกราฟ -->
+                    <table class="header-table">
+                        <tr>
+                            <td style="width: 50px; vertical-align: top;">
+                                <img src="${GARUDA_URL}" style="width: 30px; height: auto;">
+                            </td>
+                            <td style="text-align: center; vertical-align: bottom; padding-bottom: 10px;">
+                                <span class="bold" style="font-size:22pt;">บันทึกข้อความ</span>
+                            </td>
+                            <td style="width: 50px;"></td>
+                        </tr>
+                    </table>
+                    
+                    <p><b>ส่วนราชการ</b> โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</p>
+                    <p><b>ที่</b> ............................/2569 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>วันที่</b> ..............................................................</p>
+                    <p><b>เรื่อง</b> รายงานผลการคัดกรองนักเรียน (SDQ) ${currentScope.includes('ห้อง') ? currentScope : 'ระดับชั้น ' + currentScope}</p>
+                    <hr style="border: 0; border-bottom: 1px solid #000; margin: 8px 0;">
+                    <p><b>เรียน</b> ผู้อำนวยการโรงเรียนบัวใหญ่</p>
+                    <p><b>อ้างถึง</b> คำสั่งโรงเรียนบัวใหญ่ เรื่องแต่งตั้งคณะกรรมการเยี่ยมบ้านนักเรียนและคัดกรองนักเรียน ประจำปีการศึกษา 2569</p>
+                    <p style="text-indent: 40px;">ตามคำสั่งที่อ้างถึง ข้าพเจ้า ..................................................................... ครูที่ปรึกษานักเรียน ${currentScope} มีนักเรียนในความดูแลทั้งหมด จำนวน ${total} คน ข้าพเจ้าได้ดำเนินการคัดกรองนักเรียนเพื่อให้การดูแลช่วยเหลือ ส่งเสริมป้องกันหรือแก้ปัญหาของนักเรียน ซึ่งปรากฏผลดังนี้</p>
+                    
+                    <table class="data-table">
+                        <tr>
+                            <th rowspan="2">จำนวนนักเรียน<br>ทั้งหมด</th>
+                            <th rowspan="2">การประเมินรายด้าน</th>
+                            <th colspan="3">ผลการประเมิน SDQ</th>
+                        </tr>
+                        <tr>
+                            <th>กลุ่มปกติ(คน)</th>
+                            <th>กลุ่มเสี่ยง(คน)</th>
+                            <th>กลุ่มมีปัญหา(คน)</th>
+                        </tr>
+                        <tr>
+                            <td rowspan="6">${total}</td>
+                            <td>1. อารมณ์</td>
+                            <td>${cEmo.normal}</td><td>${cEmo.risk}</td><td>${cEmo.prob}</td>
+                        </tr>
+                        <tr><td>2. ความประพฤติ</td><td>${cCond.normal}</td><td>${cCond.risk}</td><td>${cCond.prob}</td></tr>
+                        <tr><td>3. ไม่อยู่นิ่ง</td><td>${cHyper.normal}</td><td>${cHyper.risk}</td><td>${cHyper.prob}</td></tr>
+                        <tr><td>4. สัมพันธภาพกับเพื่อน</td><td>${cPeer.normal}</td><td>${cPeer.risk}</td><td>${cPeer.prob}</td></tr>
+                        <tr class="bold" style="background-color: #f9f9f9;">
+                            <td>ภาพรวมทั้ง 4 ด้าน</td>
+                            <td>${normal}</td><td>${risk}</td><td>${prob}</td>
+                        </tr>
+                    </table>
+
+                    ${chartImgTag}
+
+                    <p style="margin-top: 15pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;จึงเรียนมาเพื่อโปรดทราบ</p>
+                    
+                    <div style="text-align: center; margin-top: 20pt;">
+                        <p>ลงชื่อ ............................................................ ครูที่ปรึกษา</p>
+                        <p>(......................................................)</p>
+                    </div>
+
+                    <br clear="all" style="page-break-before:always" />
+
+                    <!-- 📄 หน้า 2: ตารางรายบุคคล -->
+                    <h3 class="center bold" style="font-size:16pt;">สรุปแบบประเมินพฤติกรรมนักเรียน SDQ ${currentScope} ภาคเรียนที่ 1/2569</h3>
+                    <table class="data-table" style="font-size: 14pt;">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">ที่</th>
+                                <th rowspan="2" style="width:20%">ชื่อ - สกุล</th>
+                                <th rowspan="2">ห้อง</th>
+                                <th colspan="3">ภาพรวม 4 ด้าน</th>
+                                <th colspan="4">ปัญหา (อารมณ์, เกเร, ไม่อยู่นิ่ง, เพื่อน)</th>
+                                <th rowspan="2">สัมพันธภาพ<br>ทางสังคม</th>
+                            </tr>
+                            <tr>
+                                <th>ปกติ</th>
+                                <th>เสี่ยง</th>
+                                <th>ปัญหา</th>
+                                <th>อารมณ์</th>
+                                <th>ประพฤติ</th>
+                                <th>ไม่อยู่นิ่ง</th>
+                                <th>เพื่อน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                </body>
+                </html>`;
+
+                const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `รายงาน_SDQ_${currentScope.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                hideLoader();
+                Swal.fire('สำเร็จ', 'บันทึกเป็นไฟล์ Word เรียบร้อยแล้วครับ', 'success');
+            }, 500); 
         }
 
         function reportToHead() {
@@ -677,7 +1122,6 @@
             }).then((res) => {
                 if (res.isConfirmed) {
                     showLoader('กำลังส่งรายงาน...');
-                    // จำลองการส่งสำเร็จ
                     setTimeout(() => {
                         hideLoader();
                         Swal.fire('สำเร็จ!', 'รายงานผลการคัดกรองถูกส่งให้หัวหน้าระดับเรียบร้อยแล้ว', 'success');
