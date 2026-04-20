@@ -234,29 +234,20 @@
         // ================================================================
         // 🌟 ระบบเปิดหน้าโฮมรูมตามระดับชั้น
         // ================================================================
+        // ================================================================
+        // 🌟 ระบบเปิดหน้าโฮมรูม (อัปเดตเป็นไฟล์เดียว homeroom.html)
+        // ================================================================
         function openHomeroomApp() {
-            let u = document.getElementById('username').value.trim().toLowerCase();
-            let level = '1';
-
-            // ดึงตัวเลขชั้นมาจากข้อมูลห้อง (เช่น ถ้าห้องเป็น "ม.2/1" จะได้เลข "2")
-            if (currentUser && currentUser.assignedClass) {
-                let match = currentUser.assignedClass.match(/(\d)/); 
-                if (match) {
-                    level = match[1];
-                }
+            // ดึงรหัสที่จำไว้ใน Session หรือจากช่อง input
+            let u = sessionStorage.getItem('teacher_pw_auto') || document.getElementById('username').value.trim().toLowerCase();
+            
+            if (u) {
+                // เปิดหน้า homeroom.html ไฟล์เดียว พร้อมส่งพารามิเตอร์ user ติดไปด้วย
+                let targetUrl = `homeroom.html?user=${encodeURIComponent(u)}`;
+                window.open(targetUrl, '_blank'); // เปิดในแท็บใหม่
             } else {
-                // เผื่อกรณีดึงจากห้องไม่ได้ ให้ดึงจาก username
-                if (u.startsWith('m')) {
-                    level = u.replace('m', '');
-                } else if (u.startsWith('t')) {
-                    level = u.charAt(1);
-                    if (level === '0') level = '1';
-                }
+                window.open('homeroom.html', '_blank');
             }
-
-            // เปิดหน้า homeroomX.html พร้อมส่งพารามิเตอร์ user ติดไปด้วย
-            let targetUrl = `homeroom${level}.html?user=${u}`;
-            window.open(targetUrl, '_blank');
         }
 
         function showCustomAlert(title, message, type='success', hideCloseBtn = false) {
@@ -280,6 +271,10 @@
 
             if(res.status === 'success') {
                 currentUser = res;
+                
+                // 🌟 1. เพิ่มบรรทัดนี้: บันทึกรหัสไว้ในความจำชั่วคราว ทันทีที่ล็อกอินแอปเช็คชื่อผ่าน
+                sessionStorage.setItem('teacher_pw_auto', u);
+                
                 document.getElementById('login-page').style.display='none'; document.getElementById('app-interface').style.display='block';
                 document.getElementById('user-display').innerText = "ผู้ใช้: " + res.name;
                 document.getElementById('class-display').innerText = "ห้อง " + res.assignedClass;
