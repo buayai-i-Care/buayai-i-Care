@@ -3,32 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบ Buayai I-Care School</title>
+    <title>ระบบเช็คชื่อเข้าแถว - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
     
+    <!-- โหลด Bootstrap 5, Icons และ Google Fonts -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Charts สำหรับแสดงสถิติ -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
     <style>
-        :root { --primary-dark: #1e293b; --accent-blue: #3b82f6; --bg-light: #f8fafc; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-light); color: #1e293b; overflow-x: hidden; }
+        :root {
+            --primary-dark: #1e293b;
+            --accent-blue: #3b82f6;
+            --bg-light: #f8fafc;
+        }
 
-        .sidebar { height: 100vh; width: 260px; position: fixed; top: 0; left: 0; background: var(--primary-dark); color: white; z-index: 1050; transition: all 0.3s ease; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-light);
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            height: 100vh; width: 260px; position: fixed; top: 0; left: 0;
+            background: var(--primary-dark); color: white; z-index: 1050;
+            transition: all 0.3s ease; box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
         .sidebar.collapsed { left: -260px; }
-        .main-content { margin-left: 260px; padding: 25px; min-height: 100vh; transition: all 0.3s ease; }
+        
+        .main-content {
+            margin-left: 260px; padding: 25px; min-height: 100vh; transition: all 0.3s ease;
+        }
         .main-content.expanded { margin-left: 0; }
 
-        .nav-link { color: rgba(255,255,255,0.7); margin: 8px 15px; border-radius: 12px; padding: 12px; cursor: pointer; transition: 0.3s; text-decoration: none; display: flex; align-items: center; }
-        .nav-link:hover, .nav-link.active { background: var(--accent-blue); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        /* Navigation Links */
+        .nav-link {
+            color: rgba(255,255,255,0.7); margin: 8px 15px; border-radius: 12px;
+            padding: 12px; cursor: pointer; transition: 0.3s; text-decoration: none;
+            display: flex; align-items: center;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: var(--accent-blue); color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
 
-        .student-card { border: none; border-radius: 20px; background: white; margin-bottom: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: 0.2s; position: relative; padding: 15px; }
-        .student-card.checked { background-color: #f1f5f9; border: 1px dashed #cbd5e1; padding: 12px 15px; }
-        .student-card.checked .img-wrapper, .student-card.checked .btn-group, .student-card.checked .history-badge, .student-card.checked .history-res-container { display: none !important; }
+        /* Student Card UI */
+        .student-card {
+            border: none; border-radius: 20px; background: white; margin-bottom: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: 0.2s;
+            position: relative; padding: 15px;
+        }
+        
+        /* สไตล์เมื่อถูกเช็คชื่อแล้ว (ยุบการ์ด) */
+        .student-card.checked {
+            background-color: #f1f5f9; border: 1px dashed #cbd5e1; padding: 12px 15px; opacity: 0.85;
+        }
+        
+        .student-card.checked .img-wrapper,
+        .student-card.checked .btn-group,
+        .student-card.checked .history-badge,
+        .student-card.checked .history-res-container {
+            display: none !important;
+        }
 
-        .leave-badge { background: #fffbeb; color: #92400e; font-size: 0.65rem; padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a; font-weight: 700; }
+        /* Leave Badge */
+        .leave-badge {
+            background: #fffbeb; color: #92400e; font-size: 0.65rem;
+            padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a; font-weight: 700;
+        }
+
         .status-badge-display { font-size: 0.8rem; padding: 5px 12px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+
+        /* Sticky Bottom Save Button */
         .sticky-save { position: fixed; bottom: 25px; right: 30px; width: 200px; z-index: 1000; }
+
         .modal-rounded { border-radius: 25px !important; overflow: hidden; border: none; }
         .btn-round { border-radius: 15px; padding: 10px 20px; font-weight: 600; }
 
@@ -37,100 +89,131 @@
             .sidebar.active { left: 0; }
             .main-content { margin-left: 0; padding-top: 80px; }
             .toggle-btn { display: block !important; }
-            .sticky-save { right: 20px; left: 20px; width: auto; }
+            .sticky-save { right: 20px; left: 20px; width: auto; bottom: 15px; }
         }
 
-        .toggle-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--primary-dark); color: white; border: none; border-radius: 10px; padding: 10px 15px; display: none; }
-        .img-profile { width: 75px; height: 75px; object-fit: cover; border-radius: 50%; border: 2px solid #e2e8f0; }
+        .toggle-btn {
+            position: fixed; top: 15px; left: 15px; z-index: 1100;
+            background: var(--primary-dark); color: white; border: none;
+            border-radius: 10px; padding: 10px 15px; display: none;
+        }
+        
+        .img-profile {
+            width: 75px; height: 75px; object-fit: cover;
+            border-radius: 50%; border: 2px solid #e2e8f0;
+        }
+        .history-badge {
+            cursor: pointer; font-size: 0.65rem; padding: 3px 6px;
+            background: #6c757d; color: white; border-radius: 6px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- ปุ่มเปิดเมนูบนมือถือ -->
     <button class="toggle-btn shadow" onclick="toggleSidebar()"><i class="bi bi-list fs-3"></i></button>
     <div id="sidebar-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1040;" onclick="toggleSidebar()"></div>
 
+    <!-- 1. ส่วนหน้า LOGIN -->
     <div id="login-page">
         <div class="d-flex align-items-center justify-content-center" style="height: 100vh; background: var(--primary-dark);">
             <div class="card p-4 shadow-lg border-0 text-center" style="width: 90%; max-width: 380px; border-radius: 25px;">
-                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="110" class="bg-white rounded-circle p-2 mx-auto mb-3 shadow-sm" style="border: 3px solid #f8fafc;">
-                
-                <h4 class="fw-bold mb-4">Buayai I-Care Teacher</h4>
-                <input type="text" id="username" class="form-control rounded-pill mb-3 text-center py-2" placeholder="ชื่อผู้ใช้งาน">
+                <i class="bi bi-shield-lock-fill text-primary mb-3" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold mb-4">Buayai I-Care Teacher โรงเรียนบัวใหญ่</h4>
+                <input type="text" id="username" class="form-control rounded-pill mb-3 text-center py-2" placeholder="รหัสผู้ใช้งาน (เช่น t21, t35)">
                 <input type="password" id="password" class="form-control rounded-pill mb-4 text-center py-2" placeholder="รหัสผ่าน">
                 <button id="btn-login" class="btn btn-primary w-100 btn-round py-3 shadow" onclick="runLogin()">เข้าสู่ระบบ</button>
-                <div id="login-msg" class="mt-3 text-danger small"></div>
+                <div id="login-msg" class="mt-3 text-danger small fw-bold"></div>
             </div>
         </div>
     </div>
 
+    <!-- 2. ส่วนหน้าแอปหลัก -->
     <div id="app-interface" style="display: none;">
         
+        <!-- Sidebar -->
         <div class="sidebar d-flex flex-column p-3" id="mainSidebar">
             <div class="text-center py-4">
-                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="80" class="bg-white rounded-circle p-1 mb-2 shadow-sm">
                 <h5 class="fw-bold text-info">โรงเรียนบัวใหญ่</h5>
             </div>
-            
             <div class="nav flex-column mb-auto">
                 <a class="nav-link active" onclick="switchMenu('check-in', this)"><i class="bi bi-person-check me-2"></i> เช็คชื่อนักเรียน</a>
+                <!-- 🌟 ลิงก์บันทึกโฮมรูม (ส่งรหัสผ่าน Auto-login ข้ามแอป) -->
+                <a class="nav-link text-warning fw-bold" onclick="openHomeroomApp()"><i class="bi bi-journal-bookmark-fill me-2"></i> บันทึกโฮมรูม</a>
+                
+                <!-- 🌟 เมนูใหม่: ลิงก์ไป SDQ คัดกรองนักเรียน -->
+                <a class="nav-link text-success fw-bold" onclick="openSDQApp()"><i class="bi bi-clipboard2-pulse me-2"></i> SDQ คัดกรองนักเรียน</a>
+                
                 <a class="nav-link" onclick="switchMenu('report', this)"><i class="bi bi-pie-chart me-2"></i> สถิติภาพรวม</a>
                 <a class="nav-link" onclick="switchMenu('print', this)"><i class="bi bi-file-earmark-spreadsheet me-2"></i> ออกรายงาน Excel</a>
-                
-                <div class="border-top border-secondary my-2 opacity-50"></div>
-                <a class="nav-link text-warning fw-bold" style="background: rgba(255, 193, 7, 0.1);" onclick="openHomeroomApp()">
-                    <i class="bi bi-journal-bookmark-fill me-2"></i> บันทึกโฮมรูม
-                </a>
             </div>
-            
             <div class="p-3 border-top border-secondary">
                 <div class="small mb-2 text-info opacity-75 text-truncate" id="user-display">ผู้ใช้: -</div>
                 <button class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="location.reload()">ออกจากระบบ</button>
             </div>
         </div>
 
+        <!-- เนื้อหาหลัก -->
         <div class="main-content" id="mainContent">
             
-            <div class="text-center mb-3">
-                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="70" class="bg-white rounded-circle p-1 shadow-sm border">
-            </div>
-
-                       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <div>
-                    <h3 id="page-title" class="fw-bold m-0 text-dark">เช็คชื่อนักเรียน</h3>
-                    <div class="mt-2" id="date-picker-container">
-                        <label class="small fw-bold text-muted mb-1"><i class="bi bi-calendar-event"></i> เลือกวันที่เช็คชื่อ:</label>
-                        <input type="date" id="checkin-date" class="form-control rounded-pill border-primary shadow-sm" style="max-width: 200px; font-weight: bold;">
-                    </div>
-                </div>
-                <span class="badge bg-white text-primary shadow-sm p-3 rounded-pill fw-bold" id="class-display" style="font-size: 1rem;">-</span>
-            </div>
-
+            <!-- เมนู: เช็คชื่อ -->
             <div id="content-check-in">
-                <!-- เพิ่ม style="padding-bottom: 120px;" เข้าไปที่บรรทัดนี้ -->
-                <div id="student-list" class="row g-3" style="padding-bottom: 120px;"></div>
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                    <div>
+                        <h3 id="page-title" class="fw-bold m-0 text-dark">เช็คชื่อนักเรียน</h3>
+                        <!-- 🌟 ตัวเลือกวันที่ สำหรับเช็คชื่อย้อนหลัง -->
+                        <div class="mt-2 d-flex align-items-center gap-2" id="date-picker-container">
+                            <label class="small fw-bold text-muted mb-0"><i class="bi bi-calendar-event"></i> เลือกวันที่:</label>
+                            <input type="date" id="checkin-date" class="form-control form-control-sm rounded-pill border-primary shadow-sm text-primary" style="max-width: 150px; font-weight: bold;">
+                        </div>
+                    </div>
+                    <span class="badge bg-white text-primary shadow-sm p-3 rounded-pill fw-bold fs-6" id="class-display">-</span>
+                </div>
+
+                <div id="student-list" class="row g-2" style="padding-bottom: 90px;">
+                    <!-- รายชื่อนักเรียนจะแสดงที่นี่ -->
+                </div>
+                
                 <div class="sticky-save">
-                    <button class="btn btn-success btn-lg w-100 shadow-lg rounded-pill py-3 fw-bold" onclick="submitAttendance()">
+                    <button class="btn btn-success btn-lg w-100 shadow-lg rounded-pill py-3 fw-bold" id="btn-save-main" onclick="submitAttendance()">
                         <i class="bi bi-cloud-upload me-2"></i>บันทึกข้อมูล
                     </button>
                 </div>
             </div>
 
+            <!-- เมนู: สถิติ -->
             <div id="content-report" style="display:none;">
-                <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
-                    <h6 class="fw-bold mb-3">สัดส่วนการมาเรียน (ข้อมูลล่าสุด)</h6>
-                    <div id="chart_div" style="height: 300px;"></div>
-                    <div id="list-names" class="mt-3 p-3 bg-light rounded-3 small text-primary fw-bold text-center">คลิกที่กราฟเพื่อดูรายชื่อ</div>
-                </div>
-                <div class="card p-4 border-0 shadow-sm rounded-4">
-                    <h6 class="text-danger fw-bold"><i class="bi bi-clock-history"></i> มาสายสูงสุด 10 อันดับ (7 วัน)</h6>
-                    <div id="top10-res" class="small mt-2"></div>
+                <h3 class="fw-bold mb-4 text-dark">สถิติภาพรวม</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card p-3 border-0 shadow-sm rounded-4">
+                            <h6 class="fw-bold">สัดส่วนสถานะล่าสุด</h6>
+                            <div id="chart_div" style="height: 300px;"></div>
+                            <div id="list-names" class="small mt-2 p-2 bg-light rounded text-primary fw-bold text-center">คลิกที่กราฟดูรายชื่อ</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3 border-0 shadow-sm rounded-4 mb-3">
+                            <h6 class="fw-bold">ค้นหารายบุคคล</h6>
+                            <select id="searchStudent" class="form-select mb-2 rounded-pill" onchange="showIndividual()">
+                                <option value="">เลือกชื่อนักเรียน...</option>
+                            </select>
+                            <div id="indiv-res" class="p-3 bg-light rounded mt-2 small">กรุณาเลือกชื่อนักเรียน</div>
+                        </div>
+                        <div class="card p-3 border-0 shadow-sm rounded-4">
+                            <h6 class="text-danger fw-bold"><i class="bi bi-clock-history"></i> สายสะสมสูงสุด 10 อันดับ</h6>
+                            <div id="top10-res" class="small mt-2">กำลังโหลดข้อมูล...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <!-- เมนู: ออกรายงาน Excel -->
             <div id="content-print" style="display:none;">
                 <div class="card p-5 border-0 shadow-sm mx-auto rounded-5 text-center" style="max-width:500px;">
                     <i class="bi bi-file-earmark-excel-fill text-success fs-1 mb-3"></i>
                     <h4 class="fw-bold mb-4">ดูรายงาน</h4>
+                    
                     <div class="text-start mb-3">
                         <label class="small fw-bold mb-1">ประเภทรายงาน</label>
                         <select id="reportType" class="form-select rounded-pill" onchange="toggleDateInput()">
@@ -139,6 +222,7 @@
                             <option value="monthly">รายเดือน</option>
                         </select>
                     </div>
+
                     <div id="dateInputGroup" class="mb-4 text-start">
                         <div id="singleDateGroup">
                             <label class="small fw-bold mb-1">ระบุวันที่/เดือน</label>
@@ -151,62 +235,93 @@
                             </div>
                         </div>
                     </div>
+                    
                     <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" id="btn-gen" onclick="generateTimeReport()">
                         <i class="bi bi-file-earmark-arrow-down"></i> เริ่มสร้างรายงาน
                     </button>
                 </div>
             </div>
-    
         </div>
     </div>
 
+    <!-- CUSTOM MODALS -->
+    
+    <!-- Modal: สรุปข้อมูล -->
     <div class="modal fade" id="summaryModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-rounded shadow-lg">
                 <div class="modal-header border-0 bg-light px-4 py-3"><h6 class="fw-bold m-0">สรุปผลการเช็คชื่อ</h6></div>
                 <div class="modal-body p-4 text-center" id="summaryBody"></div>
                 <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">แก้ไข</button>
-                    <button id="btn-confirm" class="btn btn-success btn-round shadow" onclick="finalCommit()">ยืนยันบันทึก</button>
+                    <button class="btn btn-light rounded-pill px-4 fw-bold border" data-bs-dismiss="modal">กลับไปแก้ไข</button>
+                    <button id="btn-confirm" class="btn btn-success btn-round shadow" onclick="finalCommit()">ยืนยันบันทึกข้อมูล</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal: แจ้งเตือนสถานะ -->
     <div class="modal fade" id="customAlertModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content modal-rounded shadow-lg text-center p-4 border-0">
                 <div id="alertIcon" class="mb-2" style="font-size: 3.5rem;"></div>
                 <h6 id="alertTitle" class="fw-bold mb-1"></h6>
                 <div id="alertMessage" class="text-muted small mb-3"></div>
-                <button id="alertCloseBtn" class="btn btn-dark w-100 rounded-pill py-2" data-bs-dismiss="modal">ตกลง</button>
+                <button id="alertCloseBtn" class="btn btn-dark w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">ตกลง</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ================================================================
-        // ⚠️ ลิงก์ Web App API ระบบเช็คชื่อเข้าแถว (ของเดิม)
-        // ================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbziKXkyGcrMr-stjk-DOJdCY9PJSTGdcnJG88mUa-Gf8vLBdI1-1qLFU9FvSR13uFszvQ/exec";
-        
-        let currentUser = {}, studentData = [], pendingData = [], lastStat = null;
+        // ====================================================
+        // ⚠️ ใส่ลิงก์ Web App (Master API) ตรงนี้ ⚠️
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbziKXkyGcrMr-stjk-DOJdCY9PJSTGdcnJG88mUa-Gf8vLBdI1-1qLFU9FvSR13uFszvQ/exec"; 
+
+        let currentUser = {}; 
+        let studentData = []; 
+        let pendingData = []; 
+        let lastStat = null;
         google.charts.load('current', {'packages':['corechart']});
 
+        // 🌟 1. ฟังก์ชัน Fetch API เชื่อมต่อกับ Master API
         async function fetchAPI(payload) {
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
                 return await response.json();
             } catch (error) {
-                showCustomAlert("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+                showCustomAlert("การเชื่อมต่อล้มเหลว", "โปรดตรวจสอบสัญญาณอินเทอร์เน็ต", "error");
                 return null;
             }
         }
 
+        // 🌟 2. ฟังก์ชันเปิดหน้าโฮมรูม
+        function openHomeroomApp() {
+            let u = sessionStorage.getItem('teacher_pw_auto') || document.getElementById('username').value.trim().toLowerCase();
+            if (u) {
+                window.open(`homeroom.html?user=${encodeURIComponent(u)}`, '_blank');
+            } else {
+                window.open('homeroom.html', '_blank');
+            }
+        }
+
+        // 🌟 3. ฟังก์ชันเปิดหน้า SDQ คัดกรองนักเรียน
+        function openSDQApp() {
+            let u = sessionStorage.getItem('teacher_pw_auto') || document.getElementById('username').value.trim().toLowerCase();
+            if (u) {
+                // ส่ง uid พ่วงไปกับ URL เพื่อให้หน้า SDQ ทำการ Auto-login ให้ทันที
+                window.open(`advice/sdq.html?uid=${encodeURIComponent(u)}`, '_blank');
+            } else {
+                window.open('advice/sdq.html', '_blank');
+            }
+        }
+
+        // --- ฟังก์ชันจัดการหน้าจอ (UI) ---
         function toggleSidebar() { 
             const s = document.getElementById('mainSidebar'), o = document.getElementById('sidebar-overlay'), c = document.getElementById('mainContent');
             if (window.innerWidth <= 768) { s.classList.toggle('active'); o.style.display = s.classList.contains('active') ? 'block' : 'none'; }
@@ -214,40 +329,12 @@
         }
 
         function switchMenu(m, el) { 
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); el.classList.add('active');
             document.getElementById('content-check-in').style.display = m==='check-in'?'block':'none';
             document.getElementById('content-report').style.display = m==='report'?'block':'none';
             document.getElementById('content-print').style.display = m==='print'?'block':'none';
-            document.getElementById('page-title').innerText = el.innerText;
-            
-            const datePicker = document.getElementById('date-picker-container');
-            if (datePicker) {
-                datePicker.style.display = (m === 'check-in') ? 'block' : 'none';
-            }
-
             if(m === 'report') loadAdvancedStats();
             if(window.innerWidth <= 768) toggleSidebar();
-        }
-
-        // ================================================================
-        // 🌟 ระบบเปิดหน้าโฮมรูมตามระดับชั้น
-        // ================================================================
-        // ================================================================
-        // 🌟 ระบบเปิดหน้าโฮมรูม (อัปเดตเป็นไฟล์เดียว homeroom.html)
-        // ================================================================
-        function openHomeroomApp() {
-            // ดึงรหัสที่จำไว้ใน Session หรือจากช่อง input
-            let u = sessionStorage.getItem('teacher_pw_auto') || document.getElementById('username').value.trim().toLowerCase();
-            
-            if (u) {
-                // เปิดหน้า homeroom.html ไฟล์เดียว พร้อมส่งพารามิเตอร์ user ติดไปด้วย
-                let targetUrl = `homeroom.html?user=${encodeURIComponent(u)}`;
-                window.open(targetUrl, '_blank'); // เปิดในแท็บใหม่
-            } else {
-                window.open('homeroom.html', '_blank');
-            }
         }
 
         function showCustomAlert(title, message, type='success', hideCloseBtn = false) {
@@ -259,8 +346,9 @@
             new bootstrap.Modal(document.getElementById('customAlertModal')).show();
         }
 
+        // --- ระบบความปลอดภัย & โหลดข้อมูล ---
         async function runLogin() {
-            const u = document.getElementById('username').value, p = document.getElementById('password').value;
+            const u = document.getElementById('username').value.trim(), p = document.getElementById('password').value.trim();
             if(!u || !p) return showCustomAlert("ข้อมูลไม่ครบ", "กรุณากรอก User และ Password", "warning");
             
             const btn = document.getElementById('btn-login'); btn.disabled = true;
@@ -271,11 +359,10 @@
 
             if(res.status === 'success') {
                 currentUser = res;
+                sessionStorage.setItem('teacher_pw_auto', u); // 🌟 จำรหัสไว้ส่งข้ามไปแอปโฮมรูม
                 
-                // 🌟 1. เพิ่มบรรทัดนี้: บันทึกรหัสไว้ในความจำชั่วคราว ทันทีที่ล็อกอินแอปเช็คชื่อผ่าน
-                sessionStorage.setItem('teacher_pw_auto', u);
-                
-                document.getElementById('login-page').style.display='none'; document.getElementById('app-interface').style.display='block';
+                document.getElementById('login-page').style.display='none'; 
+                document.getElementById('app-interface').style.display='block';
                 document.getElementById('user-display').innerText = "ผู้ใช้: " + res.name;
                 document.getElementById('class-display').innerText = "ห้อง " + res.assignedClass;
                 
@@ -294,153 +381,211 @@
 
         async function loadStudents() { 
             const res = await fetchAPI({ action: 'getStudentsByClass', className: currentUser.assignedClass });
-            if (res) { studentData = res; render(); }
+            if(res) {
+                studentData = res;
+                render();
+                document.getElementById('searchStudent').innerHTML = '<option value="">เลือกชื่อนักเรียน...</option>' + studentData.map(s => `<option value="${s.fullname}">${s.fullname}</option>`).join('');
+            }
         }
 
+        // 🌟 เพิ่มฟังก์ชันแปลงลิงก์ Google Drive ให้เป็น Thumbnail 
+        function getDriveDirectLink(url) {
+            if (!url || url.trim() === "") return null;
+            if (url.includes("thumbnail?id=")) return url; // ถ้าเป็น thumbnail อยู่แล้วปล่อยผ่าน
+            
+            // สกัดเอา File ID ออกมาจาก URL ทุกรูปแบบ
+            let fileIdMatch = url.match(/[-\w]{25,}/);
+            if (fileIdMatch && fileIdMatch[0]) {
+                return `https://drive.google.com/thumbnail?id=${fileIdMatch[0]}&sz=w300`;
+            }
+            return url;
+        }
+
+        // --- การวาดหน้าจอเช็คชื่อ ---
         function render() {
             const container = document.getElementById('student-list');
-            if (studentData.length === 0) {
+            if (!studentData || studentData.length === 0) {
                 container.innerHTML = '<div class="col-12 text-center py-5 text-muted">ไม่พบข้อมูลนักเรียน</div>';
                 return;
             }
             
             container.innerHTML = studentData.map((std, index) => {
                 const isLeave = (std.preStatus === 'ลป' || std.preStatus === 'ลก');
+                const stdNo = index + 1; 
+                
+                // 🌟 ประมวลผลลิงก์รูปภาพก่อนนำไปแสดง
+                let finalImgUrl = getDriveDirectLink(std.img) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+                
                 return `
                 <div class="col-12 col-sm-6 col-md-4 col-xl-3">
                     <div class="card student-card text-center" id="card-${std.id}">
                         ${isLeave ? '<div class="position-absolute top-0 start-50 translate-middle-x mt-1"><span class="leave-badge shadow-sm"><i class="bi bi-bell-fill"></i> แจ้งลาออนไลน์</span></div>' : ''}
+                        
                         <div class="d-flex justify-content-between align-items-center mb-1 mt-2 mx-1">
-                            <span class="history-badge text-primary" style="cursor:pointer; font-size:0.8rem;" onclick="loadHistory('${std.id}', this)" title="ดูประวัติ"><i class="bi bi-clock-history"></i> ประวัติ</span>
-                            <div class="small fw-bold text-truncate mx-2 text-start" style="flex:1;">${index + 1}. ${std.fullname}</div>
+                            <span class="history-badge" onclick="loadHistory('${std.id}', this)" title="ดูประวัติ 3 วันล่าสุด"><i class="bi bi-clock-history"></i> ประวัติ</span>
+                            <div class="small fw-bold text-truncate mx-2 text-start" style="flex:1;">${stdNo}. ${std.fullname}</div>
                             <span id="status-display-${std.id}" class="badge status-badge-display d-none shadow-sm" onclick="reEdit('${std.id}')"></span>
                         </div>
+                        
                         <div class="img-wrapper my-2" id="img-wrapper-${std.id}">
-                            <img src="${std.img || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="img-profile shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                            <img src="${finalImgUrl}" class="img-profile shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                         </div>
+                        
                         <div class="btn-group w-100 mt-1" id="group-${std.id}">
                             <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${std.preStatus==='มา'?'checked':''} onchange="collapseCard('${std.id}', 'มา')">
-                            <label class="btn btn-outline-success border-0 small px-0" for="m-${std.id}">มา</label>
+                            <label class="btn btn-outline-success border-0 small px-0 py-2" for="m-${std.id}">มา</label>
+                            
                             <input type="radio" class="btn-check" name="st-${std.id}" id="lp-${std.id}" value="ลป" ${std.preStatus==='ลป'?'checked':''} onchange="collapseCard('${std.id}', 'ลป')">
-                            <label class="btn btn-outline-warning border-0 small px-0" for="lp-${std.id}">ลป</label>
+                            <label class="btn btn-outline-warning border-0 small px-0 py-2" for="lp-${std.id}">ลป</label>
+                            
                             <input type="radio" class="btn-check" name="st-${std.id}" id="lk-${std.id}" value="ลก" ${std.preStatus==='ลก'?'checked':''} onchange="collapseCard('${std.id}', 'ลก')">
-                            <label class="btn btn-outline-info border-0 small px-0" for="lk-${std.id}">ลก</label>
+                            <label class="btn btn-outline-info border-0 small px-0 py-2" for="lk-${std.id}">ลก</label>
+                            
                             <input type="radio" class="btn-check" name="st-${std.id}" id="s-${std.id}" value="สาย" onchange="collapseCard('${std.id}', 'สาย')">
-                            <label class="btn btn-outline-danger border-0 small px-0" for="s-${std.id}">สาย</label>
+                            <label class="btn btn-outline-danger border-0 small px-0 py-2" for="s-${std.id}">สาย</label>
+                            
                             <input type="radio" class="btn-check" name="st-${std.id}" id="k-${std.id}" value="ขาด" onchange="collapseCard('${std.id}', 'ขาด')">
-                            <label class="btn btn-outline-secondary border-0 small px-0" for="k-${std.id}">ขาด</label>
+                            <label class="btn btn-outline-secondary border-0 small px-0 py-2" for="k-${std.id}">ขาด</label>
                         </div>
-                        <div id="history-res-${std.id}" class="history-res-container text-muted mt-2 small" style="font-size:0.6rem; min-height:12px;"></div>
+                        
+                        <div id="history-res-${std.id}" class="history-res-container text-muted mt-2 small fw-bold" style="font-size:0.6rem; min-height:12px;"></div>
                     </div>
                 </div>`;
             }).join('');
-        }
-
-        function collapseCard(id, s) { 
-            const c = document.getElementById(`card-${id}`), d = document.getElementById(`status-display-${id}`); 
-            c.classList.add('checked'); 
-            d.innerText = s + " (แก้ไข)"; d.classList.remove('d-none'); 
-            d.className = 'badge status-badge-display ms-1 ' + (s==='มา'?'bg-success':s==='สาย'?'bg-danger':s==='ขาด'?'bg-secondary':'bg-warning text-dark'); 
-        }
-
-        function reEdit(id) { 
-            const c = document.getElementById(`card-${id}`), d = document.getElementById(`status-display-${id}`);
-            c.classList.remove('checked'); d.classList.add('d-none'); 
-        }
-
-        function submitAttendance() {
-            pendingData = studentData.map(std => {
-                const radioChecked = document.querySelector(`input[name="st-${std.id}"]:checked`);
-                return { id: std.id, fullname: std.fullname, status: radioChecked ? radioChecked.value : 'ขาด' };
-            });
-            let s = {'มา':0, 'สาย':0, 'ลป':0, 'ลก':0, 'ขาด':0}; 
-            pendingData.forEach(i => s[i.status]++);
-            document.getElementById('summaryBody').innerHTML = `
-                <div class="row g-2 text-white mb-3">
-                    <div class="col-4"><div class="p-2 rounded bg-success small shadow-sm">มา: ${s['มา']}</div></div>
-                    <div class="col-4"><div class="p-2 rounded bg-warning text-dark small shadow-sm">ลป: ${s['ลป']}</div></div>
-                    <div class="col-4"><div class="p-2 rounded bg-info text-dark small shadow-sm">ลก: ${s['ลก']}</div></div>
-                    <div class="col-6"><div class="p-2 rounded bg-danger small shadow-sm">สาย: ${s['สาย']}</div></div>
-                    <div class="col-6"><div class="p-2 rounded bg-secondary small shadow-sm">ขาด: ${s['ขาด']}</div></div>
-                </div>
-                <div class="text-dark small fw-bold border-top pt-2">รวมนักเรียนทั้งหมด: ${pendingData.length} คน</div>`;
-            new bootstrap.Modal(document.getElementById('summaryModal')).show();
-        }
-
-        async function finalCommit() {
-            const btn = document.getElementById('btn-confirm');
-            btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
-            
-            const checkDate = document.getElementById('checkin-date').value;
-            const res = await fetchAPI({ 
-                action: 'saveAttendance', 
-                className: currentUser.assignedClass, 
-                list: pendingData, 
-                teacher: currentUser.name,
-                checkDate: checkDate 
-            });
-            
-            bootstrap.Modal.getInstance(document.getElementById('summaryModal')).hide();
-            btn.disabled = false; btn.innerHTML = "ยืนยันบันทึก";
-            if(res && res.status === 'success') {
-                showCustomAlert("สำเร็จ!", res.message, "success");
-                loadStudents();
-            } else if (res) {
-                showCustomAlert("ข้อผิดพลาด", res.message, "error");
-            }
-        }
-
-        function toggleDateInput() { 
-            const t = document.getElementById('reportType').value;
-            document.getElementById('singleDateGroup').style.display = (t==='weekly'?'none':'block'); 
-            document.getElementById('rangeDateGroup').style.display = (t==='weekly'?'block':'none'); 
-            document.getElementById('reportDate').type = (t==='monthly'?'month':'date');
-        }
-
-        async function generateTimeReport() {
-            const type = document.getElementById('reportType').value;
-            let dateVal = "";
-            
-            if(type === 'weekly') { 
-                const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
-                if(!s || !e) return showCustomAlert("ข้อมูลไม่ครบ", "กรุณาระบุช่วงวันที่ให้ครบถ้วนครับ", "warning"); 
-                dateVal = s + "|" + e;
-            } else { 
-                dateVal = document.getElementById('reportDate').value;
-                if(!dateVal) return showCustomAlert("ข้อมูลไม่ครบ", "กรุณาระบุวันที่ที่ต้องการออกรายงานครับ", "warning"); 
-            }
-
-            const btn = document.getElementById('btn-gen');
-            btn.disabled = true; btn.innerHTML = "<span class='spinner-border spinner-border-sm'></span> กำลังประมวลผล...";
-            
-            const res = await fetchAPI({ action: 'createFilteredReport', className: currentUser.assignedClass, type: type, dateVal: dateVal });
-            btn.disabled = false; btn.innerHTML = "<i class='bi bi-file-earmark-arrow-down'></i> เริ่มสร้างรายงาน";
-            
-            if(res && res.status === 'success') { 
-                const btnLink = `<div class="mt-4"><a href="${res.url}" target="_blank" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('customAlertModal')).hide()"><i class="bi bi-box-arrow-up-right"></i> คลิกที่นี่เพื่อเปิดรายงาน</a></div>`;
-                showCustomAlert("สร้างรายงานสำเร็จ", "ระบบเตรียมข้อมูลให้คุณเรียบร้อยแล้ว" + btnLink, "success", true); 
-            } else if (res) {
-                showCustomAlert("เกิดข้อผิดพลาด", res.message, "error");
-            }
-        }
-
-        async function loadAdvancedStats() { 
-            const res = await fetchAPI({ action: 'getAdvancedStats', className: currentUser.assignedClass });
-            if(!res) return; lastStat = res; 
-            
-            const d = google.visualization.arrayToDataTable([['สถานะ','จำนวน'],['มา',res.pieData['มา'].length],['ลป',res.pieData['ลป'].length],['ลก',res.pieData['ลก'].length],['สาย',res.pieData['สาย'].length],['ขาด',res.pieData['ขาด'].length]]); 
-            new google.visualization.PieChart(document.getElementById('chart_div')).draw(d, { pieHole: 0.4, chartArea: {width:'100%', height:'80%'}, colors: ['#10b981','#f59e0b','#3b82f6','#ef4444','#64748b'], legend: {position:'bottom'} });
-            let top10 = res.top10.map((t, i) => `<div class="d-flex justify-content-between mb-1"><span>${i+1}. ${t.name}</span> <span class="badge bg-danger rounded-pill">${t.count} ครั้ง</span></div>`).join(''); 
-            document.getElementById('top10-res').innerHTML = top10 || '-'; 
         }
 
         async function loadHistory(id, el) { 
             el.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
             const res = await fetchAPI({ action: 'getStudentHistory', cls: currentUser.assignedClass, id: id });
             if(res) {
-                document.getElementById(`history-res-${id}`).innerHTML = `<i class="bi bi-clock"></i> 3 วันล่าสุด: <span class="fw-bold">${res}</span>`;
+                document.getElementById(`history-res-${id}`).innerHTML = `<i class="bi bi-clock"></i> ประวัติล่าสุด: <span class="text-primary">${res}</span>`; 
+                el.innerHTML = '<i class="bi bi-clock-history"></i> ประวัติ'; 
             }
-            el.innerHTML = '<i class="bi bi-clock-history"></i> ข้อมูลย้อนหลัง';
+        }
+
+        function collapseCard(id, s) { 
+            const c = document.getElementById(`card-${id}`), d = document.getElementById(`status-display-${id}`); 
+            c.classList.add('checked'); 
+            d.innerText = s + " (แก้)"; 
+            d.classList.remove('d-none'); 
+            d.className = 'badge status-badge-display ms-1 ' + (s==='มา'?'bg-success':s==='สาย'?'bg-danger':s==='ขาด'?'bg-secondary':'bg-warning text-dark'); 
+        }
+
+        function reEdit(id) { 
+            const c = document.getElementById(`card-${id}`), d = document.getElementById(`status-display-${id}`);
+            c.classList.remove('checked'); 
+            d.classList.add('d-none'); 
+        }
+
+        // --- บันทึกการมาเรียน ---
+        function submitAttendance() {
+            pendingData = studentData.map(std => {
+                const radioChecked = document.querySelector(`input[name="st-${std.id}"]:checked`);
+                return { 
+                    id: std.id, 
+                    fullname: std.fullname, 
+                    status: radioChecked ? radioChecked.value : 'ขาด' 
+                };
+            });
+            let s = {'มา':0, 'สาย':0, 'ลป':0, 'ลก':0, 'ขาด':0}; 
+            pendingData.forEach(i => s[i.status]++);
+            
+            document.getElementById('summaryBody').innerHTML = `
+                <div class="row g-2 text-white mb-3">
+                    <div class="col-4"><div class="p-2 rounded bg-success small shadow-sm fw-bold">มา: ${s['มา']}</div></div>
+                    <div class="col-4"><div class="p-2 rounded bg-warning text-dark small shadow-sm fw-bold">ลป: ${s['ลป']}</div></div>
+                    <div class="col-4"><div class="p-2 rounded bg-info text-dark small shadow-sm fw-bold">ลก: ${s['ลก']}</div></div>
+                    <div class="col-6"><div class="p-2 rounded bg-danger small shadow-sm fw-bold">สาย: ${s['สาย']}</div></div>
+                    <div class="col-6"><div class="p-2 rounded bg-secondary small shadow-sm fw-bold">ขาด: ${s['ขาด']}</div></div>
+                </div>
+                <div class="text-dark small fw-bold border-top pt-2">รวมนักเรียนทั้งหมด: ${pendingData.length} คน</div>`;
+            
+            new bootstrap.Modal(document.getElementById('summaryModal')).show();
+        }
+
+        async function finalCommit() {
+            const btn = document.getElementById('btn-confirm'); btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+            
+            const selectedDate = document.getElementById('checkin-date').value; 
+            
+            const res = await fetchAPI({ 
+                action: 'saveAttendance', 
+                className: currentUser.assignedClass, 
+                list: pendingData, 
+                teacher: currentUser.name,
+                checkDate: selectedDate 
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('summaryModal')).hide();
+            btn.disabled = false; btn.innerHTML = "ยืนยันบันทึกข้อมูล";
+            
+            if(res && res.status === 'success') {
+                showCustomAlert("สำเร็จ!", "บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+                loadStudents(); // รีโหลดสถานะใหม่
+            } else {
+                showCustomAlert("ผิดพลาด", res ? res.message : "ไม่สามารถบันทึกได้", "error");
+            }
+        }
+
+        // --- ส่วนออกรายงานและสถิติ ---
+        async function loadAdvancedStats() { 
+            const res = await fetchAPI({ action: 'getAdvancedStats', className: currentUser.assignedClass });
+            if(!res) return; lastStat = res; 
+            
+            const d = google.visualization.arrayToDataTable([['สถานะ','จำนวน'],['มา',res.pieData['มา'].length],['ลป',res.pieData['ลป'].length],['ลก',res.pieData['ลก'].length],['สาย',res.pieData['สาย'].length],['ขาด',res.pieData['ขาด'].length]]); 
+            const chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+            
+            google.visualization.events.addListener(chart, 'select', function() { 
+                const sel = chart.getSelection()[0]; 
+                if (sel) { 
+                    const label = d.getValue(sel.row, 0); 
+                    document.getElementById('list-names').innerHTML = `กลุ่ม ${label}: ${res.pieData[label].join(', ') || 'ไม่มีรายชื่อ'}`; 
+                } 
+            });
+            chart.draw(d, { pieHole: 0.4, chartArea: {width:'100%', height:'80%'}, colors: ['#10b981','#f59e0b','#0dcaf0','#ef4444','#64748b'], legend: {position:'bottom'}, fontName: 'Sarabun' });
+            
+            let top10 = res.top10.map((t, i) => `<div class="d-flex justify-content-between mb-1 border-bottom pb-1"><span>${i+1}. ${t.name}</span> <span class="badge bg-danger rounded-pill">${t.count} ครั้ง</span></div>`).join(''); 
+            document.getElementById('top10-res').innerHTML = top10 || '<div class="text-muted">ไม่มีข้อมูลสายในช่วง 7 วัน</div>'; 
+        }
+
+        function showIndividual() { 
+            const name = document.getElementById('searchStudent').value; if(!name || !lastStat) return; 
+            const dates = lastStat.allLates[name] || []; 
+            document.getElementById('indiv-res').innerHTML = `<div class="text-primary fw-bold mb-1">${name}</div>1. มาสายสะสม: <span class="badge bg-danger">${dates.length} ครั้ง</span><br>2. วันที่มาสาย: <span class="text-muted">${dates.join(', ') || '-'}</span>`; 
+        }
+
+        function toggleDateInput() { 
+            const t = document.getElementById('reportType').value; 
+            document.getElementById('singleDateGroup').style.display = (t==='weekly'?'none':'block'); 
+            document.getElementById('rangeDateGroup').style.display = (t==='weekly'?'block':'none'); 
+            document.getElementById('reportDate').type = (t==='monthly'?'month':'date');
+        }
+
+        async function generateTimeReport() {
+            const type = document.getElementById('reportType').value; 
+            let dateVal = "";
+            
+            if(type === 'weekly') { 
+                const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value; 
+                if(!s || !e) return showCustomAlert("ข้อมูลไม่ครบ", "กรุณาระบุช่วงวันที่ให้ครบถ้วนครับ", "warning"); 
+                dateVal = s + "|" + e; 
+            } else { 
+                dateVal = document.getElementById('reportDate').value; 
+                if(!dateVal) return showCustomAlert("ข้อมูลไม่ครบ", "กรุณาระบุวันที่ที่ต้องการออกรายงานครับ", "warning"); 
+            }
+
+            const btn = document.getElementById('btn-gen'); btn.disabled = true; btn.innerHTML = "<span class='spinner-border spinner-border-sm'></span> กำลังประมวลผล...";
+            
+            const res = await fetchAPI({ action: 'createFilteredReport', className: currentUser.assignedClass, type: type, dateVal: dateVal });
+            
+            btn.disabled = false; btn.innerHTML = "<i class='bi bi-file-earmark-arrow-down'></i> เริ่มสร้างรายงาน";
+            
+            if(res && res.status === 'success') { 
+                const btnLink = `<div class="mt-4"><a href="${res.url}" target="_blank" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('customAlertModal')).hide()"><i class="bi bi-box-arrow-up-right"></i> คลิกที่นี่เพื่อเปิดรายงาน</a></div>`;
+                showCustomAlert("สร้างรายงานสำเร็จ", "ระบบเตรียมไฟล์ให้คุณเรียบร้อยแล้ว" + btnLink, "success", true); 
+            } else {
+                showCustomAlert("เกิดข้อผิดพลาด", res ? res.message : "ระบบล้มเหลว", "error");
+            }
         }
     </script>
 </body>
