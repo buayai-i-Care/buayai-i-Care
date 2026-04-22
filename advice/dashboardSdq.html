@@ -62,6 +62,7 @@
         /* View Transitions */
         .view-section { display: none; animation: fadeIn 0.4s ease-out forwards; }
         .view-section.active { display: block; }
+        .view-section.active.flex { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Status Badges */
@@ -102,7 +103,7 @@
             <h2 class="font-heading text-2xl font-bold text-slate-800 mb-2">เข้าสู่ระบบประมวลผล SDQ</h2>
             <p class="text-slate-500 text-sm mb-6">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</p>
             
-            <input type="text" id="login-id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg mb-4 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" placeholder="รหัสผู้ใช้งาน (เช่น t35, m2, kkss)">
+            <input type="text" id="login-id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg mb-4 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" placeholder="รหัสผู้ใช้งาน ">
             
             <button onclick="handleLogin()" id="btn-login" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200">
                 เข้าสู่ระบบ
@@ -123,9 +124,15 @@
                         <p class="text-xs text-teal-100 font-bold" id="user-scope">โหลดข้อมูล...</p>
                     </div>
                 </div>
-                <button onclick="logout()" class="text-teal-100 hover:text-white bg-white/10 px-3 py-1.5 rounded-lg text-sm font-bold transition">
-                    <i class="bi bi-box-arrow-right"></i> ออก
-                </button>
+                <!-- 🌟 เพิ่มปุ่มไปยังหน้าหัวหน้าระดับ ตรงนี้ -->
+                <div class="flex items-center gap-2">
+                    <button onclick="window.location.href='head_sdq.html'" class="text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg text-sm font-bold transition border border-orange-400 shadow-sm hidden md:block">
+                        <i class="bi bi-bar-chart-steps"></i> ศูนย์หัวหน้าระดับ/งาน
+                    </button>
+                    <button onclick="logout()" class="text-teal-100 hover:text-white bg-white/10 px-3 py-1.5 rounded-lg text-sm font-bold transition">
+                        <i class="bi bi-box-arrow-right"></i> ออก
+                    </button>
+                </div>
             </div>
         </nav>
 
@@ -505,26 +512,63 @@
             activeData = [];
             if (!rawData || rawData.length === 0) return;
 
+            // 🧠 ฟังก์ชันคำนวณสามเส้า (Triangulation: Mode & Average)
+            const getConsensus = (vals) => {
+                let validVals = vals.filter(v => v && v !== '-');
+                if (validVals.length === 0) return '-';
+                if (validVals.length === 1) return validVals[0];
+
+                let counts = {};
+                validVals.forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+                // หากระเบียบฐานนิยม (มีคนเห็นตรงกัน 2 คนขึ้นไป)
+                for (let status in counts) {
+                    if (counts[status] >= 2) return status;
+                }
+
+                // หากความคิดเห็นแตกแยก 3 ทาง ให้หาค่าเฉลี่ย
+                let scoreMap = { 'ปกติ': 0, 'เสี่ยง': 1, 'มีปัญหา': 2 };
+                let reverseMap = ['ปกติ', 'เสี่ยง', 'มีปัญหา'];
+                let total = validVals.reduce((sum, v) => sum + scoreMap[v], 0);
+                let avg = Math.round(total / validVals.length); // 0.5 ปัดขึ้น
+                return reverseMap[avg];
+            };
+
             rawData.forEach(d => {
-                // เช็คว่ามีข้อมูลดิบของผู้ประเมินคนนี้หรือไม่
-                if (d.raw && d.raw[currentAssessor]) {
-                    let r = d.raw[currentAssessor];
-                    if (r.interpretTotal && r.interpretTotal !== '-') {
-                        activeData.push({
-                            id: d.id,
-                            name: d.name,
-                            room: d.room,
-                            emo: r.emo || '-',
-                            cond: r.cond || '-',
-                            hyper: r.hyper || '-',
-                            peer: r.peer || '-',
-                            prosocial: r.prosocial || '-',
-                            totalScore: r.totalScore || 0,
-                            interpretTotal: r.interpretTotal || '-',
-                            impact: r.impact || '-',
-                            q11_friend: r.q11_friend || d.q11_friend || '-' // เผื่อ fallback
-                        });
-                    }
+                let rStudent = d.raw && d.raw['student'] ? d.raw['student'] : {};
+                let rTeacher = d.raw && d.raw['teacher'] ? d.raw['teacher'] : {};
+                let rParent = d.raw && d.raw['parent'] ? d.raw['parent'] : {};
+
+                // สร้างชุดข้อมูลสรุป (Consensus)
+                let consensusData = {
+                    emo: getConsensus([rStudent.emo, rTeacher.emo, rParent.emo]),
+                    cond: getConsensus([rStudent.cond, rTeacher.cond, rParent.cond]),
+                    hyper: getConsensus([rStudent.hyper, rTeacher.hyper, rParent.hyper]),
+                    peer: getConsensus([rStudent.peer, rTeacher.peer, rParent.peer]),
+                    prosocial: getConsensus([rStudent.prosocial, rTeacher.prosocial, rParent.prosocial]),
+                    interpretTotal: getConsensus([rStudent.interpretTotal, rTeacher.interpretTotal, rParent.interpretTotal])
+                };
+
+                // ถ้าผู้ใช้เลือก "สรุปอัจฉริยะ (Consensus)" ให้ดึงชุดข้อมูลนี้มาแสดง
+                let r = d.raw && d.raw[currentAssessor] ? d.raw[currentAssessor] : null;
+                
+                // ถ้าระบบยังไม่มีตัวเลือกสรุป ให้ใช้ข้อมูลผู้ประเมินปัจจุบันไปก่อน
+                if (r && r.interpretTotal && r.interpretTotal !== '-') {
+                    activeData.push({
+                        id: d.id,
+                        name: d.name,
+                        room: d.room,
+                        emo: r.emo || '-',
+                        cond: r.cond || '-',
+                        hyper: r.hyper || '-',
+                        peer: r.peer || '-',
+                        prosocial: r.prosocial || '-',
+                        totalScore: r.totalScore || 0,
+                        interpretTotal: r.interpretTotal || '-',
+                        impact: r.impact || '-',
+                        q11_friend: r.q11_friend || d.q11_friend || '-',
+                        consensus: consensusData // แอบแนบผลสรุป 3 ฝ่ายไปด้วย
+                    });
                 }
             });
             updateBentoStats();
