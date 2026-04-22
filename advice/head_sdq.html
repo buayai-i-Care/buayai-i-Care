@@ -99,7 +99,7 @@
             <div class="bento-card" onclick="showSubmissionStatus()">
                 <div class="bento-icon-wrapper bg-orange-50 text-orange-600"><i class="bi bi-clipboard-check-fill"></i></div>
                 <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">3. สถิติการส่ง SDQ</h3>
-                <p class="text-slate-500 text-xs leading-relaxed">ตรวจสอบความคืบหน้าของแต่ละห้อง<br>ห้องใดประเมินแล้ว ห้องใดยังไม่ประเมิน</p>
+                <p class="text-slate-500 text-xs leading-relaxed">ตรวจสอบความคืบหน้าของแต่ละห้อง<br>คลิกเพื่อดูรายละเอียดผู้ประเมิน</p>
             </div>
 
             <!-- เมนู 4 -->
@@ -130,7 +130,10 @@
         <!-- 🏢 MODAL/SECTION: สถิติการส่ง (Submission Status) -->
         <div id="status-section" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8 hidden animation-fadeIn">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="font-heading text-xl font-bold text-slate-800"><i class="bi bi-clipboard-check text-orange-500 me-2"></i>สถานะการประเมิน SDQ รายห้อง</h3>
+                <h3 class="font-heading text-xl font-bold text-slate-800">
+                    <i class="bi bi-clipboard-check text-orange-500 me-2"></i>สถานะการประเมิน SDQ รายห้อง 
+                    <span class="text-sm text-slate-500 font-normal ms-2 border-start ps-3 d-none d-sm-inline">👆 คลิกที่กล่องห้องเรียนเพื่อดูรายละเอียด</span>
+                </h3>
                 <button onclick="document.getElementById('status-section').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 font-bold text-xl">&times;</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="status-grid">
@@ -463,10 +466,11 @@
                     // เช็คว่ามีนักเรียนในห้องนี้ถูกประเมินแล้วหรือยัง
                     let isSubmitted = consensusData.some(d => d.room === roomStr && d.interpretTotal !== '-'); 
                     
+                    // 🌟 เพิ่ม onClick เพื่อเปิดดูสถิติรายห้อง
                     if (isSubmitted) {
-                        html += `<div class="bg-green-100 text-green-700 border border-green-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm"><i class="bi bi-check-circle-fill"></i> ${roomStr}</div>`;
+                        html += `<div class="bg-green-100 hover:bg-green-200 cursor-pointer text-green-700 border border-green-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm transition" onclick="showRoomSDQDetails('${roomStr}')"><i class="bi bi-check-circle-fill"></i> ${roomStr}</div>`;
                     } else {
-                        html += `<div class="bg-red-100 text-red-700 border border-red-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm"><i class="bi bi-x-circle-fill"></i> ${roomStr}</div>`;
+                        html += `<div class="bg-red-100 hover:bg-red-200 cursor-pointer text-red-700 border border-red-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm transition" onclick="showRoomSDQDetails('${roomStr}')"><i class="bi bi-x-circle-fill"></i> ${roomStr}</div>`;
                     }
                 }
                 html += `</div></div>`;
@@ -476,6 +480,62 @@
             document.getElementById('status-section').classList.remove('hidden');
             document.getElementById('status-section').scrollIntoView({ behavior: 'smooth' });
         }
+
+        // ==========================================
+        // 🟠 เมนู 3.1: ดูรายละเอียดการประเมินรายห้อง
+        // ==========================================
+        function showRoomSDQDetails(roomStr) {
+            let studentsInRoom = rawData.filter(d => d.room === roomStr);
+            
+            if (studentsInRoom.length === 0) {
+                Swal.fire('ไม่มีข้อมูล', `ไม่พบข้อมูลนักเรียนในห้อง ${roomStr}`, 'info');
+                return;
+            }
+
+            let total = studentsInRoom.length;
+            let studentCount = 0;
+            let teacherCount = 0;
+            let parentCount = 0;
+
+            studentsInRoom.forEach(d => {
+                if (d.raw && d.raw.student && d.raw.student.interpretTotal && d.raw.student.interpretTotal !== '-') studentCount++;
+                if (d.raw && d.raw.teacher && d.raw.teacher.interpretTotal && d.raw.teacher.interpretTotal !== '-') teacherCount++;
+                if (d.raw && d.raw.parent && d.raw.parent.interpretTotal && d.raw.parent.interpretTotal !== '-') parentCount++;
+            });
+
+            let html = `
+                <div class="text-start mt-3 px-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="fw-bold text-dark" style="font-size: 1.1rem;">นักเรียนทั้งหมด</span>
+                        <span class="badge bg-primary rounded-pill fs-6 px-3">${total} คน</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="fw-bold text-success"><i class="bi bi-person-fill"></i> นักเรียนประเมินตนเองแล้ว</span>
+                        <span class="badge bg-success rounded-pill fs-6 px-3">${studentCount} คน</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="fw-bold" style="color: #0284c7;"><i class="bi bi-person-workspace"></i> ครูประเมินนักเรียนแล้ว</span>
+                        <span class="badge bg-info text-dark rounded-pill fs-6 px-3">${teacherCount} คน</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2">
+                        <span class="fw-bold" style="color: #d97706;"><i class="bi bi-people-fill"></i> ผู้ปกครองประเมินแล้ว</span>
+                        <span class="badge bg-warning text-dark rounded-pill fs-6 px-3">${parentCount} คน</span>
+                    </div>
+                </div>
+            `;
+
+            Swal.fire({
+                title: `<span class="font-heading font-bold text-slate-800">รายละเอียดการส่ง SDQ</span><br><span class="text-orange-600 h5 font-heading mt-1 d-block">ห้อง ${roomStr}</span>`,
+                html: html,
+                icon: 'info',
+                confirmButtonText: 'ปิดหน้าต่าง',
+                confirmButtonColor: '#ea580c',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            });
+        }
+
 
         // ==========================================
         // 🔴 เมนู 4: สรุปกลุ่มเสี่ยงและมีปัญหา Excel (Bento 4)
