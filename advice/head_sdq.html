@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบสารสนเทศ SDQ หัวหน้าระดับ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- 🌟 โหลดไลบรารี SheetJS สำหรับสร้าง Excel แบบหลายชีต -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
+                    colors: {
+                        head: { 50: '#fdf4ff', 100: '#fae8ff', 500: '#d946ef', 600: '#c026d3', 700: '#a21caf', 800: '#86198f', 900: '#701a75' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; padding-bottom: 50px;}
+        h1, h2, h3, h4, h5, .font-heading { font-family: 'Prompt', sans-serif; }
+
+        /* Bento Grid Styles */
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+        .bento-card {
+            background: white; border-radius: 24px; padding: 25px; transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 2px solid transparent; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .bento-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(162, 28, 175, 0.15); border-color: #fae8ff; }
+        .bento-icon-wrapper {
+            width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin-bottom: 15px; background: #fdf4ff; color: #a21caf; transition: transform 0.3s;
+        }
+        .bento-card:hover .bento-icon-wrapper { transform: scale(1.1) rotate(5deg); }
+        
+        .card-span-3 { grid-column: span 12; }
+        @media (min-width: 768px) { .card-span-3 { grid-column: span 3; } }
+
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        
+        /* Custom Scroll */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-head-900 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm object-contain">
+                <div>
+                    <h1 class="font-heading font-bold text-lg leading-tight">ระบบบสารสนเทศ SDQ หัวหน้าระดับ - Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</h1>
+                    <p class="text-xs text-head-100 font-bold">สำหรับหัวหน้าระดับ และหัวหน้างาน</p>
+                </div>
+            </div>
+            <button onclick="window.location.href='sdq_dashboard.html'" class="text-head-100 hover:text-white bg-white/10 px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-1">
+                <i class="bi bi-arrow-left"></i> กลับหน้าประมวลผล
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-6 w-full flex-grow">
+        
+        <div class="mb-6 flex justify-between items-end flex-wrap gap-3">
+            <div>
+                <h2 class="font-heading text-2xl font-bold text-slate-800">ระบบบริหารจัดการข้อมูล SDQ ภาพรวม</h2>
+                <p class="text-slate-500 text-sm">ข้อมูลที่แสดงผลถูกประมวลผลด้วย <b class="text-head-700">ระบบอัจฉริยะ (Triangulation)</b> สรุปผลจากฐานนิยมและค่าเฉลี่ยของทั้ง 3 ฝ่าย</p>
+            </div>
+        </div>
+
+        <!-- 🍱 BENTO GRID: 4 เมนูหลัก -->
+        <div class="bento-grid mb-8">
+            
+            <!-- เมนู 1 -->
+            <div class="bento-card card-span-3" onclick="downloadStatsExcel()">
+                <div class="bento-icon-wrapper bg-green-50 text-green-600"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+                <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">1. สถิติภาพรวมของโรงเรียนบัวใหญ่</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">แยกชีตภาพรวม รร. และชีตรายห้อง<br>สรุปสถิติผู้ประเมินครบ 5 ด้าน</p>
+            </div>
+
+            <!-- เมนู 2 -->
+            <div class="bento-card card-span-3" onclick="downloadDetailsExcel()">
+                <div class="bento-icon-wrapper bg-blue-50 text-blue-600"><i class="bi bi-people-fill"></i></div>
+                <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">2. รายละเอียดรายห้อง</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">ดาวน์โหลด Excel แยกชีตรายห้อง<br>พร้อมรายชื่อและรายละเอียดครบทุกด้าน</p>
+            </div>
+
+            <!-- เมนู 3 -->
+            <div class="bento-card card-span-3" onclick="showSubmissionStatus()">
+                <div class="bento-icon-wrapper bg-orange-50 text-orange-600"><i class="bi bi-clipboard-check-fill"></i></div>
+                <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">3. สถิติการส่ง SDQ</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">ตรวจสอบความคืบหน้าของแต่ละห้อง<br>ห้องใดประเมินแล้ว ห้องใดยังไม่ประเมิน</p>
+            </div>
+
+            <!-- เมนู 4 -->
+            <div class="bento-card card-span-3" onclick="downloadRiskExcel()">
+                <div class="bento-icon-wrapper bg-red-50 text-red-600"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <h3 class="font-heading text-lg font-bold text-slate-800 mb-1">4. สรุปกลุ่มเสี่ยง/มีปัญหา</h3>
+                <p class="text-slate-500 text-xs leading-relaxed">กรองเฉพาะนักเรียนที่ต้องดูแลพิเศษ<br>แยกชีตรายห้อง และสรุปยอดรวม</p>
+            </div>
+
+        </div>
+
+        <!-- 📊 GRAPH: ภาพรวมระดับชั้น -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
+            <h3 class="font-heading text-xl font-bold text-slate-800 mb-2">สัดส่วนนักเรียนแยกตามระดับชั้น (ม.1 - ม.6)</h3>
+            <p class="text-slate-500 text-sm mb-6">กราฟแสดงการกระจายตัวของกลุ่มนักเรียน (ปกติ, เสี่ยง, มีปัญหา) ในแต่ละระดับชั้น อิงจากผลประมวลผล Triangulation</p>
+            <div class="chart-container">
+                <canvas id="levelChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 🏢 MODAL/SECTION: สถิติการส่ง (Submission Status) -->
+        <div id="status-section" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8 hidden animation-fadeIn">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="font-heading text-xl font-bold text-slate-800"><i class="bi bi-clipboard-check text-orange-500 me-2"></i>สถานะการประเมิน SDQ รายห้อง</h3>
+                <button onclick="document.getElementById('status-section').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 font-bold text-xl">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="status-grid">
+                <!-- Data will fill here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 🌐 Loader Overlay -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-[9999] flex-col items-center justify-center hidden">
+        <div class="spinner-border text-head-600 mb-4" style="width: 4rem; height: 4rem; border-width: 0.3em;" role="status"></div>
+        <h3 class="font-heading font-bold text-2xl text-head-800" id="loader-text">กำลังประมวลผลข้อมูลทั้งโรงเรียน...</h3>
+        <p class="text-slate-500 mt-2">อาจใช้เวลาสักครู่ กรุณารอจนกว่าจะเสร็จสิ้น</p>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // ====================================================
+        // ⚠️ ลิงก์ API หลังบ้าน (ใช้ลิงก์ SDQ ตัวล่าสุด)
+        const API_URL = "https://script.google.com/macros/s/AKfycbwKTzB3n3sNze4GVsbl2_SEhXjVtnHbN7Rsn8zRKHCektAhmYGmio4w_vFVaZaQafaM/exec";
+        // ====================================================
+
+        let rawData = [];
+        let consensusData = []; 
+        let levelChartInstance = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
+
+        function showLoader(text) { 
+            document.getElementById('loader-text').innerText = text; 
+            document.getElementById('loader-overlay').classList.remove('hidden'); 
+            document.getElementById('loader-overlay').classList.add('flex'); 
+        }
+        function hideLoader() { 
+            document.getElementById('loader-overlay').classList.remove('flex'); 
+            document.getElementById('loader-overlay').classList.add('hidden'); 
+        }
+
+        // 🧠 ฟังก์ชันคำนวณสามเส้า (Triangulation) แบบอัจฉริยะ (Mode & Mean)
+        function getConsensus(vals) {
+            let validVals = vals.filter(v => v && v !== '-');
+            if (validVals.length === 0) return '-';
+            if (validVals.length === 1) return validVals[0];
+
+            let counts = {};
+            validVals.forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+            // หากระเบียบฐานนิยม (Mode) - มี 2 เสียงตรงกัน
+            for (let status in counts) {
+                if (counts[status] >= 2) return status;
+            }
+
+            // หาค่าเฉลี่ย (Mean) หากความคิดเห็นแตกแยก 3 ทาง
+            let scoreMap = { 'ปกติ': 0, 'เสี่ยง': 1, 'มีปัญหา': 2 };
+            let reverseMap = ['ปกติ', 'เสี่ยง', 'มีปัญหา'];
+            let total = validVals.reduce((sum, v) => sum + scoreMap[v], 0);
+            let avg = Math.round(total / validVals.length); 
+            return reverseMap[avg];
+        }
+
+        async function loadAllData() {
+            showLoader('กำลังเชื่อมต่อฐานข้อมูลส่วนกลาง (ดึงข้อมูลทั้งโรงเรียน)...');
+            
+            try {
+                // ดึงข้อมูลทั้งหมดด้วยรหัสแอดมิน kkss
+                const response = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'getDashboardData', uid: 'kkss' }) 
+                });
+                const resText = await response.text();
+                let res = JSON.parse(resText);
+                
+                if (res.success) {
+                    rawData = res.data;
+                    processConsensusData();
+                    renderLevelChart();
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.error || 'ดึงข้อมูลล้มเหลว', 'error');
+                }
+            } catch (e) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+            hideLoader();
+        }
+
+        function processConsensusData() {
+            consensusData = [];
+            rawData.forEach(d => {
+                let rStudent = d.raw && d.raw['student'] ? d.raw['student'] : {};
+                let rTeacher = d.raw && d.raw['teacher'] ? d.raw['teacher'] : {};
+                let rParent = d.raw && d.raw['parent'] ? d.raw['parent'] : {};
+
+                consensusData.push({
+                    id: d.id,
+                    name: d.name,
+                    room: d.room,
+                    level: d.room.split('/')[0], // เช่น ม.1
+                    emo: getConsensus([rStudent.emo, rTeacher.emo, rParent.emo]),
+                    cond: getConsensus([rStudent.cond, rTeacher.cond, rParent.cond]),
+                    hyper: getConsensus([rStudent.hyper, rTeacher.hyper, rParent.hyper]),
+                    peer: getConsensus([rStudent.peer, rTeacher.peer, rParent.peer]),
+                    prosocial: getConsensus([rStudent.prosocial, rTeacher.prosocial, rParent.prosocial]),
+                    interpretTotal: getConsensus([rStudent.interpretTotal, rTeacher.interpretTotal, rParent.interpretTotal])
+                });
+            });
+        }
+
+        // 📊 วาดกราฟแท่งเปรียบเทียบ ม.1 - ม.6
+        function renderLevelChart() {
+            const ctx = document.getElementById('levelChart').getContext('2d');
+            const levels = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+            
+            let dataNormal = []; let dataRisk = []; let dataProblem = [];
+
+            levels.forEach(lvl => {
+                let studentsInLevel = consensusData.filter(d => d.level === lvl);
+                dataNormal.push(studentsInLevel.filter(d => d.interpretTotal === 'ปกติ').length);
+                dataRisk.push(studentsInLevel.filter(d => d.interpretTotal === 'เสี่ยง').length);
+                dataProblem.push(studentsInLevel.filter(d => d.interpretTotal === 'มีปัญหา').length);
+            });
+
+            if (levelChartInstance) levelChartInstance.destroy();
+
+            levelChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: levels,
+                    datasets: [
+                        { label: 'ปกติ', data: dataNormal, backgroundColor: '#22c55e', borderRadius: 4 },
+                        { label: 'เสี่ยง', data: dataRisk, backgroundColor: '#eab308', borderRadius: 4 },
+                        { label: 'มีปัญหา', data: dataProblem, backgroundColor: '#ef4444', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#f1f5f9' } } },
+                    plugins: { legend: { position: 'top', labels: { font: { family: "'Prompt', sans-serif" } } } }
+                }
+            });
+        }
+
+        // ==========================================
+        // 🟢 เมนู 1: ดาวน์โหลดสถิติ Excel (Bento 1)
+        // ==========================================
+        function downloadStatsExcel() {
+            if(consensusData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับประมวลผล', 'warning');
+            showLoader('กำลังสร้างไฟล์ Excel สถิติภาพรวม...');
+            
+            setTimeout(() => {
+                let wb = XLSX.utils.book_new();
+
+                // ฟังก์ชันนับสถิติ 5 ด้าน
+                const countStats = (dataArray) => {
+                    let st = { 
+                        emo: { n:0, r:0, p:0 }, cond: { n:0, r:0, p:0 }, hyper: { n:0, r:0, p:0 },
+                        peer: { n:0, r:0, p:0 }, pro: { n:0, r:0, p:0 }
+                    };
+                    dataArray.forEach(d => {
+                        if(d.emo === 'ปกติ') st.emo.n++; else if(d.emo === 'เสี่ยง') st.emo.r++; else if(d.emo === 'มีปัญหา') st.emo.p++;
+                        if(d.cond === 'ปกติ') st.cond.n++; else if(d.cond === 'เสี่ยง') st.cond.r++; else if(d.cond === 'มีปัญหา') st.cond.p++;
+                        if(d.hyper === 'ปกติ') st.hyper.n++; else if(d.hyper === 'เสี่ยง') st.hyper.r++; else if(d.hyper === 'มีปัญหา') st.hyper.p++;
+                        if(d.peer === 'ปกติ') st.peer.n++; else if(d.peer === 'เสี่ยง') st.peer.r++; else if(d.peer === 'มีปัญหา') st.peer.p++;
+                        if(d.prosocial.includes('ปกติ')) st.pro.n++; else if(d.prosocial === 'เสี่ยง') st.pro.r++; else st.pro.p++;
+                    });
+                    return st;
+                };
+
+                const buildSheetData = (title, stats) => {
+                    return [
+                        [title], [],
+                        ["การประเมินรายด้าน", "กลุ่มปกติ (คน)", "กลุ่มเสี่ยง (คน)", "กลุ่มมีปัญหา (คน)"],
+                        ["1. ด้านอารมณ์", stats.emo.n, stats.emo.r, stats.emo.p],
+                        ["2. ด้านพฤติกรรมเกเร", stats.cond.n, stats.cond.r, stats.cond.p],
+                        ["3. ด้านไม่อยู่นิ่ง", stats.hyper.n, stats.hyper.r, stats.hyper.p],
+                        ["4. ด้านสัมพันธ์กับเพื่อน", stats.peer.n, stats.peer.r, stats.peer.p],
+                        ["5. จุดแข็งด้านสัมพันธภาพ", stats.pro.n, stats.pro.r, stats.pro.p]
+                    ];
+                };
+
+                // 1. ชีตสรุปทั้งโรงเรียน
+                let allStats = countStats(consensusData);
+                let wsAll = XLSX.utils.aoa_to_sheet(buildSheetData("สรุปสถิติ SDQ ภาพรวมทั้งโรงเรียน", allStats));
+                XLSX.utils.book_append_sheet(wb, wsAll, "สรุปรวมโรงเรียน");
+
+                // 2. จัดกลุ่มเด็กตามห้อง
+                let rooms = {};
+                consensusData.forEach(d => {
+                    if(!rooms[d.room]) rooms[d.room] = [];
+                    rooms[d.room].push(d);
+                });
+
+                // เรียงห้อง (ม.1/1, ม.1/2...)
+                let sortedRoomKeys = Object.keys(rooms).sort((a,b) => {
+                    let partA = a.replace('ม.', '').split('/');
+                    let partB = b.replace('ม.', '').split('/');
+                    if(partA[0] !== partB[0]) return parseInt(partA[0]) - parseInt(partB[0]);
+                    return parseInt(partA[1]) - parseInt(partB[1]);
+                });
+
+                // 3. สร้างชีตรายห้อง
+                sortedRoomKeys.forEach(roomName => {
+                    let roomStats = countStats(rooms[roomName]);
+                    let cleanSheetName = roomName.replace('/', '_').replace('ม.', 'M'); 
+                    let wsRoom = XLSX.utils.aoa_to_sheet(buildSheetData(`สรุปสถิติ SDQ ห้อง ${roomName}`, roomStats));
+                    XLSX.utils.book_append_sheet(wb, wsRoom, cleanSheetName);
+                });
+
+                XLSX.writeFile(wb, `สถิติ_SDQ_ภาพรวม_${Utilities.formatDate(new Date(), "GMT+7", "ddMMyy")}.xlsx`);
+                hideLoader();
+                Swal.fire('สำเร็จ', 'สร้างไฟล์ Excel สถิติเรียบร้อย', 'success');
+            }, 500);
+        }
+
+        // ==========================================
+        // 🔵 เมนู 2: ดาวน์โหลดรายละเอียดรายห้อง (Bento 2)
+        // ==========================================
+        function downloadDetailsExcel() {
+            if(consensusData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับประมวลผล', 'warning');
+            showLoader('กำลังประมวลผลรายละเอียดรายห้อง...');
+            
+            setTimeout(() => {
+                let wb = XLSX.utils.book_new();
+
+                let rooms = {};
+                consensusData.forEach(d => {
+                    if(!rooms[d.room]) rooms[d.room] = [];
+                    rooms[d.room].push(d);
+                });
+
+                let sortedRoomKeys = Object.keys(rooms).sort((a,b) => {
+                    let partA = a.replace('ม.', '').split('/');
+                    let partB = b.replace('ม.', '').split('/');
+                    if(partA[0] !== partB[0]) return parseInt(partA[0]) - parseInt(partB[0]);
+                    return parseInt(partA[1]) - parseInt(partB[1]);
+                });
+
+                sortedRoomKeys.forEach(roomName => {
+                    let roomData = rooms[roomName];
+                    let cleanSheetName = roomName.replace('/', '_').replace('ม.', 'M');
+
+                    // เตรียมข้อมูลตาราง
+                    let sheetData = [
+                        [`รายละเอียดนักเรียนห้อง ${roomName}`], [],
+                        ["รหัส", "ชื่อ-สกุล", "ภาพรวม", "อารมณ์", "เกเร", "ไม่อยู่นิ่ง", "เพื่อน", "สังคม"]
+                    ];
+
+                    roomData.forEach(d => {
+                        sheetData.push([d.id, d.name, d.interpretTotal, d.emo, d.cond, d.hyper, d.peer, d.prosocial]);
+                    });
+
+                    // Note สำหรับกราฟวงกลมด้านล่าง
+                    sheetData.push([]);
+                    sheetData.push(["** สรุปจำนวนนักเรียนเพื่อสร้างกราฟวงกลม **"]);
+                    let n = roomData.filter(d => d.interpretTotal === 'ปกติ').length;
+                    let r = roomData.filter(d => d.interpretTotal === 'เสี่ยง').length;
+                    let p = roomData.filter(d => d.interpretTotal === 'มีปัญหา').length;
+                    sheetData.push(["กลุ่มปกติ", n]);
+                    sheetData.push(["กลุ่มเสี่ยง", r]);
+                    sheetData.push(["กลุ่มมีปัญหา", p]);
+
+                    let ws = XLSX.utils.aoa_to_sheet(sheetData);
+                    XLSX.utils.book_append_sheet(wb, ws, cleanSheetName);
+                });
+
+                XLSX.writeFile(wb, `รายละเอียดนักเรียน_SDQ_${Utilities.formatDate(new Date(), "GMT+7", "ddMMyy")}.xlsx`);
+                hideLoader();
+                Swal.fire({
+                    title: 'สร้างไฟล์สำเร็จ', 
+                    text: 'ไฟล์มีรายละเอียดรายบุคคลแยกชีตตามห้องเรียบร้อย (หมายเหตุ: สถิติสำหรับทำกราฟวงกลมอยู่ด้านล่างสุดของแต่ละชีต)', 
+                    icon: 'success'
+                });
+            }, 500);
+        }
+
+        // ==========================================
+        // 🟠 เมนู 3: สถิติการส่ง SDQ (UI) (Bento 3)
+        // ==========================================
+        function showSubmissionStatus() {
+            if(consensusData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ยังไม่มีการดึงข้อมูล', 'warning');
+            
+            const levels = ['1', '2', '3', '4', '5', '6'];
+            const grid = document.getElementById('status-grid');
+            let html = '';
+
+            levels.forEach(lvl => {
+                html += `<div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                            <h5 class="font-bold text-slate-800 mb-3 border-b pb-2">ม.${lvl}</h5>
+                            <div class="grid grid-cols-2 gap-2">`;
+                
+                // คำนวณจำนวนห้องสูงสุดของชั้นนั้นๆ
+                let maxRooms = (lvl === '4') ? 12 : 10;
+                
+                for(let r=1; r<=maxRooms; r++) {
+                    let roomStr = `ม.${lvl}/${r}`;
+                    
+                    // เช็คว่ามีนักเรียนในห้องนี้ถูกประเมินแล้วหรือยัง
+                    // (อนุโลมว่ามีข้อมูลอย่างน้อย 1 คนถือว่ามีการส่งข้อมูลเข้ามาแล้ว)
+                    let isSubmitted = consensusData.some(d => d.room === roomStr && d.interpretTotal !== '-'); 
+                    
+                    if (isSubmitted) {
+                        html += `<div class="bg-green-100 text-green-700 border border-green-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm"><i class="bi bi-check-circle-fill"></i> ${roomStr}</div>`;
+                    } else {
+                        html += `<div class="bg-red-100 text-red-700 border border-red-200 rounded-lg p-2 text-center text-sm font-bold shadow-sm"><i class="bi bi-x-circle-fill"></i> ${roomStr}</div>`;
+                    }
+                }
+                html += `</div></div>`;
+            });
+
+            grid.innerHTML = html;
+            document.getElementById('status-section').classList.remove('hidden');
+            document.getElementById('status-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 🔴 เมนู 4: สรุปกลุ่มเสี่ยงและมีปัญหา Excel (Bento 4)
+        // ==========================================
+        function downloadRiskExcel() {
+            if(consensusData.length === 0) return Swal.fire('ข้อมูลว่างเปล่า', 'ไม่มีข้อมูลสำหรับประมวลผล', 'warning');
+            showLoader('กำลังคัดกรองนักเรียนกลุ่มเป้าหมาย...');
+            
+            setTimeout(() => {
+                let wb = XLSX.utils.book_new();
+
+                // กรองเฉพาะคนที่มีปัญหา หรือ เสี่ยง
+                let targetStudents = consensusData.filter(d => d.interpretTotal !== 'ปกติ' && d.interpretTotal !== '-');
+
+                // 1. ชีตสรุปโรงเรียน
+                let summaryData = [
+                    ["สรุปรายชื่อนักเรียนกลุ่มเป้าหมาย (เสี่ยง/มีปัญหา) ทั้งโรงเรียน"], [],
+                    ["รหัส", "ชื่อ-สกุล", "ห้อง", "ผลสรุปภาพรวม", "อารมณ์", "เกเร", "ไม่อยู่นิ่ง", "เพื่อน"]
+                ];
+                
+                // เรียงตามห้อง
+                targetStudents.sort((a,b) => {
+                    let partA = a.room.replace('ม.', '').split('/');
+                    let partB = b.room.replace('ม.', '').split('/');
+                    if(partA[0] !== partB[0]) return parseInt(partA[0]) - parseInt(partB[0]);
+                    return parseInt(partA[1]) - parseInt(partB[1]);
+                });
+
+                targetStudents.forEach(d => {
+                    summaryData.push([d.id, d.name, d.room, d.interpretTotal, d.emo, d.cond, d.hyper, d.peer]);
+                });
+                
+                let wsAll = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsAll, "รวมกลุ่มเป้าหมาย");
+
+                // 2. ชีตแยกรายห้อง
+                let rooms = {};
+                targetStudents.forEach(d => {
+                    if(!rooms[d.room]) rooms[d.room] = [];
+                    rooms[d.room].push(d);
+                });
+
+                let sortedRoomKeys = Object.keys(rooms);
+                
+                sortedRoomKeys.forEach(roomName => {
+                    let roomData = rooms[roomName];
+                    let cleanSheetName = roomName.replace('/', '_').replace('ม.', 'M');
+                    
+                    let sheetData = [
+                        [`กลุ่มเป้าหมายห้อง ${roomName}`], [],
+                        ["รหัส", "ชื่อ-สกุล", "ผลสรุปภาพรวม", "อารมณ์", "เกเร", "ไม่อยู่นิ่ง", "เพื่อน"]
+                    ];
+                    roomData.forEach(d => {
+                        sheetData.push([d.id, d.name, d.interpretTotal, d.emo, d.cond, d.hyper, d.peer]);
+                    });
+
+                    let ws = XLSX.utils.aoa_to_sheet(sheetData);
+                    XLSX.utils.book_append_sheet(wb, ws, cleanSheetName);
+                });
+
+                XLSX.writeFile(wb, `รายชื่อกลุ่มเป้าหมาย_SDQ_${Utilities.formatDate(new Date(), "GMT+7", "ddMMyy")}.xlsx`);
+                hideLoader();
+                Swal.fire('สำเร็จ', 'กรองรายชื่อกลุ่มเสี่ยงและสร้าง Excel เรียบร้อย', 'success');
+            }, 500);
+        }
+
+    </script>
+</body>
+</html>
