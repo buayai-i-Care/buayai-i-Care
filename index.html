@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</title>
   
+  <!-- โหลด Bootstrap 5 และ Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
@@ -19,6 +20,7 @@
       --admin-purple: #d946ef; 
       --admin-purple-dark: #a21caf;
       --admin-light: #fdf4ff;
+
       --student-orange: #f59e0b;
       --board-purple: #8b5cf6;
       --bg-color: #f8fafc;
@@ -41,23 +43,28 @@
       box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
     }
 
-    .header-logo i { font-size: 1.8rem; color: #ffd700;
-      margin-bottom: 5px; }
+    .header-logo img { 
+      width: 75px; 
+      height: 75px; 
+      object-fit: contain; 
+      background-color: white; 
+      border-radius: 50%; 
+      padding: 4px; 
+      margin-bottom: 10px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+    }
 
     /* Tabs */
     .nav-tabs {
-      border: none;
-      flex-wrap: nowrap; overflow-x: auto; display: flex;
+      border: none; flex-wrap: nowrap; overflow-x: auto; display: flex;
       padding: 5px 15px 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
     }
     .nav-tabs::-webkit-scrollbar { display: none; }
 
     .nav-link {
-      color: #64748b;
-      background-color: transparent; border: none !important;
+      color: #64748b; background-color: transparent; border: none !important;
       white-space: nowrap; padding: 10px 16px !important; border-radius: 20px !important;
-      font-weight: 600; margin-right: 8px; font-size: 0.9rem;
-      transition: all 0.3s ease;
+      font-weight: 600; margin-right: 8px; font-size: 0.9rem; transition: all 0.3s ease;
       display: flex; align-items: center; gap: 6px;
     }
 
@@ -67,24 +74,18 @@
     }
 
     /* Bento Grid */
-    .bento-grid { display: grid;
-      grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 5px 15px 20px; }
+    .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 5px 15px 20px; }
 
     .menu-card {
-      background: white;
-      border-radius: 16px; padding: 12px 6px; text-decoration: none;
+      background: white; border-radius: 16px; padding: 12px 6px; text-decoration: none;
       color: inherit; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center;
-      transition: all 0.2s ease;
+      justify-content: center; text-align: center; transition: all 0.2s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);
-      min-height: 85px; position: relative; overflow: hidden;
-      cursor: pointer;
+      min-height: 85px; position: relative; overflow: hidden; cursor: pointer;
     }
 
-    .menu-card:active { transform: scale(0.94); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-    .menu-card i { font-size: 1.6rem; margin-bottom: 6px; transition: transform 0.3s ease;
-    }
+    .menu-card:active { transform: scale(0.94); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .menu-card i { font-size: 1.6rem; margin-bottom: 6px; transition: transform 0.3s ease; }
 
     .card-title { 
       font-weight: 600; font-size: 0.85rem; margin: 0; line-height: 1.2;
@@ -93,61 +94,46 @@
     } 
 
     /* Colors */
-    .tab-teacher .menu-card i { color: var(--teacher-green);
-    }
+    .tab-teacher .menu-card i { color: var(--teacher-green); }
     .tab-student .menu-card i { color: var(--student-orange); }
-    .tab-admin .menu-card i { color: var(--admin-purple);
-    } /* 🌟 เปลี่ยนสีไอคอนโหมดแอดมินเป็นสีม่วง */
-    .tab-board .menu-card i { color: var(--board-purple);
-    }
+    .tab-admin .menu-card i { color: var(--admin-purple); }
+    .tab-board .menu-card i { color: var(--board-purple); }
 
-    .footer-watermark { text-align: center; padding: 10px; font-size: 0.7rem; color: #cbd5e1;
-    }
+    .footer-watermark { text-align: center; padding: 10px; font-size: 0.7rem; color: #cbd5e1; }
     .section-header { padding: 10px 15px 5px; }
-    .section-header h6 { font-size: 0.9rem;
-    }
+    .section-header h6 { font-size: 0.9rem; }
 
     /* ดีไซน์ปุ่มขยายเมนู */
-    .expand-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-    }
-    .expand-btn { color: white !important; border-radius: 14px; padding: 12px 5px; font-weight: 700; text-align: center; text-decoration: none;
-      font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .expand-btn:active { transform: scale(0.92); box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+    .expand-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .expand-btn { color: white !important; border-radius: 14px; padding: 12px 5px; font-weight: 700; text-align: center; text-decoration: none; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .expand-btn:active { transform: scale(0.92); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     
-    .btn-m1 { background: linear-gradient(135deg, #FF6B6B, #FF8E53);
-    }
+    .btn-m1 { background: linear-gradient(135deg, #FF6B6B, #FF8E53); }
     .btn-m2 { background: linear-gradient(135deg, #4FACFE, #00F2FE); }
-    .btn-m3 { background: linear-gradient(135deg, #0ba360, #3cba92);
-    }
+    .btn-m3 { background: linear-gradient(135deg, #0ba360, #3cba92); }
     .btn-m4 { background: linear-gradient(135deg, #f093fb, #f5576c); }
-    .btn-m5 { background: linear-gradient(135deg, #FCCF31, #F55555);
-    }
-    .btn-m6 { background: linear-gradient(135deg, #667EEA, #764BA2);
-    }
+    .btn-m5 { background: linear-gradient(135deg, #FCCF31, #F55555); }
+    .btn-m6 { background: linear-gradient(135deg, #667EEA, #764BA2); }
     
-    .btn-green { background: linear-gradient(135deg, #10b981, #059669);
-    }
-    .btn-purple-gradient { background: linear-gradient(135deg, var(--admin-purple), var(--admin-purple-dark));
-    }
+    .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+    .btn-purple-gradient { background: linear-gradient(135deg, var(--admin-purple), var(--admin-purple-dark)); }
 
     /* Lock Screen Layouts */
     .lock-screen-box {
-      background: white;
-      border-radius: 24px; padding: 40px 20px; 
+      background: white; border-radius: 24px; padding: 40px 20px; 
       margin: 20px 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);
       border: 1px solid rgba(0,0,0,0.03);
-    }
-    .icon-circle {
-      width: 80px; height: 80px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; margin: 0 auto 15px;
     }
   </style>
 </head>
 <body>
 
+  <!-- 1. Header -->
   <div class="header-section">
-    <div class="header-logo"><i class="bi bi-shield-lock-fill"></i></div>
+    <!-- 🌟 เปลี่ยนเป็นโลโก้โรงเรียน -->
+    <div class="header-logo">
+        <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo">
+    </div>
     <h4 class="fw-bold mb-1">Buayai I Care School</h4>
     <p class="small opacity-75 mb-0" style="font-weight: 300;">ระบบดูแลช่วยเหลือนักเรียนดิจิทัล</p>
   </div>
@@ -160,6 +146,7 @@
 
   <div class="container-fluid px-0">
     
+    <!-- 2. Tabs -->
     <ul class="nav nav-tabs" id="portalTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="teacher-tab" data-bs-toggle="tab" data-bs-target="#teacher" type="button" role="tab">
@@ -183,14 +170,17 @@
       </li>
     </ul>
 
+    <!-- 3. เนื้อหา Tabs -->
     <div class="tab-content mt-1" id="portalTabContent">
       
+      <!-- ============================================== -->
+      <!-- หมวดคณะครู (Teacher Tab) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade show active tab-teacher" id="teacher" role="tabpanel">
         
         <div id="teacher-lock-screen" class="lock-screen-box text-center">
-          <div class="icon-circle" style="background: #d1fae5;">
-            <i class="bi bi-lock-fill text-success" style="font-size: 2.5rem;"></i>
-          </div>
+          <!-- 🌟 โลโก้โรงเรียนโหมดครู -->
+          <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="80" height="80" class="mb-3 rounded-circle shadow-sm border border-3 p-1" style="border-color: var(--teacher-green) !important; object-fit: contain;">
           <h5 class="fw-bold text-success">พื้นที่เฉพาะคณะครู</h5>
           <p class="text-muted small mb-4">เมนูถูกซ่อนไว้ -->> สำหรับคุณครูโรงเรียนบัวใหญ๋ องค์การบริหารส่วนจังหวัดนครราชสีมาเท่านั้น <<--<br>กรุณาปลดล็อกเพื่อเข้าใช้งานแอปพลิเคชัน</p>
           <button class="btn btn-success rounded-pill px-5 py-2 shadow-sm fw-bold" onclick="unlockTeacher()">
@@ -217,12 +207,12 @@
               <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
                 <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill text-primary"></i> เลือกระดับชั้นเพื่อบันทึกเช็คชื่อเข้าแถว</div>
                 <div class="expand-grid">
-                  <a href="chkFlagm2.html" class="expand-btn btn-m1" onclick="return checkTeacherPassword(event, this);">ม.1</a>
+                  <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="expand-btn btn-m1" onclick="return checkTeacherPassword(event, this);">ม.1</a>
                   <a href="chkFlagm2.html" class="expand-btn btn-m2" onclick="return checkTeacherPassword(event, this);">ม.2</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m3" onclick="return checkTeacherPassword(event, this);">ม.3</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m4" onclick="return checkTeacherPassword(event, this);">ม.4</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m5" onclick="return checkTeacherPassword(event, this);">ม.5</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m6" onclick="return checkTeacherPassword(event, this);">ม.6</a>
+                  <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="expand-btn btn-m3" onclick="return checkTeacherPassword(event, this);">ม.3</a>
+                  <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="expand-btn btn-m4" onclick="return checkTeacherPassword(event, this);">ม.4</a>
+                  <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="expand-btn btn-m5" onclick="return checkTeacherPassword(event, this);">ม.5</a>
+                  <a href="https://script.google.com/macros/s/AKfycbyMcG_RrT3pKPvAIYMmUWujYup7oZRCcWjla2mMKR9hVJg061Ln81xyrNT6amiObClv5w/exec" class="expand-btn btn-m6" onclick="return checkTeacherPassword(event, this);">ม.6</a>
                 </div>
               </div>
             </div>
@@ -249,10 +239,10 @@
           <div class="bento-grid">
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-person-bounding-box"></i><p class="card-title">อัพโหลดภาพ</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-bicycle"></i><p class="card-title">รถพาหนะ</p></a>
-            <a href="advice/sdq.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-file-person-fill"></i><p class="card-title">ประเมิน SDQ</p></a>
+            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-file-person-fill"></i><p class="card-title">ประวัตินักเรียน</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clipboard2-pulse"></i><p class="card-title">น้ำหนักส่วนสูง</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-house-heart-fill"></i><p class="card-title">เยี่ยมบ้าน</p></a>
-            <a href="E-POINT/Verify_Std_data.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-piggy-bank-fill"></i><p class="card-title">ประวัตนักเรียน</p></a>
+            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-piggy-bank-fill"></i><p class="card-title">ประวัติให้ทุน</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-award-fill"></i><p class="card-title">คนดี ศรีบัวใหญ่</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-journal-x"></i><p class="card-title">0 ร มส.</p></a>
             <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-diagram-3-fill"></i><p class="card-title">เครือข่าย ผปค.</p></a>
@@ -263,10 +253,20 @@
             </a>
           </div>
 
-        </div> </div>
+        </div> 
+      </div>
 
+      <!-- ============================================== -->
+      <!-- หมวดนักเรียน/ผู้ปกครอง (Student/Parent Tab) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-student" id="student" role="tabpanel">
         
+        <!-- 🌟 โลโก้และส่วนหัวโหมดนักเรียน -->
+        <div class="text-center mt-4 mb-3">
+             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" width="60" height="60" class="rounded-circle shadow-sm border p-1 bg-white mb-2" style="object-fit: contain;">
+             <h6 class="fw-bold m-0" style="color: var(--student-orange);">ระบบบริการนักเรียนและผู้ปกครอง</h6>
+        </div>
+
         <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-mortarboard-fill"></i> 1. ผลการเรียน</h6></div>
         <div class="bento-grid">
           <a href="https://www.buayai.ac.th/login" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-laptop"></i><p class="card-title">ดูผลการเรียน (SGS)</p></a>
@@ -315,12 +315,14 @@
 
       </div>
 
+      <!-- ============================================== -->
+      <!-- หมวดหัวหน้าระดับ/งาน (Admin Tab) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-admin" id="admin" role="tabpanel">
         
         <div id="admin-lock-screen" class="lock-screen-box text-center">
-          <div class="icon-circle" style="background: var(--admin-light);">
-            <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem; color: var(--admin-purple);"></i>
-          </div>
+          <!-- 🌟 โลโก้โรงเรียนโหมดแอดมิน -->
+          <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="80" height="80" class="mb-3 rounded-circle shadow-sm border border-3 p-1" style="border-color: var(--admin-purple) !important; object-fit: contain;">
           <h5 class="fw-bold" style="color: var(--admin-purple);">พื้นที่เฉพาะผู้ดูแลระบบ</h5>
           <p class="text-muted small mb-4">**เมนูถูกซ่อนไว้เพื่อรักษาความปลอดภัยของข้อมูลสูงสุด **<br>กรุณาเลือกหมวดที่ต้องการเพื่อปลดล็อก</p>
           
@@ -344,12 +346,24 @@
 
           <div class="section-header pt-0"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-bar-chart-fill"></i> 1. สถิติและการจัดการระดับชั้น</h6></div>
           <div class="bento-grid">
-            
-            <div class="menu-card" onclick="openLevelHeadAuto(event)" style="grid-column: span 3; padding: 12px; cursor: pointer; background-color: var(--admin-light); border-color: var(--admin-purple);">
-              <i class="bi bi-pie-chart-fill" style="color: var(--admin-purple);"></i>
-              <p class="card-title fw-bold" style="color: var(--admin-purple);">เข้าสู่หน้าหลักหัวหน้าระดับชั้น</p>
+            <div class="menu-card" data-bs-toggle="collapse" data-bs-target="#adminLevelHeadExpand" style="grid-column: span 3; padding: 12px;">
+              <i class="bi bi-pie-chart-fill"></i>
+              <p class="card-title">หน้าหลักหัวหน้าระดับชั้น <i class="bi bi-chevron-down ms-1" style="font-size: 0.6rem; color:#94a3b8;"></i></p>
             </div>
-
+            
+            <div class="collapse" id="adminLevelHeadExpand" style="grid-column: span 3;">
+              <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill" style="color: var(--admin-purple);"></i> เลือกระดับชั้นเพื่อเข้าสู่ระบบศูนย์บัญชาการ</div>
+                <div class="expand-grid">
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm1')">ม.1</a>
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm2')">ม.2</a>
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm3')">ม.3</a>
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm4')">ม.4</a>
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm5')">ม.5</a>
+                  <a href="#" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm6')">ม.6</a>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-clipboard-data-fill"></i> 2. สถิติพฤติกรรม</h6></div>
@@ -381,7 +395,7 @@
 
           <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-send-exclamation-fill"></i> 5. ติดตาม/รายงาน</h6></div>
           <div class="bento-grid">
-            <a href="advice/head_sdq.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-envelope-exclamation-fill"></i><p class="card-title">สารสนเทศ SDQ (1)</p></a>
+            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-envelope-exclamation-fill"></i><p class="card-title">แจ้ง ผปค. (1)</p></a>
             <a href="#" class="menu-card" onclick="openAdminHomeroom(event)"><i class="bi bi-journal-bookmark-fill text-primary"></i><p class="card-title text-primary">บันทึกโฮมรูม</p></a>
             <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-houses-fill"></i><p class="card-title">เข้าค่าย (1)</p></a>
             <a href="teacherjoinflag.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ระบบลงเวลาคุณครูดูแลนักเรียนกิจกรรมหน้าเสาธง</p></a>
@@ -396,7 +410,9 @@
             </a>
           </div>
 
-        </div> <div id="superadmin-content" style="display: none; transition: opacity 0.3s ease;">
+        </div> 
+        
+        <div id="superadmin-content" style="display: none; transition: opacity 0.3s ease;">
           <div class="d-flex justify-content-between align-items-center mb-2 px-3">
             <span class="badge bg-dark rounded-pill"><i class="bi bi-pc-display-horizontal"></i> Admin ส่วนกลาง</span>
             <button class="btn btn-sm btn-outline-danger rounded-pill shadow-sm bg-white" onclick="lockAdmin()">
@@ -413,9 +429,7 @@
             <a href="https://script.google.com/macros/s/AKfycbxHy8BcRtFMEMfhgB_RKShilDnqXRic6FEeuDtrMuTxpqQNOG20XKOdvkcpBTNgZcb6/exec" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
               <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลาง</p>
             </a>
-                 <a href="E-POINT/AdminEpoint.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลางระบบ E-Point </p>
-            </a>
+            
             <a href="#" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
               <i class="bi bi-dash-circle-fill text-danger"></i><p class="card-title">หักคะแนน</p>
             </a>
@@ -429,11 +443,7 @@
             <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
               <i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">พิจารณาความดี</p>
             </a>
-
-            <a href="Admin/mainmenu.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-dash-circle-fill text-danger"></i><p class="card-title">เพิ่ม ลบ ปรับปรุงนักเรียน เลื่อนชั้นปี ระบบเข้าแถวและโฮมรูม</p>
-            </a>
-
+            
             <div style="grid-column: span 3; padding: 5px 0 0px;">
               <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-search"></i> 7.5 ค้นหาคะแนนพฤติกรรม</span>
             </div>
@@ -447,10 +457,20 @@
             </a>
           </div>
 
-        </div> </div>
+        </div> 
+      </div>
 
+      <!-- ============================================== -->
+      <!-- หมวด กก.นักเรียน (Board Tab) -->
+      <!-- ============================================== -->
       <div class="tab-pane fade tab-board" id="board" role="tabpanel">
         
+        <!-- 🌟 โลโก้และส่วนหัวโหมด กก.นักเรียน -->
+        <div class="text-center mt-4 mb-3">
+             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" width="60" height="60" class="rounded-circle shadow-sm border p-1 bg-white mb-2" style="object-fit: contain;">
+             <h6 class="fw-bold m-0" style="color: var(--board-purple);">ระบบสำหรับคณะกรรมการสภานักเรียน</h6>
+        </div>
+
         <div class="section-header">
           <h6 class="fw-bold mb-0" style="color: var(--board-purple);"><i class="bi bi-person-vcard-fill"></i> 8. แอพสำหรับกรรมการนักเรียน</h6>
         </div>
@@ -468,23 +488,19 @@
   </div>
 
   <div class="footer-watermark">
-    &copy; 2026 Buayai School Digital System
+    &copy; 2026 Buayai I Care School 
   </div>
 
   <div id="popup-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ==========================================
-    // 🌟 ระบบโหลด Popup แจ้งเตือนอัตโนมัติ (ครั้งแรก)
-    // ==========================================
     window.addEventListener('DOMContentLoaded', async function() {
         try {
             const response = await fetch('popup.html');
             const html = await response.text();
             document.getElementById('popup-container').innerHTML = html;
             
-            // เช็คว่าเคยดูประกาศหรือยัง ถ้ายังให้โชว์หลังโหลดเสร็จ 1 วินาที
             if (!localStorage.getItem('hasSeenAnnouncementPopup')) {
                 setTimeout(() => {
                     const modalEl = document.getElementById('announcementModal');
@@ -500,49 +516,28 @@
         }
     });
 
-    // ==========================================
-    // 🌟 ระบบเข้าสู่หน้าหลักหัวหน้าระดับแบบอัตโนมัติ (แก้ URL // แล้ว)
-    // ==========================================
-    function openLevelHeadAuto(event) {
-        if (event) event.preventDefault();
-
-        // 1. ตรวจสอบว่าเข้าระบบหรือยัง ถ้ายังให้ปลดล็อก
+    function openLevelHead(event, levelStr) {
+        event.preventDefault();
+        
         let pw = sessionStorage.getItem('admin_pw_auto');
         if (!pw) {
             unlockAdmin();
             pw = sessionStorage.getItem('admin_pw_auto');
-            if (!pw) return; // ถ้ากด cancel หรือไม่ใส่รหัส ให้หยุดทำงาน
-        }
-
-        // 2. ตรวจสอบระดับชั้นจากรหัสที่ล็อกอิน
-        let levelStr = pw.toLowerCase();
-        
-        // ถ้าเกิดล็อกอินด้วยรหัสพิเศษเช่น 'p' ระบบจะถามเพื่อความชัวร์ว่าดูแลชั้นไหน
-        if(!levelStr.startsWith('m') || levelStr.length < 2) {
-            levelStr = prompt("ระบบไม่พบข้อมูลระดับชั้น กรุณาระบุระดับชั้น (เช่น m1, m2, m3, m4, m5, m6):", "m1");
-            if(!levelStr) return;
+            if(!pw) return; 
         }
 
         let levelNumber = levelStr.replace('m', '');
-        
         const userData = {
-            username: pw,
-            name: "หัวหน้าระดับ ม." + levelNumber,
+            username: pw, 
+            name: "หัวหน้าระดับชั้นมัธยมศึกษาปีที่" + levelNumber,
             role: "หัวหน้าระดับ",
-            level: levelStr
+            level: levelStr 
         };
-        
-        // บันทึกข้อมูลสำหรับส่งไปให้หน้า level_head ใช้งานต่อ
         localStorage.setItem('buayai_user', JSON.stringify(userData));
 
-        // 3. เปลี่ยนหน้าเว็บ (ลบเครื่องหมาย / ออกจากข้างหน้า เพื่อไม่ให้ URL เบิ้ลเป็น //)
-        window.location.href = 'Level_Head/level_head.html'; 
+        window.open('level_head.html', '_self'); 
     }
 
-    // ==========================================
-    // 🌟 ฟังก์ชันการเชื่อมโยงระบบโฮมรูม (Auto-Login)
-    // ==========================================
-    // 1. หัวหน้าระดับ
     function openAdminHomeroom(event) {
         event.preventDefault();
         let pw = sessionStorage.getItem('admin_pw_auto');
@@ -553,7 +548,6 @@
         }
     }
 
-    // 2. ครูที่ปรึกษา
     function openTeacherHomeroom(event) {
         event.preventDefault();
         let pw = sessionStorage.getItem('teacher_pw_auto');
@@ -564,14 +558,10 @@
         }
     }
 
-    // ==========================================
-    // 🔒 ระบบล็อกหน้าจอและปลดล็อก (UI Hiding Logic)
-    // ==========================================
     let isTeacherUnlocked = false;
     let isAdminUnlocked = false; 
     let isSuperAdminUnlocked = false;
 
-    // เช็คตอนเปิดเว็บว่าเคยล็อกอินทิ้งไว้หรือยัง ถ้าเคยให้เปิดโชว์เมนูเลย
     document.addEventListener('DOMContentLoaded', function() {
         if (sessionStorage.getItem('teacher_pw_auto')) {
             document.getElementById('teacher-lock-screen').style.display = 'none';
@@ -590,24 +580,15 @@
         }
     });
 
-    // --- ฟังก์ชันปลดล็อกหน้าจอ ---
     function unlockTeacher() {
-        let pw = prompt("🔒 พื้นที่เฉพาะคณะครู\nกรุณากรอกรหัสผ่านประจำตัวครู (เช่น t01) เพื่อเข้าใช้งาน:");
+        let pw = prompt("🔒 พื้นที่เฉพาะคณะครู\nกรุณากรอกรหัสผ่านประจำตัวครู  เพื่อเข้าใช้งาน:");
         if (pw === null || pw.trim() === "") return;
         
-        const validTeacherPasswords = [
-          "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10",
-          "t11","t12","t13","t14","t15","t16","t17","t18","t19","t110",
-          "t21","t22","t23","t24","t25","t26","t27","t28","t29","t30",
-          "t31","t32","t33","t34","t35","t36","t37","t38","t39","t40",
-          "t41","t42","t43","t44","t45","t46","t47","t48","t49","t50",
-          "t51","t52","t53","t54","t55","t56","t57","t58","t59","t60",
-          "t61","t62","t63","t64","t65","t66","t67","t68","t69",
-          "t210","t310","t410","t510","t610"
-        ];
+        pw = pw.toLowerCase();
+        const isTeacherValid = /^t\d{1,3}$/.test(pw);
         
-        if (validTeacherPasswords.includes(pw.toLowerCase())) {
-            sessionStorage.setItem('teacher_pw_auto', pw.toLowerCase());
+        if (isTeacherValid) {
+            sessionStorage.setItem('teacher_pw_auto', pw);
             isTeacherUnlocked = true;
             document.getElementById('teacher-lock-screen').style.display = 'none';
             
@@ -624,9 +605,11 @@
         let pw = prompt("🔒 พื้นที่เฉพาะหัวหน้าระดับ/งาน\nกรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน:");
         if (pw === null || pw.trim() === "") return;
         
-        const validPasswords = ["m1", "m2", "m3", "m4", "m5", "m6", "p"];
-        if (validPasswords.includes(pw.toLowerCase())) {
-            sessionStorage.setItem('admin_pw_auto', pw.toLowerCase());
+        pw = pw.toLowerCase();
+        const isAdminValid = /^m[1-6]$/.test(pw) || pw === "p";
+        
+        if (isAdminValid) {
+            sessionStorage.setItem('admin_pw_auto', pw);
             isAdminUnlocked = true;
             document.getElementById('admin-lock-screen').style.display = 'none';
             
@@ -643,7 +626,7 @@
         let pw = prompt("🔐 พื้นที่เฉพาะผู้ดูแลระบบส่วนกลาง\nกรุณากรอกรหัสผ่านพิเศษเพื่อเข้าใช้งาน:");
         if (pw === null || pw.trim() === "") return;
         
-        if (pw === "kkss") {
+        if (btoa(pw.toLowerCase()) === "a2tzcw==") {
             sessionStorage.setItem('superadmin_pw_auto', pw);
             isSuperAdminUnlocked = true;
             document.getElementById('admin-lock-screen').style.display = 'none';
@@ -677,8 +660,7 @@
     function checkTeacherPassword(event, element) {
       if (event) event.preventDefault();
       let targetUrl = element ? element.href : null;
-      if (targetUrl && (targetUrl.includes("javascript:void(0)") || targetUrl.endsWith("#"))) { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); return false;
-      }
+      if (targetUrl && (targetUrl.includes("javascript:void(0)") || targetUrl.endsWith("#"))) { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); return false; }
       
       let pw = sessionStorage.getItem('teacher_pw_auto');
       if (targetUrl && pw) {
@@ -688,7 +670,7 @@
         }
         window.location.href = targetUrl;
       } else {
-          unlockTeacher();
+          unlockTeacher(); 
       }
       return true; 
     }
