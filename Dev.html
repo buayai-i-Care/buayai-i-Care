@@ -6,9 +6,9 @@
     <title>เข้าสู่ระบบ: Buayai I Care School สำหรับนักเรียน</title>
     <style>
         :root {
-            --primary: #f97316; /* เปลี่ยนเป็นสีส้มสำหรับโหมดนักเรียน */
+            --primary: #f97316; /* สีส้มสำหรับโหมดนักเรียน */
             --primary-hover: #ea580c;
-            --bg-color: #fff7ed; /* พื้นหลังอมส้มอ่อนๆ */
+            --bg-color: #fff7ed;
             --card-bg: #ffffff;
             --text-main: #1f2937;
             --danger: #ef4444;
@@ -33,10 +33,7 @@
             padding: 40px 30px;
             text-align: center;
         }
-        .icon-container {
-            font-size: 4rem;
-            margin-bottom: 10px;
-        }
+        .icon-container { font-size: 4rem; margin-bottom: 10px; }
         h1 { margin-top: 0; color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; }
         p { color: #6b7280; font-size: 0.9rem; margin-bottom: 30px; }
         
@@ -75,23 +72,15 @@
             min-height: 20px;
         }
 
-        /* เพิ่มสไตล์สำหรับลิงก์และป้ายโหมดนักเรียน */
         .action-links {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
             font-size: 0.85rem;
         }
-        .action-links a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-        .action-links a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
+        .action-links a { color: var(--primary); text-decoration: none; font-weight: 600; transition: 0.2s; }
+        .action-links a:hover { color: var(--primary-hover); text-decoration: underline; }
+        
         .student-badge {
             display: inline-block;
             background-color: #ffedd5;
@@ -109,24 +98,23 @@
 <div class="login-card">
     <div class="icon-container">🔐</div>
     <div class="student-badge">🧑‍🎓 โหมดนักเรียน</div>
-    <h1>เข้าสู่ระบบนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h1>
-    <p>****Buayai I Care School ***</p>
+    <h1>เข้าสู่ระบบนักเรียน</h1>
+    <p>Buayai I Care School</p>
 
     <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">
             <label for="studentId">เลขประจำตัวนักเรียน</label>
-            <input type="text" id="studentId" placeholder="กรอกเลขประจำตัว" required>
+            <input type="text" id="studentId" placeholder="เช่น 1111" required>
         </div>
         
         <div class="form-group">
             <label for="password">รหัสผ่าน</label>
-            <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
+            <input type="password" id="password" placeholder="เช่น 1111" required>
         </div>
 
         <button type="submit" id="loginBtn">เข้าสู่ระบบ 🚀</button>
         <div id="error-msg"></div>
         
-        <!-- เพิ่มลิงก์ สมัครสมาชิก และ ลืมรหัสผ่าน -->
         <div class="action-links">
             <a href="appyEpoint.html">ยังไม่สมัคร? ไปที่นี่</a>
             <a href="loginEpoint.html">ลืมรหัสผ่าน? ไปที่นี่</a>
@@ -135,64 +123,59 @@
 </div>
 
 <script>
-    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (ส่วนที่ 1) มาใส่ที่นี่
+    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (อันใหม่) มาใส่ที่นี่
     const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
 
-    // เช็คว่าเคยล็อกอินไว้หรือยัง ถ้าเคยแล้วให้ข้ามไปภารกิจเลย
     window.onload = () => {
         if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.href = 'mission1.html'; // เปลี่ยนหน้าอัตโนมัติ
+            window.location.href = 'mission1.html';
         }
     };
 
     async function handleLogin(e) {
-        e.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+        e.preventDefault();
         
         const studentId = document.getElementById('studentId').value;
         const password = document.getElementById('password').value;
         const btn = document.getElementById('loginBtn');
         const errorMsg = document.getElementById('error-msg');
 
-        // รีเซ็ตข้อความและปิดปุ่ม
         errorMsg.textContent = '';
         btn.disabled = true;
         btn.textContent = 'กำลังตรวจสอบข้อมูล... ⏳';
 
         try {
+            // ปรับปรุง: ใช้วิธีส่งแบบ URLSearchParams เพื่อป้องกันปัญหา CORS ติดบล็อก
             const response = await fetch(LOGIN_API_URL, {
                 method: 'POST',
-                // ต้องใช้ mode: 'no-cors' ถ้าการตั้งค่า CORS ของ GAS มีปัญหา แต่ที่นี่เราเขียนจัดการไว้แล้ว
-                body: JSON.stringify({ studentId: studentId, password: password }),
-                headers: { 'Content-Type': 'application/json' }
+                body: new URLSearchParams({
+                    'studentId': studentId,
+                    'password': password
+                })
             });
 
-            // หมายเหตุ: GAS บางครั้ง redirect เป็น HTML แทน JSON ให้เราพยายาม parse ก่อน
             const data = await response.json();
 
             if (data.status === 'success') {
-                // ✅ ล็อกอินสำเร็จ: บันทึกสถานะลงเบราว์เซอร์
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('studentId', data.data.studentId);
                 localStorage.setItem('room', data.data.room);
                 
-                // แจ้งเตือนและเปลี่ยนหน้า
-                btn.style.backgroundColor = '#10b981'; // สีเขียว
+                btn.style.backgroundColor = '#10b981';
                 btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
                 
                 setTimeout(() => {
-                    window.location.href = 'mission1.html'; // กระโดดไปไฟล์ภารกิจที่ 1
+                    window.location.href = 'mission1.html';
                 }, 1000);
-
             } else {
-                // ❌ ล็อกอินไม่ผ่าน (รหัสผิด)
                 errorMsg.textContent = `❌ ${data.message}`;
                 btn.disabled = false;
                 btn.textContent = 'เข้าสู่ระบบ 🚀';
             }
 
         } catch (error) {
-            console.error("Error:", error);
-            errorMsg.textContent = '❌ ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่ (อย่าลืมใส่ URL GAS)';
+            console.error("Fetch Error:", error);
+            errorMsg.textContent = '❌ ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบ URL หรือการตั้งค่าสิทธิ์ GAS';
             btn.disabled = false;
             btn.textContent = 'เข้าสู่ระบบ 🚀';
         }
