@@ -128,7 +128,7 @@
 
     window.onload = () => {
         if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.href = 'mission1.html';
+            window.location.href = 'advice/Std_info_dashboard.html';
         }
     };
 
@@ -165,7 +165,7 @@
                 btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
                 
                 setTimeout(() => {
-                    window.location.href = 'mission1.html';
+                    window.location.href = 'advice/Std_info_dashboard.html';
                 }, 1000);
             } else {
                 errorMsg.textContent = `❌ ${data.message}`;
