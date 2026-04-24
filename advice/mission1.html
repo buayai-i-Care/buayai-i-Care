@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ภารกิจที่ 1: ค้นพบตัวตน - Buayai I Care School</title>
+    <title>ภารกิจที่ 1: ข้อมูลพื้นฐาน- Buayai I Care School</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -98,6 +98,7 @@
             cursor: zoom-in;
             border: 3px solid white;
             transition: transform 0.2s;
+            background-color: #e2e8f0; /* สีพื้นหลังระหว่างโหลดรูป */
         }
         .profile-preview:hover { transform: scale(1.05); }
         .click-to-expand-text { font-size: 0.85rem; color: var(--primary); margin-top: 5px; font-weight: 600; }
@@ -166,13 +167,11 @@
 <body>
 
 <div class="mission-container">
-    <!-- หน้าจอโหลดข้อมูล -->
     <div class="loading-overlay" id="loadingData">
         <div class="spinner"></div>
         <div id="loadingText" style="color: var(--primary); font-weight: 700; font-size: 1.1rem;">กำลังดึงข้อมูลของคุณ...</div>
     </div>
 
-    <!-- ส่วนหัว -->
     <div class="header">
         <button class="back-btn" onclick="window.location.href='Std_info_dashboard.html'">⬅️</button>
         <div class="title-group">
@@ -182,7 +181,6 @@
     </div>
 
     <form id="mission1Form">
-        <!-- คอลัมน์ 1: ID -->
         <div class="form-group">
             <label>รหัสประจำตัวนักเรียน</label>
             <input type="text" id="studentId" disabled>
@@ -227,18 +225,17 @@
             </div>
         </div>
 
-        <!-- คอลัมน์ 7: ภาพโปรไฟล์ -->
         <div class="image-upload-section">
             <div class="warning-box">
                 <strong>⚠️ รูปนี้สำคัญมาก!</strong><br>
                 รูปภาพนี้จะถูกใช้เป็นฐานข้อมูลหลักของโรงเรียน <span class="required-mark">บังคับใช้รูปถ่ายหน้าตรง สวมชุดนักเรียนที่ถูกต้องและสุภาพเท่านั้น</span> (ถ่ายจากกล้องมือถือได้เลยครับ)
             </div>
 
-            <!-- แสดงรูปภาพเก่า/ใหม่ -->
             <div class="preview-container" id="previewContainer">
                 <p style="font-size: 0.95rem; margin-top: 0; color: var(--text-main); font-weight: 600;">ภาพโปรไฟล์ปัจจุบันของคุณ:</p>
-                <img id="profilePreview" class="profile-preview" src="" alt="ภาพโปรไฟล์" onclick="openModal()" data-new-image="false">
-                <div class="click-to-expand-text">🔍 คลิกเพื่อขยายดูความหล่อสวย</div>
+                <!-- ใช้ referrerpolicy="no-referrer" ช่วยทะลุการบล็อกของเบราว์เซอร์ และใส่ onerror เพื่อแสดงภาพเทาหากไฟล์ติดสิทธิ์ Private -->
+                <img id="profilePreview" class="profile-preview" src="" alt="ภาพโปรไฟล์" onclick="openModal()" data-new-image="false" referrerpolicy="no-referrer" onerror="handleImageError(this)">
+                <div class="click-to-expand-text" id="expandText">🔍 คลิกเพื่อขยายดูความหล่อสวย</div>
             </div>
 
             <label style="text-align: left; margin-top: 15px;">อัปโหลดรูปภาพใหม่ <span class="required-mark" id="imgReqMark">*</span></label>
@@ -246,14 +243,10 @@
             <input type="hidden" id="existingImageUrl">
         </div>
 
-        <!-- ปุ่ม Action -->
         <div class="btn-group">
-            <!-- ปุ่มเซฟร่าง (กรอกไม่ครบก็เซฟได้) -->
             <button type="button" class="btn-draft" id="btnDraft" onclick="saveData(false)">
                 💾 บันทึกข้อมูลไว้ก่อน (ทำต่อทีหลัง)
             </button>
-            
-            <!-- ปุ่มส่งภารกิจ (ต้องครบ) -->
             <button type="button" class="btn-submit" id="btnSubmit" onclick="saveData(true)">
                 🚀 บันทึกและส่งภารกิจ (ผ่านด่าน)
             </button>
@@ -261,13 +254,13 @@
     </form>
 </div>
 
-<!-- Modal สำหรับขยายภาพ -->
+<!-- Modal ขยายภาพ -->
 <div id="imageModal" class="modal" onclick="closeModal(event)">
     <span class="close-modal">&times;</span>
     <img class="modal-content" id="img01">
 </div>
 
-<!-- Popup แจ้งเตือนความสำเร็จ -->
+<!-- Popup ความสำเร็จ -->
 <div id="successPopup" class="popup-alert">
     <div class="popup-content">
         <div class="popup-icon">🎉</div>
@@ -282,7 +275,7 @@
 </div>
 
 <script>
-    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (ตัวรวม Unified API) มาใส่ที่นี่
+    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (Unified API ตัวล่าสุด) มาใส่ที่นี่
     const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
 
     window.onload = () => {
@@ -297,19 +290,12 @@
         fetchDataFromServer(studentId);
     };
 
-    // ==========================================
-    // 📥 ดึงข้อมูล
-    // ==========================================
     async function fetchDataFromServer(studentId) {
         document.getElementById('loadingData').style.display = 'flex';
-        
         try {
             const response = await fetch(DATA_API_URL, {
                 method: 'POST',
-                body: new URLSearchParams({
-                    'action': 'getData',
-                    'studentId': studentId
-                })
+                body: new URLSearchParams({ 'action': 'getData', 'studentId': studentId })
             });
             
             if (!response.ok) throw new Error("Network response was not ok");
@@ -320,10 +306,7 @@
             }
         } catch (error) {
             console.error("Fetch Data Error:", error);
-            // กรณีเน็ตหลุดหรือไม่เจอข้อมูล ให้โหลดจาก Session เก่าที่เคยพิมพ์ไว้ (เผื่อไว้)
-            populateForm({
-                level: localStorage.getItem('room') || ''
-            });
+            populateForm({ level: localStorage.getItem('room') || '' });
         } finally {
             document.getElementById('loadingData').style.display = 'none';
         }
@@ -337,7 +320,6 @@
         document.getElementById('level').value = data.level || '';
         document.getElementById('studentNumber').value = data.studentNumber || '';
         
-        // จัดการวันที่ (ตัดเวลาออกให้เหลือแค่ YYYY-MM-DD เพื่อใส่ input date ได้)
         if(data.birthDate) {
             const bdate = new Date(data.birthDate);
             if(!isNaN(bdate)) {
@@ -347,26 +329,41 @@
         
         document.getElementById('religion').value = data.religion || '';
         
-        // จัดการรูปภาพ
         if (data.profileImageUrl) {
             document.getElementById('existingImageUrl').value = data.profileImageUrl;
             const previewImg = document.getElementById('profilePreview');
+            // ใช้ฟังก์ชันแบบใหม่ที่เสถียรกว่า
             previewImg.src = convertDriveLinkToImage(data.profileImageUrl);
             previewImg.dataset.newImage = "false";
             document.getElementById('previewContainer').style.display = 'block';
-            
-            // ถ้ามีรูปแล้ว ดอกจันแดงที่ปุ่มอัปโหลดใหม่จะหายไป
             document.getElementById('imgReqMark').style.display = 'none';
         }
     }
 
+    // 💡 ปรับปรุง: ใช้ Thumbnail API ของ Google Drive แทน (ทะลุบล็อกได้ดีกว่า)
     function convertDriveLinkToImage(url) {
         if (!url) return '';
-        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
         if (match && match[1]) {
-            return `https://drive.google.com/uc?id=${match[1]}`;
+            // ใช้ Thumbnail แทน export=view
+            return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
         }
         return url;
+    }
+
+    // 💡 ฟังก์ชันใหม่: จัดการกรณีรูปโหลดไม่ขึ้น (เช่น โฟลเดอร์ไม่ได้แชร์ Public)
+    function handleImageError(img) {
+        // เช็คว่าถ้าไม่ใช่ภาพจากกล้องที่เพิ่งถ่าย (base64) ให้เปลี่ยนเป็นภาพแจ้งเตือน
+        if (img.src && !img.src.includes('data:image')) {
+            console.warn("ไม่สามารถโหลดภาพจาก Google Drive ได้ (อาจติดสิทธิ์ Private):", img.src);
+            
+            // แสดงภาพสีเทาพร้อมข้อความแจ้งเตือนแทนภาพแตก
+            img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMmU4ZjAiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNlZjQ0NDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPiDguYTguKHguYjguKrguLLguKHguLLguKPguJbguYLguKvguKXguJTguKDguLLguJ4gPC90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+KOC4leC4tOC4lOC4quC4tOC4l+C4mOC4tOC5jCBEcml2ZSk8L3RleHQ+PC9zdmc+';
+            
+            document.getElementById('expandText').innerHTML = '<span style="color:#ef4444;">ภาพติดสิทธิ์ส่วนตัว กรุณาอัปโหลดรูปใหม่ด้านล่างครับ</span>';
+            document.getElementById('imgReqMark').style.display = 'inline'; // บังคับให้อัปโหลดใหม่
+            document.getElementById('existingImageUrl').value = ''; 
+        }
     }
 
     function previewNewImage(input) {
@@ -394,7 +391,8 @@
                     
                     document.getElementById('previewContainer').style.display = 'block';
                     document.getElementById('existingImageUrl').value = ''; 
-                    document.getElementById('imgReqMark').style.display = 'none'; // ซ่อนดอกจัน
+                    document.getElementById('imgReqMark').style.display = 'none'; 
+                    document.getElementById('expandText').innerHTML = '🔍 คลิกเพื่อขยายดูความหล่อสวย'; // คืนค่าข้อความ
                 }
                 img.src = e.target.result;
             }
@@ -402,9 +400,6 @@
         }
     }
 
-    // ==========================================
-    // 💾 บันทึกข้อมูล (isComplete = จริงคือส่งภารกิจ, เท็จคือเซฟร่าง)
-    // ==========================================
     async function saveData(isComplete) {
         const citizenId = document.getElementById('citizenId').value.trim();
         const fullName = document.getElementById('fullName').value.trim();
@@ -415,15 +410,13 @@
         const previewImg = document.getElementById('profilePreview');
         const hasImage = existingImg !== '' || previewImg.dataset.newImage === "true";
 
-        // 🛑 ถ้ากด "ส่งภารกิจ" ต้องบังคับเช็คว่าข้อมูลครบไหม
         if (isComplete) {
             if (!citizenId || !fullName || !birthDate || !religion || !hasImage) {
                 alert('❌ ข้อมูลยังไม่ครบถ้วน! กรุณากรอกช่องที่มีเครื่องหมายดอกจันสีแดง (*) และอัปโหลดภาพโปรไฟล์ให้ครบก่อนส่งภารกิจครับ\n\n(หากต้องการทำต่อทีหลัง ให้กดปุ่ม "บันทึกข้อมูลไว้ก่อน" แทนครับ)');
-                return; // หยุดการทำงาน
+                return; 
             }
         }
 
-        // ล็อก UI 
         const btnDraft = document.getElementById('btnDraft');
         const btnSubmit = document.getElementById('btnSubmit');
         btnDraft.disabled = true; btnSubmit.disabled = true;
@@ -433,7 +426,6 @@
         loadingText.innerText = 'กำลังอัปโหลดและบันทึกลงฐานข้อมูล... ⏳';
         loadingBox.style.display = 'flex';
 
-        // เตรียมข้อมูลส่ง
         const params = new URLSearchParams();
         params.append('action', 'saveData');
         params.append('studentId', document.getElementById('studentId').value);
@@ -460,14 +452,10 @@
             
             if(data.status === 'success') {
                 if (isComplete) {
-                    // ประทับตราว่าผ่านด่านแล้ว
                     localStorage.setItem('mission_1_done_time', Date.now());
-                    
-                    // ปิด Loading และโชว์ Popup สำเร็จเตือนเรื่องรอ 2 วัน
                     loadingBox.style.display = 'none';
                     document.getElementById('successPopup').style.display = 'flex';
                 } else {
-                    // เซฟร่างเฉยๆ
                     loadingBox.style.display = 'none';
                     alert('💾 บันทึกข้อมูลร่างเรียบร้อยแล้ว คุณสามารถกลับมาแก้ไขและกดส่งภารกิจในภายหลังได้ครับ');
                     window.location.href = 'Std_info_dashboard.html';
@@ -483,15 +471,13 @@
         }
     }
 
-    // ==========================================
-    // Modal ขยายรูป
-    // ==========================================
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById("img01");
 
     function openModal() {
         const previewImg = document.getElementById('profilePreview');
-        if(previewImg.src) {
+        // เปิดเฉพาะรูปที่โหลดสำเร็จ (ไม่ใช่รูป error สีเทา)
+        if(previewImg.src && !previewImg.src.includes('ไม่สามารถโหลดภาพ')) {
             modal.style.display = "flex";
             modalImg.src = previewImg.src;
         }
