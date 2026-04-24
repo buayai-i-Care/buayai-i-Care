@@ -3,42 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ศูนย์รวมภารกิจนักเรียน - Buayai I Care School</title>
+    <title>ระบบฐานข้อมูลนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนโรงเรียนบัวใหญ่ - Buayai I Care School</title>
+    <!-- นำเข้าฟอนต์ Sarabun จาก Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary: #f97316;
+            --primary: #f97316; /* ธีมสีส้มสำหรับนักเรียน */
             --primary-hover: #ea580c;
             --bg-color: #fff7ed;
             --card-bg: #ffffff;
             --text-main: #1f2937;
+            --text-muted: #6b7280;
             --success: #10b981;
             --locked: #9ca3af;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* เปลี่ยนมาใช้ฟอนต์ Sarabun ทั้งเว็บ */
+            font-family: 'Sarabun', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 15px; /* ลด padding ลงเพื่อให้พอดีมือถือมากขึ้น */
             display: flex;
             justify-content: center;
         }
         .dashboard-container {
             width: 100%;
             max-width: 650px;
+            padding-bottom: 40px;
         }
-        /* Header Section */
+
+        /* Header Section & Logo */
         .header-card {
             background: linear-gradient(135deg, var(--primary), #fdba74);
             color: white;
-            padding: 25px;
+            padding: 25px 20px;
             border-radius: 16px;
             box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
             margin-bottom: 25px;
             text-align: center;
+            position: relative;
         }
-        .header-card h1 { margin: 0 0 10px 0; font-size: 1.8rem; }
-        .student-info { font-size: 1.1rem; font-weight: 500; background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px; }
+        .logo-container {
+            margin-bottom: 15px;
+        }
+        .school-logo {
+            width: 80px;
+            height: auto;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-card h1 { margin: 0 0 5px 0; font-size: 1.6rem; font-weight: 700; }
+        .greeting-text { font-size: 1.1rem; margin-bottom: 15px; opacity: 0.9; }
+        .student-info { 
+            font-size: 1rem; 
+            font-weight: 500; 
+            background: rgba(255,255,255,0.25); 
+            display: inline-flex; 
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px 20px; 
+            border-radius: 20px; 
+        }
         
         /* Stats & Progress */
         .stats-grid {
@@ -53,78 +85,86 @@
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            font-weight: bold;
+            font-weight: 600;
         }
-        .stat-value { font-size: 1.5rem; color: var(--primary); margin-top: 5px; }
+        .stat-value { font-size: 1.6rem; color: var(--primary); margin-top: 5px; font-weight: 700; }
         .stat-value.success { color: var(--success); }
         
+        .progress-section { margin-top: 20px; text-align: left; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; font-weight: 500; }
         .progress-container {
             background-color: #ffedd5;
-            height: 12px;
+            height: 14px;
             width: 100%;
             border-radius: 10px;
-            margin-top: 15px;
             overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
         .progress-bar {
             height: 100%;
             background-color: var(--success);
             width: 0%;
-            transition: width 0.5s ease;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Mission Cards */
+        .section-title { font-size: 1.25rem; color: var(--text-main); margin-bottom: 15px; font-weight: 700; }
         .mission-list { display: flex; flex-direction: column; gap: 15px; }
         .mission-card {
             background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--locked);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+            border-left: 6px solid var(--locked);
             position: relative;
+            transition: transform 0.2s;
         }
+        .mission-card:hover { transform: translateY(-2px); }
         .mission-card.ready { border-left-color: var(--primary); }
-        .mission-card.completed { border-left-color: var(--success); opacity: 0.9; }
+        .mission-card.completed { border-left-color: var(--success); opacity: 0.95; }
         
-        .mission-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .mission-title { font-size: 1.2rem; font-weight: bold; margin: 0; color: var(--text-main); }
+        .mission-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 10px; }
+        .mission-title { font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main); }
+        .mission-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; }
         
-        .badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-        .badge-locked { background: #f3f4f6; color: #6b7280; }
+        .badge { font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; text-align: center; white-space: nowrap; }
+        .badge-locked { background: #f3f4f6; color: var(--text-muted); }
         .badge-ready { background: #ffedd5; color: var(--primary-hover); animation: pulse 2s infinite; }
         .badge-completed { background: #d1fae5; color: #047857; }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
         }
 
         .mission-prep {
-            background: #f9fafb;
-            padding: 10px;
+            background: #f8fafc;
+            padding: 12px;
             border-radius: 8px;
-            font-size: 0.85rem;
-            color: #4b5563;
+            font-size: 0.9rem;
+            color: #475569;
             margin-bottom: 15px;
-            border: 1px dashed #d1d5db;
+            border: 1px dashed #cbd5e1;
+            line-height: 1.5;
         }
-        .prep-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+        .prep-title { font-weight: 700; color: var(--primary); margin-bottom: 5px; display: block; }
 
         .btn-action {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: 8px;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
             transition: 0.2s;
+            font-family: 'Sarabun', sans-serif;
         }
-        .btn-start { background-color: var(--primary); color: white; }
-        .btn-start:hover { background-color: var(--primary-hover); }
-        .btn-edit { background-color: #e5e7eb; color: var(--text-main); }
-        .btn-edit:hover { background-color: #d1d5db; }
+        .btn-start { background-color: var(--primary); color: white; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2); }
+        .btn-start:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-edit { background-color: #f1f5f9; color: var(--text-main); border: 1px solid #e2e8f0; }
+        .btn-edit:hover { background-color: #e2e8f0; }
         .btn-locked { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
 
         .logout-btn {
@@ -133,7 +173,22 @@
             margin-top: 30px;
             color: var(--danger);
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 700;
+            padding: 12px;
+            background: #fee2e2;
+            border-radius: 8px;
+            color: #ef4444;
+            transition: 0.2s;
+        }
+        .logout-btn:hover { background: #fecaca; }
+
+        /* การรองรับมือถือ (Responsive) */
+        @media (max-width: 480px) {
+            .stats-grid { flex-direction: column; gap: 10px; }
+            .header-card { padding: 20px 15px; }
+            .school-logo { width: 65px; }
+            .mission-card { padding: 15px; }
+            .btn-action { padding: 12px; }
         }
     </style>
 </head>
@@ -141,27 +196,43 @@
 
 <div class="dashboard-container">
     <div class="header-card">
-        <h1>🏆 ศูนย์รวมภารกิจฮีโร่</h1>
-        <div class="student-info">รหัสประจำตัว: <span id="student-id-display">กำลังโหลด...</span></div>
-        
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
+        <!-- โลโก้โรงเรียน (ดึงจากลิงก์ Google Drive) -->
+        <div class="logo-container">
+            <img src="https://drive.google.com/uc?export=view&id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj" alt="โลโก้โรงเรียน" class="school-logo">
         </div>
-        <div style="margin-top: 10px; font-size: 0.9rem;">ความก้าวหน้า: <span id="progress-text">0%</span></div>
+        
+        <h1>🏆 ระบบฐานข้อมูลนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนโรงเรียนบัวใหญ่</h1>
+        <div class="greeting-text" id="greeting-display">สวัสดีค่ะ! ตรวจสอบความสมบูรณ์ของฐานข้อมูลนักเรียน</div>
+        
+        <div class="student-info">
+            <span>🧑‍🎓 รหัสประจำตัวนักเรียน: <strong id="student-id-display">กำลังโหลด...</strong></span>
+            <span>|</span>
+            <span>🏫 ห้อง: <strong id="room-display">-</strong></span>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-label">
+                <span>เป้าหมายความสำเร็จ</span>
+                <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
     </div>
 
     <div class="stats-grid">
         <div class="stat-box">
-            <div>คะแนนประสบการณ์ (EXP)</div>
-            <div class="stat-value" id="score-display">0</div>
+            <div style="font-size: 0.95rem; color: var(--text-muted);">ความก้าวหน้า</div>
+            <div class="stat-value" id="score-display">0 <span style="font-size:0.8rem; color:#9ca3af;">EXP</span></div>
         </div>
         <div class="stat-box">
-            <div>ภารกิจที่สำเร็จ</div>
-            <div class="stat-value success"><span id="completed-display">0</span>/5</div>
+            <div style="font-size: 0.95rem; color: var(--text-muted);">ภารกิจที่สำเร็จแล้ว</div>
+            <div class="stat-value success"><span id="completed-display">0</span><span style="font-size:0.8rem; color:#9ca3af;">/5</span></div>
         </div>
     </div>
 
-    <h2 style="font-size: 1.2rem; color: #4b5563;">🎯 รายการภารกิจของคุณ</h2>
+    <h2 class="section-title">🎯 เลือกภารกิจต่อไป</h2>
     
     <div class="mission-list">
         
@@ -171,10 +242,11 @@
                 <h3 class="mission-title">⭐ ภารกิจ 1: ค้นพบตัวตน</h3>
                 <span class="badge" id="status-m1">กำลังตรวจสอบ...</span>
             </div>
+            <div class="mission-desc">มารู้จักตัวตนของตนเองให้มากขึ้น</div>
             <div class="mission-prep">
-                <span class="prep-title">📋 สิ่งที่ต้องเตรียม:</span>
-                - เลขประจำตัวประชาชน<br>
-                - รูปถ่ายเซลฟี่ครึ่งตัว (เห็นหน้าชัดเจน)
+                <span class="prep-title">📋 ข้อมูลที่ต้องจัดเตรียมในครั้งนี้:</span>
+                • ข้อมูลในบัตรประจำตัวประชาชน<br>
+                • รูปถ่ายสวมชุดนักเรียนโรงเรียนบัวใหญ่ (เห็นหน้าชัดเจน)
             </div>
             <button class="btn-action" id="btn-m1">กำลังโหลด...</button>
         </div>
@@ -185,10 +257,11 @@
                 <h3 class="mission-title">🏠 ภารกิจ 2: สายใยครอบครัว</h3>
                 <span class="badge" id="status-m2">กำลังตรวจสอบ...</span>
             </div>
+            <div class="mission-desc">ข้อมูลผู้ปกครองเพื่อการติดต่อประสานงาน</div>
             <div class="mission-prep">
-                <span class="prep-title">📋 สิ่งที่ต้องเตรียม:</span>
-                - ชื่อและเบอร์โทรผู้ปกครอง<br>
-                - ถ่ายรูปลายมือชื่อผู้ปกครอง (เซ็นใส่กระดาษขาว)
+                <span class="prep-title">📋 ข้อมูลที่ต้องจัดเตรียมในครั้งนี้:</span>
+                • เบอร์โทรศัพท์ของผู้ปกครอง<br>
+                • ถ่ายรูปลายมือชื่อผู้ปกครอง (เซ็นลงบนกระดาษขาว) เพื่อประกอบการลา การร่วมกิจกรรมต่างๆ
             </div>
             <button class="btn-action" id="btn-m2">กำลังโหลด...</button>
         </div>
@@ -196,13 +269,14 @@
         <!-- Mission 3 -->
         <div class="mission-card" id="card-m3">
             <div class="mission-header">
-                <h3 class="mission-title">💪 ภารกิจ 3: ร่างกายและจิตใจ</h3>
+                <h3 class="mission-title">💪 ภารกิจ 3: ข้อมูลสุขภาพ</h3>
                 <span class="badge" id="status-m3">กำลังตรวจสอบ...</span>
             </div>
+            <div class="mission-desc">สุขภาพและความใฝ่ฝัน อนาคตที่เราอยากจะพุ่งไป</div>
             <div class="mission-prep">
-                <span class="prep-title">📋 สิ่งที่ต้องเตรียม:</span>
-                - ข้อมูลน้ำหนัก และส่วนสูงปัจจุบัน<br>
-                - ข้อมูลโรคประจำตัว (ถ้ามี)
+                <span class="prep-title">📋 สิ่งที่ต้องรู้:</span>
+                • น้ำหนัก และส่วนสูงปัจจุบันของคุณ<br>
+                • ข้อมูลโรคประจำตัว (เช่นโรคกระเพราะ ข้อมือขวาหัก กระดูกข้อเท่าซ้ายมีปัญหาอย่างนี้เป็นต้น)
             </div>
             <button class="btn-action" id="btn-m3">กำลังโหลด...</button>
         </div>
@@ -210,13 +284,14 @@
         <!-- Mission 4 -->
         <div class="mission-card" id="card-m4">
             <div class="mission-header">
-                <h3 class="mission-title">🎒 ภารกิจ 4: เส้นทางสู่โรงเรียน</h3>
+                <h3 class="mission-title">🎒 ภารกิจ 4: วิธีการเดินทางมาโรงเรียน</h3>
                 <span class="badge" id="status-m4">กำลังตรวจสอบ...</span>
             </div>
+            <div class="mission-desc">ข้อมูลเกี่ยวบ้าน</div>
             <div class="mission-prep">
-                <span class="prep-title">📋 สิ่งที่ต้องเตรียม:</span>
-                - ภาพบ้านที่ 1 (ถ่ายจากหน้าบ้าน)<br>
-                - ภาพบ้านที่ 2 (ถ่ายบริเวณภายในบ้าน)
+                <span class="prep-title">📋 ข้อมูลที่ต้องเตรียม:</span>
+                • ภาพถ่ายหน้าบ้าน (เห็นตัวบ้านชัดเจน)<br>
+                • ภาพถ่ายภายในบริเวณบ้านของคุณ เพื่อประกอบการพิจารณาทุน หรือการขอรับเกียรติบัตร เป็นต้น
             </div>
             <button class="btn-action" id="btn-m4">กำลังโหลด...</button>
         </div>
@@ -227,16 +302,17 @@
                 <h3 class="mission-title">🧠 ภารกิจ 5: สำรวจใจตัวเอง</h3>
                 <span class="badge" id="status-m5">กำลังตรวจสอบ...</span>
             </div>
+            <div class="mission-desc">ด่านสุดท้ายแล้ว! ทำความเข้าใจความรู้สึกตัวเองกันเถอะ</div>
             <div class="mission-prep">
-                <span class="prep-title">📋 สิ่งที่ต้องเตรียม:</span>
-                - เวลาว่างประมาณ 10 นาทีเพื่อทำแบบประเมิน SDQ
+                <span class="prep-title">📋 คำแนะนำ:</span>
+                • หาที่เงียบๆ และใช้เวลาสบายๆ ประมาณ 10 นาที เพื่อทำแบบประเมิน SDQ
             </div>
             <button class="btn-action" id="btn-m5">กำลังโหลด...</button>
         </div>
 
     </div>
 
-    <a href="#" onclick="logout()" class="logout-btn">ออกจากระบบ</a>
+    <a href="#" onclick="logout()" class="logout-btn">🚪 พักก่อน ออกจากระบบ</a>
 </div>
 
 <script>
@@ -244,24 +320,36 @@
     // ⚙️ การตั้งค่าระบบ (Settings)
     // ==========================================
     // ระยะเวลาล็อกด่าน: 2 วัน (48 ชั่วโมง)
-    // ⚠️ ถ้าอยากทดสอบระบบให้มันปลดล็อกไวๆ ให้เปลี่ยนบรรทัดนี้เป็น: const WAIT_TIME_MS = 10 * 1000; (เพื่อรอแค่ 10 วินาที)
+    // ⚠️ ถ้าอยากทดสอบระบบให้มันปลดล็อกไวๆ ให้เปลี่ยนบรรทัดนี้เป็น: const WAIT_TIME_MS = 10 * 1000; (เพื่อรอ 10 วินาที)
     const WAIT_TIME_MS = 2 * 24 * 60 * 60 * 1000; 
 
-    // ตัวแปรเก็บ Timer เพื่อเคลียร์เวลาเปลี่ยนหน้า
     const timers = {};
 
     window.onload = () => {
-        // 1. เช็คว่าล็อกอินหรือยัง
+        // 1. ความปลอดภัย: ตรวจสอบการเข้าสู่ระบบ
         if (localStorage.getItem('isLoggedIn') !== 'true') {
-            alert('กรุณาเข้าสู่ระบบก่อนครับ');
-            window.location.href = 'login.html';
+            alert('อุ๊ย! คุณยังไม่ได้เข้าสู่ระบบ หรือหมดเวลาใช้งาน กรุณาเข้าสู่ระบบใหม่นะครับ 😊');
+            window.location.href = '../login.html'; // เด้งกลับไปหน้าล็อกอิน
             return;
         }
 
         // 2. แสดงข้อมูลนักเรียน
-        document.getElementById('student-id-display').innerText = localStorage.getItem('studentId') || 'ไม่ทราบรหัส';
+        const studentId = localStorage.getItem('studentId') || 'ไม่ทราบรหัส';
+        const room = localStorage.getItem('room') || '-';
+        
+        document.getElementById('student-id-display').innerText = studentId;
+        document.getElementById('room-display').innerText = room;
+        
+        // สุ่มคำทักทายอบอุ่นๆ
+        const greetings = [
+            "สวัสดีฮีโร่คนเก่ง! มาลุยกันต่อเลย 🚀",
+            "ยินดีต้อนรับกลับมานะ วันนี้พร้อมหรือยัง? 😊",
+            "มาทำภารกิจให้สำเร็จไปด้วยกันเถอะ! 🌟",
+            "เก่งมากที่เข้ามาเช็คความก้าวหน้า สู้ๆ นะ! ✌️"
+        ];
+        document.getElementById('greeting-display').innerText = greetings[Math.floor(Math.random() * greetings.length)];
 
-        // 3. โหลดความคืบหน้าภารกิจ
+        // 3. คำนวณความคืบหน้า
         loadProgress();
     };
 
@@ -276,39 +364,37 @@
             const statusEl = document.getElementById(`status-m${i}`);
             const btnEl = document.getElementById(`btn-m${i}`);
 
-            // ล้างคลาสเก่าก่อน
             cardEl.classList.remove('ready', 'completed');
             btnEl.className = 'btn-action';
 
             if (doneTime) {
-                // 🟢 สถานะ: ทำสำเร็จแล้ว
+                // สถานะ: ผ่านแล้ว
                 totalScore += 100;
                 completedCount++;
                 cardEl.classList.add('completed');
-                statusEl.innerText = '✅ สำเร็จแล้ว';
+                statusEl.innerText = '✅ ยอดเยี่ยม! ผ่านแล้ว';
                 statusEl.className = 'badge badge-completed';
                 
-                btnEl.innerText = '📝 ดูข้อมูล / แก้ไข';
+                btnEl.innerText = '📝 ดูหรือแก้ไขข้อมูล';
                 btnEl.classList.add('btn-edit');
                 btnEl.onclick = () => window.location.href = `mission${i}.html`;
             } else {
-                // 🟠 หรือ ⚪ สถานะ: ยังไม่สำเร็จ (เช็คว่าปลดล็อกหรือยัง)
+                // สถานะ: ยังไม่ผ่าน (เช็คปลดล็อก)
                 if (i === 1 || isNextMissionFound === false) {
-                    isNextMissionFound = true; // นี่คือด่านต่อไปที่ต้องทำ
-                    
+                    isNextMissionFound = true; 
                     let prevDoneTime = i === 1 ? null : localStorage.getItem(`mission_${i-1}_done_time`);
                     
                     if (i === 1 || (Date.now() - parseInt(prevDoneTime)) >= WAIT_TIME_MS) {
-                        // ปลดล็อกแล้ว (พร้อมลุย)
+                        // ปลดล็อกแล้ว
                         cardEl.classList.add('ready');
-                        statusEl.innerText = '🔥 พร้อมลุย';
+                        statusEl.innerText = '🔥 พร้อมลุยเลย!';
                         statusEl.className = 'badge badge-ready';
                         
-                        btnEl.innerText = '🚀 เริ่มภารกิจนี้';
+                        btnEl.innerText = '🚀 กดเพื่อเริ่มภารกิจนี้';
                         btnEl.classList.add('btn-start');
                         btnEl.onclick = () => window.location.href = `mission${i}.html`;
                     } else {
-                        // ติดล็อกเวลา
+                        // ติด Time Lock
                         statusEl.className = 'badge badge-locked';
                         btnEl.classList.add('btn-locked');
                         btnEl.disabled = true;
@@ -317,17 +403,17 @@
                         startCountdown(unlockTime, statusEl, btnEl, i, cardEl);
                     }
                 } else {
-                    // ด่านหลังจากด่านต่อไป (ถูกล็อกแน่นอน)
-                    statusEl.innerText = '🔒 ต้องผ่านด่านก่อนหน้า';
+                    // ด่านหลังจากนั้น
+                    statusEl.innerText = '🔒 ต้องผ่านด่านก่อนหน้าก่อนนะ';
                     statusEl.className = 'badge badge-locked';
-                    btnEl.innerText = 'ยังไม่ปลดล็อก';
+                    btnEl.innerText = 'ด่านนี้ยังไม่เปิด ❌';
                     btnEl.classList.add('btn-locked');
                     btnEl.disabled = true;
                 }
             }
         }
 
-        // อัปเดต UI ส่วนบน (หลอดพลัง & คะแนน)
+        // อัปเดต UI 
         const progressPercent = (completedCount / 5) * 100;
         document.getElementById('progress-bar').style.width = `${progressPercent}%`;
         document.getElementById('progress-text').innerText = `${progressPercent}%`;
@@ -336,7 +422,6 @@
         document.getElementById('completed-display').innerText = completedCount;
     }
 
-    // ฟังก์ชันนับถอยหลังสำหรับด่านที่ติดล็อก
     function startCountdown(unlockTime, statusEl, btnEl, missionNum, cardEl) {
         if (timers[missionNum]) clearInterval(timers[missionNum]);
 
@@ -344,33 +429,30 @@
             const remaining = unlockTime - Date.now();
             
             if (remaining <= 0) {
-                // ถึงเวลาปลดล็อก
                 clearInterval(timers[missionNum]);
                 cardEl.classList.add('ready');
-                statusEl.innerText = '🔥 พร้อมลุย';
+                statusEl.innerText = '🔥 พร้อมลุยเลย!';
                 statusEl.className = 'badge badge-ready';
-                btnEl.innerText = '🚀 เริ่มภารกิจนี้';
+                btnEl.innerText = '🚀 กดเพื่อเริ่มภารกิจนี้';
                 btnEl.className = 'btn-action btn-start';
                 btnEl.disabled = false;
                 btnEl.onclick = () => window.location.href = `mission${missionNum}.html`;
             } else {
-                // อัปเดตเวลาบนหน้าจอ
                 const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                 const secs = Math.floor((remaining % (1000 * 60)) / 1000);
                 
-                let timeStr = '⏳ รอ ';
+                let timeStr = '⏳ พักก่อนนะ เหลือเวลาอีก ';
                 if(days > 0) timeStr += `${days} วัน `;
                 timeStr += `${hours} ชม. ${mins} นาที ${secs} วิ`;
                 
                 statusEl.innerText = timeStr;
-                btnEl.innerText = `เปิดในอีก ${days} วัน ${hours} ชม.`;
+                btnEl.innerText = `เปิดให้ทำในอีก ${days > 0 ? days + ' วัน' : hours + ' ชั่วโมง'} 🛌`;
             }
         }, 1000);
     }
 
-    // ฟังก์ชันลูกเล่นตัวเลขวิ่ง
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -384,9 +466,9 @@
     }
 
     function logout() {
-        if(confirm('ต้องการออกจากระบบใช่หรือไม่?')) {
-            localStorage.setItem('isLoggedIn', 'false');
-            window.location.href = 'login.html';
+        if(confirm('ต้องการหยุดพักและออกจากระบบใช่หรือไม่? ข้อมูลที่คุณทำเสร็จแล้วจะถูกบันทึกไว้ครับ 😊')) {
+            localStorage.setItem('isLoggedIn', 'false'); // ยกเลิกสถานะล็อกอิน แต่เก็บประวัติการผ่านด่านไว้
+            window.location.href = '../login.html';
         }
     }
 </script>
