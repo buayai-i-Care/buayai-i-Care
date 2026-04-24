@@ -3,135 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ทดสอบเชื่อมต่อฐานข้อมูล and otehr feature </title>
+    <title>เข้าสู่ระบบ: Buayai I Care School สำหรับนักเรียน</title>
     <style>
+        :root {
+            --primary: #f97316; /* เปลี่ยนเป็นสีส้มสำหรับโหมดนักเรียน */
+            --primary-hover: #ea580c;
+            --bg-color: #fff7ed; /* พื้นหลังอมส้มอ่อนๆ */
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --danger: #ef4444;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
-            box-sizing: border-box;
         }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .login-card {
+            background: var(--card-bg);
             width: 100%;
-            max-width: 500px;
-        }
-        h2 {
-            margin-top: 0;
-            color: #111827;
-            font-size: 1.5rem;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 10px;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 40px 30px;
             text-align: center;
         }
+        .icon-container {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        h1 { margin-top: 0; color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; }
+        p { color: #6b7280; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+        
         button {
-            background-color: #2563eb;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
+            border-radius: 8px;
             font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background-color: #1d4ed8;
-        }
-        button:disabled {
-            background-color: #9ca3af;
-            cursor: not-allowed;
-        }
-        #status-message {
-            margin-top: 20px;
-            font-weight: 600;
-            text-align: center;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        li {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        .col-number {
             font-weight: bold;
-            color: #4b5563;
-            margin-right: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
+        #error-msg {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        /* เพิ่มสไตล์สำหรับลิงก์และป้ายโหมดนักเรียน */
+        .action-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+        .action-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .action-links a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+        .student-badge {
+            display: inline-block;
+            background-color: #ffedd5;
+            color: var(--primary-hover);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📊 โครงสร้างคอลัมน์ Sheet</h2>
-    <p style="text-align: center; color: #4b5563; margin-bottom: 20px;">
-        คลิกปุ่มด้านล่างเพื่อดึงข้อมูลจาก Google Sheet
-    </p>
-    
-    <button onclick="fetchColumns()" id="fetch-btn">ดึงข้อมูลคอลัมน์</button>
-    
-    <div id="status-message"></div>
-    <ul id="column-list"></ul>
+<div class="login-card">
+    <div class="icon-container">🔐</div>
+    <div class="student-badge">🧑‍🎓 โหมดนักเรียน</div>
+    <h1>เข้าสู่ระบบนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h1>
+    <p>****Buayai I Care School ***</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+            <label for="studentId">เลขประจำตัวนักเรียน</label>
+            <input type="text" id="studentId" placeholder="กรอกเลขประจำตัว" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">รหัสผ่าน</label>
+            <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
+        </div>
+
+        <button type="submit" id="loginBtn">เข้าสู่ระบบ 🚀</button>
+        <div id="error-msg"></div>
+        
+        <!-- เพิ่มลิงก์ สมัครสมาชิก และ ลืมรหัสผ่าน -->
+        <div class="action-links">
+            <a href="appyEpoint.html">ยังไม่สมัคร? ไปที่นี่</a>
+            <a href="loginEpoint.html">ลืมรหัสผ่าน? ไปที่นี่</a>
+        </div>
+    </form>
 </div>
 
 <script>
-    // ⚠️ นำ URL ของ Web app จาก Google Apps Script มาใส่ในเครื่องหมายคำพูดด้านล่างนี้
-    // เช่น const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/xxxx/exec';
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
+    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (ส่วนที่ 1) มาใส่ที่นี่
+    const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
 
-    async function fetchColumns() {
-        const listContainer = document.getElementById('column-list');
-        const statusMessage = document.getElementById('status-message');
-        const fetchBtn = document.getElementById('fetch-btn');
+    // เช็คว่าเคยล็อกอินไว้หรือยัง ถ้าเคยแล้วให้ข้ามไปภารกิจเลย
+    window.onload = () => {
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'mission1.html'; // เปลี่ยนหน้าอัตโนมัติ
+        }
+    };
+
+    async function handleLogin(e) {
+        e.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
         
-        // ล้างข้อมูลเก่าและปรับสถานะปุ่ม
-        listContainer.innerHTML = ''; 
-        statusMessage.textContent = '⏳ กำลังดึงข้อมูลจากฐานข้อมูล...';
-        statusMessage.style.color = '#d97706'; // สีส้ม
-        fetchBtn.disabled = true;
+        const studentId = document.getElementById('studentId').value;
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('error-msg');
+
+        // รีเซ็ตข้อความและปิดปุ่ม
+        errorMsg.textContent = '';
+        btn.disabled = true;
+        btn.textContent = 'กำลังตรวจสอบข้อมูล... ⏳';
 
         try {
-            const response = await fetch(GAS_WEB_APP_URL);
+            const response = await fetch(LOGIN_API_URL, {
+                method: 'POST',
+                // ต้องใช้ mode: 'no-cors' ถ้าการตั้งค่า CORS ของ GAS มีปัญหา แต่ที่นี่เราเขียนจัดการไว้แล้ว
+                body: JSON.stringify({ studentId: studentId, password: password }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            // หมายเหตุ: GAS บางครั้ง redirect เป็น HTML แทน JSON ให้เราพยายาม parse ก่อน
             const data = await response.json();
 
             if (data.status === 'success') {
-                statusMessage.textContent = '✅ ดึงข้อมูลสำเร็จ!';
-                statusMessage.style.color = '#16a34a'; // สีเขียว
+                // ✅ ล็อกอินสำเร็จ: บันทึกสถานะลงเบราว์เซอร์
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('studentId', data.data.studentId);
+                localStorage.setItem('room', data.data.room);
                 
-                data.columns.forEach((colName, index) => {
-                    const li = document.createElement('li');
-                    // ถ้าช่องว่างให้แสดงข้อความสีแดงเตือน
-                    const nameDisplay = colName ? colName : '<span style="color:#ef4444; font-style:italic;">(ไม่มีชื่อคอลัมน์)</span>';
-                    li.innerHTML = `<span class="col-number">[คอลัมน์ ${index + 1}]</span> ${nameDisplay}`;
-                    listContainer.appendChild(li);
-                });
+                // แจ้งเตือนและเปลี่ยนหน้า
+                btn.style.backgroundColor = '#10b981'; // สีเขียว
+                btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
+                
+                setTimeout(() => {
+                    window.location.href = 'mission1.html'; // กระโดดไปไฟล์ภารกิจที่ 1
+                }, 1000);
+
             } else {
-                statusMessage.textContent = `❌ เกิดข้อผิดพลาด: ${data.message}`;
-                statusMessage.style.color = '#dc2626'; // สีแดง
+                // ❌ ล็อกอินไม่ผ่าน (รหัสผิด)
+                errorMsg.textContent = `❌ ${data.message}`;
+                btn.disabled = false;
+                btn.textContent = 'เข้าสู่ระบบ 🚀';
             }
+
         } catch (error) {
-            statusMessage.textContent = `❌ ไม่สามารถเชื่อมต่อได้ กรุณาตรวจสอบ URL ของ GAS อีกครั้ง`;
-            statusMessage.style.color = '#dc2626'; // สีแดง
-            console.error("Error details:", error);
-        } finally {
-            fetchBtn.disabled = false;
+            console.error("Error:", error);
+            errorMsg.textContent = '❌ ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่ (อย่าลืมใส่ URL GAS)';
+            btn.disabled = false;
+            btn.textContent = 'เข้าสู่ระบบ 🚀';
         }
     }
 </script>
