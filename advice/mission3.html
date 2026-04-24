@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ภารกิจที่ 3: ข้อมูลสุขภาพของนักเรียน - Buayai I Care School</title>
+    <title>ภารกิจที่ 3: ข้อมูลสุขภาพและความชอบ - Buayai I Care School</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -44,8 +44,8 @@
         /* Medical Checkbox */
         .med-notice { background: var(--warning-bg); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #b45309; margin-bottom: 15px; border: 1px solid #fcd34d; }
         .checkbox-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-        .checkbox-item input[type="checkbox"] { margin-top: 5px; width: 18px; height: 18px; }
-        .date-input { margin-top: 8px; display: none; width: 100%; max-width: 200px; padding: 8px !important; }
+        .checkbox-item input[type="checkbox"] { margin-top: 5px; width: 18px; height: 18px; cursor: pointer; }
+        .date-input { margin-top: 8px; display: none; width: 100%; max-width: 250px; padding: 8px !important; }
         
         /* Color Palette */
         .color-palette { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -59,9 +59,10 @@
         .grid-icon { font-size: 1.8rem; margin-bottom: 5px; display: block; }
         
         /* Friends Rating */
-        .friend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 10px; }
-        .friend-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #f1f5f9; }
-        .hearts { display: flex; gap: 5px; font-size: 1.5rem; color: #cbd5e1; cursor: pointer; }
+        .friend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 10px; transition: transform 0.2s; }
+        .friend-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .friend-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 2px solid #e2e8f0; }
+        .hearts { display: flex; gap: 5px; font-size: 1.6rem; color: #cbd5e1; cursor: pointer; margin-top: 4px; }
         .heart.active { color: #ef4444; }
         
         /* Buttons & Overlay */
@@ -80,7 +81,7 @@
 <div class="mission-container">
     <div class="loading-overlay" id="loadingData">
         <div class="spinner"></div>
-        <div id="loadingText" style="color: var(--primary); font-weight: 700; font-size: 1.1rem;">กำลังดึงข้อมูล...</div>
+        <div id="loadingText" style="color: var(--primary); font-weight: 700; font-size: 1.1rem;">กำลังเชื่อมต่อกับเพื่อนๆ ในห้อง...</div>
     </div>
 
     <div class="header">
@@ -123,36 +124,36 @@
             
             <div class="checkbox-group" id="medicalGroup">
                 <div class="checkbox-item">
-                    <input type="checkbox" id="med-healthy" value="แข็งแรงดีไม่มีโรคประจำตัว" onchange="toggleHealthy(this)">
-                    <label for="med-healthy" style="font-weight: 700; color: var(--success);">✨ สุขภาพแข็งแรงดี ไม่มีประวัติการเจ็บป่วยรุนแรง</label>
+                    <input type="checkbox" id="med-healthy" value="สุขภาพแข็งแรงดี" onchange="toggleHealthy(this)">
+                    <label for="med-healthy" style="font-weight: 700; color: var(--success); cursor: pointer;">✨ สุขภาพแข็งแรงดี ไม่มีโรคประจำตัวรุนแรง</label>
                 </div>
                 <hr style="border-top: 1px dashed #cbd5e1; margin: 10px 0;">
                 
                 <div class="checkbox-item">
-                    <input type="checkbox" class="med-check" value="โรคหอบหืด/ภูมิแพ้รุนแรง" onchange="toggleDateInput(this, 'date-allergy')">
+                    <input type="checkbox" class="med-check" value="โรคหอบหืด/ภูมิแพ้รุนแรง" id="chk-allergy" onchange="toggleDateInput(this, 'date-allergy')">
                     <div>
-                        <label>โรคหอบหืด / ภูมิแพ้รุนแรง</label>
+                        <label for="chk-allergy" style="font-weight: 500; cursor: pointer;">โรคหอบหืด / ภูมิแพ้รุนแรง</label>
                         <input type="text" id="date-allergy" class="date-input" placeholder="ระบุสิ่งที่แพ้ หรืออาการ">
                     </div>
                 </div>
                 <div class="checkbox-item">
-                    <input type="checkbox" class="med-check" value="เคยกระดูกหัก/อุบัติเหตุหนัก" onchange="toggleDateInput(this, 'date-bone')">
+                    <input type="checkbox" class="med-check" value="เคยกระดูกหัก/อุบัติเหตุหนัก" id="chk-bone" onchange="toggleDateInput(this, 'date-bone')">
                     <div>
-                        <label>เคยกระดูกหัก / ผ่าตัด / อุบัติเหตุหนัก</label>
+                        <label for="chk-bone" style="font-weight: 500; cursor: pointer;">เคยกระดูกหัก / ผ่าตัด / อุบัติเหตุหนัก</label>
                         <input type="text" id="date-bone" class="date-input" placeholder="ระบุส่วนที่หัก และปีที่เกิดเหตุ">
                     </div>
                 </div>
                 <div class="checkbox-item">
-                    <input type="checkbox" class="med-check" value="โรคซึมเศร้า/สุขภาพจิต" onchange="toggleDateInput(this, 'date-mental')">
+                    <input type="checkbox" class="med-check" value="โรคซึมเศร้า/สุขภาพจิต" id="chk-mental" onchange="toggleDateInput(this, 'date-mental')">
                     <div>
-                        <label>กลุ่มโรคซึมเศร้า / สุขภาพจิต (ต้องการการดูแลพิเศษ)</label>
-                        <input type="text" id="date-mental" class="date-input" placeholder="ระบุข้อมูลเพิ่มเติม (ข้อมูลนี้จะเป็นความลับ)">
+                        <label for="chk-mental" style="font-weight: 500; cursor: pointer;">กลุ่มโรคซึมเศร้า / สุขภาพจิต (ต้องการการดูแลพิเศษ)</label>
+                        <input type="text" id="date-mental" class="date-input" placeholder="ระบุข้อมูลเพิ่มเติม (เก็บเป็นความลับ)">
                     </div>
                 </div>
                 <div class="checkbox-item">
-                    <input type="checkbox" class="med-check" value="อื่นๆ" onchange="toggleDateInput(this, 'date-other')">
+                    <input type="checkbox" class="med-check" value="อื่นๆ" id="chk-other" onchange="toggleDateInput(this, 'date-other')">
                     <div>
-                        <label>โรคประจำตัวอื่นๆ</label>
+                        <label for="chk-other" style="font-weight: 500; cursor: pointer;">โรคประจำตัวอื่นๆ</label>
                         <input type="text" id="date-other" class="date-input" placeholder="โปรดระบุโรคประจำตัว หรืออาการ">
                     </div>
                 </div>
@@ -185,17 +186,17 @@
                     <div class="color-circle" style="background: #000000;" data-color="ดำ"></div>
                     <div class="color-circle" style="background: #ffffff; border: 1px solid #cbd5e1;" data-color="ขาว"></div>
                 </div>
-                <input type="text" id="colorOther" placeholder="หรือพิมพ์สีที่ชอบอื่นๆ..." style="margin-top: 5px;">
+                <input type="text" id="colorOther" placeholder="หรือพิมพ์สีที่ชอบอื่นๆ..." style="margin-top: 5px;" oninput="selectedColor=''">
             </div>
 
             <div class="form-group">
                 <label>3. กีฬาที่ชอบ</label>
                 <div class="grid-select" id="sportGrid">
-                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">⚽</span>ฟุตบอล</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏐</span>วอลเลย์บอล</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏸</span>แบดมินตัน</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏊</span>ว่ายน้ำ</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🎮</span>อีสปอร์ต</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">⚽</span>ฟุตบอล</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🏐</span>วอลเลย์บอล</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🏸</span>แบดมินตัน</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🏊</span>ว่ายน้ำ</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🎮</span>อีสปอร์ต</div>
                 </div>
                 <input type="text" id="sportOther" placeholder="กีฬาอื่นๆ โปรดระบุ..." style="margin-top: 10px;">
             </div>
@@ -203,11 +204,11 @@
             <div class="form-group">
                 <label>4. กิจกรรมยามว่างที่ชอบทำ</label>
                 <div class="grid-select" id="activityGrid">
-                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">🎨</span>วาดรูป</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">💃</span>เต้น/ร้องเพลง</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">🎬</span>ดูหนัง/ซีรีส์</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">✈️</span>ไปเที่ยว</div>
-                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">📚</span>อ่านหนังสือ</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🎨</span>วาดรูป</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">💃</span>เต้น/ร้องเพลง</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">🎬</span>ดูหนัง/ซีรีส์</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">✈️</span>ไปเที่ยว</div>
+                    <div class="grid-item" onclick="toggleSelect(this)"><span class="grid-icon">📚</span>อ่านหนังสือ</div>
                 </div>
                 <input type="text" id="activityOther" placeholder="กิจกรรมอื่นๆ โปรดระบุ..." style="margin-top: 10px;">
             </div>
@@ -218,58 +219,20 @@
             </div>
         </div>
 
-        <!-- 💖 โซน 4: เพื่อนสนิท -->
+        <!-- 💖 โซน 4: เพื่อนสนิท (สร้างอัตโนมัติจากฐานข้อมูล) -->
         <div class="form-section">
             <h3 class="section-title">💖 โซนที่ 4: ความไว้วางใจเพื่อนในห้อง</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0;">ให้คะแนนหัวใจเพื่อนที่คุณสนิทหรือไว้วางใจที่สุด (กดได้สูงสุด 5 ดวง และเลือกเพื่อนได้หลายคน)</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0; margin-bottom: 15px;">
+                รายชื่อด้านล่างคือเพื่อนร่วมห้องของคุณ ให้คะแนนหัวใจเพื่อนที่คุณสนิทหรือไว้วางใจที่สุด (สูงสุด 5 ดวง)
+            </p>
             
+            <!-- ตะกร้าใส่รายชื่อเพื่อน -->
             <div id="friendsList">
-                <!-- รายชื่อเพื่อนจำลอง (ในระบบจริงอาจดึงจากฐานข้อมูลห้อง) -->
-                <div class="friend-card" data-name="ด.ญ. สุมาลี รักเรียน">
-                    <img src="https://ui-avatars.com/api/?name=สม&background=random" class="friend-img">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">สุมาลี รักเรียน</div>
-                        <div class="hearts">
-                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="friend-card" data-name="ด.ญ. วิลาวัลย์ ใจดี">
-                    <img src="https://ui-avatars.com/api/?name=วิ&background=random" class="friend-img">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">วิลาวัลย์ ใจดี</div>
-                        <div class="hearts">
-                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="friend-card" data-name="ด.ช. สมชาย สายเสมอ">
-                    <img src="https://ui-avatars.com/api/?name=ช&background=random" class="friend-img">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">สมชาย สายเสมอ</div>
-                        <div class="hearts">
-                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
-                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
-                        </div>
-                    </div>
-                </div>
+                <p style="text-align:center; color:#9ca3af;">กำลังดึงรายชื่อเพื่อนร่วมห้อง...</p>
             </div>
             
-            <div style="margin-top: 10px;">
-                <label style="font-size: 0.9rem;">เพื่อนสนิทต่างห้อง / ต่างโรงเรียน (ระบุชื่อ)</label>
+            <div style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                <label style="font-size: 0.95rem;">เพื่อนสนิทต่างห้อง / ต่างโรงเรียน (ถ้ามี ระบุชื่อได้เลย)</label>
                 <input type="text" id="otherFriends" placeholder="เช่น ด.ญ. ฟ้าใส ม.1/3">
             </div>
         </div>
@@ -282,7 +245,9 @@
 </div>
 
 <script>
+    // ⚠️ นำ URL ของ Web App อันใหม่ มาใส่ที่นี่
     const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
+    
     let currentStudentId = '';
     let selectedColor = '';
     let friendRatings = {};
@@ -300,13 +265,179 @@
                 document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 selectedColor = this.dataset.color;
+                document.getElementById('colorOther').value = ''; 
             });
         });
 
-        // fetchDataFromServer(); // เปิดใช้งานเมื่อหลังบ้านพร้อม
+        // ดึงข้อมูลตัวเองและเพื่อน
+        fetchDataFromServer(); 
     };
 
-    // --- Logic BMI ---
+    // ==========================================
+    // 📥 ดึงข้อมูล และสร้างการ์ดเพื่อนร่วมห้อง
+    // ==========================================
+    async function fetchDataFromServer() {
+        document.getElementById('loadingData').style.display = 'flex';
+        try {
+            const response = await fetch(DATA_API_URL, {
+                method: 'POST',
+                body: new URLSearchParams({ 'action': 'getData', 'studentId': currentStudentId })
+            });
+            const data = await response.json();
+            
+            if(data.status === 'success') {
+                // 1. สร้างการ์ดรายชื่อเพื่อนก่อน
+                renderClassmates(data.classmates);
+                
+                // 2. ค่อยนำข้อมูลที่บันทึกไว้ มากางใส่ช่องต่างๆ (รวมถึงคะแนนหัวใจ)
+                if (data.studentData) {
+                    populateForm(data.studentData);
+                }
+            }
+        } catch (error) {
+            console.error("Fetch Data Error:", error);
+            document.getElementById('friendsList').innerHTML = '<p style="color:red; text-align:center;">ไม่สามารถเชื่อมต่อฐานข้อมูลเพื่อนได้</p>';
+        } finally {
+            document.getElementById('loadingData').style.display = 'none';
+        }
+    }
+
+    // ฟังก์ชันสร้าง UI รายชื่อเพื่อนร่วมห้องแบบไดนามิก
+    function renderClassmates(classmates) {
+        const list = document.getElementById('friendsList');
+        list.innerHTML = '';
+        
+        if (!classmates || classmates.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:#6b7280; font-size:0.95rem; background:#f8fafc; padding:20px; border-radius:8px;">ยังไม่พบข้อมูลเพื่อนร่วมห้องของคุณในระบบฐานข้อมูลครับ</p>';
+            return;
+        }
+
+        classmates.forEach(c => {
+            let imgSrc = '';
+            // ถ้าเพื่อนมีรูป ให้แปลงลิงก์ Drive ถ้าไม่มี ให้สร้างรูปอวาตาร์จากตัวอักษร
+            if (c.profileImageUrl) {
+                const match = c.profileImageUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || c.profileImageUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) imgSrc = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w200`;
+                else imgSrc = c.profileImageUrl;
+            } else {
+                imgSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.fullName.substring(0,2))}&background=random&color=fff&rounded=true`;
+            }
+
+            // สร้าง DOM
+            const card = document.createElement('div');
+            card.className = 'friend-card';
+            card.dataset.id = c.studentId; // ใช้รหัสเพื่อนเป็นคีย์หลัก
+            
+            card.innerHTML = `
+                <img src="${imgSrc}" class="friend-img" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.fullName.substring(0,2))}&background=random&color=fff&rounded=true'">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.05rem;">${c.fullName}</div>
+                    <div class="hearts">
+                        <span class="heart" onclick="rateFriend(this, 1)">♥</span>
+                        <span class="heart" onclick="rateFriend(this, 2)">♥</span>
+                        <span class="heart" onclick="rateFriend(this, 3)">♥</span>
+                        <span class="heart" onclick="rateFriend(this, 4)">♥</span>
+                        <span class="heart" onclick="rateFriend(this, 5)">♥</span>
+                    </div>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function populateForm(data) {
+        if (data.weight) document.getElementById('weight').value = data.weight;
+        if (data.height) document.getElementById('height').value = data.height;
+        calculateBMI();
+
+        if (data.medicalCondition) {
+            if (data.medicalCondition.includes("สุขภาพแข็งแรงดี")) {
+                document.getElementById('med-healthy').checked = true;
+                toggleHealthy(document.getElementById('med-healthy'));
+            } else {
+                const conditions = data.medicalCondition.split(' | ');
+                conditions.forEach(cond => {
+                    const match = cond.match(/(.*?)\s*\((.*?)\)/);
+                    let val = cond; let dateStr = '';
+                    if (match) { val = match[1].trim(); dateStr = match[2].trim(); }
+                    
+                    const cb = Array.from(document.querySelectorAll('.med-check')).find(c => c.value === val);
+                    if (cb) {
+                        cb.checked = true;
+                        const dateInput = cb.nextElementSibling.querySelector('.date-input');
+                        toggleDateInput(cb, dateInput.id);
+                        dateInput.value = dateStr;
+                    }
+                });
+            }
+        }
+
+        if (data.preferencesJson) {
+            try {
+                const pref = JSON.parse(data.preferencesJson);
+                
+                if (pref.subject) {
+                    document.getElementById('subjFav').value = pref.subject.fav || '';
+                    document.getElementById('subjLike').value = pref.subject.like || '';
+                    document.getElementById('subjHate').value = pref.subject.hate || '';
+                }
+                
+                if (pref.color) {
+                    const circle = document.querySelector(`.color-circle[data-color="${pref.color}"]`);
+                    if (circle) circle.click();
+                    else document.getElementById('colorOther').value = pref.color;
+                }
+                
+                if (pref.sports) {
+                    const sportArr = pref.sports.split(',');
+                    const sportItems = document.querySelectorAll('#sportGrid .grid-item');
+                    let otherSports = [];
+                    sportArr.forEach(s => {
+                        let found = false;
+                        sportItems.forEach(item => { if(item.innerText.trim() === s.trim()) { item.classList.add('selected'); found = true; } });
+                        if(!found && s.trim()) otherSports.push(s.trim());
+                    });
+                    document.getElementById('sportOther').value = otherSports.join(', ');
+                }
+
+                if (pref.activities) {
+                    const actArr = pref.activities.split(',');
+                    const actItems = document.querySelectorAll('#activityGrid .grid-item');
+                    let otherActs = [];
+                    actArr.forEach(a => {
+                        let found = false;
+                        actItems.forEach(item => { if(item.innerText.trim() === a.trim()) { item.classList.add('selected'); found = true; } });
+                        if(!found && a.trim()) otherActs.push(a.trim());
+                    });
+                    document.getElementById('activityOther').value = otherActs.join(', ');
+                }
+                document.getElementById('dreamCareer').value = pref.career || '';
+            } catch (e) {}
+        }
+
+        // 🌟 กางข้อมูลคะแนนหัวใจเพื่อนกลับสู่ UI
+        if (data.friendsJson) {
+            try {
+                const friends = JSON.parse(data.friendsJson);
+                for (const [id, rating] of Object.entries(friends)) {
+                    if (id === 'other') {
+                        document.getElementById('otherFriends').value = rating;
+                    } else {
+                        // ค้นหาการ์ดเพื่อนด้วย studentId
+                        const card = document.querySelector(`.friend-card[data-id="${id}"]`);
+                        if (card) {
+                            const targetHeart = card.querySelectorAll('.heart')[rating - 1]; // rating 1 = index 0
+                            if (targetHeart) rateFriend(targetHeart, rating);
+                        }
+                    }
+                }
+            } catch (e) { console.error("JSON Friends Parse Error", e); }
+        }
+    }
+
+    // ==========================================
+    // ⚙️ Logic UI ต่างๆ
+    // ==========================================
     function calculateBMI() {
         const weight = parseFloat(document.getElementById('weight').value);
         const heightCm = parseFloat(document.getElementById('height').value);
@@ -321,31 +452,19 @@
             bmiCard.style.display = 'block';
 
             let advice = ''; let bgColor = ''; let textColor = '';
-            if (bmi < 18.5) {
-                advice = "ผอมเกินไป (น้ำหนักน้อย) 🍲 ทานอาหารที่มีประโยชน์เพิ่มขึ้นอีกนิดนะ เพื่อให้ร่างกายมีพลังงานเต็มที่!";
-                bgColor = "#eff6ff"; textColor = "#1d4ed8";
-            } else if (bmi >= 18.5 && bmi < 23) {
-                advice = "สมส่วน (ปกติ) 🎉 ยอดเยี่ยมมาก! รักษาสุขภาพ กินอาหารดีๆ และออกกำลังกายแบบนี้ต่อไปนะ";
-                bgColor = "#d1fae5"; textColor = "#047857";
-            } else if (bmi >= 23 && bmi < 25) {
-                advice = "น้ำหนักเกิน (ท้วม) 🏃‍♂️ ลองขยับร่างกายและออกกำลังกายเพิ่มอีกนิด เพื่อสุขภาพที่ดียิ่งขึ้นนะ";
-                bgColor = "#ffedd5"; textColor = "#c2410c";
-            } else {
-                advice = "อ้วน (ควรระวัง) ⚠️ ควรระมัดระวังเรื่องอาหารหวานมัน และหมั่นออกกำลังกายเป็นประจำนะ สู้ๆ!";
-                bgColor = "#fee2e2"; textColor = "#b91c1c";
-            }
+            if (bmi < 18.5) { advice = "ผอมเกินไป (น้ำหนักน้อย) 🍲 ทานอาหารที่มีประโยชน์เพิ่มนะ"; bgColor = "#eff6ff"; textColor = "#1d4ed8"; } 
+            else if (bmi >= 18.5 && bmi < 23) { advice = "สมส่วน (ปกติ) 🎉 ยอดเยี่ยมมาก! รักษาสุขภาพแบบนี้ต่อไปนะ"; bgColor = "#d1fae5"; textColor = "#047857"; } 
+            else if (bmi >= 23 && bmi < 25) { advice = "น้ำหนักเกิน (ท้วม) 🏃‍♂️ ลองขยับร่างกายเพิ่มอีกนิดนะ"; bgColor = "#ffedd5"; textColor = "#c2410c"; } 
+            else { advice = "อ้วน (ควรระวัง) ⚠️ ควรระมัดระวังเรื่องอาหารหวานมัน และออกกำลังกายนะ สู้ๆ!"; bgColor = "#fee2e2"; textColor = "#b91c1c"; }
 
             bmiAdviceEl.innerText = advice;
-            bmiAdviceEl.style.backgroundColor = bgColor;
-            bmiAdviceEl.style.color = textColor;
-            bmiValueEl.style.color = textColor;
-            bmiCard.style.borderColor = textColor;
+            bmiAdviceEl.style.backgroundColor = bgColor; bmiAdviceEl.style.color = textColor;
+            bmiValueEl.style.color = textColor; bmiCard.style.borderColor = textColor;
         } else {
             bmiCard.style.display = 'none';
         }
     }
 
-    // --- Logic Medical ---
     function toggleHealthy(checkbox) {
         const others = document.querySelectorAll('.med-check');
         const dateInputs = document.querySelectorAll('.date-input');
@@ -356,44 +475,40 @@
             others.forEach(cb => { cb.disabled = false; });
         }
     }
+
     function toggleDateInput(checkbox, inputId) {
         const input = document.getElementById(inputId);
         if (checkbox.checked) {
-            input.style.display = 'block';
-            document.getElementById('med-healthy').checked = false;
+            input.style.display = 'block'; document.getElementById('med-healthy').checked = false;
         } else {
-            input.style.display = 'none';
-            input.value = '';
+            input.style.display = 'none'; input.value = '';
         }
     }
 
-    // --- Logic Grid Selection (Sport/Activity) ---
-    function toggleSelect(el, type) {
-        el.classList.toggle('selected');
-    }
+    function toggleSelect(el) { el.classList.toggle('selected'); }
 
-    // --- Logic Friends Rating ---
+    // 💡 ปรับปรุง: เก็บค่าคะแนนหัวใจโดยใช้รหัสนักเรียน (ID) เป็น Key แทนชื่อ เพื่อความแม่นยำ
     function rateFriend(heartEl, rating) {
         const card = heartEl.closest('.friend-card');
-        const friendName = card.dataset.name;
+        const friendId = card.dataset.id;
         const hearts = card.querySelectorAll('.heart');
         
-        // Reset and set active
         hearts.forEach((h, index) => {
             if (index < rating) h.classList.add('active');
             else h.classList.remove('active');
         });
 
-        friendRatings[friendName] = rating;
+        friendRatings[friendId] = rating; // เซฟด้วย ID เพื่อน
     }
 
-    // --- Logic บันทึกข้อมูล ---
+    // ==========================================
+    // 💾 ระบบการบันทึกข้อมูล
+    // ==========================================
     async function saveData(isComplete) {
         const weight = document.getElementById('weight').value;
         const height = document.getElementById('height').value;
         const dreamCareer = document.getElementById('dreamCareer').value;
 
-        // ดึงค่าประวัติการเจ็บป่วย
         let medicalArr = [];
         if (document.getElementById('med-healthy').checked) {
             medicalArr.push("สุขภาพแข็งแรงดี");
@@ -411,7 +526,6 @@
             }
         }
 
-        // จัดรูปแบข้อมูล ความชอบ (วิชา, สี, กีฬา, กิจกรรม) เป็น JSON String
         const preferences = {
             subject: { fav: document.getElementById('subjFav').value, like: document.getElementById('subjLike').value, hate: document.getElementById('subjHate').value },
             color: selectedColor || document.getElementById('colorOther').value,
@@ -420,21 +534,15 @@
             career: dreamCareer
         };
 
-        // จัดรูปแบบเพื่อนสนิท เป็น JSON String
         friendRatings['other'] = document.getElementById('otherFriends').value;
 
         document.getElementById('loadingData').style.display = 'flex';
         document.getElementById('loadingText').innerText = 'กำลังบันทึกข้อมูล...';
 
         const params = new URLSearchParams({
-            'action': 'saveData',
-            'mission': '3',
-            'studentId': currentStudentId,
-            'weight': weight,
-            'height': height,
-            'medicalCondition': medicalArr.join(' | '),
-            'preferencesJson': JSON.stringify(preferences),
-            'friendsJson': JSON.stringify(friendRatings)
+            'action': 'saveData', 'mission': '3', 'studentId': currentStudentId,
+            'weight': weight, 'height': height, 'medicalCondition': medicalArr.join(' | '),
+            'preferencesJson': JSON.stringify(preferences), 'friendsJson': JSON.stringify(friendRatings)
         });
 
         try {
@@ -444,14 +552,14 @@
             if(data.status === 'success') {
                 if (isComplete) {
                     localStorage.setItem('mission_3_done_time', Date.now());
-                    alert('🎉 ภารกิจที่ 3 สำเร็จ! (ภารกิจที่ 4 จะเปิดในอีก 2 วัน)');
+                    alert('🎉 ภารกิจที่ 3 สำเร็จ! ข้อมูลถูกบันทึกเรียบร้อย');
                 } else {
                     alert('💾 บันทึกข้อมูลร่างเรียบร้อยแล้ว');
                 }
                 window.location.href = 'Std_info_dashboard.html';
             } else { throw new Error(data.message); }
         } catch (error) {
-            alert('❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            alert('❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
         } finally {
             document.getElementById('loadingData').style.display = 'none';
         }
