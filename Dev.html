@@ -138,7 +138,7 @@
     // ==========================================
     // ⚙️ Configuration
     // ==========================================
-    // ⚠️ โปรดตรวจสอบให้แน่ใจว่า URL นี้มาจากการ Deploy แบบ "New Deployment" เสมอ
+    // URL ของ Web App จาก Google Apps Script (อันที่ใช้อยู่ปัจจุบัน)
     const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
 
     // ==========================================
@@ -147,7 +147,7 @@
     window.onload = () => {
         // หากผู้ใช้เคยล็อกอินไว้แล้ว ให้ Redirect ทันที
         if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.replace('advice/Std_info_dashboard.html'); // ใช้ replace เพื่อไม่ให้กด Back กลับมาหน้าล็อกอินได้
+            window.location.replace('advice/Std_info_dashboard.html'); // เข้าสู่ Dashboard
         }
     };
 
@@ -180,9 +180,9 @@
         btn.textContent = 'กำลังตรวจสอบข้อมูล... ⏳';
 
         try {
-            // สร้าง Payload แบบ URLSearchParams (หลีกเลี่ยง CORS Preflight issues)
+            // สร้าง Payload แบบ URLSearchParams (❗️ สำคัญที่สุดคือการมี action: 'login')
             const payload = new URLSearchParams({
-                'action': 'login', // ❗️ จุดสำคัญ: แจ้ง Backend ว่านี่คือคำสั่งล็อกอิน
+                'action': 'login', 
                 'studentId': studentId,
                 'password': password
             });
@@ -198,16 +198,16 @@
                 throw new Error(`HTTP Error: ${response.status}`);
             }
 
-            // รับและตรวจสอบผลลัพธ์ (ดักจับกรณี GAS พ่น HTML error page ออกมา)
+            // รับและตรวจสอบผลลัพธ์
             let data;
             try {
                 data = await response.json();
             } catch (parseError) {
                 console.error("JSON Parse Error. Server might have returned HTML.", parseError);
-                throw new Error("เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่ถูกต้อง (ตรวจสอบการ Deploy ของ GAS)");
+                throw new Error("เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่ถูกต้อง (โปรดตรวจสอบลิงก์ GAS)");
             }
 
-            // ประมวลผลลัพธ์ทางตรรกะ (Business Logic)
+            // ประมวลผลลัพธ์ (Business Logic)
             if (data.status === 'success') {
                 // เซฟ Session ลง LocalStorage อย่างปลอดภัย
                 localStorage.setItem('isLoggedIn', 'true');
