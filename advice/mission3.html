@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ภารกิจที่ 3: ข้อมูลสุขภาพของนักเรียน - Buayai I Care School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #f97316; --primary-hover: #ea580c;
+            --bg-color: #fff7ed; --card-bg: #ffffff;
+            --text-main: #1f2937; --text-muted: #6b7280;
+            --success: #10b981; --success-hover: #059669;
+            --danger: #ef4444; --warning-bg: #fffbeb;
+            --info-bg: #eff6ff; --info-text: #1d4ed8;
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .mission-container { width: 100%; max-width: 700px; background-color: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; position: relative; }
+        
+        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ffedd5; padding-bottom: 15px; }
+        .back-btn { background: none; border: none; font-size: 1.5rem; color: var(--primary); cursor: pointer; margin-right: 15px; padding: 0; transition: transform 0.2s; }
+        .back-btn:hover { transform: translateX(-3px); }
+        .title-group { flex: 1; }
+        .title-group h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 700; }
+        
+        .form-section { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .section-title { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-top: 0; border-bottom: 2px solid #ffedd5; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
+        .required-mark { color: var(--danger); }
+        
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; font-size: 1rem; transition: 0.2s; }
+        input:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+        
+        /* BMI Card */
+        .bmi-card { background: white; border-radius: 10px; padding: 15px; text-align: center; margin-top: 15px; border: 2px dashed #cbd5e1; display: none; transition: 0.3s; }
+        .bmi-value { font-size: 2rem; font-weight: 700; margin: 10px 0; }
+        .bmi-advice { font-size: 0.95rem; padding: 10px; border-radius: 8px; font-weight: 600; }
+        
+        /* Medical Checkbox */
+        .med-notice { background: var(--warning-bg); padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #b45309; margin-bottom: 15px; border: 1px solid #fcd34d; }
+        .checkbox-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+        .checkbox-item input[type="checkbox"] { margin-top: 5px; width: 18px; height: 18px; }
+        .date-input { margin-top: 8px; display: none; width: 100%; max-width: 200px; padding: 8px !important; }
+        
+        /* Color Palette */
+        .color-palette { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .color-circle { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .color-circle.selected { border-color: var(--text-main); transform: scale(1.1); }
+        
+        /* Sport & Activity Grids */
+        .grid-select { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .grid-item { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; user-select: none; }
+        .grid-item.selected { background: var(--info-bg); border-color: var(--primary); color: var(--primary); font-weight: bold; }
+        .grid-icon { font-size: 1.8rem; margin-bottom: 5px; display: block; }
+        
+        /* Friends Rating */
+        .friend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 10px; }
+        .friend-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #f1f5f9; }
+        .hearts { display: flex; gap: 5px; font-size: 1.5rem; color: #cbd5e1; cursor: pointer; }
+        .heart.active { color: #ef4444; }
+        
+        /* Buttons & Overlay */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1.05rem; font-weight: 700; cursor: pointer; font-family: 'Sarabun', sans-serif; transition: 0.2s; }
+        .btn-draft { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .btn-submit { background-color: var(--success); color: white; }
+        .btn-submit:hover { background-color: var(--success-hover); transform: translateY(-1px); }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; display: none; }
+        .spinner { border: 4px solid #ffedd5; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="mission-container">
+    <div class="loading-overlay" id="loadingData">
+        <div class="spinner"></div>
+        <div id="loadingText" style="color: var(--primary); font-weight: 700; font-size: 1.1rem;">กำลังดึงข้อมูล...</div>
+    </div>
+
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='Std_info_dashboard.html'">⬅️</button>
+        <div class="title-group">
+            <h1>💪 ภารกิจที่ 3: ข้อมูลสุขภาพและความชอบ</h1>
+            <p>เพื่อการดูแลที่ครอบคลุมและเข้าใจตัวตนของคุณมากขึ้น</p>
+        </div>
+    </div>
+
+    <form id="mission3Form">
+        <!-- 🩺 โซน 1: สุขภาพ & BMI -->
+        <div class="form-section">
+            <h3 class="section-title">⚖️ โซนที่ 1: ร่างกายของฉัน</h3>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>น้ำหนัก (กิโลกรัม) <span class="required-mark">*</span></label>
+                    <input type="number" id="weight" step="0.1" placeholder="เช่น 55.5" oninput="calculateBMI()">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>ส่วนสูง (เซนติเมตร) <span class="required-mark">*</span></label>
+                    <input type="number" id="height" step="0.1" placeholder="เช่น 165" oninput="calculateBMI()">
+                </div>
+            </div>
+            
+            <div class="bmi-card" id="bmiCard">
+                <div style="color: var(--text-muted); font-size: 0.9rem;">ดัชนีมวลกาย (BMI) ของคุณคือ</div>
+                <div class="bmi-value" id="bmiValue">0.0</div>
+                <div class="bmi-advice" id="bmiAdvice">กรุณากรอกข้อมูลน้ำหนักและส่วนสูง</div>
+            </div>
+        </div>
+
+        <!-- 🚑 โซน 2: ประวัติการเจ็บป่วย -->
+        <div class="form-section">
+            <h3 class="section-title">🏥 โซนที่ 2: ประวัติสุขภาพ <span class="required-mark">*</span></h3>
+            <div class="med-notice">
+                <strong>ทำไมต้องกรอกช่องนี้?</strong><br>
+                การให้ข้อมูลส่วนนี้สำคัญมาก เพื่อให้คุณครูและเพื่อนๆ ทราบ หากเกิดเหตุฉุกเฉินจะได้ช่วยเหลือได้อย่างทันท่วงที รวมถึงการระมัดระวังในการเล่นหรือทำกิจกรรมร่วมกันครับ
+            </div>
+            
+            <div class="checkbox-group" id="medicalGroup">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="med-healthy" value="แข็งแรงดีไม่มีโรคประจำตัว" onchange="toggleHealthy(this)">
+                    <label for="med-healthy" style="font-weight: 700; color: var(--success);">✨ สุขภาพแข็งแรงดี ไม่มีประวัติการเจ็บป่วยรุนแรง</label>
+                </div>
+                <hr style="border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" class="med-check" value="โรคหอบหืด/ภูมิแพ้รุนแรง" onchange="toggleDateInput(this, 'date-allergy')">
+                    <div>
+                        <label>โรคหอบหืด / ภูมิแพ้รุนแรง</label>
+                        <input type="text" id="date-allergy" class="date-input" placeholder="ระบุสิ่งที่แพ้ หรืออาการ">
+                    </div>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" class="med-check" value="เคยกระดูกหัก/อุบัติเหตุหนัก" onchange="toggleDateInput(this, 'date-bone')">
+                    <div>
+                        <label>เคยกระดูกหัก / ผ่าตัด / อุบัติเหตุหนัก</label>
+                        <input type="text" id="date-bone" class="date-input" placeholder="ระบุส่วนที่หัก และปีที่เกิดเหตุ">
+                    </div>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" class="med-check" value="โรคซึมเศร้า/สุขภาพจิต" onchange="toggleDateInput(this, 'date-mental')">
+                    <div>
+                        <label>กลุ่มโรคซึมเศร้า / สุขภาพจิต (ต้องการการดูแลพิเศษ)</label>
+                        <input type="text" id="date-mental" class="date-input" placeholder="ระบุข้อมูลเพิ่มเติม (ข้อมูลนี้จะเป็นความลับ)">
+                    </div>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" class="med-check" value="อื่นๆ" onchange="toggleDateInput(this, 'date-other')">
+                    <div>
+                        <label>โรคประจำตัวอื่นๆ</label>
+                        <input type="text" id="date-other" class="date-input" placeholder="โปรดระบุโรคประจำตัว หรืออาการ">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🎨 โซน 3: ความชอบของฉัน -->
+        <div class="form-section">
+            <h3 class="section-title">🎨 โซนที่ 3: ความชอบของฉัน</h3>
+            
+            <div class="form-group">
+                <label>1. วิชาเรียน (วิชาที่ชอบ / ไม่ชอบ)</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <input type="text" id="subjFav" placeholder="วิชาที่ชอบที่สุด (เช่น คณิต)" style="flex:1;">
+                    <input type="text" id="subjLike" placeholder="วิชาที่ชอบรองลงมา" style="flex:1;">
+                </div>
+                <input type="text" id="subjHate" placeholder="วิชาที่ไม่ค่อยถนัด หรือไม่ชอบเลย">
+            </div>
+
+            <div class="form-group">
+                <label>2. สีที่ชอบที่สุด</label>
+                <div class="color-palette" id="colorPalette">
+                    <div class="color-circle" style="background: #ef4444;" data-color="แดง"></div>
+                    <div class="color-circle" style="background: #f97316;" data-color="ส้ม"></div>
+                    <div class="color-circle" style="background: #eab308;" data-color="เหลือง"></div>
+                    <div class="color-circle" style="background: #22c55e;" data-color="เขียว"></div>
+                    <div class="color-circle" style="background: #3b82f6;" data-color="น้ำเงิน"></div>
+                    <div class="color-circle" style="background: #a855f7;" data-color="ม่วง"></div>
+                    <div class="color-circle" style="background: #ec4899;" data-color="ชมพู"></div>
+                    <div class="color-circle" style="background: #000000;" data-color="ดำ"></div>
+                    <div class="color-circle" style="background: #ffffff; border: 1px solid #cbd5e1;" data-color="ขาว"></div>
+                </div>
+                <input type="text" id="colorOther" placeholder="หรือพิมพ์สีที่ชอบอื่นๆ..." style="margin-top: 5px;">
+            </div>
+
+            <div class="form-group">
+                <label>3. กีฬาที่ชอบ</label>
+                <div class="grid-select" id="sportGrid">
+                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">⚽</span>ฟุตบอล</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏐</span>วอลเลย์บอล</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏸</span>แบดมินตัน</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🏊</span>ว่ายน้ำ</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'sport')"><span class="grid-icon">🎮</span>อีสปอร์ต</div>
+                </div>
+                <input type="text" id="sportOther" placeholder="กีฬาอื่นๆ โปรดระบุ..." style="margin-top: 10px;">
+            </div>
+
+            <div class="form-group">
+                <label>4. กิจกรรมยามว่างที่ชอบทำ</label>
+                <div class="grid-select" id="activityGrid">
+                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">🎨</span>วาดรูป</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">💃</span>เต้น/ร้องเพลง</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">🎬</span>ดูหนัง/ซีรีส์</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">✈️</span>ไปเที่ยว</div>
+                    <div class="grid-item" onclick="toggleSelect(this, 'activity')"><span class="grid-icon">📚</span>อ่านหนังสือ</div>
+                </div>
+                <input type="text" id="activityOther" placeholder="กิจกรรมอื่นๆ โปรดระบุ..." style="margin-top: 10px;">
+            </div>
+
+            <div class="form-group">
+                <label>5. อาชีพที่ใฝ่ฝันในอนาคต <span class="required-mark">*</span></label>
+                <input type="text" id="dreamCareer" placeholder="เช่น หมอ, ยูทูปเบอร์, โปรแกรมเมอร์, ธุรกิจส่วนตัว">
+            </div>
+        </div>
+
+        <!-- 💖 โซน 4: เพื่อนสนิท -->
+        <div class="form-section">
+            <h3 class="section-title">💖 โซนที่ 4: ความไว้วางใจเพื่อนในห้อง</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0;">ให้คะแนนหัวใจเพื่อนที่คุณสนิทหรือไว้วางใจที่สุด (กดได้สูงสุด 5 ดวง และเลือกเพื่อนได้หลายคน)</p>
+            
+            <div id="friendsList">
+                <!-- รายชื่อเพื่อนจำลอง (ในระบบจริงอาจดึงจากฐานข้อมูลห้อง) -->
+                <div class="friend-card" data-name="ด.ญ. สุมาลี รักเรียน">
+                    <img src="https://ui-avatars.com/api/?name=สม&background=random" class="friend-img">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">สุมาลี รักเรียน</div>
+                        <div class="hearts">
+                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="friend-card" data-name="ด.ญ. วิลาวัลย์ ใจดี">
+                    <img src="https://ui-avatars.com/api/?name=วิ&background=random" class="friend-img">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">วิลาวัลย์ ใจดี</div>
+                        <div class="hearts">
+                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="friend-card" data-name="ด.ช. สมชาย สายเสมอ">
+                    <img src="https://ui-avatars.com/api/?name=ช&background=random" class="friend-img">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">สมชาย สายเสมอ</div>
+                        <div class="hearts">
+                            <span class="heart" onclick="rateFriend(this, 1)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 2)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 3)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 4)">♥</span>
+                            <span class="heart" onclick="rateFriend(this, 5)">♥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <label style="font-size: 0.9rem;">เพื่อนสนิทต่างห้อง / ต่างโรงเรียน (ระบุชื่อ)</label>
+                <input type="text" id="otherFriends" placeholder="เช่น ด.ญ. ฟ้าใส ม.1/3">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn-draft" id="btnDraft" onclick="saveData(false)">💾 บันทึกข้อมูลไว้ก่อน (ทำต่อทีหลัง)</button>
+            <button type="button" class="btn-submit" id="btnSubmit" onclick="saveData(true)">🚀 บันทึกและส่งภารกิจ</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbyojpX4udti1CiMSQm9L7DfBgxieW16K3q3f-gaNWpOahzIu5cR0kTTGy3uG1qHrkC5RA/exec';
+    let currentStudentId = '';
+    let selectedColor = '';
+    let friendRatings = {};
+
+    window.onload = () => {
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = '../login.html';
+            return;
+        }
+        currentStudentId = localStorage.getItem('studentId');
+        
+        // Setup Color Picker
+        document.querySelectorAll('.color-circle').forEach(circle => {
+            circle.addEventListener('click', function() {
+                document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedColor = this.dataset.color;
+            });
+        });
+
+        // fetchDataFromServer(); // เปิดใช้งานเมื่อหลังบ้านพร้อม
+    };
+
+    // --- Logic BMI ---
+    function calculateBMI() {
+        const weight = parseFloat(document.getElementById('weight').value);
+        const heightCm = parseFloat(document.getElementById('height').value);
+        const bmiCard = document.getElementById('bmiCard');
+        const bmiValueEl = document.getElementById('bmiValue');
+        const bmiAdviceEl = document.getElementById('bmiAdvice');
+
+        if (weight > 0 && heightCm > 0) {
+            const heightM = heightCm / 100;
+            const bmi = (weight / (heightM * heightM)).toFixed(1);
+            bmiValueEl.innerText = bmi;
+            bmiCard.style.display = 'block';
+
+            let advice = ''; let bgColor = ''; let textColor = '';
+            if (bmi < 18.5) {
+                advice = "ผอมเกินไป (น้ำหนักน้อย) 🍲 ทานอาหารที่มีประโยชน์เพิ่มขึ้นอีกนิดนะ เพื่อให้ร่างกายมีพลังงานเต็มที่!";
+                bgColor = "#eff6ff"; textColor = "#1d4ed8";
+            } else if (bmi >= 18.5 && bmi < 23) {
+                advice = "สมส่วน (ปกติ) 🎉 ยอดเยี่ยมมาก! รักษาสุขภาพ กินอาหารดีๆ และออกกำลังกายแบบนี้ต่อไปนะ";
+                bgColor = "#d1fae5"; textColor = "#047857";
+            } else if (bmi >= 23 && bmi < 25) {
+                advice = "น้ำหนักเกิน (ท้วม) 🏃‍♂️ ลองขยับร่างกายและออกกำลังกายเพิ่มอีกนิด เพื่อสุขภาพที่ดียิ่งขึ้นนะ";
+                bgColor = "#ffedd5"; textColor = "#c2410c";
+            } else {
+                advice = "อ้วน (ควรระวัง) ⚠️ ควรระมัดระวังเรื่องอาหารหวานมัน และหมั่นออกกำลังกายเป็นประจำนะ สู้ๆ!";
+                bgColor = "#fee2e2"; textColor = "#b91c1c";
+            }
+
+            bmiAdviceEl.innerText = advice;
+            bmiAdviceEl.style.backgroundColor = bgColor;
+            bmiAdviceEl.style.color = textColor;
+            bmiValueEl.style.color = textColor;
+            bmiCard.style.borderColor = textColor;
+        } else {
+            bmiCard.style.display = 'none';
+        }
+    }
+
+    // --- Logic Medical ---
+    function toggleHealthy(checkbox) {
+        const others = document.querySelectorAll('.med-check');
+        const dateInputs = document.querySelectorAll('.date-input');
+        if (checkbox.checked) {
+            others.forEach(cb => { cb.checked = false; cb.disabled = true; });
+            dateInputs.forEach(input => { input.style.display = 'none'; input.value = ''; });
+        } else {
+            others.forEach(cb => { cb.disabled = false; });
+        }
+    }
+    function toggleDateInput(checkbox, inputId) {
+        const input = document.getElementById(inputId);
+        if (checkbox.checked) {
+            input.style.display = 'block';
+            document.getElementById('med-healthy').checked = false;
+        } else {
+            input.style.display = 'none';
+            input.value = '';
+        }
+    }
+
+    // --- Logic Grid Selection (Sport/Activity) ---
+    function toggleSelect(el, type) {
+        el.classList.toggle('selected');
+    }
+
+    // --- Logic Friends Rating ---
+    function rateFriend(heartEl, rating) {
+        const card = heartEl.closest('.friend-card');
+        const friendName = card.dataset.name;
+        const hearts = card.querySelectorAll('.heart');
+        
+        // Reset and set active
+        hearts.forEach((h, index) => {
+            if (index < rating) h.classList.add('active');
+            else h.classList.remove('active');
+        });
+
+        friendRatings[friendName] = rating;
+    }
+
+    // --- Logic บันทึกข้อมูล ---
+    async function saveData(isComplete) {
+        const weight = document.getElementById('weight').value;
+        const height = document.getElementById('height').value;
+        const dreamCareer = document.getElementById('dreamCareer').value;
+
+        // ดึงค่าประวัติการเจ็บป่วย
+        let medicalArr = [];
+        if (document.getElementById('med-healthy').checked) {
+            medicalArr.push("สุขภาพแข็งแรงดี");
+        } else {
+            document.querySelectorAll('.med-check:checked').forEach(cb => {
+                const dateVal = cb.nextElementSibling.querySelector('.date-input').value;
+                medicalArr.push(`${cb.value} (${dateVal})`);
+            });
+        }
+        
+        if (isComplete) {
+            if (!weight || !height || !dreamCareer || medicalArr.length === 0) {
+                alert("❌ กรุณากรอก น้ำหนัก, ส่วนสูง, ประวัติสุขภาพ และ อาชีพที่ใฝ่ฝัน ให้ครบถ้วนก่อนส่งภารกิจครับ");
+                return;
+            }
+        }
+
+        // จัดรูปแบข้อมูล ความชอบ (วิชา, สี, กีฬา, กิจกรรม) เป็น JSON String
+        const preferences = {
+            subject: { fav: document.getElementById('subjFav').value, like: document.getElementById('subjLike').value, hate: document.getElementById('subjHate').value },
+            color: selectedColor || document.getElementById('colorOther').value,
+            sports: [...document.querySelectorAll('#sportGrid .selected')].map(el => el.innerText) + (document.getElementById('sportOther').value ? ','+document.getElementById('sportOther').value : ''),
+            activities: [...document.querySelectorAll('#activityGrid .selected')].map(el => el.innerText) + (document.getElementById('activityOther').value ? ','+document.getElementById('activityOther').value : ''),
+            career: dreamCareer
+        };
+
+        // จัดรูปแบบเพื่อนสนิท เป็น JSON String
+        friendRatings['other'] = document.getElementById('otherFriends').value;
+
+        document.getElementById('loadingData').style.display = 'flex';
+        document.getElementById('loadingText').innerText = 'กำลังบันทึกข้อมูล...';
+
+        const params = new URLSearchParams({
+            'action': 'saveData',
+            'mission': '3',
+            'studentId': currentStudentId,
+            'weight': weight,
+            'height': height,
+            'medicalCondition': medicalArr.join(' | '),
+            'preferencesJson': JSON.stringify(preferences),
+            'friendsJson': JSON.stringify(friendRatings)
+        });
+
+        try {
+            const response = await fetch(DATA_API_URL, { method: 'POST', body: params });
+            const data = await response.json();
+            
+            if(data.status === 'success') {
+                if (isComplete) {
+                    localStorage.setItem('mission_3_done_time', Date.now());
+                    alert('🎉 ภารกิจที่ 3 สำเร็จ! (ภารกิจที่ 4 จะเปิดในอีก 2 วัน)');
+                } else {
+                    alert('💾 บันทึกข้อมูลร่างเรียบร้อยแล้ว');
+                }
+                window.location.href = 'Std_info_dashboard.html';
+            } else { throw new Error(data.message); }
+        } catch (error) {
+            alert('❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        } finally {
+            document.getElementById('loadingData').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
