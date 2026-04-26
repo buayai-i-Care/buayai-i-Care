@@ -98,7 +98,7 @@
             cursor: zoom-in;
             border: 3px solid white;
             transition: transform 0.2s;
-            background-color: #e2e8f0; 
+            background-color: #e2e8f0; /* สีพื้นหลังระหว่างโหลดรูป */
         }
         .profile-preview:hover { transform: scale(1.05); }
         .click-to-expand-text { font-size: 0.85rem; color: var(--primary); margin-top: 5px; font-weight: 600; }
@@ -233,6 +233,7 @@
 
             <div class="preview-container" id="previewContainer">
                 <p style="font-size: 0.95rem; margin-top: 0; color: var(--text-main); font-weight: 600;">ภาพโปรไฟล์ปัจจุบันของคุณ:</p>
+                <!-- ใช้ referrerpolicy="no-referrer" ช่วยทะลุการบล็อกของเบราว์เซอร์ และใส่ onerror เพื่อแสดงภาพเทาหากไฟล์ติดสิทธิ์ Private -->
                 <img id="profilePreview" class="profile-preview" src="" alt="ภาพโปรไฟล์" onclick="openModal()" data-new-image="false" referrerpolicy="no-referrer" onerror="handleImageError(this)">
                 <div class="click-to-expand-text" id="expandText">🔍 คลิกเพื่อขยายดูความหล่อสวย</div>
             </div>
@@ -274,7 +275,7 @@
 </div>
 
 <script>
-    // ✅ อัปเดต URL เป็นตัวล่าสุดที่สามารถใช้งานได้ 100%
+    // ⚠️ นำ URL ของ Web App จาก Google Apps Script (Unified API ตัวล่าสุด) มาใส่ที่นี่
     const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbxISWUNujPkU7Saj70nfN8588vg0-ka-NZdR2qpcekRgD4_Vb1bKzAJ03hwBe_I51SkYQ/exec';
 
     window.onload = () => {
@@ -297,7 +298,7 @@
                 body: new URLSearchParams({ 'action': 'getData', 'studentId': studentId })
             });
             
-            if (!response.ok) throw new Error("Network response was not ok");
+            if (!response.ok) throw new Error("การเชื่อมต่อกับเซิร์ฟเวอร์ล้มเหลว");
             
             const data = await response.json();
             if(data.status === 'success') {
@@ -331,6 +332,7 @@
         if (data.profileImageUrl) {
             document.getElementById('existingImageUrl').value = data.profileImageUrl;
             const previewImg = document.getElementById('profilePreview');
+            // ใช้ฟังก์ชันแบบใหม่ที่เสถียรกว่า
             previewImg.src = convertDriveLinkToImage(data.profileImageUrl);
             previewImg.dataset.newImage = "false";
             document.getElementById('previewContainer').style.display = 'block';
@@ -338,21 +340,28 @@
         }
     }
 
+    // 💡 ปรับปรุง: ใช้ Thumbnail API ของ Google Drive แทน (ทะลุบล็อกได้ดีกว่า)
     function convertDriveLinkToImage(url) {
         if (!url) return '';
         const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
         if (match && match[1]) {
+            // ใช้ Thumbnail แทน export=view
             return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
         }
         return url;
     }
 
+    // 💡 ฟังก์ชันใหม่: จัดการกรณีรูปโหลดไม่ขึ้น (เช่น โฟลเดอร์ไม่ได้แชร์ Public)
     function handleImageError(img) {
+        // เช็คว่าถ้าไม่ใช่ภาพจากกล้องที่เพิ่งถ่าย (base64) ให้เปลี่ยนเป็นภาพแจ้งเตือน
         if (img.src && !img.src.includes('data:image')) {
-            console.warn("ไม่สามารถโหลดภาพจาก Google Drive ได้:", img.src);
+            console.warn("ไม่สามารถโหลดภาพจาก Google Drive ได้ (อาจติดสิทธิ์ Private):", img.src);
+            
+            // แสดงภาพสีเทาพร้อมข้อความแจ้งเตือนแทนภาพแตก
             img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMmU4ZjAiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNlZjQ0NDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPiDguYTguKHguYjguKrguLLguKHguLLguKPguJbguYLguKvguKXguJTguKDguLLguJ4gPC90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+KOC4leC4tOC4lOC4quC4tOC4l+C4mOC4tOC5jCBEcml2ZSk8L3RleHQ+PC9zdmc+';
+            
             document.getElementById('expandText').innerHTML = '<span style="color:#ef4444;">ภาพติดสิทธิ์ส่วนตัว กรุณาอัปโหลดรูปใหม่ด้านล่างครับ</span>';
-            document.getElementById('imgReqMark').style.display = 'inline'; 
+            document.getElementById('imgReqMark').style.display = 'inline'; // บังคับให้อัปโหลดใหม่
             document.getElementById('existingImageUrl').value = ''; 
         }
     }
@@ -365,7 +374,9 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
+                    
+                    // 🌟 อัปเกรดใหม่: ลดขนาดภาพลงให้เล็กลงอีก เพื่อป้องกันเซิร์ฟเวอร์ปฏิเสธรับข้อมูล (Payload Too Large)
+                    const MAX_WIDTH = 600; const MAX_HEIGHT = 600;
                     let width = img.width; let height = img.height;
                     
                     if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
@@ -375,7 +386,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    // 🌟 บีบอัดภาพเป็น JPEG 60% เพื่อให้การส่ง API ลื่นไหล 100%
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     const previewImg = document.getElementById('profilePreview');
                     previewImg.src = dataUrl;
                     previewImg.dataset.newImage = "true"; 
@@ -383,7 +395,7 @@
                     document.getElementById('previewContainer').style.display = 'block';
                     document.getElementById('existingImageUrl').value = ''; 
                     document.getElementById('imgReqMark').style.display = 'none'; 
-                    document.getElementById('expandText').innerHTML = '🔍 คลิกเพื่อขยายดูความหล่อสวย'; 
+                    document.getElementById('expandText').innerHTML = '🔍 คลิกเพื่อขยายดูความหล่อสวย'; // คืนค่าข้อความ
                 }
                 img.src = e.target.result;
             }
@@ -403,7 +415,7 @@
 
         if (isComplete) {
             if (!citizenId || !fullName || !birthDate || !religion || !hasImage) {
-                alert('❌ ข้อมูลยังไม่ครบถ้วน! กรุณากรอกช่องที่มีเครื่องหมายดอกจันสีแดง (*) และอัปโหลดภาพโปรไฟล์ให้ครบก่อนส่งภารกิจครับ');
+                alert('❌ ข้อมูลยังไม่ครบถ้วน! กรุณากรอกช่องที่มีเครื่องหมายดอกจันสีแดง (*) และอัปโหลดภาพโปรไฟล์ให้ครบก่อนส่งภารกิจครับ\n\n(หากต้องการทำต่อทีหลัง ให้กดปุ่ม "บันทึกข้อมูลไว้ก่อน" แทนครับ)');
                 return; 
             }
         }
@@ -440,7 +452,7 @@
                 body: params
             });
             
-            if (!response.ok) throw new Error("Network issue");
+            if (!response.ok) throw new Error("การเชื่อมต่อเครือข่ายมีปัญหา (อาจเกิดจากขนาดภาพใหญ่เกินไป หรือ เน็ตเวิร์กหลุด)");
             const data = await response.json();
             
             if(data.status === 'success') {
@@ -454,12 +466,14 @@
                     window.location.href = 'Std_info_dashboard.html';
                 }
             } else {
-                throw new Error(data.message);
+                // ดึงข้อความ Error จริงจากระบบหลังบ้านมาแสดง
+                throw new Error(data.message || 'ข้อผิดพลาดที่ไม่ทราบสาเหตุจากเซิร์ฟเวอร์');
             }
         } catch (error) {
             console.error("Save Data Error:", error);
             loadingBox.style.display = 'none';
-            alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            // 🌟 แจ้งเตือนแบบฉลาด: เอาข้อความ Error ที่แท้จริงมาแสดงให้ผู้ใช้เห็นเลย
+            alert('❌ ไม่สามารถบันทึกข้อมูลได้ สาเหตุ:\n' + error.message + '\n\n(กรุณาลองกดบันทึกใหม่อีกครั้งครับ)');
             btnDraft.disabled = false; btnSubmit.disabled = false;
         }
     }
@@ -469,6 +483,7 @@
 
     function openModal() {
         const previewImg = document.getElementById('profilePreview');
+        // เปิดเฉพาะรูปที่โหลดสำเร็จ (ไม่ใช่รูป error สีเทา)
         if(previewImg.src && !previewImg.src.includes('ไม่สามารถโหลดภาพ')) {
             modal.style.display = "flex";
             modalImg.src = previewImg.src;
