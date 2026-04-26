@@ -3,12 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ: Buayai I Care School สำหรับนักเรียน</title>
-    <!-- นำเข้าฟอนต์ Sarabun เพื่อความเป็นทางการและอ่านง่าย -->
+    <title>ศูนย์รวมภารกิจนักเรียน - Buayai I Care School</title>
+    
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Tailwind CSS (สำหรับ Layout UI หลัก) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { prompt: ['Prompt', 'sans-serif'], sarabun: ['Sarabun', 'sans-serif'] },
+                    colors: {
+                        orange: { 50: '#fff7ed', 100: '#ffedd5', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        /* ========================================== */
+        /* 🎨 GLOBAL & THEME STYLES */
+        /* ========================================== */
         :root {
             --primary: #f97316; 
             --primary-hover: #ea580c;
@@ -18,235 +43,553 @@
             --danger: #ef4444;
             --success: #10b981;
         }
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; min-height: 100vh; overflow-x: hidden; }
+        h1, h2, h3, h4, h5, .font-prompt { font-family: 'Prompt', sans-serif; }
+
+        /* ========================================== */
+        /* 🔐 LOGIN SCREEN STYLES (จากไฟล์ Dev.html) */
+        /* ========================================== */
+        #login-view {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); position: fixed; top: 0; left: 0; width: 100%; z-index: 50;
         }
+        
         .login-card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 400px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 40px 30px;
-            text-align: center;
-            box-sizing: border-box;
+            background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(234, 88, 12, 0.15); padding: 40px 30px; text-align: center;
+            border: 1px solid #ffedd5; position: relative; overflow: hidden;
         }
-        .icon-container { font-size: 4rem; margin-bottom: 10px; }
-        h1 { margin-top: 0; color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; font-weight: 700; }
-        p { color: #6b7280; font-size: 0.95rem; margin-bottom: 30px; }
-        
-        .form-group { text-align: left; margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: 'Sarabun', sans-serif;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--primary); }
-        input:disabled { background-color: #f3f4f6; cursor: not-allowed; }
-        
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Sarabun', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        button:hover:not(:disabled) { background-color: var(--primary-hover); }
-        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        
-        #error-msg {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: 15px;
-            min-height: 20px;
-            font-weight: 500;
-            word-wrap: break-word;
+        .login-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(90deg, #fcd34d, #f97316, #ea580c);
         }
 
-        .action-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
-        .action-links a { color: var(--primary); text-decoration: none; font-weight: 600; transition: 0.2s; }
-        .action-links a:hover { color: var(--primary-hover); text-decoration: underline; }
+        .login-logo { width: 90px; height: 90px; object-fit: contain; border-radius: 50%; background: white; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 0 auto 15px; border: 2px solid var(--primary); }
+        .student-badge { display: inline-block; background-color: #ffedd5; color: var(--primary-hover); padding: 4px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px; }
         
-        .student-badge {
-            display: inline-block;
-            background-color: #ffedd5;
-            color: var(--primary-hover);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 15px;
+        .login-card h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; font-weight: 700; }
+        .login-card p { color: #6b7280; font-size: 0.95rem; margin-bottom: 25px; }
+        
+        .form-group { text-align: left; margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; color: #374151; }
+        .form-group input {
+            width: 100%; padding: 14px 15px; border: 2px solid #e5e7eb; border-radius: 12px;
+            box-sizing: border-box; font-family: 'Sarabun', sans-serif; font-size: 1rem; font-weight: 600;
+            transition: all 0.2s; background-color: #f9fafb; text-align: center; letter-spacing: 1px;
         }
+        .form-group input:focus { outline: none; border-color: var(--primary); background-color: white; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1); }
+        
+        .btn-login {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white; border: none; border-radius: 12px; font-family: 'Prompt', sans-serif;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 6px 15px rgba(234, 88, 12, 0.3);
+        }
+        .btn-login:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(234, 88, 12, 0.4); }
+        .btn-login:disabled { background: #9ca3af; box-shadow: none; transform: none; cursor: not-allowed; }
+        
+        #error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 15px; min-height: 20px; font-weight: 600; }
+        
+        .action-links { display: flex; justify-content: space-between; margin-top: 25px; font-size: 0.9rem; border-top: 1px dashed #e5e7eb; padding-top: 15px;}
+        .action-links a { color: var(--primary-hover); text-decoration: none; font-weight: 600; transition: 0.2s; }
+        .action-links a:hover { color: #c2410c; text-decoration: underline; }
+
+        /* ========================================== */
+        /* 📱 APP DASHBOARD STYLES */
+        /* ========================================== */
+        .top-navbar {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            color: white; height: 75px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); position: sticky; top: 0; z-index: 40;
+        }
+
+        .player-banner {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(234, 88, 12, 0.2);
+            margin-bottom: 30px; display: flex; align-items: center; gap: 20px; position: relative; overflow: hidden;
+        }
+        .player-banner::after {
+            content: '\F5A2'; font-family: 'bootstrap-icons'; position: absolute; right: -20px; bottom: -30px;
+            font-size: 10rem; color: white; opacity: 0.1; transform: rotate(15deg);
+        }
+        .profile-avatar { width: 85px; height: 85px; border-radius: 50%; border: 4px solid white; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); object-fit: cover; z-index: 2; padding: 2px;}
+
+        /* --- 🌟 Timeline Quest (Roadmap) --- */
+        .quest-container { position: relative; padding-left: 45px; }
+        .quest-track { position: absolute; left: 24px; top: 20px; bottom: 0; width: 6px; background-color: #fed7aa; border-radius: 10px; z-index: 1; }
+        .quest-item { position: relative; z-index: 2; margin-bottom: 35px; display: flex; gap: 20px; align-items: flex-start; }
+        
+        .quest-node {
+            width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: absolute; left: -49px; top: 0; z-index: 3; transition: 0.3s;
+        }
+        
+        .quest-card {
+            background: white; border-radius: 20px; padding: 20px; flex-grow: 1; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 2px solid transparent; position: relative; overflow: hidden;
+        }
+
+        .level-badge { font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 8px; margin-bottom: 10px; display: inline-block; font-family: 'Prompt';}
+        .quest-title { font-weight: 800; font-family: 'Prompt'; font-size: 1.2rem; margin-bottom: 5px; color: #1f2937; }
+        .quest-desc { font-size: 0.9rem; color: #6b7280; line-height: 1.5; margin-bottom: 15px; }
+        
+        /* 1. Unlocked (เปิดให้ทำ) */
+        .status-unlocked .quest-node { background: linear-gradient(135deg, #3b82f6, #06b6d4); animation: pulseGlow 2s infinite; }
+        .status-unlocked .quest-card { border-color: #3b82f6; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15); transform: translateY(-3px); }
+        .status-unlocked .level-badge { background: #eff6ff; color: #2563eb; }
+        .btn-play { background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; border: none; border-radius: 50px; font-weight: 700; padding: 12px 25px; width: 100%; text-decoration: none; display: inline-block; text-align: center; transition: 0.2s; font-family: 'Prompt';}
+        .btn-play:hover { transform: scale(0.98); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); }
+        
+        /* 2. Completed (สำเร็จ) */
+        .status-completed .quest-node { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 0 0 5px #dcfce7; }
+        .status-completed .quest-card { background-color: #f8fafc; border-color: #cbd5e1; opacity: 0.9; }
+        .status-completed .level-badge { background-color: #dcfce7; color: #15803d; }
+        .status-completed .quest-title { text-decoration: line-through; color: #9ca3af; }
+        .btn-done { background: #f1f5f9; color: #10b981; border: 2px solid #10b981; border-radius: 50px; font-weight: 700; padding: 10px 25px; width: 100%; text-align: center; pointer-events: none; font-family: 'Prompt';}
+
+        /* 3. Needs Confirm (ข้อมูลเก่า ต้องยืนยัน) */
+        .status-confirm .quest-node { background: linear-gradient(135deg, #f59e0b, #d97706) !important; box-shadow: 0 0 0 5px #fef3c7; animation: pulseGlowOrg 2s infinite; }
+        .status-confirm .quest-card { border-color: #f59e0b; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.15); transform: translateY(-3px); background-color: #fffbeb;}
+        .status-confirm .level-badge { background-color: #fef3c7; color: #b45309; }
+        .status-confirm .quest-title { color: #b45309; }
+        .btn-confirm { background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; border: none; border-radius: 50px; font-weight: 700; padding: 12px 25px; width: 100%; text-decoration: none; display: inline-block; text-align: center; transition: 0.2s; font-family: 'Prompt';}
+
+        /* 4. Locked (ติดเวลา) */
+        .status-locked .quest-node { background: #e2e8f0 !important; color: #94a3b8; box-shadow: none; border: 4px solid #f8fafc; }
+        .status-locked .quest-card { background-color: #f8fafc; border-style: dashed; border-color: #cbd5e1; }
+        .status-locked .quest-title, .status-locked .quest-desc { color: #94a3b8; }
+        .status-locked .level-badge { background-color: #f1f5f9; color: #94a3b8; }
+        .btn-lock { background: #e2e8f0; color: #64748b; border: none; border-radius: 50px; font-weight: 700; padding: 12px 25px; width: 100%; text-align: center; cursor: not-allowed; font-family: 'Prompt';}
+
+        @keyframes pulseGlow { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+        @keyframes pulseGlowOrg { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+
+        /* แผงทดสอบระบบ */
+        .dev-panel { background: #1e293b; color: white; border-radius: 16px; padding: 15px; margin-bottom: 30px; border: 2px dashed #475569; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <div class="icon-container">🔐</div>
-    <div class="student-badge">🧑‍🎓 โหมดนักเรียน</div>
-    <h1>เข้าสู่ระบบนักเรียน</h1>
-    <p>Buayai I Care School</p>
-
-    <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-            <label for="studentId">เลขประจำตัวนักเรียน</label>
-            <input type="text" id="studentId" placeholder="เช่น 1111" required autocomplete="username">
-        </div>
-        
-        <div class="form-group">
-            <label for="password">รหัสผ่าน</label>
-            <input type="password" id="password" placeholder="เช่น 1111" required autocomplete="current-password">
-        </div>
-
-        <button type="submit" id="loginBtn">เข้าสู่ระบบ 🚀</button>
-        <div id="error-msg"></div>
-        
-        <div class="action-links">
-            <a href="appyEpoint.html">ยังไม่สมัคร? ไปที่นี่</a>
-            <a href="loginEpoint.html">ลืมรหัสผ่าน? ไปที่นี่</a>
-        </div>
-    </form>
-</div>
-
-<script>
-    // ==========================================
-    // ⚙️ Configuration
-    // ==========================================
-    // URL ของ Web App จาก Google Apps Script (อันที่ใช้อยู่ปัจจุบัน)
-    const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbxISWUNujPkU7Saj70nfN8588vg0-ka-NZdR2qpcekRgD4_Vb1bKzAJ03hwBe_I51SkYQ/exec';
-
-    // ==========================================
-    // 🔄 Initialization
-    // ==========================================
-    window.onload = () => {
-        // หากผู้ใช้เคยล็อกอินไว้แล้ว ให้ Redirect ทันที
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.replace('advice/Std_info_dashboard.html'); // เข้าสู่ Dashboard
-        }
-    };
-
-    // ==========================================
-    // 🔐 Login Handler
-    // ==========================================
-    async function handleLogin(e) {
-        e.preventDefault();
-        
-        const studentIdInput = document.getElementById('studentId');
-        const passwordInput = document.getElementById('password');
-        const btn = document.getElementById('loginBtn');
-        const errorMsg = document.getElementById('error-msg');
-
-        // รวบรวมข้อมูล
-        const studentId = studentIdInput.value.trim();
-        const password = passwordInput.value.trim();
-
-        // Validate เบื้องต้นฝั่ง Client
-        if (!studentId || !password) {
-            errorMsg.textContent = '❌ กรุณากรอกข้อมูลให้ครบถ้วน';
-            return;
-        }
-
-        // Lock UI State
-        errorMsg.textContent = '';
-        btn.disabled = true;
-        studentIdInput.disabled = true;
-        passwordInput.disabled = true;
-        btn.textContent = 'กำลังตรวจสอบข้อมูล... ⏳';
-
-        try {
-            // สร้าง Payload แบบ URLSearchParams (❗️ สำคัญที่สุดคือการมี action: 'login')
-            const payload = new URLSearchParams({
-                'action': 'login', 
-                'studentId': studentId,
-                'password': password
-            });
-
-            // ดำเนินการยิง Request
-            const response = await fetch(LOGIN_API_URL, {
-                method: 'POST',
-                body: payload
-            });
-
-            // ตรวจสอบ HTTP Status
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
-            }
-
-            // รับและตรวจสอบผลลัพธ์
-            let data;
-            try {
-                data = await response.json();
-            } catch (parseError) {
-                console.error("JSON Parse Error. Server might have returned HTML.", parseError);
-                throw new Error("เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่ถูกต้อง (โปรดตรวจสอบลิงก์ GAS)");
-            }
-
-            // ประมวลผลลัพธ์ (Business Logic)
-            if (data.status === 'success') {
-                // เซฟ Session ลง LocalStorage อย่างปลอดภัย
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('studentId', data.data.studentId);
-                localStorage.setItem('room', data.data.room);
-                
-                // อัปเดต UI ให้ผู้ใช้ทราบ
-                btn.style.backgroundColor = 'var(--success)';
-                btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
-                
-                // หน่วงเวลาเล็กน้อยเพื่อให้เห็นข้อความสำเร็จ ก่อน Redirect
-                setTimeout(() => {
-                    window.location.replace('advice/Std_info_dashboard.html');
-                }, 800);
-            } else {
-                // รหัสผ่านผิด หรือ ไม่พบผู้ใช้
-                throw new Error(data.message || 'รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง');
-            }
-
-        } catch (error) {
-            console.error("Login Process Error:", error);
+    <!-- ============================================== -->
+    <!-- 🔒 1. LOGIN SCREEN -->
+    <!-- ============================================== -->
+    <div id="login-view">
+        <div class="login-card">
+            <!-- โลโก้โรงเรียน ตามคำขอ -->
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" class="login-logo">
             
-            // แสดงข้อความ Error ตามกรณี
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMsg.textContent = '❌ ขัดข้องทางเครือข่าย โปรดตรวจสอบอินเทอร์เน็ต หรือ URL ของ GAS';
-            } else {
-                errorMsg.textContent = `❌ ${error.message}`;
+            <div class="student-badge">🧑‍🎓 โหมดนักเรียน</div>
+            <h1>เข้าสู่ระบบทำภารกิจ</h1>
+            <p>Buayai I Care School</p>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="studentId">เลขประจำตัวนักเรียน</label>
+                    <input type="text" id="studentId" placeholder="เช่น 1111" required autocomplete="username" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">รหัสผ่าน (5 หลัก)</label>
+                    <input type="password" id="password" placeholder="เช่น 12345" required autocomplete="current-password" maxlength="5" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                </div>
+
+                <button type="submit" id="loginBtn" class="btn-login">เข้าสู่ระบบ 🚀</button>
+                <div id="error-msg"></div>
+                
+                <div class="action-links">
+                    <a href="appyEpoint.html"><i class="bi bi-person-plus-fill"></i> สมัครใช้งานใหม่</a>
+                    <a href="loginEpoint.html"><i class="bi bi-key-fill"></i> ลืมรหัสผ่าน?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 📱 2. APP VIEW (MISSION DASHBOARD) -->
+    <!-- ============================================== -->
+    <div id="app-view" style="display: none;">
+        
+        <!-- Navbar -->
+        <div class="top-navbar">
+            <div class="flex items-center gap-3">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="w-10 h-10 rounded-full bg-white p-1 shadow-sm object-contain">
+                <div>
+                    <h1 class="m-0 font-prompt font-bold text-lg leading-tight text-white">ภารกิจของฉัน (Quest)</h1>
+                    <div class="text-xs text-orange-200">Buayai I-Care System</div>
+                </div>
+            </div>
+            <button onclick="logout()" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-bold text-white transition">
+                <i class="bi bi-box-arrow-right"></i> ออก
+            </button>
+        </div>
+
+        <div class="max-w-3xl mx-auto p-4 md:p-6 w-full mt-4">
+            
+            <!-- แผงสำหรับทดสอบ (Dev Tools) ซ่อนในหน้าจอมือถือเล็กๆ -->
+            <div class="dev-panel hidden sm:block">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-yellow-400 font-prompt"><i class="bi bi-tools"></i> แผงทดสอบระบบ (เร่งเวลา)</span>
+                    <button class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold" onclick="resetAllMissions()">ล้างประวัติ</button>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">กดปุ่มด้านล่าง เพื่อจำลองว่าเวลาผ่านไปแล้ว 3 วัน (ระบบจะปลดล็อกด่านถัดไปอัตโนมัติ)</p>
+                <div class="flex gap-2">
+                    <button class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-sm font-bold transition" onclick="simulateTimeTravel(0)">วันปัจจุบัน</button>
+                    <button class="flex-1 py-1.5 bg-yellow-600 hover:bg-yellow-500 rounded text-sm font-bold transition" onclick="simulateTimeTravel(3)">+ ข้าม 3 วัน</button>
+                    <button class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold transition" onclick="simulateTimeTravel(7)">+ ข้าม 7 วัน</button>
+                </div>
+                <div class="mt-3 text-xs text-emerald-400">วันที่จำลองปัจจุบัน: <span id="dev-current-date" class="font-bold text-white text-sm"></span></div>
+            </div>
+
+            <!-- Player Banner -->
+            <div class="player-banner">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" class="profile-avatar bg-white">
+                <div style="z-index: 2;">
+                    <h4 class="font-bold text-xl m-0 font-prompt text-white" id="player-name">กำลังโหลดข้อมูล...</h4>
+                    <div class="text-orange-200 text-sm mt-1">ม.<span id="player-room">-</span> | รหัส: <span id="player-id">-</span></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 mb-6">
+                <i class="bi bi-map-fill text-orange-600 text-2xl"></i>
+                <h2 class="font-prompt font-bold text-xl text-slate-800 m-0">แผนที่ภารกิจ (Roadmap)</h2>
+            </div>
+
+            <!-- Timeline ภารกิจ -->
+            <div class="quest-container">
+                <div class="quest-track"></div>
+                <div id="mission-list">
+                    <div class="text-center py-10 text-slate-400 font-bold">
+                        <div class="animate-spin inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mb-3"></div>
+                        <br>กำลังประมวลผลข้อมูลภารกิจ...
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // ====================================================
+        // ⚠️ ใส่ลิงก์ Web App API ตรงนี้ (API Backend ภารกิจ)
+        // ====================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbxISWUNujPkU7Saj70nfN8588vg0-ka-NZdR2qpcekRgD4_Vb1bKzAJ03hwBe_I51SkYQ/exec"; 
+
+        // ====================================================
+        // 📌 ข้อมูลด่านภารกิจ (Mission Config)
+        // ====================================================
+        const questsData = [
+            { 
+                id: 'm1', title: '1. ข้อมูลส่วนตัว', 
+                desc: 'ตรวจเช็คประวัติส่วนตัว รูปถ่าย และกดปุ่ม "ยืนยันว่าถูกต้อง"', 
+                icon: 'bi-person-bounding-box', url: 'verify_identity.html', 
+                reqMissionId: null, delayDays: 0
+            },
+            { 
+                id: 'm2', title: '2. การมาโรงเรียน', 
+                desc: 'แจ้งวิธีการเดินทางมาโรงเรียน หรือขึ้นทะเบียนรถจักรยานยนต์', 
+                icon: 'bi-scooter', url: 'vehicle_db.html', 
+                reqMissionId: 'm1', delayDays: 3 // 🔒 ต้องรอ 3 วันหลังจากผ่านด่าน 1
+            },
+            { 
+                id: 'm3', title: '3. แบบประเมิน SDQ', 
+                desc: 'ตอบแบบสอบถามสำรวจพฤติกรรมและอารมณ์ 25 ข้อ', 
+                icon: 'bi-clipboard-heart-fill', url: 'sdq_student.html', 
+                reqMissionId: 'm2', delayDays: 3 // 🔒 ต้องรอ 3 วันหลังจากผ่านด่าน 2
+            },
+            { 
+                id: 'm4', title: '4. น้ำหนัก-ส่วนสูง', 
+                desc: 'แจ้งข้อมูลการเจริญเติบโตประจำภาคเรียน', 
+                icon: 'bi-rulers', url: '#', 
+                reqMissionId: 'm3', delayDays: 3, isPlaceholder: true
+            },
+            { 
+                id: 'm5', title: '5. เยี่ยมบ้านออนไลน์', 
+                desc: 'ส่งพิกัดที่พักอาศัยและสภาพแวดล้อมให้คุณครู', 
+                icon: 'bi-house-heart-fill', url: '#', 
+                reqMissionId: 'm4', delayDays: 3, isPlaceholder: true
+            },
+            { 
+                id: 'm6', title: '6. เพื่อนที่ฉันไว้วางใจ', 
+                desc: 'ระบุรายชื่อเพื่อนสนิทที่สามารถพูดคุยหรือปรึกษาได้', 
+                icon: 'bi-people-fill', url: '#', 
+                reqMissionId: 'm5', delayDays: 3, isPlaceholder: true
             }
+        ];
 
-            // ปลดล็อก UI State ให้กรอกใหม่ได้
-            btn.disabled = false;
-            studentIdInput.disabled = false;
-            passwordInput.disabled = false;
-            btn.textContent = 'เข้าสู่ระบบ 🚀';
-            passwordInput.value = ''; // เคลียร์รหัสผ่านให้กรอกใหม่
-            passwordInput.focus();
+        let studentData = { id: "", name: "", room: "" };
+        let studentProgress = {}; 
+        let simulatedDaysOffset = 0; // ตัวแปรสำหรับ Dev Tools เร่งเวลา
+
+        // ----------------------------------------------------
+        // 🔄 Initialization
+        // ----------------------------------------------------
+        window.onload = () => {
+            updateDevDateDisplay();
+            
+            // เช็ค Auto-Login (ถ้ามี Session ค้างอยู่)
+            if (localStorage.getItem('icare_logged_in') === 'true') {
+                const storedId = localStorage.getItem('icare_studentId');
+                const storedRoom = localStorage.getItem('icare_room');
+                const storedName = localStorage.getItem('icare_name');
+                
+                if (storedId && storedRoom) {
+                    studentData = { id: storedId, name: storedName || "นักเรียน", room: storedRoom };
+                    
+                    // ปลอมให้ช่อง Input มีข้อมูล เผื่อต้องดึงมาใช้
+                    document.getElementById('studentId').value = storedId;
+                    
+                    showAppView();
+                    loadMissionsProgress();
+                }
+            }
+        };
+
+        // ----------------------------------------------------
+        // 🔐 Login Logic
+        // ----------------------------------------------------
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const studentIdInput = document.getElementById('studentId');
+            const passwordInput = document.getElementById('password');
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('error-msg');
+
+            const sid = studentIdInput.value.trim();
+            const pwd = passwordInput.value.trim();
+
+            if (!sid || !pwd) { errorMsg.textContent = '❌ กรุณากรอกข้อมูลให้ครบถ้วน'; return; }
+            if (pwd.length !== 5) { errorMsg.textContent = '❌ รหัสผ่านต้องเป็นตัวเลข 5 หลัก'; return; }
+
+            errorMsg.textContent = '';
+            btn.disabled = true; studentIdInput.disabled = true; passwordInput.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:1rem;height:1rem;border-width:0.15em;"></span> กำลังตรวจสอบข้อมูล... ⏳';
+
+            try {
+                // 🌟 ยิง API ไปเช็ค Login ที่หลังบ้าน
+                const payload = { action: 'loginEpoint', id: sid, password: pwd, room: "all" }; // ใช้ loginEpoint เดิมที่เคยทำไว้ (มันจะค้นหาจากชีต IDLogin)
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // ล็อกอินสำเร็จ เก็บข้อมูลลงเครื่อง
+                    studentData = { id: sid, name: data.name || "นักเรียนบัวใหญ่", room: data.room || "-" };
+                    
+                    localStorage.setItem('icare_logged_in', 'true');
+                    localStorage.setItem('icare_studentId', studentData.id);
+                    localStorage.setItem('icare_room', studentData.room);
+                    localStorage.setItem('icare_name', studentData.name);
+                    
+                    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
+                    
+                    setTimeout(() => {
+                        showAppView();
+                        loadMissionsProgress();
+                    }, 800);
+                } else {
+                    throw new Error(data.error || 'รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง');
+                }
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                errorMsg.textContent = `❌ ${error.message}`;
+                
+                btn.disabled = false; studentIdInput.disabled = false; passwordInput.disabled = false;
+                btn.textContent = 'เข้าสู่ระบบ 🚀';
+                passwordInput.value = ''; passwordInput.focus();
+            }
         }
-    }
-</script>
 
+        function showAppView() {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('app-view').style.display = 'block';
+            
+            document.getElementById('player-id').innerText = studentData.id;
+            document.getElementById('player-name').innerText = studentData.name;
+            document.getElementById('player-room').innerText = studentData.room.replace('ม.', '');
+        }
+
+        function logout() {
+            localStorage.removeItem('icare_logged_in');
+            localStorage.removeItem('icare_studentId');
+            localStorage.removeItem('icare_room');
+            localStorage.removeItem('icare_name');
+            
+            document.getElementById('app-view').style.display = 'none';
+            document.getElementById('login-view').style.display = 'flex';
+            
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = false; btn.style.background = ''; btn.textContent = 'เข้าสู่ระบบ 🚀';
+            document.getElementById('studentId').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('password').value = '';
+            document.getElementById('error-msg').textContent = '';
+        }
+
+        // ----------------------------------------------------
+        // 🚀 Fetch & Render Mission Progress (มี Time-Lock)
+        // ----------------------------------------------------
+        async function loadMissionsProgress() {
+            const container = document.getElementById('mission-list');
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 font-bold"><div class="animate-spin inline-block w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mb-3"></div><br>กำลังดึงข้อมูลภารกิจจากฐานข้อมูล...</div>';
+
+            try {
+                // ยิง API ถามความคืบหน้าแบบ Real-time
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getProgress', id: studentData.id })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    studentProgress = res.progress; 
+                    renderMissions();
+                } else {
+                    throw new Error(res.error);
+                }
+            } catch (e) {
+                container.innerHTML = `<div class="text-center py-10 text-red-500 font-bold"><i class="bi bi-x-circle text-4xl mb-2 block"></i> ดึงข้อมูลล้มเหลว: ${e.message}</div>`;
+            }
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('mission-list');
+            container.innerHTML = '';
+            
+            const currentDate = getCurrentSimulatedDate();
+
+            questsData.forEach((q, index) => {
+                const prog = studentProgress[q.id];
+                const isCompleted = prog && prog.status === 'completed';
+                const needsConfirm = prog && prog.status === 'needs_confirm';
+                
+                let isUnlocked = true;
+                let lockReason = "";
+
+                // 🌟 ตรรกะตรวจการปลดล็อก และหน่วงเวลา
+                if (q.reqMissionId) {
+                    const reqProg = studentProgress[q.reqMissionId];
+                    if (!reqProg || reqProg.status !== 'completed') {
+                        isUnlocked = false; 
+                        lockReason = "ต้องทำด่านก่อนหน้าให้ผ่านก่อน";
+                    } else {
+                        // คำนวณวันปลดล็อก (อิงจากวันที่เคลียร์ด่านก่อนหน้า + DelayDays)
+                        if (q.delayDays > 0) {
+                            const reqCompletionDate = new Date(reqProg.date);
+                            let unlockDate = new Date(reqCompletionDate);
+                            unlockDate.setDate(unlockDate.getDate() + q.delayDays);
+                            
+                            // ถ้าเวลายังไม่ถึงกำหนด ให้ล็อคไว้
+                            if (currentDate < unlockDate) {
+                                isUnlocked = false;
+                                const diffTime = Math.abs(unlockDate - currentDate);
+                                const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                lockReason = `ด่านนี้จะเปิดในอีก <b>${remainingDays} วัน</b>`;
+                            }
+                        }
+                    }
+                }
+
+                // 🌟 วาด HTML การ์ดตามสถานะ (Completed, Confirm, Unlocked, Locked)
+                let statusClass = "", btnHtml = "", iconClass = q.icon;
+
+                if (isCompleted) {
+                    statusClass = "status-completed"; iconClass = "bi-check-circle-fill";
+                    btnHtml = `<div class="btn-done"><i class="bi bi-star-fill text-warning me-1"></i> ภารกิจสำเร็จแล้ว</div>`;
+                } 
+                else if (needsConfirm && isUnlocked) {
+                    statusClass = "status-confirm"; iconClass = "bi-exclamation-triangle-fill";
+                    let actionClick = `startMission('${q.url}')`;
+                    btnHtml = `<button class="btn-confirm shadow-sm" onclick="${actionClick}">
+                                <i class="bi bi-clock-history"></i> พบข้อมูลเก่า: คลิกเพื่อยืนยันข้อมูล
+                               </button>`;
+                }
+                else if (isUnlocked) {
+                    statusClass = "status-unlocked";
+                    let actionClick = q.isPlaceholder ? `Swal.fire('แจ้งเตือน', 'ระบบอยู่ระหว่างการพัฒนา รอประกาศจากโรงเรียนครับ', 'info')` : `startMission('${q.url}')`;
+                    btnHtml = `<button class="btn-play shadow-md" onclick="${actionClick}">เริ่มทำภารกิจ <i class="bi bi-controller ms-1"></i></button>`;
+                } 
+                else {
+                    statusClass = "status-locked"; iconClass = "bi-lock-fill";
+                    btnHtml = `<button class="btn-lock" disabled><i class="bi bi-shield-lock me-1"></i> ${lockReason}</button>`;
+                }
+
+                container.innerHTML += `
+                <div class="quest-item ${statusClass}">
+                    <div class="quest-node"><i class="bi ${iconClass}"></i></div>
+                    <div class="quest-card">
+                        <div class="level-badge">ด่านที่ ${index + 1}</div>
+                        <div class="quest-title">${q.title}</div>
+                        <div class="quest-desc">${q.desc}</div>
+                        ${btnHtml}
+                    </div>
+                </div>`;
+            });
+        }
+
+        // ----------------------------------------------------
+        // 🎮 Mission Action
+        // ----------------------------------------------------
+        function startMission(url) {
+            if(url && url !== '#') {
+                // แนบรหัสผ่าน URL ไปด้วยเพื่อทำ Auto-login (ถ้าปลายทางรองรับ)
+                const fullUrl = `${url}?uid=${studentData.id}`;
+                window.open(fullUrl, '_blank');
+                
+                setTimeout(() => {
+                    Swal.fire({
+                        title: 'ดำเนินการเสร็จหรือยัง?',
+                        text: 'หากกรอกข้อมูลฟอร์มด่านนี้เสร็จแล้ว ให้กดปุ่มด้านล่างเพื่ออัปเดตสถานะครับ',
+                        icon: 'question',
+                        showCancelButton: true,
+                        cancelButtonText: 'ยังไม่เสร็จ',
+                        confirmButtonText: '<i class="bi bi-arrow-clockwise"></i> อัปเดตสถานะภารกิจ',
+                        confirmButtonColor: '#3b82f6'
+                    }).then((res) => {
+                        if(res.isConfirmed) {
+                            loadMissionsProgress(); // ดึงข้อมูลจากฐานข้อมูลมาใหม่
+                        }
+                    });
+                }, 3000);
+            }
+        }
+
+        // ----------------------------------------------------
+        // ⏱️ Dev Tools (เร่งเวลาจำลอง)
+        // ----------------------------------------------------
+        function getCurrentSimulatedDate() {
+            let d = new Date(); d.setDate(d.getDate() + simulatedDaysOffset); return d;
+        }
+
+        function updateDevDateDisplay() {
+            const d = getCurrentSimulatedDate();
+            document.getElementById('dev-current-date').innerText = d.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+        }
+
+        function simulateTimeTravel(days) {
+            if (days === 0) simulatedDaysOffset = 0;
+            else simulatedDaysOffset += days; 
+            updateDevDateDisplay(); 
+            renderMissions(); // วาดใหม่เพื่อคำนวณ Time-lock ใหม่
+        }
+        
+        function resetAllMissions() {
+            studentProgress = {};
+            simulatedDaysOffset = 0;
+            updateDevDateDisplay();
+            renderMissions();
+            Swal.fire('เคลียร์ข้อมูลชั่วคราว', 'ล้างประวัติการทำภารกิจในหน้าจอนี้แล้ว (ข้อมูลในฐานข้อมูลจริงไม่ถูกลบ)', 'info');
+        }
+
+    </script>
 </body>
 </html>
