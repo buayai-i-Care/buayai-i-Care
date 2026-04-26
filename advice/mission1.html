@@ -400,12 +400,6 @@
         const btnSubmit = document.getElementById('btnSubmit');
         const loadingBox = document.getElementById('loadingData');
 
-        // 🚨 เช็คดักความผิดพลาด: ครูลืมเปลี่ยนลิงก์ URL API
-        if (DATA_API_URL.includes("AKfycbxISWUNujPkU7Saj70nfN8588vg0-ka-NZdR2qpcekRgD4_Vb1bKzAJ03hwBe_I51SkYQ")) {
-            alert('❌ ระบบตรวจพบว่าคุณครูยังไม่ได้เปลี่ยนลิงก์ DATA_API_URL (บรรทัดที่ 264) เป็นลิงก์ของคุณครูเองครับ!\n\nกรุณานำลิงก์จาก Apps Script อันใหม่มาใส่ก่อน มิฉะนั้นจะบันทึกไม่ได้ครับ');
-            return;
-        }
-
         const citizenId = document.getElementById('citizenId').value.trim();
         const fullName = document.getElementById('fullName').value.trim();
         const birthDate = document.getElementById('birthDate').value;
