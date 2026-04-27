@@ -3,250 +3,559 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ: Buayai I Care School สำหรับนักเรียน</title>
-    <!-- นำเข้าฟอนต์ Sarabun เพื่อความเป็นทางการและอ่านง่าย -->
+    <title>Buayai I Care - Student Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* =========================================
+           🎮 ธีมสีส้มดุดัน (Dark Amber / Neon Orange)
+           ========================================= */
         :root {
-            --primary: #f97316; 
-            --primary-hover: #ea580c;
-            --bg-color: #fff7ed;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
+            --bg-dark: #1a0500;
+            --bg-card: rgba(40, 15, 5, 0.85);
+            --primary: #ff6b00;       
+            --primary-glow: rgba(255, 107, 0, 0.5);
+            --accent: #ffc107;        
+            --success: #22c55e;
             --danger: #ef4444;
-            --success: #10b981;
-        }
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .login-card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 400px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 40px 30px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        
-        /* 🌟 ปรับแต่งโลโก้ให้เป็นวงกลมสวยงาม */
-        .login-logo { 
-            width: 95px; 
-            height: 95px; 
-            object-fit: contain; 
-            border-radius: 50%; 
-            background: white; 
-            padding: 5px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
-            margin: 0 auto 15px auto; 
-            border: 2px solid var(--primary); 
-            display: block;
-        }
-        
-        h1 { margin-top: 0; color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; font-weight: 700; }
-        p { color: #6b7280; font-size: 0.95rem; margin-bottom: 30px; }
-        
-        .form-group { text-align: left; margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: 'Sarabun', sans-serif;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--primary); }
-        input:disabled { background-color: #f3f4f6; cursor: not-allowed; }
-        
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Sarabun', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        button:hover:not(:disabled) { background-color: var(--primary-hover); }
-        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        
-        #error-msg {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: 15px;
-            min-height: 20px;
-            font-weight: 500;
-            word-wrap: break-word;
+            --locked: #57534e;
+            --cooldown: #f97316;
+            --text-main: #fff7ed;
+            --text-muted: #fdba74;
         }
 
-        .action-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
-        .action-links a { color: var(--primary); text-decoration: none; font-weight: 600; transition: 0.2s; }
-        .action-links a:hover { color: var(--primary-hover); text-decoration: underline; }
+        body { font-family: 'Prompt', sans-serif; background: radial-gradient(circle at top left, #4a1500, #1a0500, #050100); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
         
-        .student-badge {
-            display: inline-block;
-            background-color: #ffedd5;
-            color: var(--primary-hover);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 15px;
+        /* --- View 1: Login --- */
+        #login-view { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-card { background: var(--bg-card); backdrop-filter: blur(12px); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1); padding: 40px 30px; text-align: center; }
+        .login-logo { width: 90px; height: 90px; object-fit: contain; border-radius: 50%; background: #fff; padding: 5px; box-shadow: 0 0 20px var(--primary-glow); margin: 0 auto 15px auto; border: 3px solid var(--primary); }
+        .login-card h1 { margin: 0 0 5px; color: var(--primary); font-size: 1.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .login-card p { color: var(--text-muted); margin-bottom: 30px; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--accent); }
+        
+        input[type="text"], input[type="password"], input[type="date"], input[type="number"], input[type="tel"], select, textarea {
+            width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1px solid #78350f; border-radius: 10px; color: #fff; box-sizing: border-box; font-family: 'Prompt', sans-serif; font-size: 1rem; transition: 0.3s;
         }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); background: rgba(0,0,0,0.6); }
+        input:disabled { background: rgba(255,255,255,0.05); color: #64748b; border-color: #1e293b; cursor: not-allowed; }
+        
+        .file-upload-box { border: 2px dashed #78350f; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; color: var(--text-muted); position: relative; }
+        .file-upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.1); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow) inset; }
+        .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+        .file-status { display: block; margin-top: 10px; font-size: 0.85rem; color: var(--success); word-break: break-all; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+
+        .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #ea580c); color: white; border: none; border-radius: 10px; font-family: 'Prompt', sans-serif; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px var(--primary-glow); margin-top: 20px; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
+        .btn-submit:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
+        
+        /* ปุ่มบันทึกร่าง */
+        .btn-draft { background: transparent; border: 2px solid var(--locked); box-shadow: none; color: var(--text-muted); margin-top: 10px; }
+        .btn-draft:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(255,193,7,0.1); }
+
+        #error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 15px; min-height: 20px; }
+
+        /* --- View 2: Dashboard --- */
+        #dashboard-view { display: none; min-height: 100vh; }
+        .sidebar { width: 300px; background: rgba(26, 5, 0, 0.9); border-right: 1px solid rgba(255,255,255,0.05); padding: 20px; display: flex; flex-direction: column; backdrop-filter: blur(10px); overflow-y: auto; }
+        .player-profile { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed #78350f; margin-bottom: 15px; }
+        .player-avatar { font-size: 3rem; margin-bottom: 10px; text-shadow: 0 0 15px var(--accent); }
+        .score-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; border: 1px solid #78350f; margin-top: 10px; }
+        .score-box span { display: block; font-size: 1.5rem; color: #ffc107; font-weight: bold; }
+        .sidebar-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: #fff; text-align: left; padding: 12px 15px; font-family: 'Prompt', sans-serif; font-size: 1rem; cursor: pointer; transition: 0.3s; width: 100%; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-btn:hover:not(.locked):not(.cooldown) { background: rgba(255,255,255,0.1); border-color: var(--accent); }
+        .sidebar-btn.active { background: rgba(255, 193, 7, 0.15); border: 1px solid var(--accent); box-shadow: 0 0 15px rgba(255,193,7,0.2); }
+        .sidebar-btn.locked { color: var(--locked); cursor: not-allowed; border-style: dashed; }
+        .sidebar-btn.completed { border-color: var(--success); background: rgba(34, 197, 94, 0.05); }
+        .sidebar-btn.cooldown { border-color: var(--cooldown); border-style: dashed; cursor: not-allowed; background: rgba(249, 115, 22, 0.05); }
+        .btn-info { display: flex; flex-direction: column; }
+        .btn-title { font-weight: 500; }
+        .countdown-text { font-size: 0.8rem; color: var(--accent); font-weight: bold; margin-top: 2px; }
+        .logout-btn { margin-top: 20px; background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: #fca5a5; }
+
+        .main-content { flex: 1; padding: 30px; position: relative; }
+        .content-card { background: var(--bg-card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: fadeIn 0.4s ease-out; position: relative; max-width: 900px; margin: 0 auto; }
+        .timer-hud { position: absolute; top: -15px; right: 20px; background: #000; border: 2px solid var(--primary); padding: 5px 20px; border-radius: 20px; font-size: 1.2rem; font-weight: bold; color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); z-index: 10; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-card); display: flex; justify-content: center; align-items: center; z-index: 20; border-radius: 20px; flex-direction: column; color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #280f05; padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(255,193,7,0.4); max-width: 400px; width: 90%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content h2 { color: var(--success); margin-top: 0; font-size: 2rem; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 768px) { #dashboard-view { flex-direction: column; } .sidebar { width: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); max-height: 40vh; } .main-content { padding: 15px; } .content-card { padding: 20px; } }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <!-- 🌟 โลโก้โรงเรียน -->
-    <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" class="login-logo">
-    
-    <div class="student-badge">🧑‍🎓 โหมดนักเรียน</div>
-    <h1>เข้าสู่ระบบนักเรียน</h1>
-    <p>Buayai I Care School</p>
-
-    <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-            <label for="studentId">เลขประจำตัวนักเรียน</label>
-            <input type="text" id="studentId" placeholder="เช่น 1111" required autocomplete="username">
+    <!-- [ View 1: Login ] -->
+    <div id="login-view">
+        <div class="login-card">
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" class="login-logo">
+            <h1>SYSTEM LOGIN</h1>
+            <p>Buayai I Care - Student Mission</p>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>ID CODE (รหัสประจำตัว)</label><input type="text" id="studentId" required></div>
+                <div class="form-group"><label>PASSWORD (รหัสผ่าน)</label><input type="password" id="password" required></div>
+                <button type="submit" id="loginBtn" class="btn-submit">START MISSION 🚀</button>
+                <div id="error-msg"></div>
+            </form>
         </div>
-        
-        <div class="form-group">
-            <label for="password">รหัสผ่าน</label>
-            <input type="password" id="password" placeholder="เช่น 1111" required autocomplete="current-password">
-        </div>
+    </div>
 
-        <button type="submit" id="loginBtn">เข้าสู่ระบบ 🚀</button>
-        <div id="error-msg"></div>
-        
-        <div class="action-links">
-            <a href="appyEpoint.html">ยังไม่สมัคร? ไปที่นี่</a>
-            <a href="loginEpoint.html">ลืมรหัสผ่าน? ไปที่นี่</a>
-        </div>
-    </form>
-</div>
-
-<script>
-    // ==========================================
-    // ⚙️ Configuration
-    // ==========================================
-    // URL ของ Web App จาก Google Apps Script
-    const LOGIN_API_URL = 'https://script.google.com/macros/s/AKfycbxvxQuZEmF4D0gzFQRYLHNYtqcMkfFWXun2uo8vJNihHExc6xkDGV3IkXGrg4vM-YBYjA/exec';
-    // ==========================================
-    // 🔄 Initialization
-    // ==========================================
-    window.onload = () => {
-        // หากผู้ใช้เคยล็อกอินไว้แล้ว ให้ Redirect ทันที
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.replace('advice/Std_info_dashboard.html'); // เข้าสู่ Dashboard
-        }
-    };
-
-    // ==========================================
-    // 🔐 Login Handler
-    // ==========================================
-    async function handleLogin(e) {
-        e.preventDefault();
-        
-        const studentIdInput = document.getElementById('studentId');
-        const passwordInput = document.getElementById('password');
-        const btn = document.getElementById('loginBtn');
-        const errorMsg = document.getElementById('error-msg');
-
-        // รวบรวมข้อมูล
-        const studentId = studentIdInput.value.trim();
-        const password = passwordInput.value.trim();
-
-        if (!studentId || !password) {
-            errorMsg.textContent = '❌ กรุณากรอกข้อมูลให้ครบถ้วน';
-            return;
-        }
-
-        // Lock UI State
-        errorMsg.textContent = '';
-        btn.disabled = true;
-        studentIdInput.disabled = true;
-        passwordInput.disabled = true;
-        btn.textContent = 'กำลังตรวจสอบข้อมูล... ⏳';
-
-        try {
-            const payload = new URLSearchParams({
-                'action': 'login', 
-                'studentId': studentId,
-                'password': password
-            });
-
-            const response = await fetch(LOGIN_API_URL, {
-                method: 'POST',
-                body: payload
-            });
-
-            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-            let data;
-            try {
-                data = await response.json();
-            } catch (parseError) {
-                throw new Error("เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่ถูกต้อง (โปรดตรวจสอบลิงก์ GAS)");
-            }
-
-            if (data.status === 'success') {
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('studentId', data.data.studentId);
-                localStorage.setItem('room', data.data.room);
-                
-                btn.style.backgroundColor = 'var(--success)';
-                btn.textContent = 'สำเร็จ! กำลังเข้าสู่ระบบ... ✅';
-                
-                setTimeout(() => {
-                    window.location.replace('advice/Std_info_dashboard.html');
-                }, 800);
-            } else {
-                throw new Error(data.message || 'รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง');
-            }
-
-        } catch (error) {
-            console.error("Login Process Error:", error);
+    <!-- [ View 2: Dashboard ] -->
+    <div id="dashboard-view">
+        <div class="sidebar">
+            <div class="player-profile">
+                <div class="player-avatar">🧑‍🚀</div>
+                <h3 style="margin: 0; color: var(--accent);">ID: <span id="display-studentId">-</span></h3>
+                <div class="score-box"><small>TOTAL EXP</small><span id="display-score">0</span></div>
+            </div>
             
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMsg.textContent = '❌ ขัดข้องทางเครือข่าย โปรดตรวจสอบอินเทอร์เน็ต หรือ URL ของ GAS';
-            } else {
-                errorMsg.textContent = `❌ ${error.message}`;
+            <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash">
+                <div class="btn-info"><span class="btn-title">📡 ศูนย์บัญชาการ</span></div>
+            </button>
+            <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1">
+                <div class="btn-info"><span class="btn-title">🎯 ด่าน 1: ยืนยันตัวตนฮีโร่</span><span class="countdown-text" id="cd-m1"></span></div><span id="icon-m1">🔓</span>
+            </button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2">
+                <div class="btn-info"><span class="btn-title">🎯 ด่าน 2: เครือข่ายครอบครัว</span><span class="countdown-text" id="cd-m2"></span></div><span id="icon-m2">🔒</span>
+            </button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3">
+                <div class="btn-info"><span class="btn-title">🎯 ด่าน 3: สแกนกายภาพ</span><span class="countdown-text" id="cd-m3"></span></div><span id="icon-m3">🔒</span>
+            </button>
+            <!-- M4, M5, M6 สามารถเพิ่มได้ทีหลัง เมื่อหลังบ้านรองรับ -->
+            
+            <button class="sidebar-btn logout-btn" onclick="handleLogout()">🚪 ออกจากระบบ</button>
+        </div>
+
+        <div class="main-content">
+            <div class="content-card" id="dynamic-content-area"></div>
+        </div>
+    </div>
+
+    <!-- [ Modal แจ้งผลคะแนน ] -->
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div style="font-size: 4rem; margin-bottom: 10px;" id="modal-icon">🎉</div>
+            <h2 id="modal-heading">MISSION CLEAR!</h2>
+            <p id="modal-text" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <div id="score-container" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="margin:0; color:#ffc107;">+ <span id="modal-score">0</span> EXP</h3>
+            </div>
+            <button class="btn-submit" onclick="closeModalAndGoNext()">ดำเนินการต่อ ➔</button>
+        </div>
+    </div>
+
+    <script>
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxvxQuZEmF4D0gzFQRYLHNYtqcMkfFWXun2uo8vJNihHExc6xkDGV3IkXGrg4vM-YBYjA/exec';
+        const DEV_MODE = true; 
+        const COOLDOWN_MS = DEV_MODE ? (1 * 60 * 1000) : (2 * 24 * 60 * 60 * 1000); 
+
+        let playerState = {
+            score: 0,
+            missions: { 
+                m1: { status: 'unlocked', unlocksAt: 0 },
+                m2: { status: 'locked', unlocksAt: 0 },
+                m3: { status: 'locked', unlocksAt: 0 }
+            }
+        };
+
+        let missionTimer = null, mainGameLoop = null, secondsElapsed = 0, currentMission = '';
+        let cachedStudentData = null; // ตัวแปรเก็บข้อมูลเก่ากันโหลดซ้ำบ่อยๆ
+
+        window.onload = () => {
+            const savedState = localStorage.getItem('playerState');
+            if(savedState) playerState = JSON.parse(savedState);
+            checkLoginState();
+        };
+
+        function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
+
+        function checkLoginState() {
+            if (localStorage.getItem('isLoggedIn') === 'true') showDashboardView();
+            else showLoginView();
+        }
+
+        function showLoginView() { document.getElementById('login-view').style.display = 'flex'; document.getElementById('dashboard-view').style.display = 'none'; if(mainGameLoop) clearInterval(mainGameLoop); }
+
+        function showDashboardView() {
+            document.getElementById('login-view').style.display = 'none'; document.getElementById('dashboard-view').style.display = 'flex';
+            document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
+            updateSidebarUI(); startGameLoop(); loadContent('dashboard', document.getElementById('btn-dash'));
+        }
+
+        function handleLogout() { localStorage.clear(); showLoginView(); }
+
+        async function fetchAPI(action, payload = {}) {
+            payload.action = action;
+            const res = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            return await res.json();
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn'), errorMsg = document.getElementById('error-msg');
+            const stuId = document.getElementById('studentId').value.trim(), pass = document.getElementById('password').value.trim();
+            btn.disabled = true; btn.textContent = 'CONNECTING... ⏳'; errorMsg.textContent = '';
+            try {
+                const data = await fetchAPI('login', { studentId: stuId, password: pass });
+                if (data.status === 'success') {
+                    localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('studentId', data.data.studentId);
+                    showDashboardView();
+                } else throw new Error(data.message || 'รหัสไม่ถูกต้อง');
+            } catch (error) { errorMsg.textContent = `❌ ${error.message}`; } 
+            finally { btn.disabled = false; btn.textContent = 'START MISSION 🚀'; }
+        }
+
+        function startGameLoop() {
+            if(mainGameLoop) clearInterval(mainGameLoop);
+            mainGameLoop = setInterval(() => {
+                let now = Date.now(), uiNeedsUpdate = false;
+                for (let i = 1; i <= 3; i++) {
+                    let mId = 'm' + i, mission = playerState.missions[mId], textElement = document.getElementById('cd-' + mId);
+                    if (mission.status === 'cooldown') {
+                        let timeLeft = mission.unlocksAt - now;
+                        if (timeLeft <= 0) { mission.status = 'unlocked'; textElement.textContent = ''; uiNeedsUpdate = true; } 
+                        else {
+                            let days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)), hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24), mins = Math.floor((timeLeft / 1000 / 60) % 60), secs = Math.floor((timeLeft / 1000) % 60);
+                            textElement.textContent = DEV_MODE ? `⏳ ชาร์จพลัง: ${mins}น ${secs}วิ` : `⏳ ปลดล็อกใน: ${days}วัน ${hours}ชม ${mins}น`;
+                        }
+                    } else if (textElement) textElement.textContent = ''; 
+                }
+                if(uiNeedsUpdate) savePlayerState();
+            }, 1000);
+        }
+
+        function updateSidebarUI() {
+            document.getElementById('display-score').textContent = playerState.score.toLocaleString();
+            for (let i = 1; i <= 3; i++) {
+                let mId = 'm' + i, status = playerState.missions[mId].status, btn = document.getElementById('btn-' + mId), icon = document.getElementById('icon-' + mId);
+                btn.className = 'sidebar-btn'; 
+                if (status === 'locked') { btn.classList.add('locked'); icon.textContent = '🔒'; }
+                else if (status === 'unlocked') { icon.textContent = '🔓'; }
+                else if (status === 'completed') { btn.classList.add('completed'); icon.textContent = '✅'; }
+                else if (status === 'cooldown') { btn.classList.add('cooldown'); icon.textContent = '⏳'; }
+            }
+        }
+
+        function startTimer() {
+            clearInterval(missionTimer); secondsElapsed = 0;
+            const timerDisplay = document.getElementById('mission-timer-display');
+            if(timerDisplay) timerDisplay.textContent = "00:00";
+            missionTimer = setInterval(() => {
+                secondsElapsed++;
+                if(document.getElementById('mission-timer-display')) {
+                    let m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0'), s = (secondsElapsed % 60).toString().padStart(2, '0');
+                    document.getElementById('mission-timer-display').textContent = `${m}:${s}`;
+                }
+            }, 1000);
+        }
+
+        // ==========================================
+        // 🔄 ฟังก์ชันโหลดข้อมูลเข้าฟอร์ม (PRE-FILL DATA)
+        // ==========================================
+        async function loadContent(pageName, btnElement) {
+            if (pageName.startsWith('mission')) {
+                let mId = 'm' + pageName.replace('mission', '');
+                let mStatus = playerState.missions[mId].status;
+                if (mStatus === 'locked' || mStatus === 'cooldown') {
+                    btnElement.style.transform = 'translateX(10px)'; setTimeout(() => btnElement.style.transform = 'none', 100); return; 
+                }
             }
 
-            btn.disabled = false;
-            studentIdInput.disabled = false;
-            passwordInput.disabled = false;
-            btn.textContent = 'เข้าสู่ระบบ 🚀';
-            passwordInput.value = ''; 
-            passwordInput.focus();
-        }
-    }
-</script>
+            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
 
+            const contentArea = document.getElementById('dynamic-content-area');
+            const stuId = localStorage.getItem('studentId');
+            currentMission = pageName;
+            clearInterval(missionTimer); 
+
+            if (pageName === 'dashboard') {
+                contentArea.innerHTML = `
+                    <h2 style="color: var(--accent); margin-top:0;">📡 ศูนย์บัญชาการหลัก</h2>
+                    <p>ยินดีต้อนรับเอเจนต์ <b>${stuId}</b></p>
+                    <div style="background: rgba(255,193,7,0.1); padding: 15px; border-left: 4px solid var(--accent); border-radius: 5px;">
+                        <strong>ระบบออโต้เซฟ (Draft):</strong> คุณสามารถกด <b>"บันทึกไว้ก่อน"</b> เพื่อเซฟข้อมูลไว้ทำต่อวันหลังได้โดยไม่เสียเวลาคูลดาวน์!
+                    </div>
+                `;
+                return;
+            }
+
+            // 1. ⏳ สร้าง UI โหลดดิ้งระหว่างไปดึงข้อมูลเก่า
+            contentArea.innerHTML = `<div class="loading-overlay">📡 กำลังเชื่อมต่อฐานข้อมูลส่วนกลาง...</div>`;
+            
+            // 2. 📥 ดึงข้อมูลเก่า (ถ้ามี)
+            let sd = {};
+            try {
+                // ดึงข้อมูลใหม่เสมอเมื่อเข้าด่าน เพื่อความชัวร์ (หรือใช้ cachedStudentData ถ้าไม่อยากดึงบ่อย)
+                const res = await fetchAPI('getData', { studentId: stuId });
+                if(res.status === 'success' && res.studentData) {
+                    sd = res.studentData;
+                    cachedStudentData = sd; // เก็บเข้า cache
+                }
+            } catch (err) { console.error('ดึงข้อมูลเก่าไม่สำเร็จ:', err); }
+
+            // ฟังก์ชันช่วยเช็ค selected option
+            const isSel = (val, target) => val === target ? 'selected' : '';
+
+            // 3. 🎨 วาดฟอร์มและยัดข้อมูลเก่าลงไป (Pre-fill)
+            if (pageName === 'mission1') {
+                contentArea.innerHTML = `
+                    <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
+                    <h2 style="color: var(--primary); margin-top:0;">🎯 ด่าน 1: ยืนยันตัวตนฮีโร่</h2>
+                    <form id="form-m1" onsubmit="submitMission(event, 1, false)">
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>🆔 หมายเลขประจำตัวประชาชน</label>
+                                <input type="text" id="m1-citizenId" value="${sd.citizenId || ''}" maxlength="13" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>👤 ชื่อ-นามสกุล</label>
+                                <input type="text" id="m1-fullName" value="${sd.fullName || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>🏫 ระดับชั้น (ดึงจากระบบฐานข้อมูล)</label>
+                                <select id="m1-level" disabled>
+                                    <option value="">-- เลือกชั้น --</option>
+                                    <option value="ม.1" ${isSel(sd.level, 'ม.1')}>ม.1</option>
+                                    <option value="ม.2" ${isSel(sd.level, 'ม.2')}>ม.2</option>
+                                    <option value="ม.3" ${isSel(sd.level, 'ม.3')}>ม.3</option>
+                                    <option value="ม.4" ${isSel(sd.level, 'ม.4')}>ม.4</option>
+                                    <option value="ม.5" ${isSel(sd.level, 'ม.5')}>ม.5</option>
+                                    <option value="ม.6" ${isSel(sd.level, 'ม.6')}>ม.6</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>🔢 เลขประจำตัวนักเรียน</label>
+                                <input type="number" id="m1-studentNum" value="${sd.studentNumber || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>📅 วัน/เดือน/ปีเกิด (คลิกไอคอนปฏิทิน)</label>
+                                <input type="date" id="m1-birth" value="${sd.birthDate || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>🕊️ ศาสนา</label>
+                                <select id="m1-religion" required>
+                                    <option value="">-- เลือกศาสนา --</option>
+                                    <option value="พุทธ" ${isSel(sd.religion, 'พุทธ')}>พุทธ</option>
+                                    <option value="คริสต์" ${isSel(sd.religion, 'คริสต์')}>คริสต์</option>
+                                    <option value="อิสลาม" ${isSel(sd.religion, 'อิสลาม')}>อิสลาม</option>
+                                    <option value="พราหมณ์-ฮินดู" ${isSel(sd.religion, 'พราหมณ์-ฮินดู')}>พราหมณ์-ฮินดู</option>
+                                    <option value="อื่นๆ" ${isSel(sd.religion, 'อื่นๆ')}>อื่นๆ</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>📸 ภาพถ่ายนักเรียน ${sd.profileImageUrl ? '<a href="'+sd.profileImageUrl+'" target="_blank" style="color:var(--success); font-size:0.8rem;">(มีรูปเก่าอยู่แล้วในระบบ)</a>' : ''}</label>
+                                <div class="file-upload-box">
+                                    <input type="file" id="m1-img" accept="image/*" onchange="this.nextElementSibling.textContent = this.files[0].name">
+                                    <span>คลิกเพื่อเลือกไฟล์ใหม่ 📂</span>
+                                </div>
+                                <input type="hidden" id="m1-img-exist" value="${sd.profileImageUrl || ''}">
+                            </div>
+                        </div>
+                        <div class="form-grid" style="margin-top: 20px;">
+                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 1, true)" id="btn-draft-1">📝 บันทึกร่างไว้ก่อน (ไม่ผ่านด่าน)</button>
+                            <button type="submit" class="btn-submit" id="btn-submit-1">บันทึก & ผ่านด่าน 🏆</button>
+                        </div>
+                    </form>`;
+                startTimer();
+            }
+            else if (pageName === 'mission2') {
+                contentArea.innerHTML = `
+                    <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
+                    <h2 style="color: var(--accent); margin-top:0;">🎯 ด่าน 2: เครือข่ายครอบครัว</h2>
+                    <form id="form-m2" onsubmit="submitMission(event, 2, false)">
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>👨 ชื่อ-สกุล บิดา</label><input type="text" id="m2-fatherName" value="${sd.fatherName || ''}" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>👩 ชื่อ-สกุล มารดา</label><input type="text" id="m2-motherName" value="${sd.motherName || ''}" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>🛡️ ชื่อ-สกุล ผู้ปกครอง</label><input type="text" id="m2-guardianName" value="${sd.guardianName || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>📞 เบอร์โทรผู้ปกครอง</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>📱 เบอร์โทรนักเรียน</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" required>
+                            </div>
+                            
+                            <!-- ตัวอย่างอัปโหลดลายเซ็น -->
+                            <div class="form-group full-width">
+                                <label>✍️ ลายมือชื่อผู้ปกครอง ${sd.guardianSignatureUrl ? '<span style="color:var(--success); font-size:0.8rem;">(มีลายเซ็นแล้ว)</span>' : ''}</label>
+                                <div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*" onchange="this.nextElementSibling.textContent = this.files[0].name"><span>เลือกไฟล์ภาพลายเซ็น 📂</span></div>
+                                <input type="hidden" id="m2-sign-exist" value="${sd.guardianSignatureUrl || ''}">
+                            </div>
+                        </div>
+                        <div class="form-grid" style="margin-top: 20px;">
+                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 2, true)" id="btn-draft-2">📝 บันทึกร่างไว้ก่อน (ไม่ผ่านด่าน)</button>
+                            <button type="submit" class="btn-submit" id="btn-submit-2">บันทึก & ผ่านด่าน 🏆</button>
+                        </div>
+                    </form>`;
+                startTimer();
+            }
+            else if (pageName === 'mission3') {
+                contentArea.innerHTML = `
+                    <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
+                    <h2 style="color: var(--accent); margin-top:0;">🎯 ด่าน 3: สแกนกายภาพ</h2>
+                    <form id="form-m3" onsubmit="submitMission(event, 3, false)">
+                        <div class="form-grid">
+                            <div class="form-group"><label>⚖️ น้ำหนัก</label><input type="number" step="0.1" id="m3-weight" value="${sd.weight || ''}" required></div>
+                            <div class="form-group"><label>📏 ส่วนสูง</label><input type="number" step="0.1" id="m3-height" value="${sd.height || ''}" required></div>
+                            <div class="form-group full-width"><label>🩸 โรคประจำตัว</label><textarea id="m3-med" rows="2">${sd.medicalCondition || ''}</textarea></div>
+                        </div>
+                        <div class="form-grid" style="margin-top: 20px;">
+                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 3, true)" id="btn-draft-3">📝 บันทึกร่างไว้ก่อน (ไม่ผ่านด่าน)</button>
+                            <button type="submit" class="btn-submit" id="btn-submit-3">บันทึก & ผ่านด่าน 🏆</button>
+                        </div>
+                    </form>`;
+                startTimer();
+            }
+        }
+
+        // ==========================================
+        // 🚀 แปลงไฟล์รูปเป็น Base64
+        // ==========================================
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                if(!file) { resolve(null); return; }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // ==========================================
+        // 💾 บันทึกข้อมูล (รองรับทั้ง Save Draft และ Submit)
+        // ==========================================
+        async function submitMission(e, missionNumber, isDraft = false) {
+            if(e) e.preventDefault();
+            
+            // ล็อกปุ่มกันกดซ้ำ
+            const btnDraft = document.getElementById(`btn-draft-${missionNumber}`);
+            const btnSubmit = document.getElementById(`btn-submit-${missionNumber}`);
+            if(btnDraft) btnDraft.disabled = true;
+            if(btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'UPLOADING DATA... ⏳'; }
+            
+            clearInterval(missionTimer);
+
+            // 1. 🧳 ประกอบร่างข้อมูลส่งไปหลังบ้าน (ให้ตรงกับเงื่อนไขใน ic.txt)
+            let payload = { 
+                studentId: localStorage.getItem('studentId'), 
+                mission: String(missionNumber) 
+            };
+
+            try {
+                if (missionNumber === 1) {
+                    payload.citizenId = document.getElementById('m1-citizenId').value;
+                    payload.fullName = document.getElementById('m1-fullName').value;
+                    payload.level = document.getElementById('m1-level').value;
+                    payload.studentNumber = document.getElementById('m1-studentNum').value;
+                    payload.birthDate = document.getElementById('m1-birth').value;
+                    payload.religion = document.getElementById('m1-religion').value;
+                    payload.existingImageUrl = document.getElementById('m1-img-exist').value;
+                    
+                    const fileInput = document.getElementById('m1-img');
+                    if (fileInput.files.length > 0) {
+                        payload.profileImageBase64 = await getBase64(fileInput.files[0]);
+                    }
+                } 
+                else if (missionNumber === 2) {
+                    payload.fatherName = document.getElementById('m2-fatherName').value;
+                    payload.motherName = document.getElementById('m2-motherName').value;
+                    payload.guardianName = document.getElementById('m2-guardianName').value;
+                    payload.guardianPhone = document.getElementById('m2-guardPhone').value;
+                    payload.studentPhone = document.getElementById('m2-stuPhone').value;
+                    payload.existingSignatureUrl = document.getElementById('m2-sign-exist').value;
+                    
+                    const signInput = document.getElementById('m2-sign');
+                    if (signInput.files.length > 0) payload.guardianSignatureBase64 = await getBase64(signInput.files[0]);
+                }
+                else if (missionNumber === 3) {
+                    payload.weight = document.getElementById('m3-weight').value;
+                    payload.height = document.getElementById('m3-height').value;
+                    payload.medicalCondition = document.getElementById('m3-med').value;
+                }
+
+                // 2. 📡 ส่งข้อมูลไปบันทึก
+                const res = await fetchAPI('saveData', payload);
+                if (res.status !== 'success') throw new Error(res.message || 'บันทึกไม่สำเร็จ');
+
+                // 3. 🎯 จัดการสถานะเกมหลังบันทึกเสร็จ
+                if (isDraft) {
+                    // แบบบันทึกร่าง: แค่แจ้งเตือน ไม่เปลี่ยนด่าน
+                    document.getElementById('modal-icon').textContent = '📝';
+                    document.getElementById('modal-heading').textContent = "DRAFT SAVED!";
+                    document.getElementById('modal-heading').style.color = "var(--accent)";
+                    document.getElementById('modal-text').innerHTML = `บันทึกร่างด่าน ${missionNumber} เรียบร้อยแล้ว!<br>ข้อมูลของคุณถูกเก็บเข้าคลัง คุณสามารถกลับมาทำต่อได้เสมอ`;
+                    document.getElementById('score-container').style.display = 'none'; // ซ่อนคะแนน
+                } else {
+                    // แบบผ่านด่านจริง: แจกคะแนน & ล็อกด่าน
+                    const baseScore = 1000;
+                    const timeBonus = Math.max(0, 500 - (secondsElapsed * 5)); 
+                    const earnedScore = baseScore + timeBonus;
+
+                    playerState.score += earnedScore;
+                    playerState.missions[`m${missionNumber}`].status = 'completed'; 
+                    
+                    let nextMission = missionNumber + 1;
+                    if(playerState.missions[`m${nextMission}`]) {
+                        playerState.missions[`m${nextMission}`].status = 'cooldown';
+                        playerState.missions[`m${nextMission}`].unlocksAt = Date.now() + COOLDOWN_MS;
+                    }
+                    savePlayerState();
+
+                    // เตรียมข้อความบอกใบ้ภารกิจต่อไป
+                    let prepText = '';
+                    if (missionNumber === 1) prepText = 'เตรียมชื่อ-สกุล บิดามารดา/ผู้ปกครอง, เบอร์โทรศัพท์ และ <b>ภาพลายเซ็นผู้ปกครอง</b>';
+                    else if (missionNumber === 2) prepText = 'เตรียมข้อมูล <b>น้ำหนัก ส่วนสูง</b> และโรคประจำตัว (ถ้ามี)';
+                    else if (missionNumber === 3) prepText = 'เตรียมข้อมูลความชอบ ทักษะพิเศษ หรือเพื่อนสนิท';
+                    else prepText = 'เตรียมตัวให้พร้อมสำหรับความท้าทายต่อไป!';
+
+                    const waitText = DEV_MODE ? '1 นาที' : '2 วัน';
+
+                    document.getElementById('modal-icon').textContent = '🎉';
+                    document.getElementById('modal-heading').textContent = "MISSION CLEAR!";
+                    document.getElementById('modal-heading').style.color = "var(--success)";
+                    document.getElementById('modal-text').innerHTML = `
+                        ด่าน ${missionNumber} สำเร็จ!<br>
+                        ด่านถัดไปจะเปิดในอีก <b>${waitText}</b> ⏳<br><br>
+                        <div style="background: rgba(255, 107, 0, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 0.95rem; text-align: left;">
+                            💡 <b>ภารกิจต่อไป:</b><br>${prepText}
+                        </div>
+                    `;
+                    document.getElementById('score-container').style.display = 'block';
+                    document.getElementById('modal-score').textContent = earnedScore.toLocaleString();
+                }
+
+                document.getElementById('custom-modal').style.display = 'flex';
+
+            } catch (error) {
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+                if(btnDraft) btnDraft.disabled = false;
+                if(btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'บันทึก & ผ่านด่าน 🏆'; }
+                startTimer(); // ให้เวลาเดินต่อ
+            }
+        }
+
+        function closeModalAndGoNext() {
+            document.getElementById('custom-modal').style.display = 'none';
+            // ถ้าระบบขึ้นจอ modal นี้แสดงว่าบันทึกสำเร็จ ให้รีเฟรชหน้ากลับไป dashboard
+            loadContent('dashboard', document.getElementById('btn-dash'));
+        }
+    </script>
 </body>
 </html>
