@@ -66,7 +66,20 @@
         input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
         input:disabled { background-color: #f3f4f6; color: #9ca3af; cursor: not-allowed; font-weight: 600; }
 
-        /* การจัดการส่วนรูปภาพ */
+        .input-missing {
+            background-color: #fffbeb !important;
+            border: 2px solid #f59e0b !important;
+        }
+        .is-invalid { 
+            border-color: #ef4444 !important; 
+            background-color: #fef2f2 !important; 
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.2) !important; 
+        }
+        .image-upload-section.is-invalid {
+            border: 2px dashed #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+
         .image-upload-section {
             background-color: #f8fafc;
             border: 1px dashed #cbd5e1;
@@ -74,6 +87,7 @@
             padding: 20px;
             text-align: center;
             margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
         .warning-box {
             background-color: var(--warning-bg);
@@ -98,14 +112,13 @@
             cursor: zoom-in;
             border: 3px solid white;
             transition: transform 0.2s;
-            background-color: #e2e8f0;
+            background-color: #e2e8f0; 
         }
         .profile-preview:hover { transform: scale(1.05); }
         .click-to-expand-text { font-size: 0.85rem; color: var(--primary); margin-top: 5px; font-weight: 600; }
 
         input[type="file"] { width: 100%; padding: 10px; background: white; border-radius: 8px; font-family: 'Sarabun', sans-serif; border: 1px solid #e2e8f0; }
 
-        /* ปุ่ม Action */
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         button {
             width: 100%;
@@ -124,7 +137,6 @@
         .btn-submit:hover { background-color: var(--success-hover); transform: translateY(-1px); }
         button:disabled { background-color: #9ca3af; color: white; cursor: not-allowed; box-shadow: none; transform: none; border: none; }
 
-        /* Modal ภาพขยาย */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0;
             width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);
@@ -137,7 +149,6 @@
         }
         .close-modal:hover { color: var(--primary); }
 
-        /* Loading Overlay */
         .loading-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.9); border-radius: 16px;
@@ -150,7 +161,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Popup อัปเดตสำเร็จ */
         .popup-alert {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;
@@ -188,11 +198,11 @@
 
         <div style="display: flex; gap: 10px;">
             <div class="form-group" style="flex: 1;">
-                <label>ชั้นเรียน</label>
+                <label>ชั้นเรียน <span class="required-mark">*</span></label>
                 <input type="text" id="level" placeholder="เช่น ม.1/1">
             </div>
             <div class="form-group" style="flex: 1;">
-                <label>เลขที่</label>
+                <label>เลขที่ <span class="required-mark">*</span></label>
                 <input type="number" id="studentNumber" placeholder="ระบุเลขที่">
             </div>
         </div>
@@ -266,7 +276,7 @@
         <h2 style="margin:0 0 10px 0; color:var(--success);">ยอดเยี่ยมมาก!</h2>
         <p style="color:var(--text-muted); font-size:1.05rem; line-height:1.5;">
             คุณทำภารกิจที่ 1 สำเร็จแล้ว ข้อมูลถูกบันทึกลงฐานข้อมูลเรียบร้อย<br><br>
-            <strong style="color:var(--primary);">ภารกิจที่ 2 จะเปิดให้ทำในอีก 2 วันข้างหน้านะครับ</strong><br>
+            <strong style="color:var(--primary);">ภารกิจที่ 2 เปิดให้ทำได้แล้วครับ</strong><br>
             พักผ่อนให้เต็มที่แล้วเจอกันใหม่!
         </p>
         <button class="btn-submit popup-btn" onclick="window.location.href='Std_info_dashboard.html'">กลับสู่หน้าหลัก</button>
@@ -274,9 +284,11 @@
 </div>
 
 <script>
-    // 🛑 คำเตือน: คุณครูต้องเอา URL ของ Web App (Google Apps Script) ที่ Deploy เป็นรายการใหม่มาใส่ตรงนี้นะครับ
-    // ถ้าไม่เปลี่ยน ลิงก์ด้านล่างนี้จะเป็นลิงก์ตัวอย่างของผม ซึ่งจะทำให้หน้าเว็บส่งข้อมูลไม่ไปครับ
-    const DATA_API_URL = "https://script.google.com/macros/s/AKfycbxvxQuZEmF4D0gzFQRYLHNYtqcMkfFWXun2uo8vJNihHExc6xkDGV3IkXGrg4vM-YBYjA/exec";
+    // ====================================================
+    // ⚠️ 1. นำ URL ของ Web App จาก Google Apps Script ตัวล่าสุดมาใส่ที่นี่ครับ
+    // ====================================================
+    const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbxISWUNujPkU7Saj70nfN8588vg0-ka-NZdR2qpcekRgD4_Vb1bKzAJ03hwBe_I51SkYQ/exec';
+
     window.onload = () => {
         if (localStorage.getItem('isLoggedIn') !== 'true') {
             window.location.href = '../login.html';
@@ -289,19 +301,23 @@
         fetchDataFromServer(studentId);
     };
 
+    // 🌟 แก้ไข: ใช้ JSON.stringify ในการรับส่งข้อมูลเพื่อแก้ปัญหาข้อมูลขนาดใหญ่หาย (เช่น ไฟล์รูป)
     async function fetchDataFromServer(studentId) {
         document.getElementById('loadingData').style.display = 'flex';
         try {
             const response = await fetch(DATA_API_URL, {
                 method: 'POST',
-                body: new URLSearchParams({ 'action': 'getData', 'studentId': studentId })
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'getData', studentId: studentId })
             });
             
-            if (!response.ok) throw new Error("การเชื่อมต่อกับเซิร์ฟเวอร์ล้มเหลว");
+            if (!response.ok) throw new Error("Network response was not ok");
             
             const data = await response.json();
-            if(data.status === 'success') {
+            if(data.status === 'success' || data.success) {
                 populateForm(data.studentData);
+            } else {
+                throw new Error(data.error || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
             }
         } catch (error) {
             console.error("Fetch Data Error:", error);
@@ -349,9 +365,12 @@
 
     function handleImageError(img) {
         if (img.src && !img.src.includes('data:image')) {
-            console.warn("ไม่สามารถโหลดภาพจาก Google Drive ได้");
+            console.warn("ไม่สามารถโหลดภาพจาก Google Drive ได้ (อาจติดสิทธิ์ Private):", img.src);
+            
+            // แสดงภาพสีเทาพร้อมข้อความแจ้งเตือนแทนภาพแตก
             img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMmU4ZjAiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNlZjQ0NDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPiDguYTguKHguYjguKrguLLguKHguLLguKPguJbguYLguKvguKXguJTguKDguLLguJ4gPC90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+KOC4leC4tOC4lOC4quC4tOC4l+C4mOC4tOC5jCBEcml2ZSk8L3RleHQ+PC9zdmc+';
-            document.getElementById('expandText').innerHTML = '<span style="color:#ef4444;">ภาพติดสิทธิ์ส่วนตัว กรุณาอัปโหลดรูปใหม่</span>';
+            
+            document.getElementById('expandText').innerHTML = '<span style="color:#ef4444;">ภาพติดสิทธิ์ส่วนตัว กรุณาอัปโหลดรูปใหม่ด้านล่างครับ</span>';
             document.getElementById('imgReqMark').style.display = 'inline'; 
             document.getElementById('existingImageUrl').value = ''; 
         }
@@ -365,9 +384,7 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    
-                    // 🌟 ปรับขนาดภาพให้เล็กลงอีก เพื่อตัดปัญหาเน็ตเวิร์ก/ส่งไฟล์ไม่ผ่าน 100%
-                    const MAX_WIDTH = 500; const MAX_HEIGHT = 500;
+                    const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
                     let width = img.width; let height = img.height;
                     
                     if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
@@ -377,8 +394,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // บีบอัดภาพเป็น JPEG 50% 
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                     const previewImg = document.getElementById('profilePreview');
                     previewImg.src = dataUrl;
                     previewImg.dataset.newImage = "true"; 
@@ -386,7 +402,11 @@
                     document.getElementById('previewContainer').style.display = 'block';
                     document.getElementById('existingImageUrl').value = ''; 
                     document.getElementById('imgReqMark').style.display = 'none'; 
-                    document.getElementById('expandText').innerHTML = '🔍 คลิกเพื่อขยายดูความหล่อสวย'; 
+                    document.getElementById('expandText').innerHTML = '🔍 คลิกเพื่อขยายดูความหล่อสวย';
+                    
+                    // ปลดขอบแดงเมื่ออัปรูปแล้ว
+                    const imgSection = document.querySelector('.image-upload-section');
+                    if(imgSection) imgSection.classList.remove('is-invalid');
                 }
                 img.src = e.target.result;
             }
@@ -394,11 +414,11 @@
         }
     }
 
+    // 🌟 แก้ไข: ใช้ JSON.stringify ส่ง payload แทน URLSearchParams เพื่อรองรับ Base64 ได้ปลอดภัย
     async function saveData(isComplete) {
-        const btnDraft = document.getElementById('btnDraft');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const loadingBox = document.getElementById('loadingData');
-
+        const studentId = document.getElementById('studentId').value;
+        const level = document.getElementById('level').value.trim();
+        const studentNumber = document.getElementById('studentNumber').value.trim();
         const citizenId = document.getElementById('citizenId').value.trim();
         const fullName = document.getElementById('fullName').value.trim();
         const birthDate = document.getElementById('birthDate').value;
@@ -408,44 +428,69 @@
         const previewImg = document.getElementById('profilePreview');
         const hasImage = existingImg !== '' || previewImg.dataset.newImage === "true";
 
+        document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('is-invalid', 'input-missing'));
+        const imgSection = document.querySelector('.image-upload-section');
+        if(imgSection) imgSection.classList.remove('is-invalid');
+
         if (isComplete) {
-            if (!citizenId || !fullName || !birthDate || !religion || !hasImage) {
-                alert('❌ ข้อมูลยังไม่ครบถ้วน! กรุณากรอกช่องที่มีเครื่องหมายดอกจันสีแดง (*) และอัปโหลดภาพโปรไฟล์ให้ครบก่อนส่งภารกิจครับ');
+            let isMissing = false;
+            const requiredFields = [
+                { id: 'level', val: level }, { id: 'studentNumber', val: studentNumber },
+                { id: 'citizenId', val: citizenId }, { id: 'fullName', val: fullName },
+                { id: 'birthDate', val: birthDate }, { id: 'religion', val: religion }
+            ];
+
+            requiredFields.forEach(field => {
+                if (!field.val) { document.getElementById(field.id).classList.add('is-invalid', 'input-missing'); isMissing = true; }
+            });
+
+            if (!hasImage) { if(imgSection) imgSection.classList.add('is-invalid'); isMissing = true; }
+
+            if (isMissing) {
+                alert('❌ ข้อมูลยังไม่ครบถ้วน! กรุณากรอกช่องที่มีเครื่องหมายดอกจันสีแดง (*) และอัปโหลดภาพโปรไฟล์ให้ครบก่อนส่งภารกิจครับ\n\n(หากต้องการทำต่อทีหลัง ให้กดปุ่ม "บันทึกข้อมูลไว้ก่อน" แทนครับ)');
                 return; 
             }
         }
 
+        const btnDraft = document.getElementById('btnDraft');
+        const btnSubmit = document.getElementById('btnSubmit');
         btnDraft.disabled = true; btnSubmit.disabled = true;
-        document.getElementById('loadingText').innerText = 'กำลังอัปโหลดและบันทึกลงฐานข้อมูล... ⏳';
+        
+        const loadingBox = document.getElementById('loadingData');
+        const loadingText = document.getElementById('loadingText');
+        loadingText.innerText = 'กำลังอัปโหลดและบันทึกลงฐานข้อมูล... ⏳';
         loadingBox.style.display = 'flex';
 
-        const params = new URLSearchParams();
-        params.append('action', 'saveData');
-        params.append('mission', '1'); 
-        params.append('studentId', document.getElementById('studentId').value);
-        params.append('citizenId', citizenId);
-        params.append('fullName', fullName);
-        params.append('level', document.getElementById('level').value);
-        params.append('studentNumber', document.getElementById('studentNumber').value);
-        params.append('birthDate', birthDate);
-        params.append('religion', religion);
-        params.append('existingImageUrl', existingImg);
+        // 🌟 รวบรวมข้อมูลเป็น JSON Object (Payload)
+        const payload = {
+            action: 'saveData',
+            mission: '1', // ให้หลังบ้านรู้ว่าเป็นภารกิจ 1
+            studentId: studentId,
+            citizenId: citizenId,
+            fullName: fullName,
+            level: level,
+            studentNumber: studentNumber,
+            birthDate: birthDate,
+            religion: religion,
+            existingImageUrl: existingImg
+        };
 
+        // หากมีการเปลี่ยนรูปภาพใหม่ ให้แนบ Base64 ส่งไป
         if (previewImg.dataset.newImage === "true") {
-            params.append('profileImageBase64', previewImg.src);
+            payload.profileImageBase64 = previewImg.src;
         }
 
         try {
             const response = await fetch(DATA_API_URL, {
                 method: 'POST',
-                body: params
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
             });
             
-            if (!response.ok) throw new Error("การเชื่อมต่อเครือข่ายมีปัญหา หรือขนาดไฟล์อาจจะยังใหญ่เกินไป");
-            
+            if (!response.ok) throw new Error("Network issue");
             const data = await response.json();
             
-            if(data.status === 'success') {
+            if(data.status === 'success' || data.success) {
                 if (isComplete) {
                     localStorage.setItem('mission_1_done_time', Date.now());
                     loadingBox.style.display = 'none';
@@ -456,19 +501,12 @@
                     window.location.href = 'Std_info_dashboard.html';
                 }
             } else {
-                throw new Error(data.message || 'ข้อผิดพลาดที่ไม่ทราบสาเหตุจากเซิร์ฟเวอร์');
+                throw new Error(data.message || data.error || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
             }
         } catch (error) {
             console.error("Save Data Error:", error);
             loadingBox.style.display = 'none';
-            
-            let errMsg = error.message;
-            if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-                errMsg = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (โปรดเช็คว่าได้ตั้งค่าสิทธิ์ Deploy เป็น 'ทุกคน/Anyone' แล้วหรือยัง)";
-            }
-            
-            alert('❌ ไม่สามารถบันทึกข้อมูลได้ สาเหตุ:\n' + errMsg + '\n\n(หากระบบแจ้งว่าหาโฟลเดอร์ไม่เจอ กรุณาตรวจสอบ IMAGE_FOLDER_ID ในไฟล์ Code.gs ของครูครับ)');
-            
+            alert('❌ ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง (' + error.message + ')');
             btnDraft.disabled = false; btnSubmit.disabled = false;
         }
     }
