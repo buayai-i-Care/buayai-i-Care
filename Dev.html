@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buayai I Care - Student Portal</title>
+    <title>Buayai I Care - Student Mission Portal (Full Edition)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -34,6 +34,7 @@
         .login-logo { width: 90px; height: 90px; object-fit: contain; border-radius: 50%; background: #fff; padding: 5px; box-shadow: 0 0 20px var(--primary-glow); margin: 0 auto 15px auto; border: 3px solid var(--primary); }
         .login-card h1 { margin: 0 0 5px; color: var(--primary); font-size: 1.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .login-card p { color: var(--text-muted); margin-bottom: 30px; }
+        
         .form-group { text-align: left; margin-bottom: 20px; }
         .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--accent); }
         
@@ -42,26 +43,13 @@
         }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); background: rgba(0,0,0,0.6); }
         input:disabled, select:disabled { background: rgba(255,255,255,0.05); color: #64748b; border-color: #1e293b; cursor: not-allowed; }
-        input[type="color"] { padding: 5px; height: 50px; cursor: pointer; }
         
-        .file-upload-box { border: 2px dashed #78350f; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; color: var(--text-muted); position: relative; }
-        .file-upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.1); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow) inset; }
-        .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
-
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
-
         .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #ea580c); color: white; border: none; border-radius: 10px; font-family: 'Prompt', sans-serif; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px var(--primary-glow); margin-top: 20px; }
         .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
         .btn-submit:disabled { background: var(--locked); box-shadow: none; cursor: not-allowed; transform: none; }
         
-        .btn-draft { background: transparent; border: 2px solid var(--locked); box-shadow: none; color: var(--text-muted); margin-top: 10px; }
+        .btn-draft { background: transparent; border: 2px solid var(--locked); color: var(--text-muted); margin-top: 10px; width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; font-family: 'Prompt'; }
         .btn-draft:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(255,193,7,0.1); }
-        .btn-action { background: var(--accent); color: #000; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Prompt'; transition: 0.2s; }
-        .btn-action:hover { background: #e0a800; }
-
-        #error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 15px; min-height: 20px; }
 
         /* --- View 2: Dashboard --- */
         #dashboard-view { display: none; min-height: 100vh; }
@@ -78,71 +66,60 @@
         .sidebar-btn.completed { border-color: var(--success); background: rgba(34, 197, 94, 0.05); cursor: not-allowed; }
         .sidebar-btn.cooldown { border-color: var(--cooldown); border-style: dashed; cursor: not-allowed; background: rgba(249, 115, 22, 0.05); }
         
-        .btn-info { display: flex; flex-direction: column; }
-        .btn-title { font-weight: 500; }
-        .countdown-text { font-size: 0.8rem; color: var(--accent); font-weight: bold; margin-top: 2px; }
-        .logout-btn { margin-top: 20px; background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: #fca5a5; }
-
         .main-content { flex: 1; padding: 30px; position: relative; }
         .content-card { background: var(--bg-card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); animation: fadeIn 0.4s ease-out; position: relative; max-width: 900px; margin: 0 auto; }
         .timer-hud { position: absolute; top: -15px; right: 20px; background: #000; border: 2px solid var(--primary); padding: 5px 20px; border-radius: 20px; font-size: 1.2rem; font-weight: bold; color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); z-index: 10; }
-        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-card); display: flex; justify-content: center; align-items: center; z-index: 20; border-radius: 20px; flex-direction: column; color: var(--accent); font-weight: bold; font-size: 1.2rem; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #280f05; padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(255,193,7,0.4); max-width: 500px; width: 90%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-content h2 { color: var(--success); margin-top: 0; font-size: 2rem; }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        /* =========================================
-           🎯 องค์ประกอบเฉพาะของด่าน 4 (UI พิเศษ)
-           ========================================= */
+        /* --- 🎯 Layout Elements --- */
         .section-box { border: 1px solid #78350f; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
         .section-title { color: var(--primary); border-bottom: 1px dashed #78350f; padding-bottom: 10px; margin-top: 0; font-size: 1.3rem; }
-        
-        /* Checkbox แบบ Pill (แคปซูล) */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
         .pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
         .pill-label { display: inline-block; padding: 8px 16px; background: var(--card-inner); border: 1px solid #57534e; border-radius: 20px; cursor: pointer; transition: 0.2s; color: var(--text-muted); font-size: 0.9rem; user-select: none; }
         .pill-label input[type="checkbox"] { display: none; }
         .pill-label:has(input:checked) { background: rgba(255,107,0,0.2); border-color: var(--primary); color: #fff; box-shadow: 0 0 10px rgba(255,107,0,0.3); }
+
+        .file-upload-box { border: 2px dashed #78350f; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; color: var(--text-muted); position: relative; margin-top: 5px; }
+        .file-upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.1); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow) inset; }
+        .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
         
-        /* การ์ดเพื่อน (Rating) */
-        .classmate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .classmate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 10px; }
         .classmate-card { background: var(--card-inner); border: 1px solid #57534e; border-radius: 10px; padding: 15px; text-align: center; position: relative; }
-        .classmate-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--accent); background: #333; }
+        .classmate-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--accent); background: #333; }
         .rating-group { display: flex; justify-content: center; gap: 5px; margin-top: 8px; }
         .star-icon, .chili-icon { font-size: 1.2rem; cursor: pointer; filter: grayscale(100%) opacity(0.3); transition: 0.2s; }
         .star-icon.active { filter: grayscale(0%) drop-shadow(0 0 5px gold); }
         .chili-icon.active { filter: grayscale(0%) drop-shadow(0 0 5px red); }
         .btn-hide-card { position: absolute; top: 5px; right: 5px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; }
-        .btn-hide-card:hover { color: var(--danger); }
-        
-        /* ทุนการศึกษาแบบ Dynamic */
         .scholarship-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px; position: relative; border: 1px solid #57534e; }
-        .btn-remove { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
 
-        @media (max-width: 768px) { #dashboard-view { flex-direction: column; } .sidebar { width: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); max-height: 40vh; } .main-content { padding: 15px; } .content-card { padding: 20px; } }
+        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #280f05; padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(255,193,7,0.4); max-width: 500px; width: 90%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @media (max-width: 768px) { #dashboard-view { flex-direction: column; } .sidebar { width: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); max-height: 40vh; } .main-content { padding: 15px; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-    <!-- =================[ View 1: Login ]================= -->
+    <!-- [ View 1: Login ] -->
     <div id="login-view">
         <div class="login-card">
-            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" class="login-logo">
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้" class="login-logo">
             <h1>SYSTEM LOGIN</h1>
-            <p>Buayai I Care - Student Mission</p>
+            <p>Buayai I Care - Student Portal</p>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group"><label>ID CODE (รหัสประจำตัว)</label><input type="text" id="studentId" required></div>
                 <div class="form-group"><label>PASSWORD (รหัสผ่าน)</label><input type="password" id="password" required></div>
                 <button type="submit" id="loginBtn" class="btn-submit">START MISSION 🚀</button>
-                <div id="error-msg"></div>
+                <div id="error-msg" style="color:var(--danger); margin-top:10px;"></div>
             </form>
         </div>
     </div>
 
-    <!-- =================[ View 2: Dashboard ]================= -->
+    <!-- [ View 2: Dashboard ] -->
     <div id="dashboard-view">
         <div class="sidebar">
             <div class="player-profile">
@@ -151,29 +128,15 @@
                 <div class="score-box"><small>TOTAL EXP</small><span id="display-score">0</span></div>
             </div>
             
-            <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash">
-                <div class="btn-info"><span class="btn-title">📡 ศูนย์บัญชาการ</span></div>
-            </button>
-            <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1">
-                <div class="btn-info"><span class="btn-title">🎯 ด่าน 1: ยืนยันตัวตน</span><span class="countdown-text" id="cd-m1"></span></div><span id="icon-m1">🔓</span>
-            </button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2">
-                <div class="btn-info"><span class="btn-title">🎯 ด่าน 2: เครือข่ายครอบครัว</span><span class="countdown-text" id="cd-m2"></span></div><span id="icon-m2">🔒</span>
-            </button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3">
-                <div class="btn-info"><span class="btn-title">🎯 ด่าน 3: สแกนกายภาพ</span><span class="countdown-text" id="cd-m3"></span></div><span id="icon-m3">🔒</span>
-            </button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission4', this)" id="btn-m4">
-                <div class="btn-info"><span class="btn-title">🎯 ด่าน 4: ทักษะและพันธมิตร</span><span class="countdown-text" id="cd-m4"></span></div><span id="icon-m4">🔒</span>
-            </button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5">
-                <div class="btn-info"><span class="btn-title">🎯 ด่าน 5: ผู้สนับสนุน</span><span class="countdown-text" id="cd-m5"></span></div><span id="icon-m5">🔒</span>
-            </button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission6', this)" id="btn-m6">
-                <div class="btn-info"><span class="btn-title">🏆 ด่าน 6: ประเมินศักยภาพ</span><span class="countdown-text" id="cd-m6"></span></div><span id="icon-m6">🔒</span>
-            </button>
+            <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash"><span>📡 ศูนย์บัญชาการ</span></button>
+            <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1"><div>🎯 ด่าน 1: ยืนยันตัวตน</div><span class="countdown-text" id="cd-m1"></span><span id="icon-m1">🔓</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2"><div>🎯 ด่าน 2: ครอบครัว</div><span class="countdown-text" id="cd-m2"></span><span id="icon-m2">🔒</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3"><div>🎯 ด่าน 3: สแกนกายภาพ</div><span class="countdown-text" id="cd-m3"></span><span id="icon-m3">🔒</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission4', this)" id="btn-m4"><div>🎯 ด่าน 4: ทักษะ/พันธมิตร</div><span class="countdown-text" id="cd-m4"></span><span id="icon-m4">🔒</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5"><div>🎯 ด่าน 5: แฟ้มภาพบ้าน</div><span class="countdown-text" id="cd-m5"></span><span id="icon-m5">🔒</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission6', this)" id="btn-m6"><div>🏆 ด่าน 6: แบบวัด SDQ</div><span class="countdown-text" id="cd-m6"></span><span id="icon-m6">🔒</span></button>
             
-            <button class="sidebar-btn logout-btn" onclick="handleLogout()">🚪 ออกจากระบบ</button>
+            <button class="sidebar-btn" style="margin-top:auto; background:rgba(239,68,68,0.1); color:#fca5a5;" onclick="handleLogout()">🚪 ออกจากระบบ</button>
         </div>
 
         <div class="main-content">
@@ -181,12 +144,12 @@
         </div>
     </div>
 
-    <!-- =================[ Modal แจ้งผลคะแนน และใบ้ภารกิจ ]================= -->
+    <!-- [ Modal ] -->
     <div id="custom-modal">
         <div class="modal-content">
             <div style="font-size: 4rem; margin-bottom: 10px;" id="modal-icon">🎉</div>
             <h2 id="modal-heading">MISSION CLEAR!</h2>
-            <p id="modal-text" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <div id="modal-text" style="font-size: 1rem; margin-bottom: 20px; line-height: 1.6;"></div>
             <div id="score-container" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                 <h3 style="margin:0; color:#ffc107;">+ <span id="modal-score">0</span> EXP</h3>
             </div>
@@ -214,127 +177,102 @@
             }
         };
 
-        let m4State = {
-            scholarships: [],
-            friendsRatings: {} 
-        };
-
+        let m4State = { scholarships: [], friendsRatings: {} };
         let missionTimer = null, mainGameLoop = null, secondsElapsed = 0, currentMission = '';
-        let cachedStudentData = null;
-        let cachedClassmates = []; 
+        let cachedStudentData = null, cachedClassmates = [];
 
         window.onload = () => {
             const savedState = localStorage.getItem('playerState');
             if(savedState) playerState = JSON.parse(savedState);
-            checkLoginState();
+            if (localStorage.getItem('isLoggedIn') === 'true') showDashboardView();
         };
 
         function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
 
         // ==========================================
-        // 🔐 Login & Routing
+        // 🔐 Login & Auth
         // ==========================================
-        function checkLoginState() {
-            if (localStorage.getItem('isLoggedIn') === 'true') showDashboardView();
-            else showLoginView();
-        }
-
-        function showLoginView() { document.getElementById('login-view').style.display = 'flex'; document.getElementById('dashboard-view').style.display = 'none'; if(mainGameLoop) clearInterval(mainGameLoop); }
-
-        async function showDashboardView() {
-            document.getElementById('login-view').style.display = 'none'; 
-            document.getElementById('dashboard-view').style.display = 'flex';
-            document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
-            
-            const contentArea = document.getElementById('dynamic-content-area');
-            contentArea.innerHTML = `<div class="loading-overlay">📡 กำลังซิงค์ข้อมูลกู้คืนความคืบหน้า... ⏳</div>`;
-
-            try {
-                const res = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
-                if(res.status === 'success' && res.studentData) { 
-                    cachedStudentData = res.studentData; 
-                    cachedClassmates = res.classmates || [];
-                    syncProgressWithDatabase(res.studentData);
-                }
-            } catch (err) { console.error('Sync failed:', err); }
-
-            updateSidebarUI(); 
-            startGameLoop(); 
-            loadContent('dashboard', document.getElementById('btn-dash'));
-        }
-
-        function handleLogout() { localStorage.clear(); showLoginView(); }
-
-        async function fetchAPI(action, payload = {}) {
-            payload.action = action;
-            const res = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            return await res.json();
-        }
-
         async function handleLogin(e) {
             e.preventDefault();
-            const btn = document.getElementById('loginBtn'), errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('loginBtn'), msg = document.getElementById('error-msg');
             const stuId = document.getElementById('studentId').value.trim(), pass = document.getElementById('password').value.trim();
-            btn.disabled = true; btn.textContent = 'CONNECTING... ⏳'; errorMsg.textContent = '';
+            btn.disabled = true; btn.textContent = 'CONNECTING... ⏳'; msg.textContent = '';
             try {
                 const data = await fetchAPI('login', { studentId: stuId, password: pass });
                 if (data.status === 'success') {
                     localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('studentId', data.data.studentId);
                     showDashboardView();
                 } else throw new Error(data.message || 'รหัสไม่ถูกต้อง');
-            } catch (error) { errorMsg.textContent = `❌ ${error.message}`; } 
-            finally { btn.disabled = false; btn.textContent = 'START MISSION 🚀'; }
+            } catch (error) { msg.textContent = `❌ ${error.message}`; btn.disabled = false; btn.textContent = 'START MISSION 🚀'; }
         }
 
-        function syncProgressWithDatabase(sd) {
-            let updated = false;
+        async function showDashboardView() {
+            document.getElementById('login-view').style.display = 'none'; 
+            document.getElementById('dashboard-view').style.display = 'flex';
+            document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
+            
+            const area = document.getElementById('dynamic-content-area');
+            area.innerHTML = `<div style="text-align:center; padding:50px;">📡 กำลังกู้คืนสถานะตัวละครและข้อมูลเก่า...</div>`;
+
+            try {
+                const res = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
+                if(res.status === 'success' && res.studentData) { 
+                    cachedStudentData = res.studentData; 
+                    cachedClassmates = res.classmates || [];
+                    syncProgress(res.studentData);
+                }
+            } catch (err) { console.error(err); }
+
+            updateSidebarUI(); startGameLoop(); loadContent('dashboard', document.getElementById('btn-dash'));
+        }
+
+        function handleLogout() { localStorage.clear(); location.reload(); }
+
+        function syncProgress(sd) {
+            let u = false;
             if (sd.citizenId && sd.fullName && playerState.missions.m1.status !== 'completed') {
-                playerState.missions.m1.status = 'completed';
+                playerState.missions.m1.status = 'completed'; u = true;
                 if (playerState.missions.m2.status === 'locked') playerState.missions.m2.status = 'unlocked';
-                updated = true;
             }
             if (sd.guardianName && sd.guardianPhone && playerState.missions.m2.status !== 'completed') {
-                playerState.missions.m2.status = 'completed';
+                playerState.missions.m2.status = 'completed'; u = true;
                 if (playerState.missions.m3.status === 'locked') playerState.missions.m3.status = 'unlocked';
-                updated = true;
             }
             if (sd.weight && sd.height && playerState.missions.m3.status !== 'completed') {
-                playerState.missions.m3.status = 'completed';
+                playerState.missions.m3.status = 'completed'; u = true;
                 if (playerState.missions.m4.status === 'locked') playerState.missions.m4.status = 'unlocked';
-                updated = true;
             }
-            if (sd.preferencesJson && sd.friendsJson && playerState.missions.m4.status !== 'completed') {
-                playerState.missions.m4.status = 'completed';
+            if (sd.preferencesJson && playerState.missions.m4.status !== 'completed') {
+                playerState.missions.m4.status = 'completed'; u = true;
                 if (playerState.missions.m5.status === 'locked') playerState.missions.m5.status = 'unlocked';
-                updated = true;
             }
-            if (updated) savePlayerState();
+            if(u) savePlayerState();
         }
 
         function startGameLoop() {
             if(mainGameLoop) clearInterval(mainGameLoop);
             mainGameLoop = setInterval(() => {
-                let now = Date.now(), uiNeedsUpdate = false;
+                let now = Date.now(), u = false;
                 for (let i = 1; i <= 6; i++) {
-                    let mId = 'm' + i, mission = playerState.missions[mId], textElement = document.getElementById('cd-' + mId);
-                    if (mission.status === 'cooldown') {
-                        let timeLeft = mission.unlocksAt - now;
-                        if (timeLeft <= 0) { mission.status = 'unlocked'; textElement.textContent = ''; uiNeedsUpdate = true; } 
+                    let mId = 'm'+i, m = playerState.missions[mId], el = document.getElementById('cd-'+mId);
+                    if (m.status === 'cooldown') {
+                        let diff = m.unlocksAt - now;
+                        if (diff <= 0) { m.status = 'unlocked'; el.textContent = ''; u = true; }
                         else {
-                            let days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)), hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24), mins = Math.floor((timeLeft / 1000 / 60) % 60), secs = Math.floor((timeLeft / 1000) % 60);
-                            textElement.textContent = DEV_MODE ? `⏳ ชาร์จพลัง: ${mins}น ${secs}วิ` : `⏳ ปลดล็อกใน: ${days}วัน ${hours}ชม ${mins}น`;
+                            let mins = Math.floor(diff/1000/60), secs = Math.floor((diff/1000)%60);
+                            el.textContent = `⏳ ${mins}:${secs.toString().padStart(2,'0')}`;
                         }
-                    } else if (textElement) textElement.textContent = ''; 
+                    }
                 }
-                if(uiNeedsUpdate) savePlayerState();
+                if(u) savePlayerState();
             }, 1000);
         }
 
         function updateSidebarUI() {
             document.getElementById('display-score').textContent = playerState.score.toLocaleString();
             for (let i = 1; i <= 6; i++) {
-                let mId = 'm' + i, status = playerState.missions[mId].status, btn = document.getElementById('btn-' + mId), icon = document.getElementById('icon-' + mId);
-                btn.className = 'sidebar-btn'; 
+                let mId = 'm'+i, status = playerState.missions[mId].status, btn = document.getElementById('btn-'+mId), icon = document.getElementById('icon-'+mId);
+                btn.className = 'sidebar-btn';
                 if (status === 'locked') { btn.classList.add('locked'); icon.textContent = '🔒'; }
                 else if (status === 'unlocked') { icon.textContent = '🔓'; }
                 else if (status === 'completed') { btn.classList.add('completed'); icon.textContent = '✅'; }
@@ -342,525 +280,382 @@
             }
         }
 
-        function startTimer() {
-            clearInterval(missionTimer); secondsElapsed = 0;
-            const timerDisplay = document.getElementById('mission-timer-display');
-            if(timerDisplay) timerDisplay.textContent = "00:00";
-            missionTimer = setInterval(() => {
-                secondsElapsed++;
-                if(document.getElementById('mission-timer-display')) {
-                    let m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0'), s = (secondsElapsed % 60).toString().padStart(2, '0');
-                    document.getElementById('mission-timer-display').textContent = `${m}:${s}`;
-                }
-            }, 1000);
-        }
-
         // ==========================================
-        // 🔄 ฟังก์ชันโหลดข้อมูลเข้าฟอร์ม
+        // 🔄 Content Loader (หัวใจของระบบ)
         // ==========================================
         async function loadContent(pageName, btnElement) {
             if (pageName.startsWith('mission')) {
                 let mId = 'm' + pageName.replace('mission', '');
-                let mStatus = playerState.missions[mId].status;
-                
-                if (mStatus === 'completed') {
-                    alert('🏆 ด่านนี้คุณส่งข้อมูลสำเร็จและถูกปิดไปแล้วครับ ไม่สามารถแก้ไขได้อีก!');
-                    btnElement.style.transform = 'translateX(10px)'; setTimeout(() => btnElement.style.transform = 'none', 100); return; 
-                }
-                if (mStatus === 'locked' || mStatus === 'cooldown') {
-                    btnElement.style.transform = 'translateX(10px)'; setTimeout(() => btnElement.style.transform = 'none', 100); return; 
-                }
+                let st = playerState.missions[mId].status;
+                if (st === 'completed') { alert('🏆 ด่านนี้สำเร็จแล้วและถูกปิดถาวรเพื่อความปลอดภัย!'); return; }
+                if (st === 'locked' || st === 'cooldown') return; 
             }
 
-            document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
 
             const contentArea = document.getElementById('dynamic-content-area');
             const stuId = localStorage.getItem('studentId');
             currentMission = pageName;
-            clearInterval(missionTimer); 
+            clearInterval(missionTimer);
 
             if (pageName === 'dashboard') {
                 contentArea.innerHTML = `
-                    <h2 style="color: var(--accent); margin-top:0;">📡 ศูนย์บัญชาการหลัก</h2>
+                    <h2 style="color:var(--accent);">📡 ศูนย์บัญชาการ (Main Base)</h2>
                     <p>ยินดีต้อนรับเอเจนต์ <b>${stuId}</b></p>
-                    <div style="background: rgba(255,193,7,0.1); padding: 15px; border-left: 4px solid var(--accent); border-radius: 5px;">
-                        <strong>สถานะระบบ:</strong> ระบบจะกู้คืนความคืบหน้าให้อัตโนมัติ หากด่านใดขึ้นเครื่องหมาย ✅ แปลว่าสำเร็จและถูกปิดถาวรแล้ว!
+                    <div style="background:rgba(255,193,7,0.1); padding:15px; border-left:4px solid var(--accent); border-radius:5px; margin-top:20px;">
+                        <strong>สถานะ:</strong> ปลดล็อกภารกิจเพื่อรับรางวัล EXP และพัฒนาตัวละครของคุณ!<br>
+                        เมื่อเคลียร์ด่าน ด่านถัดไปจะเข้าสู่ช่วง Cooldown 2 วันเพื่อเตรียมข้อมูล
                     </div>
                 `;
                 return;
             }
 
-            contentArea.innerHTML = `<div class="loading-overlay">📡 กำลังดึงฐานข้อมูล...</div>`;
+            contentArea.innerHTML = `<div style="text-align:center; padding:40px;">📡 กำลังดึงฐานข้อมูล...</div>`;
             let sd = cachedStudentData || {};
-            if (!cachedStudentData) {
-                try {
-                    const res = await fetchAPI('getData', { studentId: stuId });
-                    if(res.status === 'success' && res.studentData) { 
-                        sd = res.studentData; cachedStudentData = sd; 
-                        cachedClassmates = res.classmates || [];
-                    }
-                } catch (err) { console.error('Fetch error:', err); }
-            }
+            const isSel = (v, t) => v === t ? 'selected' : '';
 
-            const isSel = (val, target) => val === target ? 'selected' : '';
-
-            // --- วาดด่าน 1 ถึง 3 ---
+            // --- 🎯 Mission 1 ---
             if (pageName === 'mission1') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
-                    <h2 style="color: var(--primary); margin-top:0;">🎯 ด่าน 1: ยืนยันตัวตนฮีโร่</h2>
-                    <form id="form-m1" onsubmit="submitMission(event, 1, false)">
+                    <h2 style="color:var(--primary);">🎯 ด่าน 1: ยืนยันตัวตน</h2>
+                    <form onsubmit="submitMission(event, 1)">
                         <div class="form-grid">
-                            <div class="form-group full-width"><label>🆔 หมายเลขประจำตัวประชาชน</label><input type="text" id="m1-citizenId" value="${sd.citizenId || ''}" maxlength="13" required></div>
-                            <div class="form-group full-width"><label>👤 ชื่อ-นามสกุล</label><input type="text" id="m1-fullName" value="${sd.fullName || ''}" required></div>
-                            <div class="form-group">
-                                <label>🏫 ระดับชั้น (ดึงจากฐานข้อมูล 🔒)</label>
-                                <select id="m1-level" disabled>
-                                    <option value="">-- เลือกชั้น --</option><option value="ม.1" ${isSel(sd.level, 'ม.1')}>ม.1</option><option value="ม.2" ${isSel(sd.level, 'ม.2')}>ม.2</option><option value="ม.3" ${isSel(sd.level, 'ม.3')}>ม.3</option><option value="ม.4" ${isSel(sd.level, 'ม.4')}>ม.4</option><option value="ม.5" ${isSel(sd.level, 'ม.5')}>ม.5</option><option value="ม.6" ${isSel(sd.level, 'ม.6')}>ม.6</option>
-                                </select>
-                            </div>
-                            <div class="form-group"><label>🔢 เลขประจำตัวนักเรียน</label><input type="number" id="m1-studentNum" value="${sd.studentNumber || ''}" required></div>
-                            <div class="form-group"><label>📅 วันเกิด (คลิกไอคอน 🗓️)</label><input type="date" id="m1-birth" value="${sd.birthDate || ''}" required></div>
-                            <div class="form-group">
-                                <label>🕊️ ศาสนา</label>
+                            <div class="form-group full-width"><label>🆔 เลขบัตรประชาชน</label><input type="text" id="m1-citizenId" value="${sd.citizenId || ''}" maxlength="13" required></div>
+                            <div class="form-group full-width"><label>👤 ชื่อ-สกุล</label><input type="text" id="m1-fullName" value="${sd.fullName || ''}" required></div>
+                            <div class="form-group"><label>🏫 ชั้น (ล็อก 🔒)</label><input type="text" value="${sd.level || 'ม.2/1'}" disabled></div>
+                            <div class="form-group"><label>📅 วันเกิด (คลิกไอคอนปฏิทิน)</label><input type="date" id="m1-birth" value="${sd.birthDate || ''}" required></div>
+                            <div class="form-group full-width"><label>🕊️ ศาสนา</label>
                                 <select id="m1-religion" required>
-                                    <option value="">-- เลือกศาสนา --</option><option value="พุทธ" ${isSel(sd.religion, 'พุทธ')}>พุทธ</option><option value="คริสต์" ${isSel(sd.religion, 'คริสต์')}>คริสต์</option><option value="อิสลาม" ${isSel(sd.religion, 'อิสลาม')}>อิสลาม</option><option value="พราหมณ์-ฮินดู" ${isSel(sd.religion, 'พราหมณ์-ฮินดู')}>พราหมณ์-ฮินดู</option><option value="อื่นๆ" ${isSel(sd.religion, 'อื่นๆ')}>อื่นๆ</option>
+                                    <option value="">-- เลือกศาสนา --</option>
+                                    <option value="พุทธ" ${isSel(sd.religion,'พุทธ')}>พุทธ</option>
+                                    <option value="คริสต์" ${isSel(sd.religion,'คริสต์')}>คริสต์</option>
+                                    <option value="อิสลาม" ${isSel(sd.religion,'อิสลาม')}>อิสลาม</option>
+                                    <option value="อื่นๆ" ${isSel(sd.religion,'อื่นๆ')}>อื่นๆ</option>
                                 </select>
                             </div>
                             <div class="form-group full-width">
-                                <label>📸 ภาพถ่ายนักเรียน ${sd.profileImageUrl ? '<a href="'+sd.profileImageUrl+'" target="_blank" style="color:var(--success); font-size:0.8rem;">(มีรูปเก่าอยู่แล้ว)</a>' : ''}</label>
-                                <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*" onchange="this.nextElementSibling.textContent = this.files[0].name"><span>คลิกเลือกไฟล์ 📂</span></div>
+                                <label>📸 ภาพถ่ายนักเรียน ${sd.profileImageUrl ? '<span style="color:var(--success)">(มีรูปเก่าในระบบ)</span>' : ''}</label>
+                                <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*"><span>คลิกเลือกรูปถ่าย 📂</span></div>
                                 <input type="hidden" id="m1-img-exist" value="${sd.profileImageUrl || ''}">
                             </div>
                         </div>
-                        <div class="form-grid" style="margin-top: 20px;">
-                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 1, true)" id="btn-draft-1">📝 บันทึกร่างไว้ก่อน</button><button type="submit" class="btn-submit" id="btn-submit-1">บันทึก & ผ่านด่าน 🏆</button>
-                        </div>
+                        <button type="submit" class="btn-submit">ยืนยันข้อมูลด่าน 1 🏆</button>
                     </form>`;
-                startTimer();
             }
+            // --- 🎯 Mission 2 ---
             else if (pageName === 'mission2') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
-                    <h2 style="color: var(--accent); margin-top:0;">🎯 ด่าน 2: เครือข่ายครอบครัว</h2>
-                    <form id="form-m2" onsubmit="submitMission(event, 2, false)">
-                        <div class="form-grid">
-                            <div class="form-group full-width"><label>👨 ชื่อ-สกุล บิดา</label><input type="text" id="m2-fatherName" value="${sd.fatherName || ''}" required></div>
-                            <div class="form-group full-width"><label>👩 ชื่อ-สกุล มารดา</label><input type="text" id="m2-motherName" value="${sd.motherName || ''}" required></div>
-                            <div class="form-group full-width"><label>🛡️ ชื่อ-สกุล ผู้ปกครอง</label><input type="text" id="m2-guardianName" value="${sd.guardianName || ''}" required></div>
-                            <div class="form-group"><label>📞 เบอร์โทรผู้ปกครอง (10 หลัก)</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required></div>
-                            <div class="form-group"><label>📱 เบอร์โทรนักเรียน (10 หลัก)</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');" required></div>
-                            <div class="form-group full-width">
-                                <label>✍️ ลายมือชื่อผู้ปกครอง ${sd.guardianSignatureUrl ? '<span style="color:var(--success); font-size:0.8rem;">(มีลายเซ็นแล้ว)</span>' : ''}</label>
-                                <div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*" onchange="this.nextElementSibling.textContent = this.files[0].name"><span>เลือกไฟล์ภาพลายเซ็น 📂</span></div>
-                                <input type="hidden" id="m2-sign-exist" value="${sd.guardianSignatureUrl || ''}">
+                    <h2 style="color:var(--accent);">🎯 ด่าน 2: เครือข่ายครอบครัว</h2>
+                    <form onsubmit="submitMission(event, 2)">
+                        <div class="section-box">
+                            <h3 class="section-title">👨‍👩‍👧 ข้อมูลครอบครัว</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>👨 ชื่อบิดา</label><input type="text" id="m2-fatherName" value="${sd.fatherName || ''}" required></div>
+                                <div class="form-group"><label>👩 ชื่อมารดา</label><input type="text" id="m2-motherName" value="${sd.motherName || ''}" required></div>
+                                <div class="form-group full-width"><label>🛡️ ชื่อผู้ปกครอง</label><input type="text" id="m2-guardianName" value="${sd.guardianName || ''}" required></div>
                             </div>
                         </div>
-                        <div class="form-grid" style="margin-top: 20px;">
-                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 2, true)" id="btn-draft-2">📝 บันทึกร่างไว้ก่อน</button><button type="submit" class="btn-submit" id="btn-submit-2">บันทึก & ผ่านด่าน 🏆</button>
+                        <div class="section-box">
+                            <h3 class="section-title">📞 ข้อมูลติดต่อ (10 หลัก)</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>📱 เบอร์นักเรียน</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+                                <div class="form-group"><label>📞 เบอร์ผู้ปกครอง</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+                            </div>
                         </div>
+                        <div class="section-box">
+                            <h3 class="section-title">📸 อัปโหลดหลักฐาน</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>📷 รูปบิดา</label><div class="file-upload-box"><input type="file" id="m2-img-fa" accept="image/*"><span>เลือกไฟล์ 📂</span></div></div>
+                                <div class="form-group"><label>📷 รูปมารดา</label><div class="file-upload-box"><input type="file" id="m2-img-mo" accept="image/*"><span>เลือกไฟล์ 📂</span></div></div>
+                                <div class="form-group full-width"><label>✍️ ลายมือชื่อผู้ปกครอง</label><div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*"><span>คลิกอัปโหลดลายเซ็น 📂</span></div></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">ยืนยันข้อมูลครอบครัว 🏆</button>
                     </form>`;
-                startTimer();
             }
+            // --- 🎯 Mission 3 ---
             else if (pageName === 'mission3') {
+                let h = {}; try { h = JSON.parse(sd.medicalCondition || '{}'); } catch(e){}
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
-                    <h2 style="color: var(--accent); margin-top:0;">🎯 ด่าน 3: สแกนกายภาพ</h2>
-                    <form id="form-m3" onsubmit="submitMission(event, 3, false)">
-                        <div class="form-grid">
-                            <div class="form-group"><label>⚖️ น้ำหนัก (กก.)</label><input type="number" step="0.1" id="m3-weight" value="${sd.weight || ''}" required></div>
-                            <div class="form-group"><label>📏 ส่วนสูง (ซม.)</label><input type="number" step="0.1" id="m3-height" value="${sd.height || ''}" required></div>
-                            <div class="form-group full-width"><label>🩸 โรคประจำตัว / อาการแพ้</label><textarea id="m3-med" rows="2">${sd.medicalCondition || ''}</textarea></div>
+                    <h2 style="color:var(--accent);">🎯 ด่าน 3: สแกนกายภาพ</h2>
+                    <form onsubmit="submitMission(event, 3)">
+                        <div class="section-box">
+                            <h3 class="section-title">⚖️ 1. คำนวณ BMI</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>น้ำหนัก (กก.)</label><input type="number" step="0.1" id="m3-weight" value="${sd.weight || ''}" oninput="calcBMI()" required></div>
+                                <div class="form-group"><label>ส่วนสูง (ซม.)</label><input type="number" id="m3-height" value="${sd.height || ''}" oninput="calcBMI()" required></div>
+                            </div>
+                            <div id="bmi-result" style="text-align:center; padding:15px; background:rgba(0,0,0,0.3); border-radius:10px; margin-top:15px; display:none; border:1px solid var(--accent);">
+                                <div id="bmi-val" style="font-size:2rem; font-weight:bold;"></div>
+                                <div id="bmi-label" style="font-size:1.1rem; margin:5px 0;"></div>
+                                <div id="bmi-adv" style="font-size:0.9rem; color:var(--text-muted); border-top:1px solid #555; padding-top:10px;"></div>
+                            </div>
                         </div>
-                        <div class="form-grid" style="margin-top: 20px;">
-                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 3, true)" id="btn-draft-3">📝 บันทึกร่างไว้ก่อน</button><button type="submit" class="btn-submit" id="btn-submit-3">บันทึก & ผ่านด่าน 🏆</button>
+                        <div class="section-box">
+                            <h3 class="section-title">🏥 2. ข้อมูลสุขภาพเชิงลึก</h3>
+                            <label>สถานะทั่วไป</label>
+                            <select id="m3-status" onchange="document.getElementById('m3-detail').style.display = this.value==='issue'?'block':'none'">
+                                <option value="normal">✅ สุขภาพปกติ แข็งแรงดี</option>
+                                <option value="issue" ${h.status==='issue'?'selected':''}>⚠️ มีประวัติอุบัติเหตุ/เจ็บป่วย</option>
+                            </select>
+                            <div id="m3-detail" style="display:${h.status==='issue'?'block':'none'}; margin-top:15px;">
+                                <div style="background:rgba(239,68,68,0.1); padding:15px; border-radius:10px; margin-bottom:15px;">
+                                    <label>🩹 2.1 อุบัติเหตุ (ระบุเหตุและวันที่)</label>
+                                    <input type="text" id="m3-acc" value="${h.acc || ''}" placeholder="เช่น รถล้ม ตกที่สูง ใส่เหล็ก...">
+                                    <input type="date" id="m3-acc-date" value="${h.accDate || ''}" style="margin-top:5px;">
+                                </div>
+                                <div style="background:rgba(14,165,233,0.1); padding:15px; border-radius:10px;">
+                                    <label>🩺 2.2 โรค/อาการเจ็บป่วย (ระบุและวันที่เริ่ม)</label>
+                                    <input type="text" id="m3-ill" value="${h.ill || ''}" placeholder="เช่น กระเพาะ ปวดหัวเรื้อรัง ซึมเศร้า...">
+                                    <input type="date" id="m3-ill-date" value="${h.illDate || ''}" style="margin-top:5px;">
+                                </div>
+                            </div>
                         </div>
+                        <button type="submit" class="btn-submit">บันทึกผลสุขภาพ 🏆</button>
                     </form>`;
-                startTimer();
+                calcBMI();
             }
-            // 🎯 วาดฟอร์ม Mission 4 แบบจัดเต็ม
+            // --- 🎯 Mission 4 ---
             else if (pageName === 'mission4') {
-                let pref = {};
-                try { pref = JSON.parse(sd.preferencesJson || '{}'); } catch(e){}
-                try { m4State.friendsRatings = JSON.parse(sd.friendsJson || '{}'); } catch(e){}
+                let pref = {}; try { pref = JSON.parse(sd.preferencesJson || '{}'); } catch(e){}
+                m4State.friendsRatings = JSON.parse(sd.friendsJson || '{}');
                 m4State.scholarships = pref.scholarships || [];
 
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
-                    <h2 style="color: var(--accent); margin-top:0;">🎯 ด่าน 4: ทักษะและพันธมิตร</h2>
-                    <form id="form-m4" onsubmit="submitMission(event, 4, false)">
-                        
-                        <!-- 💖 Section 1: สิ่งที่ชอบ -->
+                    <h2 style="color:var(--accent);">🎯 ด่าน 4: ทักษะและพันธมิตร</h2>
+                    <form onsubmit="submitMission(event, 4)">
                         <div class="section-box">
                             <h3 class="section-title">💖 1. สิ่งที่ชอบ (Preferences)</h3>
                             
-                            <label>📚 1.1 วิชาที่ชอบ (เลือกได้มากกว่า 1)</label>
-                            <div class="pill-group" id="m4-subjects">
-                                <label class="pill-label"><input type="checkbox" value="คณิตศาสตร์"> 🧮 คณิตศาสตร์</label>
-                                <label class="pill-label"><input type="checkbox" value="ภาษาไทย"> 🇹🇭 ภาษาไทย</label>
-                                <label class="pill-label"><input type="checkbox" value="ภาษาอังกฤษ"> 🇬🇧 ภาษาอังกฤษ</label>
-                                <label class="pill-label"><input type="checkbox" value="สังคม"> 🌍 สังคม</label>
-                                <!-- เพิ่มปุ่ม อื่นๆ -->
-                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-sub-other').style.display = this.checked ? 'block' : 'none'"> ✨ อื่นๆ</label>
+                            <label>📚 1.1 วิชาที่ชอบ (เลือกได้หลายข้อ)</label>
+                            <div class="pill-group" id="m4-subs">
+                                <label class="pill-label"><input type="checkbox" value="คณิต"> 🧮 คณิต</label>
+                                <label class="pill-label"><input type="checkbox" value="ไทย"> 🇹🇭 ไทย</label>
+                                <label class="pill-label"><input type="checkbox" value="อังกฤษ"> 🇬🇧 อังกฤษ</label>
+                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-s-o').style.display=this.checked?'block':'none'"> ✨ อื่นๆ</label>
                             </div>
-                            <input type="text" id="m4-sub-other" placeholder="โปรดระบุวิชาที่ชอบ..." value="${pref.subjectOther || ''}" style="display:none; margin-bottom:15px;">
+                            <input type="text" id="m4-s-o" style="display:none; margin-bottom:15px;" placeholder="โปรดระบุวิชา...">
 
-                            <label>🎮 1.2 กิจกรรมยามว่าง (เลือกได้มากกว่า 1)</label>
-                            <div class="pill-group" id="m4-activities">
-                                <label class="pill-label"><input type="checkbox" value="เล่นกีฬา"> ⚽ เล่นกีฬา</label>
-                                <label class="pill-label"><input type="checkbox" value="ฟังเพลง"> 🎵 ฟังเพลง</label>
-                                <label class="pill-label"><input type="checkbox" value="ดูซีรี่ส์"> 🎬 ดูซีรี่ส์</label>
-                                <label class="pill-label"><input type="checkbox" value="เล่นโซเชียล"> 📱 เล่นโซเชียล</label>
-                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-act-other').style.display = this.checked ? 'block' : 'none'"> ✨ อื่นๆ</label>
+                            <label>🎮 1.2 กิจกรรมที่ชอบ</label>
+                            <div class="pill-group" id="m4-acts">
+                                <label class="pill-label"><input type="checkbox" value="กีฬา"> ⚽ กีฬา</label>
+                                <label class="pill-label"><input type="checkbox" value="เพลง"> 🎵 เพลง</label>
+                                <label class="pill-label"><input type="checkbox" value="ซีรี่ส์"> 🎬 ซีรี่ส์</label>
+                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-a-o').style.display=this.checked?'block':'none'"> ✨ อื่นๆ</label>
                             </div>
-                            <input type="text" id="m4-act-other" placeholder="โปรดระบุกิจกรรม..." value="${pref.activityOther || ''}" style="display:none; margin-bottom:15px;">
+                            <input type="text" id="m4-a-o" style="display:none; margin-bottom:15px;" placeholder="โปรดระบุกิจกรรม...">
 
-                            <div class="form-grid" style="margin-top:15px;">
-                                <div class="form-group">
-                                    <label>🎨 1.3 สีที่ชอบ</label>
-                                    <input type="color" id="m4-color" value="${pref.color || '#ff6b00'}" style="width:100%;">
-                                </div>
-                                <div class="form-group">
-                                    <label>🎯 1.4 เป้าหมายอาชีพในอนาคต</label>
-                                    <select id="m4-career" onchange="document.getElementById('m4-car-other').style.display = this.value === 'อื่นๆ' ? 'block' : 'none'" required>
-                                        <option value="">-- เลือกอาชีพ --</option>
-                                        <option value="ตำรวจ" ${isSel(pref.career, 'ตำรวจ')}>👮 ตำรวจ</option>
-                                        <option value="หมอ" ${isSel(pref.career, 'หมอ')}>👨‍⚕️ หมอ</option>
-                                        <option value="พยาบาล" ${isSel(pref.career, 'พยาบาล')}>👩‍⚕️ พยาบาล</option>
-                                        <option value="เภสัชกร" ${isSel(pref.career, 'เภสัชกร')}>💊 เภสัชกร</option>
-                                        <option value="อื่นๆ" ${isSel(pref.career, 'อื่นๆ')}>✨ อื่นๆ (ระบุ)</option>
+                            <div class="form-grid">
+                                <div class="form-group"><label>🎨 1.3 สีที่ชอบ</label><input type="color" id="m4-color" value="${pref.color || '#ff6b00'}" style="height:50px; cursor:pointer;"></div>
+                                <div class="form-group"><label>🎯 1.4 อาชีพที่อยากเป็น</label>
+                                    <select id="m4-career" onchange="document.getElementById('m4-c-o').style.display=this.value==='อื่นๆ'?'block':'none'">
+                                        <option value="ตำรวจ">👮 ตำรวจ</option><option value="หมอ">👨‍⚕️ หมอ</option><option value="พยาบาล">👩‍⚕️ พยาบาล</option><option value="อื่นๆ">✨ อื่นๆ</option>
                                     </select>
-                                    <input type="text" id="m4-car-other" placeholder="โปรดระบุอาชีพ..." value="${pref.careerOther || ''}" style="display:none; margin-top:8px;">
+                                    <input type="text" id="m4-c-o" style="display:none; margin-top:5px;" placeholder="โปรดระบุอาชีพ...">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 🤝 Section 2: เพื่อนในห้อง -->
                         <div class="section-box">
                             <h3 class="section-title">🤝 2. พันธมิตร (เพื่อนในห้อง)</h3>
-                            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">
-                                ให้คะแนนเพื่อนร่วมห้อง (หากการ์ดไหนเกะกะ สามารถกด ✖ เพื่อซ่อนชั่วคราวได้)<br>
-                                ⭐ ไว้ใจมากที่สุด (1-5 ดาว) | 🌶️ แกล้งเก่ง/ไม่อยากเข้าใกล้ (1-5 พริก)
-                            </p>
-                            <div id="classmates-container" class="classmate-grid">
-                                <!-- JS จะแทรกรายชื่อเพื่อนตรงนี้ -->
-                            </div>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">⭐ ความไว้ใจ | 🌶️ ความชอบแกล้ง (1-5)</p>
+                            <div id="classmates-container" class="classmate-grid"></div>
                         </div>
 
-                        <!-- 💰 Section 3: ทุนการศึกษา -->
                         <div class="section-box">
-                            <h3 class="section-title">💰 3. ทุนการศึกษาที่เคยได้รับ</h3>
+                            <h3 class="section-title">💰 3. ทุนการศึกษา</h3>
                             <div id="scholarships-container"></div>
-                            <button type="button" class="btn-action" onclick="addScholarshipUI()">➕ เพิ่มทุนการศึกษา</button>
+                            <button type="button" class="btn-draft" style="width:auto; padding:5px 15px;" onclick="addSch()">➕ เพิ่มทุนการศึกษา</button>
                         </div>
 
-                        <!-- 🛵 Section 4: วิธีการเดินทาง -->
                         <div class="section-box">
                             <h3 class="section-title">🛵 4. วิธีการมาโรงเรียน</h3>
-                            <div class="form-grid">
-                                <div class="form-group full-width">
-                                    <label>📍 ระยะทางจากบ้าน (กิโลเมตร)</label>
-                                    <input type="number" step="0.1" id="m4-distance" value="${pref.commuteDistance || ''}" required placeholder="เช่น 2.5">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>วิธีการเดินทางหลัก</label>
-                                    <select id="m4-commuteType" onchange="toggleCommuteDetails()" required>
-                                        <option value="">-- เลือก --</option>
-                                        <option value="A" ${isSel(pref.commuteType, 'A')}>A. ขับ/ขี่มาเอง</option>
-                                        <option value="B" ${isSel(pref.commuteType, 'B')}>B. รถรับส่ง</option>
-                                        <option value="C" ${isSel(pref.commuteType, 'C')}>C. ผู้ปกครองมาส่ง</option>
-                                    </select>
-                                </div>
+                            <div class="form-group"><label>📍 ระยะทาง (กม.)</label><input type="number" step="0.1" id="m4-dist" value="${pref.dist || ''}" required></div>
+                            <select id="m4-travel" onchange="toggleTravel()" required>
+                                <option value="">-- เลือกวิธีการเดินทาง --</option>
+                                <option value="A" ${isSel(pref.travel,'A')}>A. ขับขี่มาเอง</option>
+                                <option value="B" ${isSel(pref.travel,'B')}>B. รถรับส่ง</option>
+                                <option value="C" ${isSel(pref.travel,'C')}>C. ผู้ปกครองส่ง</option>
+                            </select>
+                            
+                            <div id="travel-A" style="display:none; margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:10px;">
+                                <div class="form-group"><label>ประเภท</label><select id="m4-A-type"><option value="จักรยานยนต์">🏍️ มอเตอร์ไซค์</option><option value="รถยนต์">🚗 รถยนต์</option></select></div>
+                                <div class="form-group"><label>ทะเบียน</label><input type="text" id="m4-A-plate"></div>
+                                <div class="form-group"><label>ใบขับขี่</label><select id="m4-A-lic"><option value="มี">✅ มี</option><option value="ไม่มี">❌ ไม่มี</option></select></div>
                             </div>
 
-                            <div id="commute-details-A" style="display:none; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-top:10px;">
-                                <h4>📝 ข้อมูลรถที่ใช้ (ขับ/ขี่มาเอง)</h4>
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label>ประเภทรถ</label>
-                                        <select id="m4-A-type"><option value="จักรยานยนต์">🏍️ รถจักรยานยนต์</option><option value="รถยนต์">🚗 รถยนต์</option><option value="รถไฟ">🚂 รถไฟ (นั่งมาเอง)</option></select>
-                                    </div>
-                                    <div class="form-group"><label>ยี่ห้อรถ</label><input type="text" id="m4-A-brand" placeholder="เช่น Honda, Yamaha"></div>
-                                    <div class="form-group"><label>ทะเบียนรถ</label><input type="text" id="m4-A-plate" placeholder="เช่น 1กข 1234"></div>
-                                    <div class="form-group"><label>ใบอนุญาตขับขี่</label><select id="m4-A-license"><option value="มี">✅ มีใบขับขี่</option><option value="ไม่มี">❌ ไม่มีใบขับขี่</option></select></div>
-                                </div>
-                            </div>
-
-                            <div id="commute-details-B" style="display:none; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-top:10px;">
-                                <h4>🚌 ข้อมูลรถรับส่ง</h4>
-                                <div class="form-grid">
-                                    <div class="form-group"><label>ชื่อผู้ขับ</label><input type="text" id="m4-B-driver"></div>
-                                    <div class="form-group"><label>เบอร์โทรคนขับ (10 หลัก)</label><input type="tel" id="m4-B-phone" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
-                                    <div class="form-group"><label>ประเภทรถ</label>
-                                        <select id="m4-B-type" onchange="document.getElementById('m4-B-type-other').style.display = this.value==='อื่นๆ' ? 'block' : 'none'">
-                                            <option value="รถตู้">🚐 รถตู้</option><option value="รถหกล้อ">🚛 รถหกล้อ</option><option value="รถบัส">🚌 รถบัส</option><option value="อื่นๆ">✨ อื่นๆ</option>
-                                        </select>
-                                        <input type="text" id="m4-B-type-other" placeholder="โปรดระบุ..." style="display:none; margin-top:5px;">
-                                    </div>
-                                    <div class="form-group"><label>ทะเบียนรถ</label><input type="text" id="m4-B-plate"></div>
-                                    <div class="form-group"><label>รับจากหมู่บ้าน</label><input type="text" id="m4-B-village"></div>
-                                    <div class="form-group"><label>ค่าโดยสาร (บาท/เดือน)</label><input type="number" id="m4-B-fare"></div>
-                                </div>
+                            <div id="travel-B" style="display:none; margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:10px;">
+                                <div class="form-group"><label>ชื่อคนขับ</label><input type="text" id="m4-B-name"></div>
+                                <div class="form-group"><label>เบอร์โทรคนขับ</label><input type="tel" id="m4-B-phone"></div>
+                                <div class="form-group"><label>ค่าโดยสาร/เดือน</label><input type="number" id="m4-B-price"></div>
                             </div>
                         </div>
-
-                        <div class="form-grid">
-                            <button type="button" class="btn-submit btn-draft" onclick="submitMission(event, 4, true)" id="btn-draft-4">📝 บันทึกร่างไว้ก่อน</button>
-                            <button type="submit" class="btn-submit" id="btn-submit-4">บันทึก & ผ่านด่าน 🏆</button>
-                        </div>
+                        <button type="submit" class="btn-submit">บันทึกทักษะ & พันธมิตร 🏆</button>
                     </form>`;
-                startTimer();
                 
-                // === โหลดค่าเก่าใส่ UI (ถ้ามี) ===
-                if(pref.subjects) {
-                    document.querySelectorAll('#m4-subjects input').forEach(el => { if(pref.subjects.includes(el.value)) el.checked = true; });
-                    if(pref.subjects.includes("อื่นๆ")) document.getElementById('m4-sub-other').style.display = 'block';
-                }
-                if(pref.activities) {
-                    document.querySelectorAll('#m4-activities input').forEach(el => { if(pref.activities.includes(el.value)) el.checked = true; });
-                    if(pref.activities.includes("อื่นๆ")) document.getElementById('m4-act-other').style.display = 'block';
-                }
-                if(pref.career === "อื่นๆ") document.getElementById('m4-car-other').style.display = 'block';
-                
-                renderClassmatesUI();
-                renderScholarshipsUI();
-                
-                if(pref.commuteDetails) {
-                    if(pref.commuteType === 'A') {
-                        document.getElementById('m4-A-type').value = pref.commuteDetails.type || 'จักรยานยนต์';
-                        document.getElementById('m4-A-brand').value = pref.commuteDetails.brand || '';
-                        document.getElementById('m4-A-plate').value = pref.commuteDetails.plate || '';
-                        document.getElementById('m4-A-license').value = pref.commuteDetails.license || 'ไม่มี';
-                    } else if(pref.commuteType === 'B') {
-                        document.getElementById('m4-B-driver').value = pref.commuteDetails.driver || '';
-                        document.getElementById('m4-B-phone').value = pref.commuteDetails.phone || '';
-                        document.getElementById('m4-B-type').value = pref.commuteDetails.type || 'รถตู้';
-                        if(pref.commuteDetails.type === 'อื่นๆ') document.getElementById('m4-B-type-other').style.display = 'block';
-                        document.getElementById('m4-B-type-other').value = pref.commuteDetails.typeOther || '';
-                        document.getElementById('m4-B-plate').value = pref.commuteDetails.plate || '';
-                        document.getElementById('m4-B-village').value = pref.commuteDetails.village || '';
-                        document.getElementById('m4-B-fare').value = pref.commuteDetails.fare || '';
-                    }
-                }
-                toggleCommuteDetails();
+                renderClassmates(); renderScholarships(); toggleTravel();
+                // โหลดค่าย้อนหลังอื่นๆ
+                if(pref.subs) pref.subs.forEach(s => { let c = document.querySelector(`#m4-subs input[value="${s}"]`); if(c) c.checked=true; });
+                if(pref.subs?.includes('อื่นๆ')) document.getElementById('m4-s-o').style.display='block';
             }
-            else {
-                contentArea.innerHTML = `<h2 style="color: var(--accent); margin-top:0;">🎯 กำลังพัฒนาด่านนี้...</h2><p>โปรดรออัปเดตระบบในอนาคต</p>`;
-            }
+
+            startTimer();
         }
 
         // ==========================================
-        // 🧩 ฟังก์ชันเฉพาะของด่าน 4
+        // 🧩 Helper Functions (Logical Layer)
         // ==========================================
-        
-        // 🌟 ฟังก์ชันสกัดลิงก์ Google Drive ให้เป็น Thumbnail เพื่อให้ <img> แสดงได้
-        function getDriveThumbnailUrl(url) {
-            if (!url) return 'https://via.placeholder.com/80?text=No+Img';
-            // หาชุดตัวอักษร ID ของ Google Drive
-            const match = url.match(/[-\w]{25,}/);
-            if (match) {
-                return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w200`;
+        function calcBMI() {
+            const w = parseFloat(document.getElementById('m3-weight')?.value), h = parseFloat(document.getElementById('m3-height')?.value)/100;
+            const res = document.getElementById('bmi-result');
+            if(w>0 && h>0) {
+                const bmi = (w/(h*h)).toFixed(1); res.style.display='block';
+                const valEl = document.getElementById('bmi-val'), labEl = document.getElementById('bmi-label'), advEl = document.getElementById('bmi-adv');
+                valEl.textContent = `BMI: ${bmi}`;
+                if(bmi < 18.5) { labEl.textContent = "📏 ผอมไปหน่อยนะ"; labEl.style.color="#38bdf8"; advEl.textContent = "🍎 ควรทานอาหารเพิ่ม เสริมโปรตีนและพักผ่อนให้พอครับ"; }
+                else if(bmi < 23) { labEl.textContent = "✅ หุ่นดีมาก (ปกติ)"; labEl.style.color="#22c55e"; advEl.textContent = "💪 สุดยอด! ออกกำลังกายรักษาร่างกายแบบนี้ต่อไปนะครับ"; }
+                else if(bmi < 25) { labEl.textContent = "⚠️ เริ่มอวบแล้วนะ"; labEl.style.color="#fbbf24"; advEl.textContent = "🏃 ลองขยับร่างกายให้มากขึ้น ลดอาหารหวานมันเค็มดูครับ"; }
+                else { labEl.textContent = "🚨 อ้วนเกินเกณฑ์"; labEl.style.color="#ef4444"; advEl.textContent = "🥗 ควรปรึกษาครูหรือแพทย์เรื่องโภชนาการ และออกกำลังกายเบาๆ ครับ"; }
             }
-            return url; // ถ้ารูปแบบอื่นปล่อยผ่าน
         }
 
-        function toggleCommuteDetails() {
-            const type = document.getElementById('m4-commuteType').value;
-            document.getElementById('commute-details-A').style.display = type === 'A' ? 'block' : 'none';
-            document.getElementById('commute-details-B').style.display = type === 'B' ? 'block' : 'none';
+        function getDriveThumb(url) {
+            const match = url?.match(/[-\w]{25,}/);
+            return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w200` : 'https://via.placeholder.com/80?text=No+Img';
         }
 
-        // 🌟 อัปเดต UI เพื่อน: ใช้ Thumbnail และเพิ่มปุ่มซ่อน (✖)
-        function renderClassmatesUI() {
-            const container = document.getElementById('classmates-container');
-            if(cachedClassmates.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted); background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;">ไม่พบรายชื่อเพื่อนในห้องเดียวกัน โปรดตรวจสอบว่าข้อมูลเพื่อนคนอื่นๆ ถูกบันทึกในฐานข้อมูล (ชีต students คอลัมน์ D) แล้วหรือไม่</p>';
-                return;
-            }
-            let html = '';
-            cachedClassmates.forEach(mate => {
-                const ratings = m4State.friendsRatings[mate.studentId] || { star: 0, chili: 0 };
-                // นำลิงก์ไปผ่านตัวกรอง Thumbnail ก่อน
-                const imgSrc = getDriveThumbnailUrl(mate.profileImageUrl);
-                
-                html += `
-                    <div class="classmate-card" id="card-${mate.studentId}">
-                        <!-- ปุ่มซ่อนการ์ด -->
-                        <button type="button" class="btn-hide-card" onclick="document.getElementById('card-${mate.studentId}').style.display='none'" title="ซ่อนเพื่อนคนนี้">✖</button>
-                        
-                        <img src="${imgSrc}" class="classmate-img" onerror="this.src='https://via.placeholder.com/80?text=Err'">
-                        <div style="font-weight:600; font-size:0.9rem;">${mate.fullName}</div>
-                        <div class="rating-group">
-                            ${[1,2,3,4,5].map(i => `<span class="star-icon ${i <= ratings.star ? 'active' : ''}" onclick="setRating('${mate.studentId}', 'star', ${i})">⭐</span>`).join('')}
-                        </div>
-                        <div class="rating-group">
-                            ${[1,2,3,4,5].map(i => `<span class="chili-icon ${i <= ratings.chili ? 'active' : ''}" onclick="setRating('${mate.studentId}', 'chili', ${i})">🌶️</span>`).join('')}
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        window.setRating = function(studentId, type, score) {
-            if(!m4State.friendsRatings[studentId]) m4State.friendsRatings[studentId] = { star:0, chili:0 };
-            if(m4State.friendsRatings[studentId][type] === score) m4State.friendsRatings[studentId][type] = 0;
-            else m4State.friendsRatings[studentId][type] = score;
-            renderClassmatesUI();
-        }
-
-        window.addScholarshipUI = function() {
-            m4State.scholarships.push({ name: '', amount: '', date: '' });
-            renderScholarshipsUI();
-        }
-        window.removeScholarshipUI = function(index) {
-            m4State.scholarships.splice(index, 1);
-            renderScholarshipsUI();
-        }
-        window.updateSchData = function(index, field, val) {
-            m4State.scholarships[index][field] = val;
-        }
-        
-        function renderScholarshipsUI() {
-            const container = document.getElementById('scholarships-container');
-            if(m4State.scholarships.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">ยังไม่มีประวัติรับทุน (หากมีให้กดปุ่มเพิ่มทุน)</p>';
-                return;
-            }
-            let html = '';
-            m4State.scholarships.forEach((sch, i) => {
-                html += `
-                <div class="scholarship-item">
-                    <button type="button" class="btn-remove" onclick="removeScholarshipUI(${i})" title="ลบทุนนี้">✖</button>
-                    <strong>ทุนครั้งที่ ${i+1}</strong>
-                    <div class="form-grid" style="margin-top:10px;">
-                        <div class="form-group"><label>ชื่อทุน</label><input type="text" value="${sch.name}" onchange="updateSchData(${i}, 'name', this.value)" required></div>
-                        <div class="form-group"><label>จำนวนเงิน (บาท)</label><input type="number" value="${sch.amount}" onchange="updateSchData(${i}, 'amount', this.value)" required></div>
-                        <div class="form-group full-width"><label>วันที่ได้รับ</label><input type="date" value="${sch.date}" onchange="updateSchData(${i}, 'date', this.value)" required></div>
-                    </div>
+        function renderClassmates() {
+            const con = document.getElementById('classmates-container'); if(!con) return;
+            if(cachedClassmates.length === 0) { con.innerHTML = "<p>ไม่พบรายชื่อเพื่อน</p>"; return; }
+            con.innerHTML = cachedClassmates.map(m => {
+                const r = m4State.friendsRatings[m.studentId] || { s:0, c:0 };
+                return `
+                <div class="classmate-card" id="c-${m.studentId}">
+                    <button type="button" class="btn-hide-card" onclick="this.parentElement.style.display='none'">✖</button>
+                    <img src="${getDriveThumb(m.profileImageUrl)}" class="classmate-img" onerror="this.src='https://via.placeholder.com/80'">
+                    <div style="font-size:0.8rem; font-weight:600;">${m.fullName}</div>
+                    <div class="rating-group">${[1,2,3,4,5].map(i => `<span class="star-icon ${i<=r.s?'active':''}" onclick="rate('${m.studentId}','s',${i})">⭐</span>`).join('')}</div>
+                    <div class="rating-group">${[1,2,3,4,5].map(i => `<span class="chili-icon ${i<=r.c?'active':''}" onclick="rate('${m.studentId}','c',${i})">🌶️</span>`).join('')}</div>
                 </div>`;
-            });
-            container.innerHTML = html;
+            }).join('');
         }
 
-        // ==========================================
-        // 💾 บันทึกข้อมูล (Save Draft & Submit)
-        // ==========================================
-        async function submitMission(e, missionNumber, isDraft = false) {
-            if(e) e.preventDefault();
-            
-            const btnDraft = document.getElementById(`btn-draft-${missionNumber}`);
-            const btnSubmit = document.getElementById(`btn-submit-${missionNumber}`);
-            if(btnDraft) btnDraft.disabled = true;
-            if(btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'UPLOADING DATA... ⏳'; }
-            
-            clearInterval(missionTimer);
+        window.rate = (id, t, v) => {
+            if(!m4State.friendsRatings[id]) m4State.friendsRatings[id] = {s:0, c:0};
+            m4State.friendsRatings[id][t] = (m4State.friendsRatings[id][t] === v) ? 0 : v;
+            renderClassmates();
+        };
 
-            let payload = { studentId: localStorage.getItem('studentId'), mission: String(missionNumber) };
+        window.addSch = () => { m4State.scholarships.push({ n:'', a:'', d:'' }); renderScholarships(); };
+        window.remSch = (i) => { m4State.scholarships.splice(i,1); renderScholarships(); };
+        function renderScholarships() {
+            const con = document.getElementById('scholarships-container'); if(!con) return;
+            con.innerHTML = m4State.scholarships.map((s,i) => `
+                <div class="scholarship-item">
+                    <button type="button" class="btn-hide-card" onclick="remSch(${i})">✖</button>
+                    <input type="text" placeholder="ชื่อทุน" value="${s.n}" onchange="m4State.scholarships[${i}].n=this.value">
+                    <div class="form-grid" style="margin-top:5px;">
+                        <input type="number" placeholder="บาท" value="${s.a}" onchange="m4State.scholarships[${i}].a=this.value">
+                        <input type="date" value="${s.d}" onchange="m4State.scholarships[${i}].d=this.value">
+                    </div>
+                </div>`).join('');
+        }
 
+        function toggleTravel() {
+            const v = document.getElementById('m4-travel')?.value;
+            if(!v) return;
+            document.getElementById('travel-A').style.display = v==='A' ? 'block' : 'none';
+            document.getElementById('travel-B').style.display = v==='B' ? 'block' : 'none';
+        }
+
+        function startTimer() { clearInterval(missionTimer); secondsElapsed=0; missionTimer = setInterval(()=>{
+            secondsElapsed++; const el = document.getElementById('mission-timer-display');
+            if(el) { let m=Math.floor(secondsElapsed/60), s=secondsElapsed%60; el.textContent=`${m}:${s.toString().padStart(2,'0')}`; }
+        },1000); }
+
+        async function fetchAPI(a, p={}) { p.action = a; const r = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(p) }); return await r.json(); }
+        function getBase64(f) { return new Promise((r, j) => { if(!f) r(null); const rd = new FileReader(); rd.readAsDataURL(f); rd.onload=()=>r(rd.result); rd.onerror=e=>j(e); }); }
+
+        // ==========================================
+        // 💾 Submit Logic
+        // ==========================================
+        async function submitMission(e, num) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.textContent='UPLOADING...';
+            let p = { studentId: localStorage.getItem('studentId'), mission: String(num) };
+            
             try {
-                if (missionNumber === 1) { /* โค้ดด่าน 1 */ } 
-                else if (missionNumber === 2) { /* โค้ดด่าน 2 */ }
-                else if (missionNumber === 3) { /* โค้ดด่าน 3 */ }
-                else if (missionNumber === 4) {
-                    let prefData = {
-                        subjects: Array.from(document.querySelectorAll('#m4-subjects input:checked')).map(el => el.value),
-                        subjectOther: document.getElementById('m4-sub-other').value,
-                        activities: Array.from(document.querySelectorAll('#m4-activities input:checked')).map(el => el.value),
-                        activityOther: document.getElementById('m4-act-other').value,
+                if(num === 1) {
+                    p.citizenId = document.getElementById('m1-citizenId').value;
+                    p.fullName = document.getElementById('m1-fullName').value;
+                    p.birthDate = document.getElementById('m1-birth').value;
+                    p.religion = document.getElementById('m1-religion').value;
+                    p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
+                } else if(num === 2) {
+                    p.fatherName = document.getElementById('m2-fatherName').value;
+                    p.motherName = document.getElementById('m2-motherName').value;
+                    p.guardianName = document.getElementById('m2-guardianName').value;
+                    p.studentPhone = document.getElementById('m2-stuPhone').value;
+                    p.guardianPhone = document.getElementById('m2-guardPhone').value;
+                    p.guardianSignatureBase64 = await getBase64(document.getElementById('m2-sign').files[0]);
+                } else if(num === 3) {
+                    p.weight = document.getElementById('m3-weight').value;
+                    p.height = document.getElementById('m3-height').value;
+                    p.medicalCondition = JSON.stringify({
+                        status: document.getElementById('m3-status').value,
+                        acc: document.getElementById('m3-acc').value, accDate: document.getElementById('m3-acc-date').value,
+                        ill: document.getElementById('m3-ill').value, illDate: document.getElementById('m3-ill-date').value
+                    });
+                } else if(num === 4) {
+                    p.preferencesJson = JSON.stringify({
+                        subs: Array.from(document.querySelectorAll('#m4-subs input:checked')).map(x=>x.value),
+                        acts: Array.from(document.querySelectorAll('#m4-acts input:checked')).map(x=>x.value),
                         color: document.getElementById('m4-color').value,
                         career: document.getElementById('m4-career').value,
-                        careerOther: document.getElementById('m4-car-other').value,
                         scholarships: m4State.scholarships,
-                        commuteDistance: document.getElementById('m4-distance').value,
-                        commuteType: document.getElementById('m4-commuteType').value,
-                        commuteDetails: {}
-                    };
-
-                    if(prefData.commuteType === 'A') {
-                        prefData.commuteDetails = {
-                            type: document.getElementById('m4-A-type').value,
-                            brand: document.getElementById('m4-A-brand').value,
-                            plate: document.getElementById('m4-A-plate').value,
-                            license: document.getElementById('m4-A-license').value
-                        };
-                    } else if(prefData.commuteType === 'B') {
-                        prefData.commuteDetails = {
-                            driver: document.getElementById('m4-B-driver').value,
-                            phone: document.getElementById('m4-B-phone').value,
-                            type: document.getElementById('m4-B-type').value,
-                            typeOther: document.getElementById('m4-B-type-other').value,
-                            plate: document.getElementById('m4-B-plate').value,
-                            village: document.getElementById('m4-B-village').value,
-                            fare: document.getElementById('m4-B-fare').value
-                        };
-                    }
-
-                    payload.preferencesJson = JSON.stringify(prefData);
-                    payload.friendsJson = JSON.stringify(m4State.friendsRatings);
+                        dist: document.getElementById('m4-dist').value,
+                        travel: document.getElementById('m4-travel').value
+                    });
+                    p.friendsJson = JSON.stringify(m4State.friendsRatings);
                 }
 
-                const res = await fetchAPI('saveData', payload);
-                if (res.status !== 'success') throw new Error(res.message || 'บันทึกไม่สำเร็จ');
+                const res = await fetchAPI('saveData', p);
+                if(res.status !== 'success') throw new Error(res.message);
 
-                if (isDraft) {
-                    document.getElementById('modal-icon').textContent = '📝';
-                    document.getElementById('modal-heading').textContent = "DRAFT SAVED!";
-                    document.getElementById('modal-heading').style.color = "var(--accent)";
-                    document.getElementById('modal-text').innerHTML = `บันทึกร่างด่าน ${missionNumber} เรียบร้อยแล้ว!<br>ข้อมูลถูกเก็บเข้าคลัง คุณสามารถกลับมาแก้ไขต่อได้เสมอ`;
-                    document.getElementById('score-container').style.display = 'none'; 
-                } else {
-                    const baseScore = 1000;
-                    const timeBonus = Math.max(0, 500 - (secondsElapsed * 5)); 
-                    const earnedScore = baseScore + timeBonus;
-
-                    playerState.score += earnedScore;
-                    playerState.missions[`m${missionNumber}`].status = 'completed'; 
-                    
-                    let nextMission = missionNumber + 1;
-                    if(playerState.missions[`m${nextMission}`]) {
-                        playerState.missions[`m${nextMission}`].status = 'cooldown';
-                        playerState.missions[`m${nextMission}`].unlocksAt = Date.now() + COOLDOWN_MS;
-                    }
-                    savePlayerState();
-
-                    let prepText = '';
-                    if (missionNumber === 1) prepText = 'เตรียมชื่อ-สกุล บิดามารดา/ผู้ปกครอง, เบอร์โทรศัพท์ และ <b>ภาพลายเซ็นผู้ปกครอง</b>';
-                    else if (missionNumber === 2) prepText = 'เตรียมข้อมูล <b>น้ำหนัก ส่วนสูง</b> และโรคประจำตัว (ถ้ามี)';
-                    else if (missionNumber === 3) prepText = 'เตรียมข้อมูล <b>วิชาที่ชอบ</b>, อาชีพในฝัน และรายชื่อเพื่อนสนิท';
-                    else if (missionNumber === 4) prepText = 'เตรียมข้อมูล <b>เครือข่ายผู้สนับสนุน</b> และ <b>รูปถ่ายของบิดา/มารดา</b>';
-                    else prepText = 'เตรียมตัวให้พร้อมสำหรับความท้าทายต่อไป!';
-
-                    const waitText = DEV_MODE ? '1 นาที' : '2 วัน';
-
-                    document.getElementById('modal-icon').textContent = '🎉';
-                    document.getElementById('modal-heading').textContent = "MISSION CLEAR!";
-                    document.getElementById('modal-heading').style.color = "var(--success)";
-                    document.getElementById('modal-text').innerHTML = `
-                        ด่าน ${missionNumber} สำเร็จ และถูกปิดถาวรแล้ว!<br>
-                        ด่านถัดไปจะเปิดในอีก <b>${waitText}</b> ⏳<br><br>
-                        <div style="background: rgba(255, 107, 0, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); font-size: 0.95rem; text-align: left;">
-                            💡 <b>สิ่งที่ต้องเตรียมในภารกิจต่อไป (ด่านที่ ${nextMission}):</b><br>${prepText}
-                        </div>
-                    `;
-                    document.getElementById('score-container').style.display = 'block';
-                    document.getElementById('modal-score').textContent = earnedScore.toLocaleString();
+                playerState.score += (1500 - (secondsElapsed * 2));
+                playerState.missions['m'+num].status = 'completed';
+                let next = num+1; 
+                if(playerState.missions['m'+next]) {
+                    playerState.missions['m'+next].status = 'cooldown';
+                    playerState.missions['m'+next].unlocksAt = Date.now() + COOLDOWN_MS;
                 }
+                savePlayerState();
 
-                document.getElementById('custom-modal').style.display = 'flex';
+                let waitStr = DEV_MODE ? "1 นาที" : "2 วัน";
+                let prepStr = "เตรียมรายชื่อเพื่อนและสีที่ชอบ";
+                if(num === 1) prepStr = "เตรียมเบอร์โทรศัพท์ 10 หลักและภาพถ่ายผู้ปกครอง";
+                if(num === 2) prepStr = "เตรียมข้อมูลน้ำหนักและส่วนสูงล่าสุด";
+                if(num === 3) prepStr = "เตรียมรายชื่อเพื่อนและข้อมูลทุนการศึกษา";
+                if(num === 4) prepStr = "เตรียมรูปถ่ายหน้าบ้านและพิกัดฐานทัพ";
 
-            } catch (error) {
-                alert('เกิดข้อผิดพลาด: ' + error.message);
-                if(btnDraft) btnDraft.disabled = false;
-                if(btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'บันทึก & ผ่านด่าน 🏆'; }
-                startTimer(); 
-            }
+                document.getElementById('modal-text').innerHTML = `
+                    ภารกิจด่านที่ ${num} บันทึกสำเร็จแล้ว!<br>
+                    ด่านถัดไปจะเปิดในอีก <b>${waitStr}</b> ⏳<br><br>
+                    <div style="background:rgba(255,107,0,0.1); padding:10px; border-radius:5px; text-align:left;">
+                        💡 <b>ภารกิจต่อไป:</b> ${prepStr}
+                    </div>
+                `;
+                document.getElementById('modal-score').textContent = "1,500";
+                document.getElementById('custom-modal').style.display='flex';
+            } catch(err) { alert("Error: " + err.message); btn.disabled=false; btn.textContent='TRY AGAIN'; }
         }
 
-        function closeModalAndGoNext() {
-            document.getElementById('custom-modal').style.display = 'none';
-            showDashboardView(); 
-        }
+        function closeModalAndGoNext() { document.getElementById('custom-modal').style.display='none'; showDashboardView(); }
     </script>
 </body>
 </html>
