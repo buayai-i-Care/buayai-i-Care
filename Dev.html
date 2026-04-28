@@ -167,7 +167,7 @@
         // ⚙️ การตั้งค่าระบบ
         // ==========================================
         // *** เปลี่ยน URL ตรงนี้เป็น URL ที่ได้จากการ Deploy ของคุณ ***
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec';
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzANvQbtdjT30xCa37L6_RinKIY6XNdbo6V4CHW19q0iR7WZpI-XsWX3tnpbaOQXG9UlA/exec';
         const DEV_MODE = true; 
         const COOLDOWN_MS = DEV_MODE ? (1 * 60 * 1000) : (2 * 24 * 60 * 60 * 1000); 
 
@@ -328,13 +328,11 @@
                         btn.textContent = '✅ สแกนพิกัดสำเร็จ (กำลังดึงที่อยู่...)';
                         btn.style.background = 'var(--success)';
 
-                        // เรียกใช้ OpenStreetMap API แปลงพิกัดเป็นที่อยู่ (ภาษาไทย)
                         try {
                             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=th`);
                             const data = await res.json();
                             if(data && data.address) {
                                 const ad = data.address;
-                                // แมปฟิลด์ของต่างประเทศให้ตรงกับบริบทไทย
                                 document.getElementById('m5-subdistrict').value = ad.suburb || ad.village || ad.hamlet || ad.quarter || '';
                                 document.getElementById('m5-district').value = ad.county || ad.city || ad.town || '';
                                 document.getElementById('m5-province').value = ad.state || ad.province || '';
@@ -722,7 +720,7 @@
         async function fetchAPI(a, p={}) { p.action = a; const r = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(p) }); return await r.json(); }
         
         // ==========================================
-        // 📸 ระบบบีบอัดรูปภาพก่อนอัปโหลด (แก้ปัญหา Google Drive Error)
+        // 📸 ระบบบีบอัดรูปภาพขั้นสุด (เพื่อการส่งที่ลื่นไหล)
         // ==========================================
         function getBase64(file) {
             return new Promise((resolve, reject) => {
@@ -734,8 +732,8 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // ปรับลดขนาดความกว้างสูงสุด
-                        const MAX_HEIGHT = 800; // ปรับลดขนาดความสูงสูงสุด
+                        const MAX_WIDTH = 600; // ปรับลงมาเหลือ 600px 
+                        const MAX_HEIGHT = 600;
                         let width = img.width;
                         let height = img.height;
 
@@ -750,8 +748,8 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        // บีบอัดเป็น JPEG คุณภาพ 70% ลดขนาดไฟล์มหาศาล
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        // บีบอัดไฟล์เหลือ 60% (เล็กมาก ส่งไวแน่นอน)
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                         resolve(dataUrl);
                     };
                     img.onerror = (e) => reject(e);
