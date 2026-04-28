@@ -82,6 +82,7 @@
 
         .file-upload-box { border: 2px dashed #78350f; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; color: var(--text-muted); position: relative; margin-top: 5px; }
         .file-upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.1); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow) inset; }
+        .file-upload-box.has-file { border-color: var(--success); background: rgba(34, 197, 94, 0.1); color: var(--success); }
         .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
         
         /* ปุ่ม GPS */
@@ -193,6 +194,24 @@
         };
 
         function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
+
+        // ==========================================
+        // 💡 ระบบแสดงผลเมื่อผู้ใช้เลือกไฟล์รูปภาพ (UX Fix)
+        // ==========================================
+        document.addEventListener('change', function(e) {
+            if(e.target.type === 'file' && e.target.parentElement.classList.contains('file-upload-box')) {
+                const box = e.target.parentElement;
+                const span = box.querySelector('span');
+                if(e.target.files.length > 0) {
+                    const fileName = e.target.files[0].name;
+                    span.innerHTML = `✅ เลือกไฟล์สำเร็จ<br><small style="color: #fff; font-weight: normal;">${fileName}</small>`;
+                    box.classList.add('has-file');
+                } else {
+                    span.innerHTML = `คลิกเลือกรูปถ่าย 📂`;
+                    box.classList.remove('has-file');
+                }
+            }
+        });
 
         // ==========================================
         // 🔐 Login & Auth
@@ -394,7 +413,7 @@
                             </div>
                             <div class="form-group full-width">
                                 <label>📸 ภาพถ่ายนักเรียน ${sd.profileImageUrl ? '<span style="color:var(--success)">(มีรูปเก่าในระบบ)</span>' : ''}</label>
-                                <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*"><span>คลิกเลือกรูปถ่าย 📂</span></div>
+                                <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂</span></div>
                                 <input type="hidden" id="m1-img-exist" value="${sd.profileImageUrl || ''}">
                             </div>
                         </div>
@@ -425,9 +444,9 @@
                         <div class="section-box">
                             <h3 class="section-title">📸 อัปโหลดหลักฐาน</h3>
                             <div class="form-grid">
-                                <div class="form-group"><label>📷 รูปบิดา</label><div class="file-upload-box"><input type="file" id="m2-img-fa" accept="image/*"><span>เลือกไฟล์ 📂</span></div></div>
-                                <div class="form-group"><label>📷 รูปมารดา</label><div class="file-upload-box"><input type="file" id="m2-img-mo" accept="image/*"><span>เลือกไฟล์ 📂</span></div></div>
-                                <div class="form-group full-width"><label>✍️ ลายมือชื่อผู้ปกครอง</label><div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*"><span>คลิกอัปโหลดลายเซ็น 📂</span></div></div>
+                                <div class="form-group"><label>📷 รูปบิดา</label><div class="file-upload-box"><input type="file" id="m2-img-fa" accept="image/*" required><span>เลือกไฟล์ 📂</span></div></div>
+                                <div class="form-group"><label>📷 รูปมารดา</label><div class="file-upload-box"><input type="file" id="m2-img-mo" accept="image/*" required><span>เลือกไฟล์ 📂</span></div></div>
+                                <div class="form-group full-width"><label>✍️ ลายมือชื่อผู้ปกครอง</label><div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*" required><span>คลิกอัปโหลดลายเซ็น 📂</span></div></div>
                             </div>
                         </div>
                         <button type="submit" class="btn-submit">ยืนยันข้อมูลครอบครัว 🏆</button>
@@ -607,11 +626,17 @@
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label>📷 3.1 ภาพนักเรียนหน้าบ้าน</label>
-                                    <div class="file-upload-box"><input type="file" id="m5-img1" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂<br><small>(เห็นป้ายบ้านเลขที่ถ้ามี)</small></span></div>
+                                    <div class="file-upload-box">
+                                        <input type="file" id="m5-img1" accept="image/*" required>
+                                        <span>คลิกเลือกรูปถ่าย 📂<br><small>(เห็นป้ายบ้านเลขที่ถ้ามี)</small></span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>📷 3.2 ภาพสภาพภายใน/บริเวณบ้าน</label>
-                                    <div class="file-upload-box"><input type="file" id="m5-img2" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂<br><small>(ห้องพัก หรือ บริเวณบ้าน)</small></span></div>
+                                    <div class="file-upload-box">
+                                        <input type="file" id="m5-img2" accept="image/*" required>
+                                        <span>คลิกเลือกรูปถ่าย 📂<br><small>(ห้องพัก หรือ บริเวณบ้าน)</small></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -695,7 +720,45 @@
         },1000); }
 
         async function fetchAPI(a, p={}) { p.action = a; const r = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(p) }); return await r.json(); }
-        function getBase64(f) { return new Promise((r, j) => { if(!f) r(null); const rd = new FileReader(); rd.readAsDataURL(f); rd.onload=()=>r(rd.result); rd.onerror=e=>j(e); }); }
+        
+        // ==========================================
+        // 📸 ระบบบีบอัดรูปภาพก่อนอัปโหลด (แก้ปัญหา Google Drive Error)
+        // ==========================================
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) { resolve(null); return; }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // ปรับลดขนาดความกว้างสูงสุด
+                        const MAX_HEIGHT = 800; // ปรับลดขนาดความสูงสูงสุด
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // บีบอัดเป็น JPEG คุณภาพ 70% ลดขนาดไฟล์มหาศาล
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (e) => reject(e);
+                };
+                reader.onerror = (e) => reject(e);
+            });
+        }
 
         // ==========================================
         // 💾 Submit Logic
@@ -788,7 +851,7 @@
                 `;
                 document.getElementById('modal-score').textContent = baseScore.toLocaleString();
                 document.getElementById('custom-modal').style.display='flex';
-            } catch(err) { alert("Error: " + err.message); btn.disabled=false; btn.textContent='TRY AGAIN'; }
+            } catch(err) { alert("Error: " + err.message); btn.disabled=false; btn.textContent='ลองใหม่อีกครั้ง'; }
         }
 
         function closeModalAndGoNext() { document.getElementById('custom-modal').style.display='none'; showDashboardView(); }
