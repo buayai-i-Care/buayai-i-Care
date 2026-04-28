@@ -84,6 +84,10 @@
         .file-upload-box:hover { border-color: var(--primary); background: rgba(255,107,0,0.1); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow) inset; }
         .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
         
+        /* ปุ่ม GPS */
+        .btn-gps { background: #1e3a8a; color: white; border: none; padding: 15px; border-radius: 10px; font-family: 'Prompt'; font-weight: bold; width: 100%; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-gps:hover { background: #2563eb; }
+
         .classmate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 10px; }
         .classmate-card { background: var(--card-inner); border: 1px solid #57534e; border-radius: 10px; padding: 15px; text-align: center; position: relative; }
         .classmate-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--accent); background: #333; }
@@ -133,7 +137,7 @@
             <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2"><div>🎯 ด่าน 2: ข้อมูลครอบครัว</div><span class="countdown-text" id="cd-m2"></span><span id="icon-m2">🔒</span></button>
             <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3"><div>🎯 ด่าน 3: ข้อมูลสุขภาพ</div><span class="countdown-text" id="cd-m3"></span><span id="icon-m3">🔒</span></button>
             <button class="sidebar-btn locked" onclick="loadContent('mission4', this)" id="btn-m4"><div>🎯 ด่าน 4: ข้อมูลสัมพันธภาพ</div><span class="countdown-text" id="cd-m4"></span><span id="icon-m4">🔒</span></button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5"><div>🎯 ด่าน 5: ภาพบ้าน</div><span class="countdown-text" id="cd-m5"></span><span id="icon-m5">🔒</span></button>
+            <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5"><div>🎯 ด่าน 5: ภาพบ้าน (GPS)</div><span class="countdown-text" id="cd-m5"></span><span id="icon-m5">🔒</span></button>
             <button class="sidebar-btn locked" onclick="loadContent('mission6', this)" id="btn-m6"><div>🏆 ด่าน 6: แบบวัด SDQ</div><span class="countdown-text" id="cd-m6"></span><span id="icon-m6">🔒</span></button>
             
             <button class="sidebar-btn" style="margin-top:auto; background:rgba(239,68,68,0.1); color:#fca5a5;" onclick="handleLogout()">🚪 ออกจากระบบ</button>
@@ -161,6 +165,7 @@
         // ==========================================
         // ⚙️ การตั้งค่าระบบ
         // ==========================================
+        // *** เปลี่ยน URL ตรงนี้เป็น URL ที่ได้จากการ Deploy ของคุณ ***
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxDUeqW2fpz391aV5uXWId_gNBRQs_doBdMCljMydzV4pmEHTiuuzGN9uGTAZ5B28-DIA/exec';
         const DEV_MODE = true; 
         const COOLDOWN_MS = DEV_MODE ? (1 * 60 * 1000) : (2 * 24 * 60 * 60 * 1000); 
@@ -246,6 +251,11 @@
                 playerState.missions.m4.status = 'completed'; u = true;
                 if (playerState.missions.m5.status === 'locked') playerState.missions.m5.status = 'unlocked';
             }
+            // ปลดล็อกด่าน 6 เมื่อทำด่าน 5 เสร็จ (อิงจาก housingStatus)
+            if (sd.housingStatus && playerState.missions.m5.status !== 'completed') {
+                playerState.missions.m5.status = 'completed'; u = true;
+                if (playerState.missions.m6.status === 'locked') playerState.missions.m6.status = 'unlocked';
+            }
             if(u) savePlayerState();
         }
 
@@ -279,6 +289,53 @@
                 else if (status === 'cooldown') { btn.classList.add('cooldown'); icon.textContent = '⏳'; }
             }
         }
+
+        // ==========================================
+        // 🌍 ดึงพิกัด GPS และแปลงเป็นที่อยู่ (Reverse Geocoding)
+        // ==========================================
+        window.getLocation = () => {
+            const btn = document.getElementById('btn-gps');
+            const latInput = document.getElementById('m5-lat');
+            const lngInput = document.getElementById('m5-lng');
+            btn.textContent = 'กำลังค้นหาสัญญาณดาวเทียม... 🛰️';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        latInput.value = lat;
+                        lngInput.value = lng;
+                        btn.textContent = '✅ สแกนพิกัดสำเร็จ (กำลังดึงที่อยู่...)';
+                        btn.style.background = 'var(--success)';
+
+                        // เรียกใช้ OpenStreetMap API แปลงพิกัดเป็นที่อยู่ (ภาษาไทย)
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=th`);
+                            const data = await res.json();
+                            if(data && data.address) {
+                                const ad = data.address;
+                                // แมปฟิลด์ของต่างประเทศให้ตรงกับบริบทไทย
+                                document.getElementById('m5-subdistrict').value = ad.suburb || ad.village || ad.hamlet || ad.quarter || '';
+                                document.getElementById('m5-district').value = ad.county || ad.city || ad.town || '';
+                                document.getElementById('m5-province').value = ad.state || ad.province || '';
+                                btn.textContent = '✅ สแกนพิกัดและที่อยู่สำเร็จ';
+                            }
+                        } catch(err) {
+                            console.warn("ไม่สามารถดึงที่อยู่ได้อัตโนมัติ", err);
+                            btn.textContent = '✅ ได้พิกัดแล้ว (โปรดกรอกที่อยู่เพิ่มเติมเอง)';
+                        }
+                    },
+                    (error) => {
+                        alert('ไม่สามารถดึงตำแหน่งได้ โปรดอนุญาตให้เบราว์เซอร์เข้าถึงตำแหน่ง (Location): ' + error.message);
+                        btn.textContent = '📍 สแกนพิกัด GPS อีกครั้ง';
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง");
+            }
+        };
 
         // ==========================================
         // 🔄 Content Loader (หัวใจของระบบ)
@@ -462,7 +519,7 @@
                         </div>
 
                         <div class="section-box">
-                            <h3 class="section-title">🤝 2. ความรู้สึกับเพื่อน ๆ</h3>
+                            <h3 class="section-title">🤝 2. ความรู้สึกกับเพื่อน ๆ</h3>
                             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">⭐ ความไว้ใจ | 🌶️ ความชอบแกล้ง (1-5)</p>
                             <div id="classmates-container" class="classmate-grid"></div>
                         </div>
@@ -499,9 +556,68 @@
                     </form>`;
                 
                 renderClassmates(); renderScholarships(); toggleTravel();
-                // โหลดค่าย้อนหลังอื่นๆ
                 if(pref.subs) pref.subs.forEach(s => { let c = document.querySelector(`#m4-subs input[value="${s}"]`); if(c) c.checked=true; });
                 if(pref.subs?.includes('อื่นๆ')) document.getElementById('m4-s-o').style.display='block';
+            }
+            // --- 🎯 Mission 5 ---
+            else if (pageName === 'mission5') {
+                let oldAddr = sd.fullAddress || '';
+                contentArea.innerHTML = `
+                    <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
+                    <h2 style="color:var(--accent);">🎯 ด่าน 5: ฐานทัพหลัก (ข้อมูลบ้าน)</h2>
+                    <form onsubmit="submitMission(event, 5)">
+                        
+                        <div class="section-box">
+                            <h3 class="section-title">📍 1. พิกัดฐานทัพ (GPS)</h3>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">* กรุณาทำภารกิจนี้ขณะอยู่ที่บ้าน ระบบจะพยายามเติมที่อยู่อัตโนมัติจากดาวเทียม</p>
+                            <button type="button" id="btn-gps" class="btn-gps" onclick="getLocation()">📍 กดเพื่อสแกนพิกัดและที่อยู่บ้าน</button>
+                            <div class="form-grid" style="margin-top: 15px;">
+                                <div class="form-group"><label>ละติจูด (Latitude)</label><input type="text" id="m5-lat" value="${sd.lat || ''}" readonly required></div>
+                                <div class="form-group"><label>ลองจิจูด (Longitude)</label><input type="text" id="m5-lng" value="${sd.lng || ''}" readonly required></div>
+                            </div>
+                            
+                            <div style="background:rgba(255,193,7,0.1); padding:15px; border-radius:10px; margin-top:15px; border: 1px dashed var(--accent);">
+                                <label style="color:var(--accent); display:block; margin-bottom:10px;">📌 ข้อมูลที่อยู่ (ตรวจสอบและแก้ไขให้ถูกต้อง)</label>
+                                <div class="form-grid">
+                                    <div class="form-group"><label>บ้านเลขที่ / หมู่</label><input type="text" id="m5-houseno" placeholder="เช่น 123 ม.4" value="${oldAddr.split(' ต.')[0] || ''}" required></div>
+                                    <div class="form-group"><label>ตำบล</label><input type="text" id="m5-subdistrict" required></div>
+                                    <div class="form-group"><label>อำเภอ</label><input type="text" id="m5-district" required></div>
+                                    <div class="form-group"><label>จังหวัด</label><input type="text" id="m5-province" required></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-box">
+                            <h3 class="section-title">🏠 2. สภาพแวดล้อมฐานทัพ</h3>
+                            <div class="form-group">
+                                <label>ปัจจุบันอาศัยอยู่กับใคร?</label>
+                                <select id="m5-housing" required>
+                                    <option value="">-- เลือกลักษณะการอยู่อาศัย --</option>
+                                    <option value="บิดามารดา" ${sd.housingStatus === 'บิดามารดา' ? 'selected':''}>บิดาและมารดา</option>
+                                    <option value="บิดา" ${sd.housingStatus === 'บิดา' ? 'selected':''}>บิดา (มารดาไม่ได้อยู่ด้วย)</option>
+                                    <option value="มารดา" ${sd.housingStatus === 'มารดา' ? 'selected':''}>มารดา (บิดาไม่ได้อยู่ด้วย)</option>
+                                    <option value="ญาติ" ${sd.housingStatus === 'ญาติ' ? 'selected':''}>ญาติ (ปู่, ย่า, ตา, ยาย, ลุง, ป้า ฯลฯ)</option>
+                                    <option value="หอพัก" ${sd.housingStatus === 'หอพัก' ? 'selected':''}>อยู่หอพัก / บ้านเช่า</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="section-box">
+                            <h3 class="section-title">📸 3. ภาพถ่ายฐานทัพ</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>📷 3.1 ภาพนักเรียนหน้าบ้าน</label>
+                                    <div class="file-upload-box"><input type="file" id="m5-img1" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂<br><small>(เห็นป้ายบ้านเลขที่ถ้ามี)</small></span></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>📷 3.2 ภาพสภาพภายใน/บริเวณบ้าน</label>
+                                    <div class="file-upload-box"><input type="file" id="m5-img2" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂<br><small>(ห้องพัก หรือ บริเวณบ้าน)</small></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-submit">ยืนยันข้อมูลด่าน 5 🏆</button>
+                    </form>`;
             }
 
             startTimer();
@@ -595,14 +711,18 @@
                     p.fullName = document.getElementById('m1-fullName').value;
                     p.birthDate = document.getElementById('m1-birth').value;
                     p.religion = document.getElementById('m1-religion').value;
-                    p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
+                    if(document.getElementById('m1-img').files.length > 0) {
+                        p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
+                    }
                 } else if(num === 2) {
                     p.fatherName = document.getElementById('m2-fatherName').value;
                     p.motherName = document.getElementById('m2-motherName').value;
                     p.guardianName = document.getElementById('m2-guardianName').value;
                     p.studentPhone = document.getElementById('m2-stuPhone').value;
                     p.guardianPhone = document.getElementById('m2-guardPhone').value;
-                    p.guardianSignatureBase64 = await getBase64(document.getElementById('m2-sign').files[0]);
+                    if(document.getElementById('m2-sign').files.length > 0) {
+                        p.guardianSignatureBase64 = await getBase64(document.getElementById('m2-sign').files[0]);
+                    }
                 } else if(num === 3) {
                     p.weight = document.getElementById('m3-weight').value;
                     p.height = document.getElementById('m3-height').value;
@@ -622,13 +742,28 @@
                         travel: document.getElementById('m4-travel').value
                     });
                     p.friendsJson = JSON.stringify(m4State.friendsRatings);
+                } else if(num === 5) {
+                    p.lat = document.getElementById('m5-lat').value;
+                    p.lng = document.getElementById('m5-lng').value;
+                    
+                    let hNo = document.getElementById('m5-houseno').value.trim();
+                    let sub = document.getElementById('m5-subdistrict').value.trim();
+                    let dist = document.getElementById('m5-district').value.trim();
+                    let prov = document.getElementById('m5-province').value.trim();
+                    p.fullAddress = `${hNo} ต.${sub} อ.${dist} จ.${prov}`;
+                    
+                    p.housingStatus = document.getElementById('m5-housing').value;
+                    p.homeImg1Base64 = await getBase64(document.getElementById('m5-img1').files[0]);
+                    p.homeImg2Base64 = await getBase64(document.getElementById('m5-img2').files[0]);
                 }
 
                 const res = await fetchAPI('saveData', p);
                 if(res.status !== 'success') throw new Error(res.message);
 
-                playerState.score += (1500 - (secondsElapsed * 2));
+                let baseScore = (num === 5) ? 2000 : 1500;
+                playerState.score += (baseScore - (secondsElapsed * 2));
                 playerState.missions['m'+num].status = 'completed';
+                
                 let next = num+1; 
                 if(playerState.missions['m'+next]) {
                     playerState.missions['m'+next].status = 'cooldown';
@@ -641,7 +776,8 @@
                 if(num === 1) prepStr = "เตรียมเบอร์โทรศัพท์ 10 หลักและภาพถ่ายผู้ปกครอง";
                 if(num === 2) prepStr = "เตรียมข้อมูลน้ำหนักและส่วนสูงล่าสุด";
                 if(num === 3) prepStr = "เตรียมรายชื่อเพื่อนและข้อมูลทุนการศึกษา";
-                if(num === 4) prepStr = "เตรียมรูปถ่ายหน้าบ้านและพิกัดฐานทัพ";
+                if(num === 4) prepStr = "เตรียมเปิด GPS บนมือถือ และถ่ายรูปหน้าบ้าน/ในบ้าน";
+                if(num === 5) prepStr = "เตรียมทำแบบประเมิน SDQ เพื่อดูจุดแข็งจุดอ่อน";
 
                 document.getElementById('modal-text').innerHTML = `
                     ภารกิจด่านที่ ${num} บันทึกสำเร็จแล้ว!<br>
@@ -650,7 +786,7 @@
                         💡 <b>ภารกิจต่อไป:</b> ${prepStr}
                     </div>
                 `;
-                document.getElementById('modal-score').textContent = "1,500";
+                document.getElementById('modal-score').textContent = baseScore.toLocaleString();
                 document.getElementById('custom-modal').style.display='flex';
             } catch(err) { alert("Error: " + err.message); btn.disabled=false; btn.textContent='TRY AGAIN'; }
         }
