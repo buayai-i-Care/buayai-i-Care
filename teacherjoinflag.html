@@ -7,214 +7,245 @@
   
   <!-- Libraries -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
   <style>
-    /* 1. Theme: Lime Background */
     body { font-family: 'Sarabun', sans-serif; background-color: #f7fee7; }
     
-    /* 2. Card Styles (Pink/Green Theme) */
+    /* Card Styles */
     .student-card-manual { background-color: #ffe4e6; border: 2px solid #fda4af; cursor: pointer; transition: 0.1s; }
     .student-card-manual:active { transform: scale(0.98); }
     .student-card-auto { background-color: #15803d; color: white; border: 1px solid #14532d; cursor: default; }
     
-    /* 3. Status Colors */
+    /* Status Colors */
     .status-present { background-color: #15803d; color: white; }
-    .status-late { background-color: #f59e0b; color: white; }
+    .status-late { background-color: #d97706; color: white; }
     .status-absent-pending { background-color: #fecaca; color: #7f1d1d; }
     
-    .hidden { display: none; }
-    .hidden-section { display: none !important; }
+    .hidden { display: none !important; }
     
-    /* 4. Stats UI */
-    .stat-card { @apply bg-white p-4 rounded-lg shadow-sm border border-gray-200; }
-    .rank-badge { @apply w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white mr-2; }
-    .noselect { -webkit-user-select: none; user-select: none; }
-    
-    /* 5. Edit Mode */
-    .edit-card { background-color: white; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+    /* Edit Mode */
+    .edit-card { background-color: white; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 
-    /* Dynamic Visibility */
     .student-card-auto .student-name, 
     .status-present .student-name,
     .status-late .student-name, 
     .status-absent-pending .student-name { display: none; }
     .status-absent-pending .student-name { display: block; }
+    
+    /* Accordion Styles for Report (Age 40+ Friendly) */
+    details > summary { list-style: none; outline: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] summary { border-bottom-width: 1px; border-color: #e5e7eb; }
+    .chevron-icon { transition: transform 0.3s ease; }
+    details[open] .chevron-icon { transform: rotate(180deg); }
   </style>
 </head>
-<body class="text-gray-800">
+<body class="text-gray-800 selection:bg-lime-200">
 
-  <div class="container mx-auto max-w-lg p-4 min-h-screen">
+  <div class="container mx-auto max-w-lg p-4 min-h-screen relative">
     
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
       <div id="clock" class="text-3xl font-bold text-slate-700 bg-white px-4 py-2 rounded-lg shadow-sm border border-lime-200">--:--</div>
       <div class="text-right">
-        <h1 class="text-lg font-bold text-lime-900">ระบบบันทึกการควบคุมนักเรียนร่วมกิจกรรมพิธีการหน้าเสาธง</h1>
-        <p class="text-xs text-gray-500">โรงเรียนบัวใหญ่</p>
+        <h1 class="text-lg font-bold text-lime-900 leading-tight">ระบบบันทึกการควบคุมนักเรียน<br>หน้าเสาธง</h1>
+        <p class="text-sm text-lime-700">โรงเรียนบัวใหญ่</p>
       </div>
     </div>
 
     <!-- VIEW 1: CLASS SELECTOR -->
     <div id="view-selector" class="space-y-4">
-      <div class="bg-white p-4 rounded-lg border border-lime-200 text-center shadow-sm">
-        <p class="text-sm text-lime-800 font-bold mb-2">กรุณาระบุรหัสเพื่อเข้าใช้งาน</p>
-        <input type="password" id="teacherId" class="w-full p-3 border border-lime-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-lime-500" placeholder="รหัสผ่าน">
+      <div class="bg-white p-5 rounded-2xl border-2 border-lime-200 text-center shadow-sm">
+        <p class="text-base text-lime-800 font-bold mb-3">กรุณาระบุรหัสเพื่อเข้าใช้งาน</p>
+        <input type="password" id="teacherId" class="w-full p-3 border-2 border-lime-300 rounded-xl text-center text-xl font-bold focus:outline-none focus:border-lime-500" placeholder="รหัสผ่าน">
       </div>
       
       <div class="grid grid-cols-2 gap-3">
-        <button onclick="accessClass('m1')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.1</button>
-        <button onclick="accessClass('m2')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.2</button>
-        <button onclick="accessClass('m3')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.3</button>
-        <button onclick="accessClass('m4')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.4</button>
-        <button onclick="accessClass('m5')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.5</button>
-        <button onclick="accessClass('m6')" class="p-5 text-xl font-bold text-white bg-lime-600 rounded-lg shadow active:scale-95 transition hover:bg-lime-700">ม.6</button>
+        <button onclick="accessClass('m1')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.1</button>
+        <button onclick="accessClass('m2')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.2</button>
+        <button onclick="accessClass('m3')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.3</button>
+        <button onclick="accessClass('m4')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.4</button>
+        <button onclick="accessClass('m5')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.5</button>
+        <button onclick="accessClass('m6')" class="py-5 text-2xl font-bold text-white bg-lime-600 rounded-2xl shadow active:scale-95 transition">ม.6</button>
       </div>
       
-       <button onclick="openTeacherLogin()" class="w-full p-3 bg-white text-lime-700 rounded-lg shadow hover:bg-lime-50 transition border border-lime-200 font-bold flex items-center justify-center gap-2">
-         <i class="ph ph-user-circle text-xl"></i> เข้าระบบครู
+       <button onclick="openTeacherLogin()" class="w-full py-4 mt-2 bg-white text-lime-700 rounded-2xl shadow-sm border-2 border-lime-200 font-bold flex items-center justify-center gap-2 text-lg">
+         <i class="ph ph-user-circle text-2xl"></i> เข้าระบบเช็คประวัติส่วนตัว
        </button>
     </div>
 
     <!-- VIEW 2: LOADING -->
     <div id="view-loading" class="hidden text-center py-20">
-      <div class="animate-spin inline-block w-10 h-10 border-4 border-lime-600 border-t-transparent rounded-full mb-4"></div>
-      <p class="text-gray-500 text-lg">กำลังเชื่อมต่อฐานข้อมูล...</p>
+      <div class="animate-spin inline-block w-12 h-12 border-4 border-lime-600 border-t-transparent rounded-full mb-4"></div>
+      <p class="text-lime-800 text-lg font-bold">กำลังเชื่อมต่อฐานข้อมูล...</p>
     </div>
 
     <!-- VIEW 3: RECORD MODE -->
     <div id="view-record" class="hidden">
       <div class="flex justify-between items-center mb-4">
-        <button onclick="resetApp()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 font-bold"><i class="ph ph-arrow-left"></i> กลับ</button>
-        <div class="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">● เปิดรับลงเวลา</div>
-        
-        <button id="btnGoToEditMode" onclick="triggerEditMode()" class="hidden px-3 py-1 bg-blue-100 text-blue-700 rounded-lg font-bold text-sm hover:bg-blue-200 flex items-center gap-1"><i class="ph ph-pencil-simple"></i> แก้ไข</button>
+        <button onclick="resetApp()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm font-bold flex items-center gap-1"><i class="ph ph-arrow-left text-lg"></i> กลับ</button>
+        <div class="text-base font-bold text-green-800 bg-green-100 px-4 py-2 rounded-full border border-green-300 shadow-sm">● เปิดรับลงเวลา</div>
+      </div>
+      
+      <div id="admin-actions-group" class="hidden flex gap-2 mb-5 justify-center">
+        <button onclick="triggerEditMode()" class="flex-1 py-3 bg-blue-100 text-blue-800 border border-blue-200 rounded-xl font-bold text-base shadow-sm flex items-center justify-center gap-2">
+            <i class="ph ph-pencil-simple text-xl"></i> แก้ไขข้อมูล
+        </button>
       </div>
 
-      <h2 id="record-title" class="text-2xl font-bold text-center mb-4 text-gray-800"></h2>
+      <h2 id="record-title" class="text-3xl font-bold text-center mb-5 text-gray-800"></h2>
       
-      <!-- 🌟 เพิ่ม pb-32 เพื่อเว้นพื้นที่ด้านล่าง ป้องกันปุ่มบังการ์ดนักเรียนคนสุดท้าย -->
       <div id="record-container" class="space-y-3 pb-32"></div>
     </div>
 
-    <!-- VIEW 4: STATS DASHBOARD -->
+    <!-- VIEW 4: STATS DASHBOARD & REPORT -->
     <div id="view-stats" class="hidden">
       <div class="flex justify-between items-center mb-4">
-        <button onclick="resetApp()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 font-bold"><i class="ph ph-arrow-left"></i> กลับ</button>
-        <div class="text-sm font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">● ปิดระบบ (โหมดสถิติ)</div>
+        <button onclick="resetApp()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm font-bold flex items-center gap-1"><i class="ph ph-arrow-left text-lg"></i> กลับ</button>
+        <div class="text-base font-bold text-red-800 bg-red-100 px-4 py-2 rounded-full border border-red-300 shadow-sm">● นอกเวลาลงเวลา</div>
       </div>
-      
-      <h2 id="stats-title" class="text-xl font-bold text-center mb-6 text-gray-800"></h2>
 
-      <div class="grid grid-cols-1 gap-4 mb-8">
-        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <h3 class="font-bold text-yellow-800 mb-2 flex items-center"><i class="ph ph-clock-afternoon mr-2"></i> 5 อันดับ มาสาย</h3>
-          <ul id="list-late" class="text-sm space-y-1"></ul>
+      <h2 id="stats-title" class="text-2xl font-bold text-center mb-4 text-gray-800"></h2>
+
+      <!-- BASIC STATS (Always show) -->
+      <div class="grid grid-cols-1 gap-3 mb-6">
+        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 shadow-sm">
+          <h3 class="font-bold text-amber-900 mb-2 flex items-center text-lg"><i class="ph ph-clock-afternoon mr-2 text-xl"></i> 5 อันดับ มาสาย</h3>
+          <ul id="list-late" class="text-base space-y-2"></ul>
         </div>
-        <div class="bg-red-50 p-4 rounded-xl border border-red-200">
-          <h3 class="font-bold text-red-800 mb-2 flex items-center"><i class="ph ph-warning-circle mr-2"></i> 5 อันดับ ไม่ทราบสาเหตุ</h3>
-          <ul id="list-unknown" class="text-sm space-y-1"></ul>
+        <div class="bg-red-50 p-4 rounded-xl border border-red-200 shadow-sm">
+          <h3 class="font-bold text-red-900 mb-2 flex items-center text-lg"><i class="ph ph-warning-circle mr-2 text-xl"></i> 5 อันดับ ไม่มา/ไม่ทราบ</h3>
+          <ul id="list-unknown" class="text-base space-y-2"></ul>
         </div>
-        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
-          <h3 class="font-bold text-blue-800 mb-2 flex items-center"><i class="ph ph-hand-waving mr-2"></i> 5 อันดับ ขออนุญาต</h3>
-          <ul id="list-permit" class="text-sm space-y-1"></ul>
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 shadow-sm">
+          <h3 class="font-bold text-blue-900 mb-2 flex items-center text-lg"><i class="ph ph-hand-waving mr-2 text-xl"></i> 5 อันดับ ขออนุญาต</h3>
+          <ul id="list-permit" class="text-base space-y-2"></ul>
         </div>
       </div>
+
+      <!-- 🌟 ADMIN REPORT SECTION 🌟 -->
+      <div id="admin-report-group" class="hidden mb-10 border-t-2 border-dashed border-gray-300 pt-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-purple-200">
+            <h3 class="font-bold text-purple-800 mb-4 text-xl flex items-center justify-center"><i class="ph ph-file-text mr-2 text-2xl"></i> ระบบออกรายงาน (Admin)</h3>
+            
+            <div class="space-y-3 mb-5">
+                <div class="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <label class="flex items-center gap-3 font-bold text-purple-900 mb-2 cursor-pointer text-lg">
+                        <input type="radio" name="reportType" value="weekly" checked onchange="toggleReportType()" class="w-5 h-5"> 
+                        สถิติประจำสัปดาห์
+                    </label>
+                    <div id="report-weekly-picker" class="pl-8">
+                        <label class="block text-sm text-purple-700 mb-1">เลือกวันที่ในสัปดาห์ที่ต้องการ:</label>
+                        <input type="date" id="reportDateInput" class="w-full p-3 border border-purple-200 rounded-lg bg-white text-lg font-bold text-gray-800 focus:ring-2 focus:ring-purple-400">
+                    </div>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <label class="flex items-center gap-3 font-bold text-purple-900 cursor-pointer text-lg mb-0">
+                        <input type="radio" name="reportType" value="all" onchange="toggleReportType()" class="w-5 h-5"> 
+                        สถิติทั้งหมด (ตั้งแต่ต้นเทอม)
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="generateReport('screen')" class="py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-sm hover:bg-indigo-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition">
+                    <i class="ph ph-device-mobile text-3xl"></i> 
+                    <span class="text-sm">ดูบนมือถือ</span>
+                </button>
+                <button onclick="generateReport('excel')" class="py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-sm hover:bg-emerald-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition">
+                    <i class="ph ph-microsoft-excel-logo text-3xl"></i> 
+                    <span class="text-sm">โหลด Excel</span>
+                </button>
+            </div>
+            
+            <p id="report-status" class="text-center text-base font-bold text-purple-600 mt-4 hidden"><i class="ph ph-spinner animate-spin inline-block"></i> กำลังประมวลผลข้อมูล...</p>
+        </div>
+
+        <!-- 🌟 ONSCREEN ACCORDION REPORT (Mobile UI) -->
+        <div id="onscreen-report-container" class="hidden mt-6 space-y-4 pb-20">
+            <!-- Data will be injected here via JS -->
+        </div>
+      </div>
+
     </div>
 
     <!-- VIEW 5: EDIT MODE SECTION -->
-    <div id="edit-mode-section" class="hidden-section bg-lime-50 min-h-screen absolute top-0 left-0 w-full z-40 p-4">
+    <div id="edit-mode-section" class="hidden bg-lime-50 min-h-screen absolute top-0 left-0 w-full z-40 p-4">
       <div class="flex justify-between items-start mb-6">
         <div>
-          <h2 class="text-xl font-bold text-lime-900 leading-tight">แก้ไขข้อมูล (Admin)</h2>
-          <p id="edit-subtitle" class="text-sm text-lime-700 mt-1">ระดับชั้น ...</p>
+          <h2 class="text-2xl font-bold text-lime-900 leading-tight">แก้ไขข้อมูล (Admin)</h2>
+          <p id="edit-subtitle" class="text-base font-bold text-lime-700 mt-1">ระดับชั้น ...</p>
         </div>
-        <button onclick="exitEditMode()" class="text-gray-400 hover:text-red-500 bg-white rounded-full p-1 shadow"><i class="ph ph-x text-2xl"></i></button>
+        <button onclick="exitEditMode()" class="text-gray-500 hover:text-red-500 bg-white rounded-full p-2 shadow border border-gray-200"><i class="ph ph-x text-2xl"></i></button>
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-lime-200">
-        <label class="block text-sm font-bold text-lime-800 mb-2">เลือกวันที่ต้องการแก้ไข:</label>
+        <label class="block text-base font-bold text-lime-800 mb-2">เลือกวันที่ต้องการแก้ไข:</label>
         <div class="flex gap-2">
-          <input type="date" id="editDateInput" class="flex-grow p-2 border rounded-lg bg-gray-50 text-lime-900" onchange="loadEditData()">
-          <button onclick="loadEditData()" class="px-4 bg-lime-100 text-lime-700 rounded-lg font-bold hover:bg-lime-200"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+          <input type="date" id="editDateInput" class="flex-grow p-3 border border-lime-300 rounded-lg bg-gray-50 text-lime-900 font-bold text-lg" onchange="loadEditData()">
+          <button onclick="loadEditData()" class="px-5 bg-lime-200 text-lime-800 rounded-lg font-bold hover:bg-lime-300 shadow-sm"><i class="ph ph-arrows-clockwise text-2xl"></i></button>
         </div>
       </div>
 
       <div id="edit-container" class="space-y-3 pb-32">
-        <div class="text-center text-gray-400 py-10">กรุณาเลือกวันที่</div>
+        <div class="text-center text-gray-500 py-10 font-bold text-lg">กรุณาเลือกวันที่</div>
       </div>
     </div>
 
     <!-- NOTIFICATION MODAL -->
     <div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-6 backdrop-blur-sm transition-opacity">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center border border-gray-100">
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm text-center border border-gray-100 overflow-hidden">
         <div class="p-6">
           <div id="notif-icon" class="mb-4 flex justify-center"></div>
-          <h3 id="notif-title" class="text-xl font-bold text-gray-800 mb-2"></h3>
-          <p id="notif-message" class="text-gray-600 mb-6 text-sm"></p>
-          <button onclick="closeNotification()" class="w-full py-3 bg-lime-600 text-white rounded-xl font-bold hover:bg-lime-700 transition shadow-lg">รับทราบ</button>
+          <h3 id="notif-title" class="text-2xl font-bold text-gray-800 mb-2"></h3>
+          <p id="notif-message" class="text-gray-600 mb-6 text-base"></p>
+          <button onclick="closeNotification()" class="w-full py-4 bg-lime-600 text-white rounded-xl font-bold text-lg shadow-lg active:scale-95 transition">เข้าสู่ระบบ</button>
         </div>
       </div>
     </div>
-
-    <!-- SETTINGS MODAL -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm">
-        <h3 class="text-2xl font-bold text-center mb-4 text-lime-900">ตั้งค่าเวลา</h3>
-        <div class="space-y-4">
-          <div><label class="block text-sm font-bold text-lime-800">สิ้นสุด "มาทัน":</label><input type="time" id="inputLimitPresent" class="w-full p-2 border rounded"></div>
-          <div><label class="block text-sm font-bold text-lime-800">สิ้นสุด "มาสาย":</label><input type="time" id="inputLimitLate" class="w-full p-2 border rounded"></div>
-        </div>
-        <div class="mt-6 flex gap-3">
-          <button onclick="closeSettings()" class="flex-1 py-2 bg-gray-200 rounded font-bold">ยกเลิก</button>
-          <button onclick="saveSettings()" class="flex-1 py-2 bg-lime-600 text-white rounded font-bold">บันทึก</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Settings Trigger -->
-    <button onclick="openSettings()" id="settingsBtn" class="hidden fixed top-4 right-4 z-40 p-2 bg-white text-lime-700 rounded-full shadow hover:bg-lime-50 border border-lime-200">
-       <i class="ph ph-gear text-xl"></i>
-    </button>
 
     <!-- TEACHER SELF-SERVICE MODAL -->
     <div id="teacher-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md h-auto max-h-[90vh] flex flex-col">
-        <div class="p-5 border-b flex justify-between items-center bg-lime-50 rounded-t-2xl">
-          <h3 class="text-xl font-bold text-lime-900">เข้าสู่ระบบครู (ส่วนตัว)</h3>
-          <button onclick="closeTeacherLogin()" class="text-gray-400 hover:text-red-500"><i class="ph ph-x-circle text-3xl"></i></button>
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md h-auto max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-5 border-b flex justify-between items-center bg-lime-100">
+          <h3 class="text-xl font-bold text-lime-900">เข้าสู่ระบบตรวจสอบประวัติ</h3>
+          <button onclick="closeTeacherLogin()" class="text-gray-500 hover:text-red-500"><i class="ph ph-x-circle text-3xl"></i></button>
         </div>
-        <div class="p-5 overflow-y-auto">
+        <div class="p-6 overflow-y-auto bg-gray-50">
           <div class="mb-4">
-            <label class="block text-sm font-bold text-lime-800 mb-1">1. เลือกระดับชั้น</label>
-            <select id="loginClass" onchange="fetchTeacherList()" class="w-full p-3 border rounded-lg bg-white text-lg"><option value="">-- กรุณาเลือก --</option><option value="m1">ม.1</option><option value="m2">ม.2</option><option value="m3">ม.3</option><option value="m4">ม.4</option><option value="m5">ม.5</option><option value="m6">ม.6</option></select>
+            <label class="block text-base font-bold text-lime-900 mb-2">1. เลือกระดับชั้น</label>
+            <select id="loginClass" onchange="fetchTeacherList()" class="w-full p-3 border border-gray-300 rounded-xl bg-white text-lg font-bold focus:ring-2 focus:ring-lime-400 outline-none"><option value="">-- กรุณาเลือก --</option><option value="m1">ม.1</option><option value="m2">ม.2</option><option value="m3">ม.3</option><option value="m4">ม.4</option><option value="m5">ม.5</option><option value="m6">ม.6</option></select>
           </div>
           <div class="mb-4">
-            <label class="block text-sm font-bold text-lime-800 mb-1">2. เลือกชื่อครู</label>
-            <select id="loginName" class="w-full p-3 border rounded-lg bg-gray-100 text-lg" disabled><option value="">-- รอเลือกชั้น --</option></select>
+            <label class="block text-base font-bold text-lime-900 mb-2">2. เลือกชื่อคุณครู</label>
+            <select id="loginName" class="w-full p-3 border border-gray-300 rounded-xl bg-gray-200 text-lg font-bold" disabled><option value="">-- รอเลือกชั้น --</option></select>
           </div>
           <div class="mb-6">
-            <label class="block text-sm font-bold text-lime-800 mb-1">3. รหัสผ่าน</label>
-            <input type="password" id="loginPass" class="w-full p-3 border rounded-lg text-lg">
+            <label class="block text-base font-bold text-lime-900 mb-2">3. รหัสผ่านส่วนตัว</label>
+            <input type="password" id="loginPass" class="w-full p-3 border border-gray-300 rounded-xl text-lg font-bold focus:ring-2 focus:ring-lime-400 outline-none">
           </div>
-          <button id="btnTeacherLogin" onclick="doTeacherLogin()" class="w-full bg-lime-600 text-white py-3 rounded-lg font-bold shadow hover:bg-lime-700">เข้าสู่ระบบ</button>
-          <div id="teacherResult" class="mt-6 space-y-2 hidden border-t pt-4">
-            <h4 class="font-bold text-lime-800 pb-2">ประวัติการลงเวลา</h4>
-            <div id="teacherResultList" class="max-h-60 overflow-y-auto pr-1"></div>
+          <button id="btnTeacherLogin" onclick="doTeacherLogin()" class="w-full bg-lime-600 text-white py-4 rounded-xl font-bold text-lg shadow-md active:scale-95 transition">เข้าสู่ระบบ</button>
+          
+          <div id="teacherResult" class="mt-6 hidden bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <h4 class="font-bold text-lime-800 pb-2 border-b border-gray-100 mb-2 text-lg"><i class="ph ph-clock-counter-clockwise mr-1"></i> ประวัติลงเวลาย้อนหลัง</h4>
+            <div id="teacherResultList" class="max-h-60 overflow-y-auto pr-2 space-y-2"></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- CONFIRM MODAL -->
-    <div id="confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm text-center">
-        <h3 class="text-xl font-bold text-gray-800 mb-2">ยืนยันการบันทึก?</h3>
-        <p class="text-gray-600 mb-6">คุณกำลังจะแก้ไขข้อมูลเฉพาะรายชื่อนี้</p>
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div class="bg-white p-6 rounded-3xl w-11/12 max-w-sm text-center shadow-2xl">
+        <div class="text-blue-500 text-5xl mb-3 flex justify-center"><i class="ph ph-question"></i></div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-2">ยืนยันการบันทึก?</h3>
+        <p class="text-gray-600 mb-6 text-base">คุณกำลังแก้ไขข้อมูลของ <br><span id="confirm-name-txt" class="font-bold text-gray-900"></span></p>
         <div class="flex gap-3">
-          <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="flex-1 py-3 bg-gray-200 rounded-lg font-bold text-gray-700">ยกเลิก</button>
-          <button id="btnConfirmSingle" onclick="confirmSingleSave()" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold shadow">ยืนยัน</button>
+          <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold text-gray-700 active:scale-95 transition border border-gray-200">ยกเลิก</button>
+          <button id="btnConfirmSingle" onclick="confirmSingleSave()" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition">ยืนยัน</button>
         </div>
       </div>
     </div>
@@ -223,11 +254,11 @@
 
   <script>
     // ====================================================
-    // ⚠️ ใส่ URL Web App API (ที่เพิ่ง Deploy ใหม่) ตรงนี้ ⚠️
+    // ⚠️ ใส่ URL Web App API ตรงนี้ ⚠️
     // ====================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycby3g6VrP-m7pUpmfH1Y6LnRbNXnajIHq37fW9kjbPPWOQCww0RY07inGvatQZMBb8sZ/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwaS5j8V6HwHn_sQk775-E56J22XQ04HlHjI5H2qBvU6a2xLhFpWw244c4X5xX_w20R/exec";
 
-    // --- ฟังก์ชันติดต่อเซิร์ฟเวอร์ (API Fetcher) ---
+    // --- API Fetcher ---
     async function fetchAPI(payload) {
         try {
             const response = await fetch(API_URL, {
@@ -237,45 +268,40 @@
             });
             return await response.json();
         } catch (error) {
-            throw new Error("การเชื่อมต่อล้มเหลว โปรดตรวจสอบสัญญาณอินเทอร์เน็ต");
+            throw new Error("การเชื่อมต่อล้มเหลว โปรดตรวจสอบอินเทอร์เน็ต");
         }
     }
 
-    // --- GLOBAL CONFIG ---
+    // --- GLOBAL ---
     let configLimitPresent = "08:00"; 
     let configLimitLate = "08:20";
     let currentTeacherId = "";
     let currentClassName = "";
-    let isLocked = false; 
     let isCurrentSessionAdmin = false;
     
     const NORMAL_IDS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
     const ADMIN_CODES = ['bysp1', 'byby2', 'spsp3', 'sbsb4', 'ysys5', 'ybyb6']; 
-    const TIME_MSG_OPEN = "07:30 - 10:00 น.";
 
-    let editModeClass = "";
-    let editModeDate = "";
-    let pendingEditPayload = null; 
+    let editModeClass = ""; let editModeDate = ""; let pendingEditPayload = null; 
 
     document.addEventListener('DOMContentLoaded', () => {
-      loadSettings(); updateClock(); setInterval(updateClock, 1000);
+      updateClock(); setInterval(updateClock, 1000);
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('editDateInput').value = today;
+      document.getElementById('reportDateInput').value = today;
     });
 
-    // --- MAIN NAVIGATION ---
     function showClassSelection() {
       document.getElementById('view-selector').classList.remove('hidden'); 
       document.getElementById('view-loading').classList.add('hidden');
       document.getElementById('view-record').classList.add('hidden');
       document.getElementById('view-stats').classList.add('hidden');
-      document.getElementById('settingsBtn').classList.add('hidden');
+      document.getElementById('onscreen-report-container').classList.add('hidden');
       isCurrentSessionAdmin = false;
     }
     
     function resetApp() {
-        showClassSelection();
-        document.getElementById('teacherId').value = "";
+        showClassSelection(); document.getElementById('teacherId').value = "";
     }
 
     async function accessClass(cls) {
@@ -290,34 +316,19 @@
          isCurrentSessionAdmin = true;
       }
 
-      currentTeacherId = tid;
-      currentClassName = cls; 
-
+      currentTeacherId = tid; currentClassName = cls; 
       document.getElementById('view-selector').classList.add('hidden');
       document.getElementById('view-loading').classList.remove('hidden');
 
       try {
-          // ดึงข้อมูลการเข้าแถว หรือ สถิติ จาก API
           const res = await fetchAPI({ action: 'getClassContext', className: cls });
-          
           document.getElementById('view-loading').classList.add('hidden');
-          
           if(res.status === 'success') {
               showLoginNotification(res.data.mode);
-              document.getElementById('settingsBtn').classList.remove('hidden');
-
-              if (res.data.mode === 'RECORD') {
-                renderRecordMode(res.data.data);
-              } else if (res.data.mode === 'STATS') {
-                renderStatsMode(res.data.data);
-              }
-          } else {
-              throw new Error(res.message);
-          }
-      } catch (e) {
-          alert("Error: " + e.message); 
-          resetApp();
-      }
+              if (res.data.mode === 'RECORD') renderRecordMode(res.data.data);
+              else renderStatsMode(res.data.data);
+          } else { throw new Error(res.message); }
+      } catch (e) { alert("Error: " + e.message); resetApp(); }
     }
 
     function showLoginNotification(mode) {
@@ -326,52 +337,48 @@
       const msg = document.getElementById('notif-message');
       const icon = document.getElementById('notif-icon');
       if (mode === 'RECORD') {
-        icon.innerHTML = '<i class="ph ph-check-circle text-6xl text-green-500"></i>';
+        icon.innerHTML = '<i class="ph ph-check-circle text-7xl text-green-500"></i>';
         title.textContent = "ระบบเปิดรับลงเวลา";
-        msg.innerHTML = `ขณะนี้อยู่ในช่วงเวลา <b>${TIME_MSG_OPEN}</b><br>ท่านสามารถบันทึกและแก้ไขข้อมูลได้`;
+        msg.innerHTML = `ขณะนี้อยู่ในช่วงเวลา <b>07:30 - 10:00 น.</b><br>ท่านสามารถบันทึกและแก้ไขข้อมูลได้`;
       } else {
-        icon.innerHTML = '<i class="ph ph-chart-pie-slice text-6xl text-blue-500"></i>';
+        icon.innerHTML = '<i class="ph ph-chart-pie-slice text-7xl text-blue-500"></i>';
         title.textContent = "โหมดแสดงสถิติ";
-        msg.innerHTML = `ขณะนี้อยู่นอกเวลาทำการ (${TIME_MSG_OPEN})<br>ระบบแสดงผลข้อมูลสถิติเท่านั้น`;
+        msg.innerHTML = `ขณะนี้อยู่นอกเวลาลงเวลา<br>ระบบเปิดให้ดูสถิติและรายงานเท่านั้น`;
       }
       modal.classList.remove('hidden');
     }
     function closeNotification() { document.getElementById('notification-modal').classList.add('hidden'); }
 
-    // --- RENDER RECORD MODE ---
+    // --- RECORD MODE ---
     function renderRecordMode(data) {
       document.getElementById('view-record').classList.remove('hidden');
       document.getElementById('record-title').textContent = `เช็คชื่อ ${currentClassName.replace('m','ม.')}`;
       
-      const editBtn = document.getElementById('btnGoToEditMode');
-      if (isCurrentSessionAdmin) editBtn.classList.remove('hidden'); else editBtn.classList.add('hidden');
+      const adminGroup = document.getElementById('admin-actions-group');
+      if (isCurrentSessionAdmin) adminGroup.classList.remove('hidden'); else adminGroup.classList.add('hidden');
 
-      const con = document.getElementById('record-container');
-      con.innerHTML = '';
+      const con = document.getElementById('record-container'); con.innerHTML = '';
 
       data.forEach((st, i) => {
         const uid = `c-${i}`;
         const div = document.createElement('div');
         
         if (st.isRecorded) {
-          div.className = 'student-card-auto p-4 rounded-lg shadow-sm text-lg font-bold noselect';
-          div.innerHTML = `${st.displayName}<br><span class="text-sm font-normal opacity-90">${st.status}</span>`;
+          div.className = 'student-card-auto p-4 rounded-xl shadow-sm text-xl font-bold noselect';
+          div.innerHTML = `${st.displayName}<br><span class="text-base font-normal opacity-90">${st.status}</span>`;
         } else if (st.isException) {
-          div.className = 'student-card-auto p-4 rounded-lg shadow-sm text-lg font-bold noselect';
+          div.className = 'student-card-auto p-4 rounded-xl shadow-sm text-xl font-bold noselect';
           div.innerHTML = `${st.displayName}`;
-          
-          // บันทึกคนที่มีป้าย "เวร" แบบอัตโนมัติ
           autoRecordException(currentClassName, st.displayName, st.status);
-          
         } else {
-          div.className = 'student-card-manual p-4 rounded-lg shadow-sm text-lg font-bold text-gray-700 noselect';
+          div.className = 'student-card-manual p-4 rounded-xl shadow-sm text-xl font-bold text-gray-800 noselect';
           div.innerHTML = `
             <div>${st.displayName}</div>
-            <div id="status-${uid}" class="hidden mt-2 pt-2 border-t border-red-200 text-base font-normal"></div>
-            <div id="opts-${uid}" class="hidden mt-2 space-y-2 text-base font-normal border-t border-gray-100 pt-2">
-               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ลา" onclick="save('${st.displayName}', this)"> ลา</label>
-               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ไปราชการ" onclick="save('${st.displayName}', this)"> ไปราชการ</label>
-               <label class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg active:bg-gray-100"><input type="radio" name="g-${uid}" value="ไม่ทราบสาเหตุ" onclick="save('${st.displayName}', this)"> ไม่ทราบสาเหตุ</label>
+            <div id="status-${uid}" class="hidden mt-3 pt-3 border-t-2 border-red-200 text-lg font-bold text-red-700"></div>
+            <div id="opts-${uid}" class="hidden mt-3 space-y-2 text-lg font-normal border-t-2 border-gray-100 pt-3">
+               <label class="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm active:bg-gray-50 border border-gray-200"><input type="radio" name="g-${uid}" value="ลา" onclick="save('${st.displayName}', this)" class="w-6 h-6"> ลาป่วย/ลากิจ</label>
+               <label class="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm active:bg-gray-50 border border-gray-200"><input type="radio" name="g-${uid}" value="ไปราชการ" onclick="save('${st.displayName}', this)" class="w-6 h-6"> ไปราชการ</label>
+               <label class="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm active:bg-gray-50 border border-gray-200"><input type="radio" name="g-${uid}" value="ไม่ทราบสาเหตุ" onclick="save('${st.displayName}', this)" class="w-6 h-6"> ไม่ทราบสาเหตุ</label>
             </div>`;
           div.ondblclick = () => handleDoubleTap(div, st.displayName, uid);
         }
@@ -380,9 +387,7 @@
     }
 
     async function autoRecordException(className, displayName, status) {
-        try {
-            await fetchAPI({ action: 'recordAttendance', className: className, studentName: displayName, status: status });
-        } catch(e) { console.error("Auto save failed", e); }
+        try { await fetchAPI({ action: 'recordAttendance', className: className, studentName: displayName, status: status }); } catch(e) {}
     }
 
     async function handleDoubleTap(card, name, uid) {
@@ -392,120 +397,91 @@
       const [hL, mL] = configLimitLate.split(':');
       const timeLate = new Date(now); timeLate.setHours(hL, mL, 0);
 
-      let status = "มาทันเวลา";
-      let colorClass = "status-present";
-      
-      if (now > timePresent && now <= timeLate) {
-         status = "มาแต่ไม่ทันเวลา";
-         colorClass = "status-late";
-      } else if (now > timeLate) {
-         status = "ไม่มา";
-         const opts = document.getElementById(`opts-${uid}`);
-         if(opts) opts.classList.remove('hidden');
-         card.className = 'status-absent-pending p-4 rounded-lg shadow-sm text-lg font-bold text-red-900 noselect';
+      let status = "มาทันเวลา"; let colorClass = "status-present";
+      if (now > timePresent && now <= timeLate) { status = "มาแต่ไม่ทันเวลา"; colorClass = "status-late"; } 
+      else if (now > timeLate) {
+         card.className = 'status-absent-pending p-4 rounded-xl shadow-md text-xl font-bold text-red-900 border-2 border-red-400 noselect';
+         document.getElementById(`opts-${uid}`)?.classList.remove('hidden');
          return; 
       }
 
-      card.className = `${colorClass} p-4 rounded-lg shadow-sm text-lg font-bold noselect`;
+      card.className = `${colorClass} p-4 rounded-xl shadow-sm text-xl font-bold noselect`;
       const statusDiv = document.getElementById(`status-${uid}`);
-      if(statusDiv) { statusDiv.innerHTML = status; statusDiv.classList.remove('hidden'); }
-      const opts = document.getElementById(`opts-${uid}`);
-      if(opts) opts.classList.add('hidden');
+      if(statusDiv) { statusDiv.innerHTML = `<i class="ph ph-check-circle"></i> ` + status; statusDiv.classList.remove('hidden'); }
+      document.getElementById(`opts-${uid}`)?.classList.add('hidden');
 
-      try {
-          const res = await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: status });
-          if(res.status !== 'success') throw new Error(res.message);
-      } catch(e) {
-          alert("บันทึกไม่ได้: " + e.message);
-      }
+      try { await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: status }); } catch(e) { alert("บันทึกไม่ได้: " + e.message); }
     }
     
     window.save = async function(name, radio) {
        const card = radio.closest('.student-card-manual');
-       card.className = 'status-absent-pending p-4 rounded-lg shadow-sm text-lg font-bold text-red-900 noselect border-2 border-red-500';
-       const opts = card.querySelector('[id^="opts-"]');
-       if(opts) opts.classList.add('hidden');
+       card.className = 'status-absent-pending p-4 rounded-xl shadow-sm text-xl font-bold text-red-900 border-2 border-red-500 noselect';
+       card.querySelector('[id^="opts-"]')?.classList.add('hidden');
        
        const statDiv = card.querySelector('[id^="status-"]');
-       if(statDiv) { statDiv.innerHTML = radio.value; statDiv.classList.remove('hidden'); }
+       if(statDiv) { statDiv.innerHTML = `<i class="ph ph-info"></i> ` + radio.value; statDiv.classList.remove('hidden'); }
 
-       try {
-           const res = await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: radio.value });
-           if(res.status !== 'success') throw new Error(res.message);
-       } catch(e) {
-           alert("บันทึกไม่ได้: " + e.message);
-       }
+       try { await fetchAPI({ action: 'recordAttendance', className: currentClassName, studentName: name, status: radio.value }); } catch(e) { alert("บันทึกไม่ได้: " + e.message); }
     }
 
-    // --- RENDER STATS MODE ---
+    // --- STATS MODE ---
     function renderStatsMode(data) {
       document.getElementById('view-stats').classList.remove('hidden');
       document.getElementById('stats-title').textContent = `สถิติการร่วมกิจกรรม ${currentClassName.replace('m','ม.')}`;
+      
+      const adminRep = document.getElementById('admin-report-group');
+      if (isCurrentSessionAdmin) adminRep.classList.remove('hidden'); else adminRep.classList.add('hidden');
 
       const renderList = (items, id, colorClass) => {
         const el = document.getElementById(id);
         if (!items.length) { el.innerHTML = '<li class="text-gray-400 italic text-center py-2">- ไม่มีข้อมูล -</li>'; return; }
         el.innerHTML = items.map((x, i) => 
-          `<li class="flex justify-between border-b last:border-0 border-gray-100 py-1"><span class="flex items-center"><span class="rank-badge ${colorClass}">${i+1}</span>${x.name}</span><span class="font-bold">${x.count}</span></li>`
+          `<li class="flex justify-between items-center border-b last:border-0 border-gray-100 py-2"><span class="flex items-center"><span class="rank-badge ${colorClass}">${i+1}</span>${x.name}</span><span class="font-bold text-lg">${x.count}</span></li>`
         ).join('');
       };
-      renderList(data.top5.late, 'list-late', 'bg-yellow-500');
+      renderList(data.top5.late, 'list-late', 'bg-amber-500');
       renderList(data.top5.unknown, 'list-unknown', 'bg-red-500');
       renderList(data.top5.permit, 'list-permit', 'bg-blue-500');
     }
 
-    // --- EDIT MODE LOGIC ---
-    function triggerEditMode() { if (!isCurrentSessionAdmin) return; enterEditMode(currentClassName); }
-    function enterEditMode(cls) { editModeClass = cls; document.getElementById('edit-mode-section').classList.remove('hidden-section'); document.getElementById('edit-subtitle').textContent = `ระดับชั้น ${cls.replace('m', 'ม.')}`; loadEditData(); }
-    function exitEditMode() { document.getElementById('edit-mode-section').classList.add('hidden-section'); document.getElementById('edit-container').innerHTML = ''; }
+    // --- EDIT MODE ---
+    function triggerEditMode() { if (!isCurrentSessionAdmin) return; editModeClass = currentClassName; document.getElementById('edit-mode-section').classList.remove('hidden'); document.getElementById('edit-subtitle').textContent = `ระดับชั้น ${currentClassName.replace('m', 'ม.')}`; loadEditData(); }
+    function exitEditMode() { document.getElementById('edit-mode-section').classList.add('hidden'); document.getElementById('edit-container').innerHTML = ''; }
     
     async function loadEditData() {
-      const date = document.getElementById('editDateInput').value;
-      if (!date) return;
-      editModeDate = date;
+      const date = document.getElementById('editDateInput').value; if (!date) return; editModeDate = date;
       const container = document.getElementById('edit-container');
-      container.innerHTML = '<div class="text-center py-10 text-gray-500">กำลังดึงข้อมูล...</div>';
+      container.innerHTML = '<div class="text-center py-10 text-lime-700 font-bold text-lg animate-pulse"><i class="ph ph-spinner animate-spin inline-block text-2xl"></i> กำลังดึงข้อมูล...</div>';
       
       try {
           const res = await fetchAPI({ action: 'getTeacherStatusForEdit', className: editModeClass, date: date });
-          if(res.status === 'success') {
-              renderEditCards(res.data);
-          } else {
-              throw new Error(res.message);
-          }
-      } catch(e) {
-          container.innerHTML = `<div class="text-red-500 text-center">${e.message}</div>`;
-      }
+          if(res.status === 'success') { renderEditCards(res.data); } else { throw new Error(res.message); }
+      } catch(e) { container.innerHTML = `<div class="text-red-500 text-center font-bold">${e.message}</div>`; }
     }
 
     function renderEditCards(data) {
-      const container = document.getElementById('edit-container');
-      container.innerHTML = '';
-      if (!data || data.length === 0) { container.innerHTML = '<div class="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>'; return; }
+      const container = document.getElementById('edit-container'); container.innerHTML = '';
+      if (!data || data.length === 0) { container.innerHTML = '<div class="text-center py-10 text-gray-500 font-bold">ไม่พบข้อมูล</div>'; return; }
 
       data.forEach((teacher, index) => {
         const statusOptions = ["มาทันเวลา", "มาแต่ไม่ทัน", "ลา", "ไปราชการ", "ขออนุญาต", "ไม่ทราบสาเหตุ"];
         const currentStatus = teacher.status || "ไม่ทราบสาเหตุ";
         let optionsHtml = '';
-        statusOptions.forEach(opt => {
-          const selected = (opt === currentStatus) ? 'selected' : '';
-          optionsHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
-        });
+        statusOptions.forEach(opt => { optionsHtml += `<option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>`; });
         if (!statusOptions.includes(currentStatus)) { optionsHtml += `<option value="${currentStatus}" selected>${currentStatus}</option>`; }
         
-        let borderClass = "border-gray-200";
-        let textClass = "text-gray-600"; 
-        if(currentStatus.includes("ทัน") || currentStatus.includes("เวร")) { borderClass = "border-green-500 bg-green-50"; textClass = "text-green-700"; }
-        else if(currentStatus.includes("สาย")) { borderClass = "border-yellow-500 bg-yellow-50"; textClass = "text-yellow-700"; }
-        else { borderClass = "border-red-500 bg-red-50"; textClass = "text-red-700"; }
+        let borderClass = "border-gray-200"; let textClass = "text-gray-600"; 
+        if(currentStatus.includes("ทัน") || currentStatus.includes("เวร")) { borderClass = "border-green-400 bg-green-50"; textClass = "text-green-700"; }
+        else if(currentStatus.includes("สาย")) { borderClass = "border-amber-400 bg-amber-50"; textClass = "text-amber-700"; }
+        else { borderClass = "border-red-400 bg-red-50"; textClass = "text-red-700"; }
 
         const html = `
-          <div class="edit-card ${borderClass} flex flex-col gap-2" id="edit-card-${index}">
-            <div class="font-bold text-lg text-gray-800">${teacher.name}</div>
-            <div class="flex items-center gap-2 text-sm mb-1"><span class="font-semibold text-gray-500">สถานะเดิม:</span><span class="font-bold ${textClass}">${currentStatus}</span></div>
+          <div class="edit-card ${borderClass} flex flex-col gap-3 shadow-sm rounded-xl" id="edit-card-${index}">
+            <div class="font-bold text-xl text-gray-800">${teacher.name}</div>
+            <div class="flex items-center gap-2 text-base mb-1"><span class="font-bold text-gray-500">สถานะเดิม:</span><span class="font-bold ${textClass}">${currentStatus}</span></div>
             <div class="flex gap-2">
-              <select id="select-${index}" class="flex-grow p-2 border rounded bg-white text-base focus:ring-blue-500" data-name="${teacher.name}">${optionsHtml}</select>
-              <button onclick="initiateSingleSave('${teacher.name}', 'select-${index}')" class="bg-blue-600 text-white px-4 rounded-lg shadow hover:bg-blue-700 whitespace-nowrap font-bold">บันทึก</button>
+              <select id="select-${index}" class="flex-grow p-3 border border-gray-300 rounded-xl bg-white text-lg font-bold text-gray-700 focus:ring-2 focus:ring-blue-500" data-name="${teacher.name}">${optionsHtml}</select>
+              <button onclick="initiateSingleSave('${teacher.name}', 'select-${index}')" class="bg-blue-600 text-white px-5 rounded-xl shadow-md hover:bg-blue-700 whitespace-nowrap font-bold text-lg active:scale-95 transition">บันทึก</button>
             </div>
           </div>`;
         container.innerHTML += html;
@@ -513,8 +489,8 @@
     }
 
     function initiateSingleSave(name, selectId) {
-      const val = document.getElementById(selectId).value;
-      pendingEditPayload = { name: name, status: val };
+      pendingEditPayload = { name: name, status: document.getElementById(selectId).value };
+      document.getElementById('confirm-name-txt').textContent = name;
       document.getElementById('confirm-modal').classList.remove('hidden');
     }
 
@@ -523,126 +499,259 @@
       if (!pendingEditPayload) return;
       
       const btn = document.getElementById('btnConfirmSingle');
-      btn.innerText = "กำลังบันทึก...";
-      btn.disabled = true;
+      btn.innerText = "รอสักครู่..."; btn.disabled = true;
 
       try {
-          const res = await fetchAPI({ 
-              action: 'saveAttendanceCorrections', 
-              className: editModeClass, 
-              date: editModeDate, 
-              updates: [pendingEditPayload] 
-          });
-          
-          if(res.status === 'success') {
-              alert("บันทึกสำเร็จ"); 
-              loadEditData(); 
-          } else {
-              throw new Error(res.message);
-          }
-      } catch(e) {
-          alert("บันทึกไม่สำเร็จ: " + e.message); 
-      } finally {
-          pendingEditPayload = null;
-          btn.innerText = "ยืนยัน";
-          btn.disabled = false;
-      }
+          const res = await fetchAPI({ action: 'saveAttendanceCorrections', className: editModeClass, date: editModeDate, updates: [pendingEditPayload] });
+          if(res.status === 'success') { alert("บันทึกข้อมูลเรียบร้อยแล้ว"); loadEditData(); } else { throw new Error(res.message); }
+      } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); } 
+      finally { pendingEditPayload = null; btn.innerText = "ยืนยัน"; btn.disabled = false; }
     }
 
-    // --- HELPERS & MODALS ---
-    function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('th-TH', { hour12: false }); }
-    function openSettings() { document.getElementById('inputLimitPresent').value = configLimitPresent; document.getElementById('inputLimitLate').value = configLimitLate; document.getElementById('settings-modal').classList.remove('hidden'); }
-    function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
-    function saveSettings() {
-      const p = document.getElementById('inputLimitPresent').value; const l = document.getElementById('inputLimitLate').value;
-      if (p >= l) { alert("เวลาไม่ถูกต้อง"); return; }
-      configLimitPresent = p; configLimitLate = l;
-      localStorage.setItem('cfg_limit_present', p); localStorage.setItem('cfg_limit_late', l);
-      closeSettings();
+    // --- REPORT & EXCEL SYSTEM (For Age 40+) ---
+    function toggleReportType() {
+        const type = document.querySelector('input[name="reportType"]:checked').value;
+        const picker = document.getElementById('report-weekly-picker');
+        if(type === 'weekly') picker.classList.remove('hidden'); else picker.classList.add('hidden');
     }
-    function loadSettings() { const p = localStorage.getItem('cfg_limit_present'); const l = localStorage.getItem('cfg_limit_late'); if (p) configLimitPresent = p; if (l) configLimitLate = l; }
+
+    function getTermAndYear(dateObj) {
+        let m = dateObj.getMonth() + 1; let yCE = dateObj.getFullYear();
+        let term = (m >= 5 && m <= 10) ? "1" : "2";
+        let yearTh = (m <= 4) ? (yCE + 543 - 1) : (yCE + 543);
+        return { term, year: yearTh };
+    }
+
+    function getWeekRangeStr(dateStr) {
+        let d = new Date(dateStr);
+        let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+        let mon = new Date(d.setDate(diff)); let sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+        return `${mon.toLocaleDateString('th-TH')} - ${sun.toLocaleDateString('th-TH')}`;
+    }
+
+    async function generateReport(outputMode) {
+        const statusTxt = document.getElementById('report-status');
+        const onscreenCon = document.getElementById('onscreen-report-container');
+        statusTxt.classList.remove('hidden');
+        if(outputMode === 'screen') { onscreenCon.classList.add('hidden'); onscreenCon.innerHTML = ''; }
+
+        try {
+            const expType = document.querySelector('input[name="reportType"]:checked').value;
+            const refDateStr = document.getElementById('reportDateInput').value;
+            const refDate = new Date(refDateStr || new Date());
+            
+            // Fetch raw data
+            const res = await fetchAPI({ action: 'getExportData', className: currentClassName });
+            if(res.status !== 'success') throw new Error(res.message);
+            
+            const teachers = res.data.teachers || [];
+            const allLogs = res.data.logs || [];
+            
+            let filteredLogs = []; let periodLabel = ""; let termInfo = getTermAndYear(refDate);
+
+            if (expType === 'weekly') {
+                if(!refDateStr) throw new Error("กรุณาเลือกวันที่ในสัปดาห์");
+                periodLabel = `สัปดาห์ที่ (${getWeekRangeStr(refDateStr)})`;
+                
+                let d = new Date(refDateStr); let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+                let mon = new Date(d.setDate(diff)); mon.setHours(0,0,0,0);
+                let sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999);
+                filteredLogs = allLogs.filter(log => { let logD = new Date(log.date); return logD >= mon && logD <= sun; });
+            } else { periodLabel = "ทั้งหมด (ตั้งแต่เริ่มบันทึก)"; filteredLogs = allLogs; }
+
+            const uniqueDates = new Set(filteredLogs.map(l => l.date));
+            const totalDaysChecked = uniqueDates.size;
+            const totalExpected = teachers.length * totalDaysChecked;
+            
+            let statsMap = {};
+            teachers.forEach(t => { statsMap[t] = { ontime: 0, late: 0, permit: 0, absent: 0, logs: [] }; });
+            let totalOntime=0, totalLate=0, totalPermit=0, totalAbsent=0;
+
+            filteredLogs.forEach(log => {
+                let name = log.name;
+                if(!statsMap[name]) statsMap[name] = { ontime: 0, late: 0, permit: 0, absent: 0, logs: [] };
+                statsMap[name].logs.push({ date: log.date, time: log.time, status: log.status });
+                
+                let st = log.status;
+                if(st.includes("ทัน") || st.includes("เวร") || st.includes("เฉพาะ")) { statsMap[name].ontime++; totalOntime++; }
+                else if(st.includes("สาย")) { statsMap[name].late++; totalLate++; }
+                else if(st.includes("อนุญาต") || st.includes("ลา") || st.includes("ราชการ")) { statsMap[name].permit++; totalPermit++; }
+                else { statsMap[name].absent++; totalAbsent++; }
+            });
+
+            const pct = (val, tot) => tot === 0 ? "0.00" : ((val/tot)*100).toFixed(2);
+            let teacherArr = Object.keys(statsMap).map(k => ({ name: k, ...statsMap[k] }));
+            teacherArr.sort((a,b) => (b.ontime + b.late) - (a.ontime + a.late)); 
+
+            if (outputMode === 'excel') {
+                const wb = XLSX.utils.book_new();
+                let summaryAOA = [
+                    ["บันทึกการคุณครูควบคุมนักเรียนร่วมกิจกรรมหน้าเสาธง"],
+                    [`ประจำ: ${periodLabel} ระดับชั้น: ${currentClassName.replace('m','ม.')} ภาคเรียนที่: ${termInfo.term} ปีการศึกษา: ${termInfo.year}`],
+                    [], ["--- ส่วนที่ 1: สารสนเทศสำคัญ ---"],
+                    ["จำนวนวันที่เช็คในรอบนี้:", `${totalDaysChecked} วัน`],
+                    ["ร้อยละครูที่มาทันเวลา:", `${totalOntime} ครั้ง`, `(ร้อยละ ${pct(totalOntime, totalExpected)} %)`],
+                    ["ร้อยละครูที่มาแต่ไม่ทันเวลา (สาย):", `${totalLate} ครั้ง`, `(ร้อยละ ${pct(totalLate, totalExpected)} %)`],
+                    ["ร้อยละครูที่ลา/ราชการ/ขออนุญาต:", `${totalPermit} ครั้ง`, `(ร้อยละ ${pct(totalPermit, totalExpected)} %)`],
+                    ["ร้อยละครูที่ขาด/ไม่ทราบสาเหตุ:", `${totalAbsent} ครั้ง`, `(ร้อยละ ${pct(totalAbsent, totalExpected)} %)`],
+                    [], ["--- ส่วนที่ 2: แสดงชื่อครูแต่ละคนเรียงลำดับจากมากไปน้อย ---"],
+                    ["ลำดับ", "ชื่อ-สกุลคุณครู", "มาทัน/เวร", "มาสาย", "ลา/ราชการ", "ขาด/ไม่ทราบ", "รวมเข้าร่วม (ทัน+สาย)"]
+                ];
+
+                teacherArr.forEach((t, idx) => { summaryAOA.push([idx+1, t.name, t.ontime, t.late, t.permit, t.absent, (t.ontime + t.late)]); });
+                summaryAOA.push([]); const now = new Date(); summaryAOA.push([`ข้อมูล ณ วันที่ ${now.toLocaleDateString('th-TH')} เวลา ${now.toLocaleTimeString('th-TH')}`]);
+
+                const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
+                wsSummary['!cols'] = [{wch: 8}, {wch: 35}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}];
+                XLSX.utils.book_append_sheet(wb, wsSummary, "สถิติสรุปภาพรวม");
+
+                teacherArr.forEach(t => {
+                    let safeSheetName = t.name.substring(0, 30).replace(/[:\*?\[\]\/\\]/g, ""); 
+                    let tAOA = [[`รายละเอียดการลงเวลา: ${t.name}`], [`ระดับชั้น: ${currentClassName.replace('m','ม.')} | รอบ: ${periodLabel}`], [], ["วันที่", "เวลาที่บันทึก", "สถานะ"]];
+                    t.logs.sort((a,b) => new Date(a.date) - new Date(b.date));
+                    if(t.logs.length === 0) { tAOA.push(["- ไม่พบประวัติการลงเวลาในรอบนี้ -"]); } 
+                    else { t.logs.forEach(l => { tAOA.push([l.date, l.time, l.status]); }); }
+                    const wsT = XLSX.utils.aoa_to_sheet(tAOA);
+                    wsT['!cols'] = [{wch: 15}, {wch: 15}, {wch: 25}];
+                    XLSX.utils.book_append_sheet(wb, wsT, safeSheetName);
+                });
+
+                let fileNameStr = expType === 'weekly' ? 'สัปดาห์' : 'ทั้งหมด';
+                XLSX.writeFile(wb, `รายงานลงเวลา_${currentClassName.replace('m','ม.')}_${fileNameStr}.xlsx`);
+                alert("✅ ดาวน์โหลด Excel สำเร็จ!\n(แนะนำ: เมื่อเปิดไฟล์แล้ว ให้กด Ctrl+A เพื่อเปลี่ยนฟอนต์เป็น TH Sarabun จะสวยงามเป็นทางการครับ)");
+            } 
+            else if (outputMode === 'screen') {
+                // สร้าง UI แบบยุบ/ขยาย พาสเทลสีสวย สำหรับวัย 40+
+                let html = `
+                <!-- สรุปภาพรวม -->
+                <details class="bg-white rounded-2xl shadow-sm border-2 border-sky-200 overflow-hidden mb-4" open>
+                    <summary class="bg-sky-50 p-4 font-bold text-xl text-sky-900 cursor-pointer flex justify-between items-center select-none hover:bg-sky-100 transition">
+                        <span class="flex items-center gap-2"><i class="ph ph-chart-bar text-2xl text-sky-600"></i> สรุปข้อมูลภาพรวม</span>
+                        <i class="ph ph-caret-down chevron-icon"></i>
+                    </summary>
+                    <div class="p-5 space-y-3 text-lg text-gray-700 bg-white">
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4 text-center shadow-sm">
+                            <span class="text-sm text-gray-500 block">รอบการประเมิน:</span>
+                            <span class="font-bold text-sky-800">${periodLabel}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-gray-100 pb-2"><span>จำนวนวันที่มีการเช็ค:</span><span class="font-bold text-gray-900">${totalDaysChecked} วัน</span></div>
+                        <div class="flex justify-between border-b border-gray-100 pb-2"><span>ร้อยละครูที่มาทัน:</span><span class="font-bold text-emerald-600">${pct(totalOntime, totalExpected)}%</span></div>
+                        <div class="flex justify-between border-b border-gray-100 pb-2"><span>ร้อยละครูที่มาสาย:</span><span class="font-bold text-amber-600">${pct(totalLate, totalExpected)}%</span></div>
+                        <div class="flex justify-between border-b border-gray-100 pb-2"><span>ร้อยละการลา/ราชการ:</span><span class="font-bold text-blue-600">${pct(totalPermit, totalExpected)}%</span></div>
+                        <div class="flex justify-between pb-1"><span>ร้อยละการขาด/ไม่ทราบ:</span><span class="font-bold text-rose-600">${pct(totalAbsent, totalExpected)}%</span></div>
+                    </div>
+                </details>
+
+                <!-- จัดอันดับ -->
+                <details class="bg-white rounded-2xl shadow-sm border-2 border-indigo-200 overflow-hidden mb-6">
+                    <summary class="bg-indigo-50 p-4 font-bold text-xl text-indigo-900 cursor-pointer flex justify-between items-center select-none hover:bg-indigo-100 transition">
+                        <span class="flex items-center gap-2"><i class="ph ph-trophy text-2xl text-indigo-600"></i> การจัดอันดับ (เรียงจากมากไปน้อย)</span>
+                        <i class="ph ph-caret-down chevron-icon"></i>
+                    </summary>
+                    <div class="p-4 space-y-2 text-lg bg-white">
+                        ${teacherArr.map((t,i) => `<div class="flex justify-between border-b border-gray-50 py-2"><span class="font-bold text-gray-700">${i+1}. ${t.name}</span><span class="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100">${t.ontime + t.late} ครั้ง</span></div>`).join('')}
+                    </div>
+                </details>
+
+                <div class="text-center font-bold text-gray-500 my-6 text-base border-b-2 border-dashed border-gray-300 pb-4">-- ข้อมูลรายละเอียดรายบุคคล --</div>
+                `;
+
+                // รายบุคคล
+                teacherArr.forEach((t, i) => {
+                    let logsHtml = '';
+                    if(t.logs.length === 0) { logsHtml = '<div class="text-center text-gray-400 italic py-4">ไม่พบประวัติการลงเวลา</div>'; }
+                    else {
+                        t.logs.sort((a,b) => new Date(a.date) - new Date(b.date));
+                        t.logs.forEach(l => {
+                            let badge = "bg-gray-100 text-gray-800";
+                            if(l.status.includes("ทัน")||l.status.includes("เวร")) badge = "bg-emerald-100 text-emerald-800 border border-emerald-200";
+                            else if(l.status.includes("สาย")) badge = "bg-amber-100 text-amber-800 border border-amber-200";
+                            else if(l.status.includes("ลา")||l.status.includes("ราชการ")) badge = "bg-blue-100 text-blue-800 border border-blue-200";
+                            else badge = "bg-rose-100 text-rose-800 border border-rose-200";
+                            
+                            let dStr = ""; try { dStr = new Date(l.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}); } catch(e){}
+                            logsHtml += `<div class="flex justify-between items-center border-b border-gray-100 py-3"><span class="text-base font-medium text-gray-600">${dStr} <span class="text-gray-400 text-sm">(${l.time})</span></span><span class="text-base font-bold px-3 py-1 rounded-lg ${badge}">${l.status}</span></div>`;
+                        });
+                    }
+
+                    html += `
+                    <details class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-3">
+                        <summary class="bg-gray-50 p-4 font-bold text-lg text-gray-800 cursor-pointer flex justify-between items-center select-none hover:bg-gray-100 transition">
+                            <span class="truncate pr-2">${i+1}. ${t.name}</span>
+                            <span class="text-sm font-bold bg-white text-gray-600 border border-gray-300 px-3 py-1 rounded-full shadow-sm flex-shrink-0">${t.ontime + t.late} วัน <i class="ph ph-caret-down ml-1 chevron-icon inline-block"></i></span>
+                        </summary>
+                        <div class="p-4 bg-white space-y-1">
+                            ${logsHtml}
+                        </div>
+                    </details>`;
+                });
+
+                onscreenCon.innerHTML = html;
+                onscreenCon.classList.remove('hidden');
+                
+                // เลื่อนหน้าจอลงไปให้เห็นรายงานชัดๆ
+                setTimeout(() => onscreenCon.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            }
+
+        } catch (e) {
+            alert("เกิดข้อผิดพลาดในการออกรายงาน: " + e.message);
+        } finally {
+            statusTxt.classList.add('hidden');
+        }
+    }
+
+
+    // --- CLOCK & TEACHER LOGIN ---
+    function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('th-TH', { hour12: false }); }
     
     function openTeacherLogin() { 
         document.getElementById('teacher-modal').classList.remove('hidden'); 
         document.getElementById('teacherResult').classList.add('hidden'); 
         document.getElementById('loginClass').value = ""; 
-        document.getElementById('loginName').innerHTML = '<option value="">-- รอเลือกชั้น --</option>'; 
-        document.getElementById('loginName').disabled = true; 
+        document.getElementById('loginName').innerHTML = '<option value="">-- รอเลือกชั้น --</option>'; document.getElementById('loginName').disabled = true; 
         document.getElementById('loginPass').value = ""; 
     }
-    
     function closeTeacherLogin() { document.getElementById('teacher-modal').classList.add('hidden'); }
     
     async function fetchTeacherList() { 
-        const cls = document.getElementById('loginClass').value; 
-        const nameSelect = document.getElementById('loginName'); 
+        const cls = document.getElementById('loginClass').value; const nameSelect = document.getElementById('loginName'); 
         if(!cls) { nameSelect.innerHTML = '<option value="">-- รอเลือกชั้น --</option>'; nameSelect.disabled = true; return; } 
-        
-        nameSelect.innerHTML = '<option>กำลังโหลด...</option>'; 
-        nameSelect.disabled = true; 
-        
+        nameSelect.innerHTML = '<option>กำลังโหลด...</option>'; nameSelect.disabled = true; 
         try {
             const res = await fetchAPI({ action: 'getTeacherListForLogin', className: cls });
             if(res.status === 'success') {
-                let html = '<option value="">-- เลือกชื่อ --</option>'; 
-                res.data.forEach(n => { html += `<option value="${n}">${n}</option>`; }); 
-                nameSelect.innerHTML = html; 
-                nameSelect.disabled = false;
-            } else {
-                throw new Error(res.message);
-            }
-        } catch(e) {
-            alert("Error: " + e.message); 
-            nameSelect.innerHTML = '<option value="">ผิดพลาด</option>'; 
-        }
+                let html = '<option value="">-- เลือกชื่อ --</option>'; res.data.forEach(n => { html += `<option value="${n}">${n}</option>`; }); 
+                nameSelect.innerHTML = html; nameSelect.disabled = false;
+            } else { throw new Error(res.message); }
+        } catch(e) { alert("Error: " + e.message); nameSelect.innerHTML = '<option value="">ผิดพลาด</option>'; }
     }
     
     async function doTeacherLogin() { 
-        const cls = document.getElementById('loginClass').value; 
-        const name = document.getElementById('loginName').value; 
-        const pass = document.getElementById('loginPass').value; 
-        
+        const cls = document.getElementById('loginClass').value; const name = document.getElementById('loginName').value; const pass = document.getElementById('loginPass').value; 
         if(!cls || !name || !pass) { alert("กรุณากรอกข้อมูลให้ครบถ้วน"); return; } 
-        
-        const resList = document.getElementById('teacherResultList'); 
-        resList.innerHTML = '<div class="text-center py-4 text-gray-500">กำลังตรวจสอบ...</div>'; 
+        const resList = document.getElementById('teacherResultList'); resList.innerHTML = '<div class="text-center py-6 text-lime-600 font-bold text-lg"><i class="ph ph-spinner animate-spin text-2xl mb-2"></i><br>กำลังตรวจสอบ...</div>'; 
         document.getElementById('teacherResult').classList.remove('hidden'); 
-        
-        const btn = document.getElementById('btnTeacherLogin');
-        btn.disabled = true;
-
+        const btn = document.getElementById('btnTeacherLogin'); btn.disabled = true;
         try {
             const res = await fetchAPI({ action: 'getTeacherSelfReport', className: cls, teacherName: name, password: pass });
-            if(res.status === 'success') {
-                renderTeacherReport(res.data);
-            } else {
-                throw new Error(res.message);
-            }
-        } catch(e) {
-            resList.innerHTML = `<div class="text-red-500 text-center py-2">${e.message}</div>`;
-        } finally {
-            btn.disabled = false;
-        }
+            if(res.status === 'success') { renderTeacherReport(res.data); } else { throw new Error(res.message); }
+        } catch(e) { resList.innerHTML = `<div class="text-red-500 text-center font-bold py-4">${e.message}</div>`; } finally { btn.disabled = false; }
     }
     
     function renderTeacherReport(data) { 
         const list = document.getElementById('teacherResultList'); 
-        if(!data || data.length === 0) { list.innerHTML = '<div class="text-center py-4 text-gray-500">ไม่พบประวัติการลงเวลา</div>'; return; } 
+        if(!data || data.length === 0) { list.innerHTML = '<div class="text-center py-6 text-gray-500 font-bold text-lg">ไม่พบประวัติการลงเวลา</div>'; return; } 
         let html = ''; 
         data.forEach(row => { 
-            let colorClass = "text-gray-600"; 
-            if(row.status.includes("ทัน") || row.status.includes("เวร") || row.status.includes("เฉพาะ")) colorClass = "text-green-700 font-bold"; 
-            else if(row.status.includes("สาย")) colorClass = "text-yellow-700 font-bold"; 
-            else colorClass = "text-red-700 font-bold"; 
-            
-            let dDisplay = row.date; 
-            try { dDisplay = new Date(row.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}); } catch(e){} 
-            
-            html += `<div class="flex justify-between items-center p-3 border-b last:border-0 hover:bg-gray-50"><div class="text-sm font-medium text-gray-800">${dDisplay}</div><div class="text-sm ${colorClass}">${row.status}</div></div>`; 
+            let badge = "bg-gray-100 text-gray-800"; 
+            if(row.status.includes("ทัน") || row.status.includes("เวร") || row.status.includes("เฉพาะ")) badge = "bg-emerald-100 text-emerald-800 border border-emerald-200"; 
+            else if(row.status.includes("สาย")) badge = "bg-amber-100 text-amber-800 border border-amber-200"; 
+            else badge = "bg-rose-100 text-rose-800 border border-rose-200"; 
+            let dDisplay = row.date; try { dDisplay = new Date(row.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}); } catch(e){} 
+            html += `<div class="flex justify-between items-center p-3 border-b border-gray-100"><div class="text-lg font-bold text-gray-700">${dDisplay}</div><div class="text-base font-bold px-3 py-1 rounded-lg ${badge}">${row.status}</div></div>`; 
         }); 
         list.innerHTML = html; 
     }
-
   </script>
 </body>
 </html>
