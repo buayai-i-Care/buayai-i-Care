@@ -272,11 +272,17 @@
         return;
       }
 
-      const list = await apiRequest({ action: 'getTeachers', day: day });
-      if (list) {
-        let html = list.length === 0 ? '<option>-- ใช้สิทธิ์โหวตครบแล้ว --</option>' : list.map(n => `<option>${n}</option>`).join('');
-        document.getElementById('p2-voter').innerHTML = html;
-        document.getElementById('p2-leader').innerHTML = html;
+      const response = await apiRequest({ action: 'getTeachers', day: day });
+      if (response) {
+        // แยกลิสต์รายชื่อผู้โหวต (เฉพาะคนที่ยังไม่โหวต) และลิสต์หัวหน้า (รายชื่อทั้งหมด)
+        let votersList = response.voters || response;
+        let allList = response.all || response;
+
+        let voterHtml = votersList.length === 0 ? '<option>-- ใช้สิทธิ์โหวตครบแล้ว --</option>' : votersList.map(n => `<option>${n}</option>`).join('');
+        let leaderHtml = allList.length === 0 ? '<option>-- ไม่มีรายชื่อ --</option>' : allList.map(n => `<option>${n}</option>`).join('');
+
+        document.getElementById('p2-voter').innerHTML = voterHtml;
+        document.getElementById('p2-leader').innerHTML = leaderHtml;
       }
     }
 
