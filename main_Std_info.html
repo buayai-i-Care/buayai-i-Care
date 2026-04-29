@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ยินดีต้อนรับเข้าสู่ระบบควบคุมฐานข้อมูลหลักระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</title>
+    <!-- โหลด Bootstrap 5 และ Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- โหลดไลบรารีส่งออก Excel (SheetJS) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-admin: #a21caf; /* โทนสีม่วงสำหรับแอดมิน */
+            --secondary-admin: #d946ef;
+            --bg-color: #f8fafc;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; }
+        
+        /* Navbar & Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-admin), var(--secondary-admin));
+            color: white; padding: 20px; text-align: center; border-radius: 0 0 25px 25px;
+            box-shadow: 0 10px 25px rgba(162, 28, 175, 0.2); position: relative;
+            margin-bottom: 20px;
+        }
+        .admin-header h4 { font-weight: 700; margin-bottom: 5px; }
+        .nav-buttons { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; }
+        .btn-nav { background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 20px; padding: 5px 15px; font-size: 0.85rem; text-decoration: none; backdrop-filter: blur(5px); }
+        .btn-nav:hover { background: rgba(255,255,255,0.3); color: white; }
+        .btn-logout { background: rgba(239, 68, 68, 0.8); }
+        .btn-logout:hover { background: rgba(220, 38, 38, 1); }
+
+        /* Tabs */
+        .nav-pills .nav-link { color: #64748b; font-weight: 600; border-radius: 20px; padding: 10px 20px; margin: 0 5px 10px 0; border: 1px solid #e2e8f0; }
+        .nav-pills .nav-link.active { background-color: var(--primary-admin); color: white; border-color: var(--primary-admin); box-shadow: 0 4px 10px rgba(162, 28, 175, 0.3); }
+        .tab-scroll { overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 10px; scrollbar-width: none; }
+        .tab-scroll::-webkit-scrollbar { display: none; }
+
+        /* Cards & Tables */
+        .admin-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); border: none; margin-bottom: 20px; }
+        .table-custom { font-size: 0.9rem; }
+        .table-custom th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
+        .table-custom td { vertical-align: middle; }
+        .badge-status { font-size: 0.75rem; padding: 5px 8px; border-radius: 10px; }
+        
+        /* Accordion (Mobile Friendly) */
+        .accordion-button:not(.collapsed) { background-color: #fdf4ff; color: var(--primary-admin); font-weight: bold; box-shadow: none; }
+        .accordion-button:focus { box-shadow: none; }
+        .data-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 8px 0; font-size: 0.9rem; }
+        .data-label { color: #64748b; font-weight: 600; }
+        
+        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner-border { color: var(--primary-admin); width: 3rem; height: 3rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-overlay">
+        <div class="spinner-border mb-3" role="status"></div>
+        <h5 class="fw-bold" style="color: var(--primary-admin);">กำลังเชื่อมต่อฐานข้อมูล...</h5>
+        <p class="text-muted small">โปรดรอสักครู่ ระบบกำลังโหลดข้อมูลนักเรียนทั้งหมด</p>
+    </div>
+
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="nav-buttons">
+            <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="btn-nav"><i class="bi bi-house-door-fill"></i> หน้าหลัก</a>
+            <button onclick="handleLogout()" class="btn-nav btn-logout"><i class="bi bi-box-arrow-right"></i> ออกระบบ</button>
+        </div>
+        <div class="mt-4">
+            <i class="bi bi-database-fill-gear" style="font-size: 2.5rem;"></i>
+            <h4>ระบบควบคุมฐานข้อมูลหลักระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</h4>
+            <p class="small opacity-75 mb-0" id="admin-user-display">สถานะ: ตรวจสอบสิทธิ์...</p>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <!-- เมนู Navigation Tabs -->
+        <ul class="nav nav-pills tab-scroll mb-4" id="adminTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#mod1"><i class="bi bi-pie-chart-fill"></i> 1. สถิติภาพรวม</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod2"><i class="bi bi-controller"></i> 2. ควบคุมสถานะ/รีเซตด่าน</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod31"><i class="bi bi-view-list"></i> 3.1 ข้อมูลรายบุคคล (มือถือ)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod32"><i class="bi bi-file-earmark-spreadsheet-fill"></i> 3.2 ดึงข้อมูลเชิงลึก (Excel)</button></li>
+        </ul>
+
+        <div class="tab-content" id="adminTabsContent">
+            
+            <!-- ========================================== -->
+            <!-- โมดูล 1: สถิติภาพรวมรายห้อง (Dashboard) -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade show active" id="mod1">
+                <div class="admin-card">
+                    <h5 class="fw-bold mb-3" style="color: var(--primary-admin);">📊 สถิติการทำภารกิจรายห้อง</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4 col-8">
+                            <select id="stat-level-select" class="form-select" onchange="renderStats()">
+                                <option value="ม.1">ระดับชั้น ม.1</option><option value="ม.2">ระดับชั้น ม.2</option><option value="ม.3">ระดับชั้น ม.3</option>
+                                <option value="ม.4">ระดับชั้น ม.4</option><option value="ม.5">ระดับชั้น ม.5</option><option value="ม.6">ระดับชั้น ม.6</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 col-4 text-end">
+                            <button class="btn btn-success" onclick="exportStatsToExcel()"><i class="bi bi-file-excel"></i> ดาวน์โหลด</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-custom table-bordered" id="stat-table">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>ห้องเรียน</th>
+                                    <th>นร.ทั้งหมด</th>
+                                    <th>ด่าน 1 ข้อมูลพื้นฐาน<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 2 ข้อมูลผู้ปกครอง<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 3 ข้อมูลสุขภาพ<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 4 ข้อมูลความสัมพันธ์<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 5 ข้อมูลสภาพที่อยู่อาศัย<br>(ทำ/ยังไม่ทำ)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stat-table-body">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- โมดูล 2: ควบคุมสถานะ/รีเซตภารกิจ (Mission Controller) -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="mod2">
+                <div class="admin-card">
+                    <h5 class="fw-bold mb-1" style="color: var(--primary-admin);">🛠️ ระบบควบคุมและรีเซตด่าน (Mission Controller)</h5>
+                    <p class="small text-muted mb-3">* การ "รีเซต" คือการล้างข้อมูลในด่านนั้นๆ ทำให้นักเรียนสามารถกลับเข้าไปกรอกข้อมูลใหม่ได้ (ระบบจะเปิดด่านให้อัตโนมัติเมื่อข้อมูลว่าง)</p>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3 col-6"><select id="ctrl-level" class="form-select" onchange="populateCtrlRooms()"><option value="all">ทุกระดับชั้น</option><option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option><option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option></select></div>
+                        <div class="col-md-3 col-6"><select id="ctrl-room" class="form-select" onchange="renderController()"><option value="all">ทุกห้อง</option></select></div>
+                        <div class="col-md-6 col-12"><input type="text" id="ctrl-search" class="form-select" placeholder="ค้นหา รหัสประจำตัว หรือ ชื่อ-สกุล..." onkeyup="renderController()"></div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-custom border">
+                            <thead><tr><th>รหัสนักเรียน</th><th>ชื่อ-สกุล</th><th>ห้อง</th><th>สถานะด่านปัจจุบัน</th><th>การจัดการ (รีเซตข้อมูล)</th></tr></thead>
+                            <tbody id="ctrl-table-body">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- โมดูล 3.1: ดูข้อมูลรายบุคคลแบบยุบได้ (Mobile View) -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="mod31">
+                <div class="admin-card">
+                    <h5 class="fw-bold mb-3" style="color: var(--primary-admin);">📱 ข้อมูลรายบุคคล (แสดงครั้งละ 10 คน)</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><select id="view-level" class="form-select" onchange="populateViewRooms()"><option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option><option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option></select></div>
+                        <div class="col-6"><select id="view-room" class="form-select" onchange="resetViewPage()"><option value="all">เลือกห้องก่อน</option></select></div>
+                    </div>
+                    
+                    <div class="accordion" id="studentAccordion">
+                        <!-- Data injected here -->
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button class="btn btn-outline-secondary" id="btn-prev-page" onclick="changeViewPage(-1)" disabled>❮ ก่อนหน้า</button>
+                        <span class="small text-muted" id="page-indicator">หน้า 1 / 1</span>
+                        <button class="btn btn-outline-secondary" id="btn-next-page" onclick="changeViewPage(1)">ถัดไป ❯</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- โมดูล 3.2: คัดกรองและส่งออกข้อมูล (Data Extractor) -->
+            <!-- ========================================== -->
+            <div class="tab-pane fade" id="mod32">
+                <div class="admin-card">
+                    <h5 class="fw-bold mb-3" style="color: var(--primary-admin);">📥 สกัดข้อมูลตามหมวดหมู่ (Custom Export)</h5>
+                    
+                    <div class="row g-2 mb-3 bg-light p-3 rounded border">
+                        <div class="col-md-6 col-12"><label class="fw-bold small">เลือกระดับชั้น</label><select id="exp-level" class="form-select" onchange="populateExpRooms()"><option value="all">ทั้งโรงเรียน</option><option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option><option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option></select></div>
+                        <div class="col-md-6 col-12"><label class="fw-bold small">เลือกห้องเรียน</label><select id="exp-room" class="form-select"><option value="all">ทุกห้อง</option></select></div>
+                    </div>
+
+                    <p class="fw-bold mb-2">☑️ เลือกฟิลด์ข้อมูลที่ต้องการส่งออก:</p>
+                    <div class="row g-2 mb-4" id="checkbox-group">
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="studentId" checked disabled> รหัสนักเรียน (บังคับ)</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="level" checked disabled> ระดับชั้น/ห้อง (บังคับ)</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="fullName" checked disabled> ชื่อ-สกุล (บังคับ)</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="citizenId" checked> เลขบัตร ปชช.</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="birthDate"> วันเกิด</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="guardianName" checked> ชื่อผู้ปกครอง</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="guardianPhone" checked> เบอร์ผู้ปกครอง</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="weight"> น้ำหนัก</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="height"> ส่วนสูง</label></div>
+                        <div class="col-6 col-md-3"><label><input type="checkbox" value="housingStatus" checked> การอยู่อาศัย (ด่าน5)</label></div>
+                        <div class="col-12 col-md-6"><label><input type="checkbox" value="fullAddress" checked> ที่อยู่เต็ม (ด่าน5)</label></div>
+                    </div>
+
+                    <button class="btn w-100 text-white fw-bold py-2 shadow-sm" style="background: var(--primary-admin);" onclick="generateCustomExport()">
+                        <i class="bi bi-file-earmark-excel-fill"></i> ประมวลผลและดาวน์โหลด Excel
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ การตั้งค่าระบบ
+        // ==========================================
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec'; // URL เดิมของคุณ หรืออัปเดตใหม่ถ้า Deploy ใหม่
+        let ALL_STUDENTS = []; // ตัวแปรเก็บข้อมูลนร.ทั้ง รร. ไว้ในหน่วยความจำ (ประหยัดเน็ต)
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 10;
+
+        // ==========================================
+        // 🔐 ตรวจสอบสิทธิ์การเข้าใช้งาน
+        // ==========================================
+        window.onload = () => {
+            const adminPw = sessionStorage.getItem('admin_pw_auto');
+            const superPw = sessionStorage.getItem('superadmin_pw_auto');
+            const teacherPw = sessionStorage.getItem('teacher_pw_auto');
+
+            if (!adminPw && !superPw && !teacherPw) {
+                alert("⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาเข้าสู่ระบบผ่านหน้าต่างที่กำหนด");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            let roleStr = superPw ? "Admin ส่วนกลาง" : (adminPw ? `หัวหน้าระดับ (${adminPw.toUpperCase()})` : `คุณครู (${teacherPw.toUpperCase()})`);
+            document.getElementById('admin-user-display').textContent = `ผู้ใช้งาน: ${roleStr}`;
+            
+            fetchAdminData();
+        };
+
+        function handleLogout() {
+            sessionStorage.removeItem('admin_pw_auto');
+            sessionStorage.removeItem('superadmin_pw_auto');
+            sessionStorage.removeItem('teacher_pw_auto');
+            window.location.href = 'index.html';
+        }
+
+        // ==========================================
+        // 📡 โหลดข้อมูลทั้งหมดจาก GAS
+        // ==========================================
+        async function fetchAdminData() {
+            try {
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'getAdminData' })
+                });
+                const res = await response.json();
+                if(res.status === 'success') {
+                    ALL_STUDENTS = res.data;
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    
+                    // เรียก Render ข้อมูลเริ่มต้น
+                    renderStats();
+                    populateCtrlRooms();
+                    populateViewRooms();
+                    populateExpRooms();
+                } else {
+                    throw new Error(res.message);
+                }
+            } catch(err) {
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล: " + err.message);
+                document.getElementById('loading-overlay').innerHTML = `<h5 class="text-danger">❌ โหลดข้อมูลล้มเหลว กรุณารีเฟรชหน้าเว็บ</h5>`;
+            }
+        }
+
+        async function fetchAPI(action, payload) {
+            payload.action = action;
+            const res = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            return await res.json();
+        }
+
+        // ==========================================
+        // 🛠️ Utilities (เครื่องมือจัดการข้อมูล)
+        // ==========================================
+        function getRoomsByLevel(level) {
+            let rooms = new Set();
+            ALL_STUDENTS.forEach(s => {
+                if(s.level.startsWith(level)) rooms.add(s.level);
+            });
+            // เรียงห้องจากน้อยไปมาก (เช่น ม.1/1, ม.1/2 ... ม.1/10)
+            return Array.from(rooms).sort((a,b) => {
+                let nA = parseInt(a.split('/')[1] || 0); let nB = parseInt(b.split('/')[1] || 0);
+                return nA - nB;
+            });
+        }
+
+        // เช็คว่าเด็กทำด่านนั้นๆ หรือยัง (ดูจากฟิลด์หลัก)
+        function checkMissionStatus(s) {
+            return {
+                m1: s.citizenId ? true : false,
+                m2: s.guardianName ? true : false,
+                m3: s.weight ? true : false,
+                m4: s.preferencesJson ? true : false,
+                m5: s.housingStatus ? true : false
+            };
+        }
+
+        // ==========================================
+        // 📊 Module 1: สถิติภาพรวม
+        // ==========================================
+        function renderStats() {
+            const level = document.getElementById('stat-level-select').value;
+            const tbody = document.getElementById('stat-table-body');
+            tbody.innerHTML = '';
+            
+            const rooms = getRoomsByLevel(level);
+            if(rooms.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center">ไม่มีข้อมูลนักเรียน</td></tr>'; return; }
+
+            rooms.forEach(room => {
+                const stInRoom = ALL_STUDENTS.filter(s => s.level === room);
+                let total = stInRoom.length;
+                let c1=0, c2=0, c3=0, c4=0, c5=0;
+                
+                stInRoom.forEach(s => {
+                    let st = checkMissionStatus(s);
+                    if(st.m1) c1++; if(st.m2) c2++; if(st.m3) c3++; if(st.m4) c4++; if(st.m5) c5++;
+                });
+
+                const rHtml = (done) => `<span class="text-success fw-bold">${done}</span> / <span class="text-danger">${total-done}</span>`;
+                
+                tbody.innerHTML += `
+                    <tr class="text-center">
+                        <td class="fw-bold">${room}</td>
+                        <td>${total} คน</td>
+                        <td>${rHtml(c1)}</td><td>${rHtml(c2)}</td><td>${rHtml(c3)}</td><td>${rHtml(c4)}</td><td>${rHtml(c5)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function exportStatsToExcel() {
+            const level = document.getElementById('stat-level-select').value;
+            const table = document.getElementById('stat-table');
+            const wb = XLSX.utils.table_to_book(table, {sheet: "สถิติ_"+level});
+            XLSX.writeFile(wb, `สถิติ_Buayai_ICare_${level}.xlsx`);
+        }
+
+        // ==========================================
+        // 🎮 Module 2: Mission Controller
+        // ==========================================
+        function populateCtrlRooms() {
+            const level = document.getElementById('ctrl-level').value;
+            const rmSelect = document.getElementById('ctrl-room');
+            rmSelect.innerHTML = '<option value="all">ทุกห้อง</option>';
+            if(level !== 'all') {
+                getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            }
+            renderController();
+        }
+
+        function renderController() {
+            const level = document.getElementById('ctrl-level').value;
+            const room = document.getElementById('ctrl-room').value;
+            const search = document.getElementById('ctrl-search').value.toLowerCase();
+            const tbody = document.getElementById('ctrl-table-body');
+            
+            let filtered = ALL_STUDENTS.filter(s => {
+                let mLevel = level === 'all' || s.level.startsWith(level);
+                let mRoom = room === 'all' || s.level === room;
+                let mSearch = s.studentId.includes(search) || s.fullName.toLowerCase().includes(search);
+                return mLevel && mRoom && mSearch;
+            });
+
+            if(filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">ไม่พบข้อมูล...</td></tr>'; return; }
+            
+            // Limit to 50 items to prevent lag on search
+            filtered = filtered.slice(0, 50);
+
+            tbody.innerHTML = filtered.map(s => {
+                let st = checkMissionStatus(s);
+                let badges = '';
+                [1,2,3,4,5].forEach(i => {
+                    let isDone = st['m'+i];
+                    badges += `<span class="badge ${isDone?'bg-success':'bg-secondary'} me-1">ด่าน ${i}</span>`;
+                });
+
+                return `
+                <tr>
+                    <td>${s.studentId}</td><td class="fw-bold">${s.fullName}</td><td>${s.level}</td>
+                    <td>${badges}</td>
+                    <td>
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-outline-danger dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown">
+                            ⚙️ จัดการ/รีเซต
+                          </button>
+                          <ul class="dropdown-menu shadow">
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '1')">รีเซต ด่าน 1 (ข้อมูลส่วนตัว)</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '2')">รีเซต ด่าน 2 (ครอบครัว)</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '3')">รีเซต ด่าน 3 (สุขภาพ)</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '4')">รีเซต ด่าน 4 (สัมพันธภาพ)</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '5')">รีเซต ด่าน 5 (พิกัดบ้าน)</a></li>
+                          </ul>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function doReset(studentId, missionNum) {
+            if(confirm(`⚠️ ยืนยันการ "รีเซตข้อมูล" ด่านที่ ${missionNum} ของรหัส ${studentId} หรือไม่?\n\n(การทำแบบนี้จะลบข้อมูลด่านนั้นใน Google Sheet ทำให้เด็กต้องเข้าไปกรอกข้อมูลด่านนี้ใหม่)`)) {
+                // Show loading
+                document.getElementById('loading-overlay').style.display = 'flex';
+                try {
+                    const res = await fetchAPI('resetMission', { studentId: studentId, mission: missionNum });
+                    if(res.status === 'success') {
+                        alert(res.message);
+                        await fetchAdminData(); // รีโหลดข้อมูลใหม่ทั้งหมด
+                    } else throw new Error(res.message);
+                } catch(err) {
+                    alert("Error: " + err.message);
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
+            }
+        }
+
+        // ==========================================
+        // 📱 Module 3.1: ข้อมูลรายบุคคล (Accordion View)
+        // ==========================================
+        function populateViewRooms() {
+            const level = document.getElementById('view-level').value;
+            const rmSelect = document.getElementById('view-room');
+            rmSelect.innerHTML = '';
+            getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            resetViewPage();
+        }
+
+        function resetViewPage() { currentPage = 1; renderViewer(); }
+        function changeViewPage(step) { currentPage += step; renderViewer(); }
+
+        function renderViewer() {
+            const room = document.getElementById('view-room').value;
+            const acc = document.getElementById('studentAccordion');
+            
+            if(room === 'all' || !room) { acc.innerHTML = '<div class="text-center p-3 text-muted">กรุณาเลือกห้องเรียน</div>'; return; }
+
+            const stInRoom = ALL_STUDENTS.filter(s => s.level === room);
+            const totalPages = Math.ceil(stInRoom.length / ITEMS_PER_PAGE) || 1;
+            
+            document.getElementById('btn-prev-page').disabled = (currentPage === 1);
+            document.getElementById('btn-next-page').disabled = (currentPage === totalPages);
+            document.getElementById('page-indicator').textContent = `หน้า ${currentPage} / ${totalPages}`;
+
+            const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+            const pageData = stInRoom.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+            if(pageData.length === 0) { acc.innerHTML = '<div class="text-center p-3 text-muted">ไม่มีข้อมูลนักเรียนในหน้านี้</div>'; return; }
+
+            acc.innerHTML = pageData.map((s, i) => {
+                const uId = `collapse_${s.studentId}`;
+                return `
+                <div class="accordion-item mb-2 border rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#${uId}">
+                            🧑‍🎓 รหัส: ${s.studentId} | ${s.fullName}
+                        </button>
+                    </h2>
+                    <div id="${uId}" class="accordion-collapse collapse" data-bs-parent="#studentAccordion">
+                        <div class="accordion-body bg-white">
+                            <div class="data-row"><span class="data-label">เลขบัตร ปชช.</span><span>${s.citizenId || '-'}</span></div>
+                            <div class="data-row"><span class="data-label">วันเกิด</span><span>${s.birthDate || '-'}</span></div>
+                            <div class="data-row"><span class="data-label">ผู้ปกครอง</span><span>${s.guardianName || '-'}</span></div>
+                            <div class="data-row"><span class="data-label">เบอร์ติดต่อ</span><span><a href="tel:${s.guardianPhone}">${s.guardianPhone || '-'}</a></span></div>
+                            <div class="data-row"><span class="data-label">น้ำหนัก/ส่วนสูง</span><span>${s.weight||'-'} กก. / ${s.height||'-'} ซม.</span></div>
+                            <div class="data-row"><span class="data-label">ที่อยู่ (ด่าน 5)</span><span class="text-end" style="max-width:60%;">${s.fullAddress || '-'} (${s.housingStatus||'-'})</span></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // 📥 Module 3.2: Data Extractor (ส่งออก Excel)
+        // ==========================================
+        function populateExpRooms() {
+            const level = document.getElementById('exp-level').value;
+            const rmSelect = document.getElementById('exp-room');
+            rmSelect.innerHTML = '<option value="all">ทุกห้องในระดับชั้นนี้</option>';
+            if(level !== 'all') {
+                getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            }
+        }
+
+        function generateCustomExport() {
+            const level = document.getElementById('exp-level').value;
+            const room = document.getElementById('exp-room').value;
+            
+            // ดึงค่า Checkbox ที่ถูกติ๊ก
+            const checkboxes = document.querySelectorAll('#checkbox-group input[type="checkbox"]:checked');
+            const selectedFields = Array.from(checkboxes).map(cb => cb.value);
+
+            // คัดกรองนักเรียน
+            let filtered = ALL_STUDENTS.filter(s => {
+                let mLevel = level === 'all' || s.level.startsWith(level);
+                let mRoom = room === 'all' || s.level === room;
+                return mLevel && mRoom;
+            });
+
+            if(filtered.length === 0) { alert("ไม่มีข้อมูลในระดับชั้น/ห้องที่เลือกครับ"); return; }
+
+            // เรียงลำดับจากห้องน้อยไปมาก
+            filtered.sort((a,b) => {
+                let arrA = a.level.split('/'); let arrB = b.level.split('/');
+                if(arrA[0] !== arrB[0]) return arrA[0].localeCompare(arrB[0]); // เทียบชั้น
+                return parseInt(arrA[1] || 0) - parseInt(arrB[1] || 0); // เทียบห้อง
+            });
+
+            // สร้าง Array ของ Object สำหรับ SheetJS
+            const excelData = filtered.map(s => {
+                let rowData = {};
+                // Map ชื่อคอลัมน์ให้เป็นภาษาไทยสวยๆ
+                const colNames = {
+                    studentId: "รหัสนักเรียน", level: "ชั้นเรียน", fullName: "ชื่อ-สกุล",
+                    citizenId: "เลขบัตรประชาชน", birthDate: "วันเกิด", guardianName: "ชื่อผู้ปกครอง",
+                    guardianPhone: "เบอร์ผู้ปกครอง", weight: "น้ำหนัก (กก.)", height: "ส่วนสูง (ซม.)",
+                    housingStatus: "ลักษณะการอยู่อาศัย", fullAddress: "ที่อยู่ปัจจุบัน"
+                };
+                
+                selectedFields.forEach(f => {
+                    rowData[colNames[f]] = s[f] || '';
+                });
+                return rowData;
+            });
+
+            // สร้าง Excel File
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "รายชื่อนักเรียน");
+            
+            let fileName = `ข้อมูลนักเรียน_${level==='all'?'ทั้งหมด':level}`;
+            if(room !== 'all') fileName += `_${room.replace('/','-')}`;
+            
+            XLSX.writeFile(wb, `${fileName}.xlsx`);
+        }
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
