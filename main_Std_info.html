@@ -58,7 +58,8 @@
         .student-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid #cbd5e1; }
         .data-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 8px 0; font-size: 0.85rem; }
         .data-label { color: #64748b; font-weight: 600; }
-        .cat-btn { text-align: left; font-weight: 600; color: white; border-radius: 8px; margin-bottom: 5px; width: 100%; border: none; padding: 8px 15px; font-size: 0.9rem; }
+        .cat-btn { text-align: left; font-weight: 600; color: white; border-radius: 8px; margin-bottom: 5px; width: 100%; border: none; padding: 10px 15px; font-size: 0.95rem; }
+        .cat-summary { font-size: 0.75rem; font-weight: 400; opacity: 0.9; margin-top: 3px; line-height: 1.3; }
         
         /* Checkbox Box in 3.2 */
         .chk-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
@@ -379,10 +380,22 @@
 
         const parseJSONSafe = (str) => { try { return JSON.parse(str||'{}'); } catch(e){ return {}; } };
 
-        // แปลง Link รุปภาพให้แสดงเป็น Thumbnail เล็กๆ
         function getDriveThumb(url) {
             const match = url?.match(/[-\w]{25,}/);
             return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w150` : 'https://via.placeholder.com/80?text=No+Img';
+        }
+
+        // ฟังก์ชันคำนวณอายุจากวันเกิด
+        function calculateAge(dateString) {
+            if (!dateString) return '-';
+            const today = new Date();
+            const birthDate = new Date(dateString);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return isNaN(age) ? '-' : age;
         }
 
         // ==========================================
@@ -534,8 +547,20 @@
                 const uId = `collapse_${s.studentId}`;
                 let med = parseJSONSafe(s.medicalCondition);
                 let pref = parseJSONSafe(s.preferencesJson);
+                
                 // ดึงรูปโปรไฟล์ (ถ้าไม่มีใช้รูปหุ่น)
                 let profileImg = s.profileImageUrl ? getDriveThumb(s.profileImageUrl) : 'https://via.placeholder.com/80?text=No+Img';
+                
+                // เตรียมข้อมูลสรุป (Summary) สำหรับแสดงบนปุ่ม
+                let sumAge = calculateAge(s.birthDate);
+                let sum1 = s.birthDate ? `วันเกิด: ${s.birthDate} อายุ ${sumAge} ปี` : `ยังไม่มีข้อมูล`;
+                let sum2 = s.guardianName ? `ผปค: ${s.guardianName} | นร: ${s.studentPhone||'-'} | ผปค: ${s.guardianPhone||'-'}` : `ยังไม่มีข้อมูล`;
+                
+                let illAcc = [med.ill, med.acc].filter(x => x).join(', ');
+                let sum3 = (s.weight || s.height) ? `เจ็บป่วย/อุบัติเหตุ: ${illAcc || 'ไม่มี'}` : `ยังไม่มีข้อมูล`;
+                
+                let sum4 = s.preferencesJson ? `วิชาที่ชอบ: ${(pref.subs||[]).join(', ') || '-'}` : `ยังไม่มีข้อมูล`;
+                let sum5 = s.fullAddress ? `ที่อยู่: ${s.fullAddress}` : `ยังไม่มีข้อมูล`;
                 
                 return `
                 <div class="accordion-item mb-2 border-0 shadow-sm rounded overflow-hidden">
@@ -551,9 +576,15 @@
                     <div id="${uId}" class="accordion-collapse collapse" data-bs-parent="#studentAccordion">
                         <div class="accordion-body bg-light p-3">
                             
-                            <!-- ปุ่มหมวดหมู่ 1 -->
+                            <!-- หมวดหมู่ 1 -->
                             <button class="cat-btn" style="background-color: var(--c-m1);" data-bs-toggle="collapse" data-bs-target="#dt1_${s.studentId}">
-                                <div class="d-flex justify-content-between"><span><i class="bi bi-person-lines-fill"></i> ด่าน 1: ข้อมูลพื้นฐาน</span> <i class="bi bi-chevron-down"></i></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-start">
+                                        <div><i class="bi bi-person-lines-fill"></i> ด่าน 1: ข้อมูลพื้นฐาน</div>
+                                        <div class="cat-summary">${sum1}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </div>
                             </button>
                             <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt1_${s.studentId}">
                                 <div class="data-row"><span class="data-label">เลข ปชช.</span><span>${s.citizenId || '-'}</span></div>
@@ -561,9 +592,15 @@
                                 <div class="data-row border-0 pb-0"><span class="data-label">ศาสนา</span><span>${s.religion || '-'}</span></div>
                             </div>
 
-                            <!-- ปุ่มหมวดหมู่ 2 -->
+                            <!-- หมวดหมู่ 2 -->
                             <button class="cat-btn" style="background-color: var(--c-m2);" data-bs-toggle="collapse" data-bs-target="#dt2_${s.studentId}">
-                                <div class="d-flex justify-content-between"><span><i class="bi bi-people-fill"></i> ด่าน 2: ครอบครัว</span> <i class="bi bi-chevron-down"></i></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-start">
+                                        <div><i class="bi bi-people-fill"></i> ด่าน 2: ครอบครัว</div>
+                                        <div class="cat-summary">${sum2}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </div>
                             </button>
                             <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt2_${s.studentId}">
                                 <div class="data-row"><span class="data-label">ชื่อบิดา/มารดา</span><span class="text-end">${s.fatherName||'-'} / ${s.motherName||'-'}</span></div>
@@ -572,9 +609,15 @@
                                 <div class="data-row border-0 pb-0"><span class="data-label">เบอร์นักเรียน</span><span><a href="tel:${s.studentPhone}">${s.studentPhone || '-'}</a></span></div>
                             </div>
 
-                            <!-- ปุ่มหมวดหมู่ 3 -->
+                            <!-- หมวดหมู่ 3 -->
                             <button class="cat-btn" style="background-color: var(--c-m3);" data-bs-toggle="collapse" data-bs-target="#dt3_${s.studentId}">
-                                <div class="d-flex justify-content-between"><span><i class="bi bi-heart-pulse-fill"></i> ด่าน 3: สุขภาพ</span> <i class="bi bi-chevron-down"></i></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-start">
+                                        <div><i class="bi bi-heart-pulse-fill"></i> ด่าน 3: สุขภาพ</div>
+                                        <div class="cat-summary">${sum3}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </div>
                             </button>
                             <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt3_${s.studentId}">
                                 <div class="data-row"><span class="data-label">น้ำหนัก/ส่วนสูง</span><span>${s.weight||'-'} กก. / ${s.height||'-'} ซม.</span></div>
@@ -582,18 +625,30 @@
                                 <div class="data-row border-0 pb-0"><span class="data-label">เจ็บป่วย/อุบัติเหตุ</span><span class="text-end" style="max-width:60%;">${med.ill || med.acc || '-'}</span></div>
                             </div>
 
-                            <!-- ปุ่มหมวดหมู่ 4 -->
+                            <!-- หมวดหมู่ 4 -->
                             <button class="cat-btn text-dark" style="background-color: var(--c-m4);" data-bs-toggle="collapse" data-bs-target="#dt4_${s.studentId}">
-                                <div class="d-flex justify-content-between"><span><i class="bi bi-puzzle-fill"></i> ด่าน 4: สัมพันธภาพ/เดินทาง</span> <i class="bi bi-chevron-down"></i></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-start">
+                                        <div><i class="bi bi-puzzle-fill"></i> ด่าน 4: สัมพันธภาพ/เดินทาง</div>
+                                        <div class="cat-summary">${sum4}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </div>
                             </button>
                             <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt4_${s.studentId}">
                                 <div class="data-row"><span class="data-label">วิชา/กิจกรรมที่ชอบ</span><span class="text-end" style="max-width:60%;">${(pref.subs||[]).join(', ')} / ${(pref.acts||[]).join(', ')}</span></div>
                                 <div class="data-row border-0 pb-0"><span class="data-label">การเดินทาง (${pref.dist||'-'} กม.)</span><span>${pref.travel || '-'}</span></div>
                             </div>
 
-                            <!-- ปุ่มหมวดหมู่ 5 -->
+                            <!-- หมวดหมู่ 5 -->
                             <button class="cat-btn" style="background-color: var(--c-m5);" data-bs-toggle="collapse" data-bs-target="#dt5_${s.studentId}">
-                                <div class="d-flex justify-content-between"><span><i class="bi bi-house-door-fill"></i> ด่าน 5: ที่อยู่อาศัย</span> <i class="bi bi-chevron-down"></i></div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-start">
+                                        <div><i class="bi bi-house-door-fill"></i> ด่าน 5: ที่อยู่อาศัย</div>
+                                        <div class="cat-summary">${sum5}</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </div>
                             </button>
                             <div class="collapse mb-1 bg-white p-2 border rounded shadow-sm" id="dt5_${s.studentId}">
                                 <div class="data-row"><span class="data-label">ลักษณะอยู่อาศัย</span><span>${s.housingStatus || '-'}</span></div>
