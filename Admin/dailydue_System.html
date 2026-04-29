@@ -2,78 +2,203 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเวรโรงเรียนบัวใหญ่</title>
-  <link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css)" rel="stylesheet">
-  <link href="[https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap](https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap)" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ระบบจัดการเวรประวัน โรงเรียนบัวใหญ่</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Sarabun', sans-serif; font-size: 20px; background-color: #f4f7f6; }
-    .container { max-width: 500px; padding: 20px; }
-    .card { border-radius: 20px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; background: white; }
-    .btn-custom { padding: 16px; font-size: 22px; font-weight: bold; border-radius: 15px; margin-bottom: 15px; width: 100%; transition: all 0.2s; }
-    .btn-custom:hover { transform: translateY(-2px); }
-    .logo-container { text-align: center; margin-bottom: 25px; }
-    .logo { max-width: 120px; height: auto; margin-bottom: 15px; }
+    /* นำเข้าฟอนต์ TH Sarabun New ตัวอักษรปกติและตัวหนา */
+    @font-face {
+      font-family: 'TH Sarabun New';
+      font-style: normal;
+      font-weight: 400;
+      src: url('https://cdn.jsdelivr.net/npm/font-th-sarabun-new@1.0.0/fonts/THSarabunNew.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'TH Sarabun New';
+      font-style: normal;
+      font-weight: 700;
+      src: url('https://cdn.jsdelivr.net/npm/font-th-sarabun-new@1.0.0/fonts/THSarabunNew-Bold.woff2') format('woff2');
+    }
+
+    body { 
+      font-family: 'TH Sarabun New', 'Sarabun', sans-serif; 
+      font-size: 22px; /* ปรับขนาดให้ใหญ่ขึ้นเพราะ TH Sarabun จะดูเล็กกว่าปกติ */
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 5vh;
+      padding-bottom: 5vh;
+    }
+    .container { max-width: 550px; padding: 0 15px; width: 100%; }
+    
+    /* Card Styles */
+    .card { 
+      border-radius: 24px; 
+      border: none; 
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+      padding: 35px 25px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    
+    /* Button Styles */
+    .btn-custom { 
+      padding: 14px 20px; 
+      font-size: 20px; 
+      font-weight: 700; 
+      border-radius: 50px; 
+      margin-bottom: 16px; 
+      width: 100%; 
+      transition: all 0.3s ease; 
+      border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .btn-custom:hover:not([disabled]) { 
+      transform: translateY(-3px); 
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+    }
+    .btn-outline-secondary {
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-weight: 600;
+      border-width: 2px;
+      transition: all 0.3s ease;
+    }
+    .btn-outline-secondary:hover {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    /* Logo & Header */
+    .logo-container { text-align: center; margin-bottom: 30px; }
+    .logo { 
+      max-width: 130px; 
+      height: auto; 
+      margin-bottom: 15px; 
+      border-radius: 50%;
+      padding: 5px;
+      background: white;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .header-title { color: #2c3e50; font-weight: 700; letter-spacing: -0.5px; }
+    
+    /* Forms */
+    .form-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
+    .form-select { 
+      border-radius: 15px; 
+      padding: 12px 15px; 
+      border: 1px solid #ced4da;
+      font-size: 18px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .form-select:focus { 
+      border-color: #8ec5fc; 
+      box-shadow: 0 0 0 0.25rem rgba(142, 197, 252, 0.25); 
+    }
+    
+    /* Utility */
     .hidden { display: none !important; }
     
+    /* Report List Item */
+    .report-item {
+      background: #f8f9fa;
+      border-radius: 16px;
+      padding: 15px 20px;
+      margin-bottom: 12px;
+      border-left: 5px solid #8ec5fc;
+      transition: transform 0.2s ease;
+    }
+    .report-item:hover { transform: translateX(5px); }
+    
     /* Loading Overlay */
-    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1050; }
-    .modal-content { border-radius: 25px; border: none; }
+    #loading-overlay { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(5px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1050; 
+    }
+    .modal-content { border-radius: 25px; border: none; padding: 15px; }
+
+    /* Mobile Optimization 📱 */
+    @media (max-width: 480px) {
+      body { padding-top: 15px; padding-bottom: 15px; font-size: 20px; }
+      .container { padding: 0 12px; }
+      .card { padding: 25px 18px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); margin-bottom: 15px; }
+      .btn-custom { font-size: 20px; padding: 12px 15px; margin-bottom: 12px; border-radius: 40px; }
+      .logo { max-width: 95px; margin-bottom: 10px; }
+      .header-title { font-size: 26px; }
+      .form-select { font-size: 18px; padding: 12px; border-radius: 12px; }
+      .report-item { flex-direction: column; align-items: flex-start !important; padding: 15px; }
+      .report-item .badge { align-self: flex-start; margin-top: 12px; font-size: 16px !important; padding: 8px 15px !important; }
+      .modal-content { padding: 10px; }
+      #modal-icon { font-size: 50px !important; margin-bottom: 10px !important; }
+      #modal-title { font-size: 24px; }
+      #modal-text { font-size: 20px !important; }
+    }
   </style>
 </head>
 <body>
 
   <!-- Loading Overlay -->
   <div id="loading-overlay" class="hidden">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-    <div class="mt-3 fw-bold text-primary">กำลังประมวลผล...</div>
+    <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+    <div class="mt-3 fw-bold text-primary fs-4">กำลังประมวลผล...</div>
   </div>
 
   <div class="container text-center">
     <!-- โลโก้และหัวเว็บ (แสดงในทุกหน้า) -->
     <div class="logo-container">
-      <img src="[https://drive.google.com/uc?export=view&id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj](https://drive.google.com/uc?export=view&id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj)" alt="โรงเรียนบัวใหญ่" class="logo">
-      <h3 class="fw-bold mb-1">ระบบจัดการเวรครู</h3>
-      <p class="text-muted">โรงเรียนบัวใหญ่</p>
+      <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w400" alt="โรงเรียนบัวใหญ่" class="logo">
+      <h2 class="header-title mb-1">ระบบจัดการเวรครู</h2>
+      <p class="text-white fw-bold shadow-sm rounded-pill px-3 py-1 bg-secondary d-inline-block" style="background: rgba(0,0,0,0.3) !important;">โรงเรียนบัวใหญ่</p>
     </div>
     
     <!-- หน้า 1: Main Menu -->
     <div id="page-main">
-      <button class="btn btn-primary btn-custom shadow" disabled style="opacity: 0.6; cursor: not-allowed;">
-        1. สุ่มวันเวรประจำวัน (ปิดชั่วคราว)
+      <button class="btn btn-primary btn-custom" disabled style="opacity: 0.6; cursor: not-allowed;">
+        📅 1. สุ่มวันเวรประจำวัน (ปิดชั่วคราว)
       </button>
-      <button class="btn btn-success btn-custom shadow" onclick="showPage('page-vote')">
-        2. เลือกหัวหน้าเวร
+      <button class="btn btn-success btn-custom" onclick="showPage('page-vote')">
+        🙋 2. เลือกหัวหน้าเวร
       </button>
-      <button class="btn btn-info btn-custom shadow text-white" onclick="showPage('page-report')">
-        3. ดูรายงานสรุป
+      <button class="btn btn-info btn-custom text-white" onclick="showPage('page-report')">
+        📊 3. ดูรายงานสรุป
       </button>
     </div>
 
     <!-- หน้า 2: โหวตเลือกหัวหน้า -->
     <div id="page-vote" class="card hidden text-start">
-      <h4 class="text-success text-center mb-3 fw-bold">โหวตหัวหน้าเวร</h4>
+      <h3 class="text-success text-center mb-4 fw-bold">เลือกหัวหน้าเวร</h3>
       
-      <label class="form-label text-muted">1. เลือกวันประจำเวร</label>
-      <select id="p2-day" class="form-select mb-3" onchange="loadDayTeachers()">
-        <option value="">-- เลือกวัน --</option>
-        <option>วันจันทร์</option><option>วันอังคาร</option><option>วันพุธ</option><option>วันพฤหัสบดี</option><option>วันศุกร์</option>
-      </select>
+      <div class="mb-3">
+        <label class="form-label">📌 1. เลือกวันประจำเวร</label>
+        <select id="p2-day" class="form-select" onchange="loadDayTeachers()">
+          <option value="">-- กรุณาเลือกวัน --</option>
+          <option>วันจันทร์</option><option>วันอังคาร</option><option>วันพุธ</option><option>วันพฤหัสบดี</option><option>วันศุกร์</option>
+        </select>
+      </div>
       
-      <label class="form-label text-muted">2. ชื่อของคุณ (โหวตได้ครั้งเดียว)</label>
-      <select id="p2-voter" class="form-select mb-3"></select>
+      <div class="mb-3">
+        <label class="form-label">👤 2. ชื่อของคุณ (โหวตได้ครั้งเดียว)</label>
+        <select id="p2-voter" class="form-select"></select>
+      </div>
       
-      <label class="form-label text-muted">3. เลือกหัวหน้าเวร</label>
-      <select id="p2-leader" class="form-select mb-4"></select>
+      <div class="mb-4">
+        <label class="form-label">⭐ 3. เลือกหัวหน้าเวรที่ต้องการ</label>
+        <select id="p2-leader" class="form-select"></select>
+      </div>
       
-      <button class="btn btn-success w-100 py-3 mb-2 shadow fw-bold" onclick="vote()">ยืนยัน (ข้อมูลจะถูกเข้ารหัส)</button>
+      <button class="btn btn-success w-100 py-3 mb-3 btn-custom shadow-sm" onclick="vote()">ยืนยันข้อมูล (เข้ารหัสความปลอดภัย)</button>
       <button class="btn btn-outline-secondary w-100" onclick="showPage('page-main')">กลับหน้าหลัก</button>
     </div>
 
     <!-- หน้า 3: รายงานผล -->
     <div id="page-report" class="card hidden text-start">
-      <h4 class="text-center mb-3 fw-bold text-info">ผลคะแนน (ถอดรหัสแล้ว)</h4>
-      <div id="report-list" style="font-size: 18px;"></div>
+      <h3 class="text-center mb-4 fw-bold text-info">ผลคะแนนหัวหน้าเวร</h3>
+      <div id="report-list"></div>
       <button class="btn btn-outline-secondary w-100 mt-4" onclick="showPage('page-main')">กลับหน้าหลัก</button>
     </div>
   </div>
@@ -81,16 +206,16 @@
   <!-- Modal แจ้งเตือน -->
   <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content shadow-lg text-center p-5">
-        <div id="modal-icon" style="font-size: 60px;" class="mb-3"></div>
-        <h4 id="modal-title" class="fw-bold"></h4>
-        <p id="modal-text" class="text-muted mb-4"></p>
-        <button class="btn btn-primary w-100 py-3" data-bs-dismiss="modal">ตกลง</button>
+      <div class="modal-content shadow-lg text-center p-4">
+        <div id="modal-icon" style="font-size: 65px;" class="mb-2"></div>
+        <h4 id="modal-title" class="fw-bold mb-3"></h4>
+        <p id="modal-text" class="text-muted mb-4" style="font-size: 18px;"></p>
+        <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" data-bs-dismiss="modal">ตกลง</button>
       </div>
     </div>
   </div>
 
-  <script src="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ==========================================
     // ⚠️ นำ URL ของ Web App (Google Apps Script) มาใส่ที่นี่ ⚠️
@@ -99,7 +224,7 @@
 
     const loading = document.getElementById('loading-overlay');
 
-    // ฟังก์ชันแสดง Modal แบบเดิม
+    // ฟังก์ชันแสดง Modal
     function showModal(title, text, type) {
       const modal = new bootstrap.Modal(document.getElementById('notifyModal'));
       document.getElementById('modal-title').innerText = title;
@@ -118,12 +243,11 @@
       if(pageId === 'page-report') loadReport();
     }
 
-    // ฟังก์ชันเชื่อมต่อกับ Backend (แทนที่ google.script.run)
+    // ฟังก์ชันเชื่อมต่อกับ Backend
     async function apiRequest(params) {
       loading.classList.remove('hidden');
       try {
         const url = new URL(WEB_APP_URL);
-        // แปลงพารามิเตอร์เป็น query string
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
         
         const response = await fetch(url);
@@ -134,7 +258,7 @@
         return result;
       } catch (error) {
         loading.classList.add('hidden');
-        showModal("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ กรุณาตรวจสอบ URL หรือการตั้งค่าสิทธิ์ Web App", "error");
+        showModal("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ กรุณาตรวจสอบการตั้งค่าอินเทอร์เน็ต", "error");
         console.error(error);
         return null;
       }
@@ -169,7 +293,6 @@
       const res = await apiRequest({ action: 'save', day: day, leader: leader, voter: voter });
       if (res && res.message) {
         showModal("สำเร็จ", res.message, "success");
-        // รีเซ็ตหน้า
         document.getElementById('p2-day').value = "";
         document.getElementById('p2-voter').innerHTML = "";
         document.getElementById('p2-leader').innerHTML = "";
@@ -178,15 +301,26 @@
     }
 
     async function loadReport() {
-      document.getElementById('report-list').innerHTML = "กำลังประมวลผล...";
+      const reportList = document.getElementById('report-list');
+      reportList.innerHTML = "<div class='text-center text-muted'>กำลังประมวลผล...</div>";
       const data = await apiRequest({ action: 'getReport' });
       
       if (data) {
-        document.getElementById('report-list').innerHTML = data.length === 0 
-          ? "<div class='text-center text-muted mt-3'>ยังไม่มีข้อมูล</div>" 
-          : data.map(i => `<div class='mb-2 p-2 border-bottom'><b>${i.day}</b>: ${i.name} <span class="badge bg-primary rounded-pill ms-1">${i.votes} โหวต</span></div>`).join('');
+        if (data.length === 0) {
+          reportList.innerHTML = "<div class='text-center text-muted mt-3 py-4 bg-light rounded-4'>ยังไม่มีข้อมูลการโหวต</div>";
+        } else {
+          reportList.innerHTML = data.map(i => `
+            <div class='report-item d-flex justify-content-between align-items-center shadow-sm'>
+              <div>
+                <span class='fw-bold text-primary d-block' style='font-size: 16px;'>${i.day}</span>
+                <span class='text-dark fw-bold' style='font-size: 20px;'>${i.name}</span>
+              </div>
+              <span class="badge bg-success rounded-pill fs-5 shadow-sm px-3 py-2">${i.votes} โหวต</span>
+            </div>
+          `).join('');
+        }
       } else {
-        document.getElementById('report-list').innerHTML = "<div class='text-danger'>ไม่สามารถโหลดข้อมูลได้</div>";
+        reportList.innerHTML = "<div class='text-danger text-center'>ไม่สามารถโหลดข้อมูลได้</div>";
       }
     }
   </script>
