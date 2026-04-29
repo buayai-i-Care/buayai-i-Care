@@ -92,7 +92,7 @@
       
       <div id="admin-actions-group" class="hidden flex gap-2 mb-5 justify-center">
         <button onclick="triggerEditMode()" class="flex-1 py-3 bg-blue-100 text-blue-800 border border-blue-200 rounded-xl font-bold text-base shadow-sm flex items-center justify-center gap-2">
-            <i class="ph ph-pencil-simple text-xl"></i> แก้ไขข้อมูล
+            <i class="ph ph-pencil-simple text-xl"></i> แก้ไขข้อมูลย้อนหลัง
         </button>
       </div>
 
@@ -150,10 +150,11 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <!-- กลุ่มปุ่มจัดการรายงาน -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
                 <button onclick="generateReport('screen')" class="py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-sm hover:bg-indigo-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition">
                     <i class="ph ph-device-mobile text-3xl"></i> 
-                    <span class="text-sm">ดูบนมือถือ</span>
+                    <span class="text-sm">ดูแบบจัดอันดับ</span>
                 </button>
                 <button onclick="generateReport('excel')" class="py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-sm hover:bg-emerald-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition">
                     <i class="ph ph-microsoft-excel-logo text-3xl"></i> 
@@ -161,15 +162,45 @@
                 </button>
             </div>
             
+            <!-- 🌟 ปุ่มใหม่: ดูสถิติสารสนเทศสะสมทั้งหมด 🌟 -->
+            <button onclick="showAdvancedStats()" class="w-full py-3 bg-sky-100 text-sky-700 rounded-xl font-bold shadow-sm hover:bg-sky-200 flex flex-col items-center justify-center gap-1 border border-sky-200 active:scale-95 transition">
+                <i class="ph ph-chart-bar text-3xl"></i>
+                <span class="text-sm">ดูสถิติภาพรวมสะสม (ทั้งหมด)</span>
+            </button>
+            
             <p id="report-status" class="text-center text-base font-bold text-purple-600 mt-4 hidden"><i class="ph ph-spinner animate-spin inline-block"></i> กำลังประมวลผลข้อมูล...</p>
         </div>
 
-        <!-- 🌟 ONSCREEN ACCORDION REPORT (Mobile UI) -->
+        <!-- ONSCREEN ACCORDION REPORT (Mobile UI) -->
         <div id="onscreen-report-container" class="hidden mt-6 space-y-4 pb-20">
             <!-- Data will be injected here via JS -->
         </div>
-      </div>
 
+        <!-- 🌟 ONSCREEN ADVANCED STATS (Mobile UI พาสเทล) 🌟 -->
+        <div id="advanced-stats-container" class="hidden mt-6 space-y-4 pb-20 border-t-2 border-dashed border-gray-300 pt-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-2 border-sky-200">
+                <h3 class="text-xl font-bold text-sky-900 text-center mb-4">สารสนเทศภาพรวมสะสม</h3>
+                
+                <div class="flex justify-between items-center p-4 bg-sky-50 rounded-xl border border-sky-100">
+                    <div>
+                        <p class="text-sm text-sky-700">จำนวนวันที่บันทึกทั้งหมด</p>
+                        <p class="text-3xl font-bold text-sky-900"><span id="total-days-count">0</span> วัน</p>
+                    </div>
+                    <button onclick="showDateDetails()" class="px-4 py-2 bg-white text-sky-600 border border-sky-300 rounded-lg font-bold text-sm shadow-sm active:scale-95 transition">ดูรายละเอียด</button>
+                </div>
+
+                <div id="date-details-list" class="hidden mt-3 p-4 bg-white rounded-lg text-base text-gray-700 max-h-48 overflow-y-auto border border-gray-200 shadow-inner space-y-1">
+                    <!-- รายชื่อวันที่ที่มีการเช็คชื่อจะมาแสดงตรงนี้ -->
+                </div>
+            </div>
+
+            <div class="text-center font-bold text-gray-500 mt-6 mb-4 text-base">สถิติครูรายบุคคล (เรียงจากมาบ่อยไปน้อย)</div>
+            
+            <div id="teacher-stats-accordion" class="space-y-3">
+                <!-- รายชื่อครูแบบยุบย่อได้จะแสดงตรงนี้ -->
+            </div>
+        </div>
+      </div>
     </div>
 
     <!-- VIEW 5: EDIT MODE SECTION -->
@@ -186,7 +217,7 @@
         <label class="block text-base font-bold text-lime-800 mb-2">เลือกวันที่ต้องการแก้ไข:</label>
         <div class="flex gap-2">
           <input type="date" id="editDateInput" class="flex-grow p-3 border border-lime-300 rounded-lg bg-gray-50 text-lime-900 font-bold text-lg" onchange="loadEditData()">
-          <button onclick="loadEditData()" class="px-5 bg-lime-200 text-lime-800 rounded-lg font-bold hover:bg-lime-300 shadow-sm"><i class="ph ph-arrows-clockwise text-2xl"></i></button>
+          <button onclick="loadEditData()" class="px-5 bg-lime-200 text-lime-800 rounded-lg font-bold hover:bg-lime-300 shadow-sm active:scale-95"><i class="ph ph-arrows-clockwise text-2xl"></i></button>
         </div>
       </div>
 
@@ -297,6 +328,7 @@
       document.getElementById('view-record').classList.add('hidden');
       document.getElementById('view-stats').classList.add('hidden');
       document.getElementById('onscreen-report-container').classList.add('hidden');
+      document.getElementById('advanced-stats-container').classList.add('hidden');
       isCurrentSessionAdmin = false;
     }
     
@@ -529,11 +561,105 @@
         return `${mon.toLocaleDateString('th-TH')} - ${sun.toLocaleDateString('th-TH')}`;
     }
 
+    // --- 🌟 ADVANCED STATS (ภาพรวมสะสม) 🌟 ---
+    async function showAdvancedStats() {
+        const statusTxt = document.getElementById('report-status');
+        const container = document.getElementById('advanced-stats-container');
+        const onscreenCon = document.getElementById('onscreen-report-container');
+        
+        statusTxt.classList.remove('hidden');
+        container.classList.add('hidden');
+        if(onscreenCon) onscreenCon.classList.add('hidden'); 
+
+        try {
+            const res = await fetchAPI({ action: 'getExportData', className: currentClassName });
+            if(res.status !== 'success') throw new Error(res.message);
+            
+            const teachers = res.data.teachers || [];
+            const logs = res.data.logs || [];
+
+            // คำนวณวันที่ที่มีการบันทึก
+            const uniqueDates = [...new Set(logs.map(l => l.date))].sort((a,b) => new Date(b) - new Date(a));
+            document.getElementById('total-days-count').textContent = uniqueDates.size;
+            
+            const dateListEl = document.getElementById('date-details-list');
+            if (uniqueDates.length > 0) {
+                dateListEl.innerHTML = uniqueDates.map(d => {
+                    const dObj = new Date(d);
+                    return `<div class="py-2 border-b border-gray-100 font-medium text-gray-700 last:border-0">${dObj.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'})}</div>`;
+                }).join('');
+            } else {
+                dateListEl.innerHTML = `<div class="py-2 text-center text-gray-500">ไม่มีข้อมูล</div>`;
+            }
+
+            // คำนวณรายบุคคล
+            let statsMap = {};
+            teachers.forEach(t => { 
+                statsMap[t] = { name: t, count: 0, ontime: 0, late: 0, absent: 0 }; 
+            });
+
+            logs.forEach(log => {
+                if(statsMap[log.name]) {
+                    statsMap[log.name].count++;
+                    if(log.status.includes("ทัน") || log.status.includes("เวร") || log.status.includes("เฉพาะ")) statsMap[log.name].ontime++;
+                    else if(log.status.includes("สาย")) statsMap[log.name].late++;
+                    else statsMap[log.name].absent++;
+                }
+            });
+
+            let sortedTeachers = Object.values(statsMap).sort((a, b) => b.count - a.count);
+
+            const accordionEl = document.getElementById('teacher-stats-accordion');
+            accordionEl.innerHTML = sortedTeachers.map((t, i) => `
+                <details class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-3">
+                    <summary class="bg-gray-50 p-4 font-bold text-lg text-gray-800 cursor-pointer flex justify-between items-center select-none hover:bg-gray-100 transition">
+                        <span class="truncate pr-2">${i+1}. ${t.name}</span>
+                        <span class="text-sm font-bold bg-white text-sky-700 border border-sky-200 px-3 py-1 rounded-full shadow-sm flex-shrink-0">
+                            รวม ${t.count} วัน <i class="ph ph-caret-down ml-1 chevron-icon inline-block"></i>
+                        </span>
+                    </summary>
+                    <div class="p-4 bg-white space-y-3 border-t border-gray-100">
+                        <div class="flex justify-between text-base border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">มาทันเวลา/เวร:</span>
+                            <span class="font-bold text-emerald-600">${t.ontime} วัน</span>
+                        </div>
+                        <div class="flex justify-between text-base border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">มาสาย:</span>
+                            <span class="font-bold text-amber-600">${t.late} วัน</span>
+                        </div>
+                        <div class="flex justify-between text-base pb-1">
+                            <span class="text-gray-500">ขาด/ไม่ทราบ/ลา:</span>
+                            <span class="font-bold text-rose-500">${t.absent} วัน</span>
+                        </div>
+                    </div>
+                </details>
+            `).join('');
+
+            container.classList.remove('hidden');
+            setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+
+        } catch (e) {
+            alert("เกิดข้อผิดพลาด: " + e.message);
+        } finally {
+            statusTxt.classList.add('hidden');
+        }
+    }
+
+    function showDateDetails() {
+        document.getElementById('date-details-list').classList.toggle('hidden');
+    }
+
     async function generateReport(outputMode) {
         const statusTxt = document.getElementById('report-status');
         const onscreenCon = document.getElementById('onscreen-report-container');
+        const advancedCon = document.getElementById('advanced-stats-container');
+        
         statusTxt.classList.remove('hidden');
-        if(outputMode === 'screen') { onscreenCon.classList.add('hidden'); onscreenCon.innerHTML = ''; }
+        if(outputMode === 'screen') { 
+            onscreenCon.classList.add('hidden'); 
+            onscreenCon.innerHTML = ''; 
+            if(advancedCon) advancedCon.classList.add('hidden');
+        }
 
         try {
             const expType = document.querySelector('input[name="reportType"]:checked').value;
@@ -621,18 +747,17 @@
                 alert("✅ ดาวน์โหลด Excel สำเร็จ!\n(แนะนำ: เมื่อเปิดไฟล์แล้ว ให้กด Ctrl+A เพื่อเปลี่ยนฟอนต์เป็น TH Sarabun จะสวยงามเป็นทางการครับ)");
             } 
             else if (outputMode === 'screen') {
-                // สร้าง UI แบบยุบ/ขยาย พาสเทลสีสวย สำหรับวัย 40+
                 let html = `
                 <!-- สรุปภาพรวม -->
-                <details class="bg-white rounded-2xl shadow-sm border-2 border-sky-200 overflow-hidden mb-4" open>
-                    <summary class="bg-sky-50 p-4 font-bold text-xl text-sky-900 cursor-pointer flex justify-between items-center select-none hover:bg-sky-100 transition">
-                        <span class="flex items-center gap-2"><i class="ph ph-chart-bar text-2xl text-sky-600"></i> สรุปข้อมูลภาพรวม</span>
+                <details class="bg-white rounded-2xl shadow-sm border-2 border-indigo-200 overflow-hidden mb-4" open>
+                    <summary class="bg-indigo-50 p-4 font-bold text-xl text-indigo-900 cursor-pointer flex justify-between items-center select-none hover:bg-indigo-100 transition">
+                        <span class="flex items-center gap-2"><i class="ph ph-chart-bar text-2xl text-indigo-600"></i> สรุปข้อมูล (รอบที่เลือก)</span>
                         <i class="ph ph-caret-down chevron-icon"></i>
                     </summary>
                     <div class="p-5 space-y-3 text-lg text-gray-700 bg-white">
                         <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4 text-center shadow-sm">
                             <span class="text-sm text-gray-500 block">รอบการประเมิน:</span>
-                            <span class="font-bold text-sky-800">${periodLabel}</span>
+                            <span class="font-bold text-indigo-800">${periodLabel}</span>
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2"><span>จำนวนวันที่มีการเช็ค:</span><span class="font-bold text-gray-900">${totalDaysChecked} วัน</span></div>
                         <div class="flex justify-between border-b border-gray-100 pb-2"><span>ร้อยละครูที่มาทัน:</span><span class="font-bold text-emerald-600">${pct(totalOntime, totalExpected)}%</span></div>
@@ -643,20 +768,19 @@
                 </details>
 
                 <!-- จัดอันดับ -->
-                <details class="bg-white rounded-2xl shadow-sm border-2 border-indigo-200 overflow-hidden mb-6">
-                    <summary class="bg-indigo-50 p-4 font-bold text-xl text-indigo-900 cursor-pointer flex justify-between items-center select-none hover:bg-indigo-100 transition">
-                        <span class="flex items-center gap-2"><i class="ph ph-trophy text-2xl text-indigo-600"></i> การจัดอันดับ (เรียงจากมากไปน้อย)</span>
+                <details class="bg-white rounded-2xl shadow-sm border-2 border-purple-200 overflow-hidden mb-6">
+                    <summary class="bg-purple-50 p-4 font-bold text-xl text-purple-900 cursor-pointer flex justify-between items-center select-none hover:bg-purple-100 transition">
+                        <span class="flex items-center gap-2"><i class="ph ph-trophy text-2xl text-purple-600"></i> การจัดอันดับ (เรียงจากมากไปน้อย)</span>
                         <i class="ph ph-caret-down chevron-icon"></i>
                     </summary>
                     <div class="p-4 space-y-2 text-lg bg-white">
-                        ${teacherArr.map((t,i) => `<div class="flex justify-between border-b border-gray-50 py-2"><span class="font-bold text-gray-700">${i+1}. ${t.name}</span><span class="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100">${t.ontime + t.late} ครั้ง</span></div>`).join('')}
+                        ${teacherArr.map((t,i) => `<div class="flex justify-between border-b border-gray-50 py-2"><span class="font-bold text-gray-700">${i+1}. ${t.name}</span><span class="font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-lg border border-purple-100">${t.ontime + t.late} ครั้ง</span></div>`).join('')}
                     </div>
                 </details>
 
                 <div class="text-center font-bold text-gray-500 my-6 text-base border-b-2 border-dashed border-gray-300 pb-4">-- ข้อมูลรายละเอียดรายบุคคล --</div>
                 `;
 
-                // รายบุคคล
                 teacherArr.forEach((t, i) => {
                     let logsHtml = '';
                     if(t.logs.length === 0) { logsHtml = '<div class="text-center text-gray-400 italic py-4">ไม่พบประวัติการลงเวลา</div>'; }
@@ -688,8 +812,6 @@
 
                 onscreenCon.innerHTML = html;
                 onscreenCon.classList.remove('hidden');
-                
-                // เลื่อนหน้าจอลงไปให้เห็นรายงานชัดๆ
                 setTimeout(() => onscreenCon.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
             }
 
