@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ยินดีต้อนรับเข้าสู่ระบบควบคุมฐานข้อมูลหลักระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</title>
+    <title>ศูนย์กลางฐานข้อมูลนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล - Buayai I Care School</title>
     <!-- โหลด Bootstrap 5 และ Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -13,12 +13,18 @@
     
     <style>
         :root {
-            --primary-admin: #a21caf; /* โทนสีม่วงสำหรับแอดมิน */
+            --primary-admin: #a21caf; 
             --secondary-admin: #d946ef;
             --bg-color: #f8fafc;
             --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            /* สีกำหนดหมวดหมู่ด่าน */
+            --c-m1: #3b82f6; /* น้ำเงิน */
+            --c-m2: #10b981; /* เขียว */
+            --c-m3: #ef4444; /* แดง */
+            --c-m4: #f59e0b; /* ส้ม/เหลือง */
+            --c-m5: #8b5cf6; /* ม่วง */
         }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; padding-bottom: 50px; }
         
         /* Navbar & Header */
         .admin-header {
@@ -27,7 +33,7 @@
             box-shadow: 0 10px 25px rgba(162, 28, 175, 0.2); position: relative;
             margin-bottom: 20px;
         }
-        .admin-header h4 { font-weight: 700; margin-bottom: 5px; }
+        .admin-header h4 { font-weight: 700; margin-bottom: 5px; font-size: 1.2rem; }
         .nav-buttons { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; }
         .btn-nav { background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 20px; padding: 5px 15px; font-size: 0.85rem; text-decoration: none; backdrop-filter: blur(5px); }
         .btn-nav:hover { background: rgba(255,255,255,0.3); color: white; }
@@ -45,14 +51,19 @@
         .table-custom { font-size: 0.9rem; }
         .table-custom th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
         .table-custom td { vertical-align: middle; }
-        .badge-status { font-size: 0.75rem; padding: 5px 8px; border-radius: 10px; }
         
-        /* Accordion (Mobile Friendly) */
+        /* Accordion 3.1 */
         .accordion-button:not(.collapsed) { background-color: #fdf4ff; color: var(--primary-admin); font-weight: bold; box-shadow: none; }
         .accordion-button:focus { box-shadow: none; }
-        .data-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 8px 0; font-size: 0.9rem; }
+        .student-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid #cbd5e1; }
+        .data-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 8px 0; font-size: 0.85rem; }
         .data-label { color: #64748b; font-weight: 600; }
+        .cat-btn { text-align: left; font-weight: 600; color: white; border-radius: 8px; margin-bottom: 5px; width: 100%; border: none; padding: 8px 15px; font-size: 0.9rem; }
         
+        /* Checkbox Box in 3.2 */
+        .chk-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .chk-title { font-weight: 700; margin-bottom: 10px; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; display: inline-block; font-size: 0.95rem; }
+
         #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .spinner-border { color: var(--primary-admin); width: 3rem; height: 3rem; }
     </style>
@@ -66,26 +77,33 @@
         <p class="text-muted small">โปรดรอสักครู่ ระบบกำลังโหลดข้อมูลนักเรียนทั้งหมด</p>
     </div>
 
-    <!-- Header -->
+    <!-- แถบประกาศตัวหนังสือวิ่ง (Marquee) -->
+    <div class="fixed-bottom bg-danger text-white fw-bold shadow-lg" style="font-size: 0.9rem; padding: 6px 0; z-index: 1050;">
+        <marquee behavior="scroll" direction="left" scrollamount="4">
+            ⚠️ ประกาศสำคัญ: ข้อมูลนี้ใช้สำหรับระบบดูแลช่วยเหลือผู้เรียน ไม่อนุญาตให้เผยแพร่โดยไม่มีการขออนุญาตเป็นลายลักษณ์อักษร ⚠️
+        </marquee>
+    </div>
+
+    <!-- Header & Logo -->
     <div class="admin-header">
         <div class="nav-buttons">
             <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="btn-nav"><i class="bi bi-house-door-fill"></i> หน้าหลัก</a>
             <button onclick="handleLogout()" class="btn-nav btn-logout"><i class="bi bi-box-arrow-right"></i> ออกระบบ</button>
         </div>
-        <div class="mt-4">
-            <i class="bi bi-database-fill-gear" style="font-size: 2.5rem;"></i>
-            <h4>ระบบควบคุมฐานข้อมูลหลักระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</h4>
-            <p class="small opacity-75 mb-0" id="admin-user-display">สถานะ: ตรวจสอบสิทธิ์...</p>
+        <div class="mt-4 pt-3">
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" width="70" height="70" class="rounded-circle shadow border border-3 p-1 mb-2 bg-white" style="object-fit: contain;">
+            <h4>ศูนย์กลางฐานข้อมูลนักเรียน ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล - Buayai I Care School<br><small>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</small></h4>
+            <p class="small opacity-75 mb-0 mt-2" id="admin-user-display">สถานะ: ตรวจสอบสิทธิ์...</p>
         </div>
     </div>
 
-    <div class="container pb-5">
+    <div class="container">
         <!-- เมนู Navigation Tabs -->
         <ul class="nav nav-pills tab-scroll mb-4" id="adminTabs" role="tablist">
             <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#mod1"><i class="bi bi-pie-chart-fill"></i> 1. สถิติภาพรวม</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod2"><i class="bi bi-controller"></i> 2. ควบคุมสถานะ/รีเซตด่าน</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod31"><i class="bi bi-view-list"></i> 3.1 ข้อมูลรายบุคคล (มือถือ)</button></li>
-            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod32"><i class="bi bi-file-earmark-spreadsheet-fill"></i> 3.2 ดึงข้อมูลเชิงลึก (Excel)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod2"><i class="bi bi-controller"></i> 2. ควบคุม/รีเซตด่าน</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod31"><i class="bi bi-person-vcard"></i> 3.1 ข้อมูลบุคคล</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#mod32"><i class="bi bi-file-earmark-excel-fill"></i> 3.2 สกัดข้อมูล (Excel)</button></li>
         </ul>
 
         <div class="tab-content" id="adminTabsContent">
@@ -104,25 +122,23 @@
                             </select>
                         </div>
                         <div class="col-md-8 col-4 text-end">
-                            <button class="btn btn-success" onclick="exportStatsToExcel()"><i class="bi bi-file-excel"></i> ดาวน์โหลด</button>
+                            <button class="btn btn-success shadow-sm" onclick="exportStatsToExcel()"><i class="bi bi-file-excel"></i> ดาวน์โหลด</button>
                         </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover table-custom table-bordered" id="stat-table">
-                            <thead>
-                                <tr class="text-center">
+                            <thead style="background-color: #f1f5f9;">
+                                <tr class="text-center align-middle">
                                     <th>ห้องเรียน</th>
                                     <th>นร.ทั้งหมด</th>
-                                    <th>ด่าน 1 ข้อมูลพื้นฐาน<br>(ทำ/ยังไม่ทำ)</th>
-                                    <th>ด่าน 2 ข้อมูลผู้ปกครอง<br>(ทำ/ยังไม่ทำ)</th>
-                                    <th>ด่าน 3 ข้อมูลสุขภาพ<br>(ทำ/ยังไม่ทำ)</th>
-                                    <th>ด่าน 4 ข้อมูลความสัมพันธ์<br>(ทำ/ยังไม่ทำ)</th>
-                                    <th>ด่าน 5 ข้อมูลสภาพที่อยู่อาศัย<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 1 พื้นฐาน<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 2 ผู้ปกครอง<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 3 สุขภาพ<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 4 สัมพันธภาพ<br>(ทำ/ยังไม่ทำ)</th>
+                                    <th>ด่าน 5 ที่อยู่อาศัย<br>(ทำ/ยังไม่ทำ)</th>
                                 </tr>
                             </thead>
-                            <tbody id="stat-table-body">
-                                <!-- Data injected here -->
-                            </tbody>
+                            <tbody id="stat-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -134,7 +150,7 @@
             <div class="tab-pane fade" id="mod2">
                 <div class="admin-card">
                     <h5 class="fw-bold mb-1" style="color: var(--primary-admin);">🛠️ ระบบควบคุมและรีเซตด่าน (Mission Controller)</h5>
-                    <p class="small text-muted mb-3">* การ "รีเซต" คือการล้างข้อมูลในด่านนั้นๆ ทำให้นักเรียนสามารถกลับเข้าไปกรอกข้อมูลใหม่ได้ (ระบบจะเปิดด่านให้อัตโนมัติเมื่อข้อมูลว่าง)</p>
+                    <p class="small text-muted mb-3">* การ "รีเซต" จะล้างข้อมูลในด่านนั้นๆ ให้นักเรียนกลับเข้าไปกรอกข้อมูลใหม่ได้ (ระบบจะเปิดด่านให้อัตโนมัติเมื่อข้อมูลว่าง)</p>
                     
                     <div class="row g-2 mb-3">
                         <div class="col-md-3 col-6"><select id="ctrl-level" class="form-select" onchange="populateCtrlRooms()"><option value="all">ทุกระดับชั้น</option><option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option><option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option></select></div>
@@ -145,9 +161,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover table-custom border">
                             <thead><tr><th>รหัสนักเรียน</th><th>ชื่อ-สกุล</th><th>ห้อง</th><th>สถานะด่านปัจจุบัน</th><th>การจัดการ (รีเซตข้อมูล)</th></tr></thead>
-                            <tbody id="ctrl-table-body">
-                                <!-- Data injected here -->
-                            </tbody>
+                            <tbody id="ctrl-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -164,14 +178,12 @@
                         <div class="col-6"><select id="view-room" class="form-select" onchange="resetViewPage()"><option value="all">เลือกห้องก่อน</option></select></div>
                     </div>
                     
-                    <div class="accordion" id="studentAccordion">
-                        <!-- Data injected here -->
-                    </div>
+                    <div class="accordion" id="studentAccordion"></div>
                     
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <button class="btn btn-outline-secondary" id="btn-prev-page" onclick="changeViewPage(-1)" disabled>❮ ก่อนหน้า</button>
-                        <span class="small text-muted" id="page-indicator">หน้า 1 / 1</span>
-                        <button class="btn btn-outline-secondary" id="btn-next-page" onclick="changeViewPage(1)">ถัดไป ❯</button>
+                        <button class="btn btn-outline-secondary shadow-sm" id="btn-prev-page" onclick="changeViewPage(-1)" disabled>❮ ก่อนหน้า</button>
+                        <span class="small fw-bold" id="page-indicator" style="color: var(--primary-admin);">หน้า 1 / 1</span>
+                        <button class="btn btn-outline-secondary shadow-sm" id="btn-next-page" onclick="changeViewPage(1)">ถัดไป ❯</button>
                     </div>
                 </div>
             </div>
@@ -181,30 +193,91 @@
             <!-- ========================================== -->
             <div class="tab-pane fade" id="mod32">
                 <div class="admin-card">
-                    <h5 class="fw-bold mb-3" style="color: var(--primary-admin);">📥 สกัดข้อมูลตามหมวดหมู่ (Custom Export)</h5>
+                    <h5 class="fw-bold mb-2" style="color: var(--primary-admin);">📥 สกัดข้อมูลเชิงลึก (Custom Export)</h5>
+                    
+                    <div class="alert alert-info py-2 small mb-3 border-0 shadow-sm" role="alert">
+                        <i class="bi bi-laptop"></i> แนะนำให้ใช้งานฟีเจอร์นี้ผ่าน <b>คอมพิวเตอร์ (PC)</b> เพื่อความสะดวกในการเปิดดูไฟล์ Excel ที่ดึงออกมา
+                    </div>
                     
                     <div class="row g-2 mb-3 bg-light p-3 rounded border">
                         <div class="col-md-6 col-12"><label class="fw-bold small">เลือกระดับชั้น</label><select id="exp-level" class="form-select" onchange="populateExpRooms()"><option value="all">ทั้งโรงเรียน</option><option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option><option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option></select></div>
                         <div class="col-md-6 col-12"><label class="fw-bold small">เลือกห้องเรียน</label><select id="exp-room" class="form-select"><option value="all">ทุกห้อง</option></select></div>
                     </div>
 
-                    <p class="fw-bold mb-2">☑️ เลือกฟิลด์ข้อมูลที่ต้องการส่งออก:</p>
-                    <div class="row g-2 mb-4" id="checkbox-group">
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="studentId" checked disabled> รหัสนักเรียน (บังคับ)</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="level" checked disabled> ระดับชั้น/ห้อง (บังคับ)</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="fullName" checked disabled> ชื่อ-สกุล (บังคับ)</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="citizenId" checked> เลขบัตร ปชช.</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="birthDate"> วันเกิด</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="guardianName" checked> ชื่อผู้ปกครอง</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="guardianPhone" checked> เบอร์ผู้ปกครอง</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="weight"> น้ำหนัก</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="height"> ส่วนสูง</label></div>
-                        <div class="col-6 col-md-3"><label><input type="checkbox" value="housingStatus" checked> การอยู่อาศัย (ด่าน5)</label></div>
-                        <div class="col-12 col-md-6"><label><input type="checkbox" value="fullAddress" checked> ที่อยู่เต็ม (ด่าน5)</label></div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <p class="fw-bold mb-0">☑️ เลือกฟิลด์ข้อมูลที่ต้องการส่งออก (จัดหมวดหมู่ตามด่าน):</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="selectAllFields()">เลือกทั้งหมด</button>
+                    </div>
+                    
+                    <!-- หมวดหมู่ด่าน 1 -->
+                    <div class="chk-box border-primary border-opacity-25 border-start border-4">
+                        <div class="chk-title text-primary"><i class="bi bi-person-lines-fill"></i> ด่าน 1: ข้อมูลพื้นฐาน</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="studentId" checked disabled> รหัสนักเรียน</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="level" checked disabled> ระดับชั้น/ห้อง</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="fullName" checked disabled> ชื่อ-สกุล</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="citizenId" checked> เลข ปชช.</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="birthDate" checked> วันเกิด</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="religion" checked> ศาสนา</label></div>
+                            <div class="col-12 col-md-6"><label><input type="checkbox" class="exp-chk" value="profileImageUrl"> ลิงก์รูปโปรไฟล์นักเรียน (Drive URL)</label></div>
+                        </div>
                     </div>
 
-                    <button class="btn w-100 text-white fw-bold py-2 shadow-sm" style="background: var(--primary-admin);" onclick="generateCustomExport()">
-                        <i class="bi bi-file-earmark-excel-fill"></i> ประมวลผลและดาวน์โหลด Excel
+                    <!-- หมวดหมู่ด่าน 2 -->
+                    <div class="chk-box border-success border-opacity-25 border-start border-4">
+                        <div class="chk-title text-success"><i class="bi bi-people-fill"></i> ด่าน 2: ครอบครัวและการติดต่อ</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="fatherName" checked> ชื่อบิดา</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="motherName" checked> ชื่อมารดา</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="guardianName" checked> ชื่อผู้ปกครอง</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="guardianPhone" checked> เบอร์ผู้ปกครอง</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="studentPhone" checked> เบอร์นักเรียน</label></div>
+                        </div>
+                    </div>
+
+                    <!-- หมวดหมู่ด่าน 3 -->
+                    <div class="chk-box border-danger border-opacity-25 border-start border-4">
+                        <div class="chk-title text-danger"><i class="bi bi-heart-pulse-fill"></i> ด่าน 3: ข้อมูลสุขภาพ</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="weight" checked> น้ำหนัก</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="height" checked> ส่วนสูง</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="medicalStatus" checked> สถานะสุขภาพโดยรวม</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="medicalAcc"> ประวัติอุบัติเหตุ</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="medicalAccDate"> วันที่เกิดอุบัติเหตุ</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="medicalIll"> ประวัติโรค/เจ็บป่วย</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="medicalIllDate"> วันที่เริ่มป่วย</label></div>
+                        </div>
+                    </div>
+
+                    <!-- หมวดหมู่ด่าน 4 -->
+                    <div class="chk-box border-warning border-opacity-50 border-start border-4">
+                        <div class="chk-title text-warning text-dark"><i class="bi bi-puzzle-fill"></i> ด่าน 4: ความชอบ การเดินทาง และเพื่อน</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="prefSubs" checked> วิชาที่ชอบ</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="prefActs" checked> กิจกรรมที่ชอบ</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="prefColor"> สีที่ชอบ (รหัสสี)</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="prefCareer" checked> อาชีพในฝัน</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="travelMode" checked> วิธีการเดินทางมา รร.</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="travelDist" checked> ระยะทาง (กม.)</label></div>
+                            <div class="col-12 col-md-6"><label><input type="checkbox" class="exp-chk" value="prefScholarships"> ข้อมูลทุนการศึกษา (ชื่อทุน/จำนวนเงิน)</label></div>
+                            <div class="col-12 col-md-6"><label><input type="checkbox" class="exp-chk" value="friendsInfo"> การประเมินเพื่อนร่วมชั้น (JSON)</label></div>
+                        </div>
+                    </div>
+
+                    <!-- หมวดหมู่ด่าน 5 -->
+                    <div class="chk-box" style="border-left: 4px solid var(--c-m5);">
+                        <div class="chk-title" style="color: var(--c-m5);"><i class="bi bi-house-door-fill"></i> ด่าน 5: สภาพที่อยู่อาศัยและพิกัด</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="housingStatus" checked> ปัจจุบันอาศัยอยู่กับใคร</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="fullAddress" checked> ที่อยู่เต็ม</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="lat" checked> ละติจูด (Latitude)</label></div>
+                            <div class="col-6 col-md-3"><label><input type="checkbox" class="exp-chk" value="lng" checked> ลองจิจูด (Longitude)</label></div>
+                            <div class="col-12"><label><input type="checkbox" class="exp-chk" value="gpsLocation"> พิกัดรวม (Lat,Lng)</label></div>
+                        </div>
+                    </div>
+
+                    <button class="btn w-100 text-white fw-bold py-3 shadow-sm mt-2" style="background: var(--primary-admin); font-size: 1.1rem;" onclick="generateCustomExport()">
+                        <i class="bi bi-file-earmark-excel-fill"></i> ประมวลผลและดาวน์โหลดไฟล์ Excel
                     </button>
                 </div>
             </div>
@@ -216,8 +289,8 @@
         // ==========================================
         // ⚙️ การตั้งค่าระบบ
         // ==========================================
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec'; // URL เดิมของคุณ หรืออัปเดตใหม่ถ้า Deploy ใหม่
-        let ALL_STUDENTS = []; // ตัวแปรเก็บข้อมูลนร.ทั้ง รร. ไว้ในหน่วยความจำ (ประหยัดเน็ต)
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec'; 
+        let ALL_STUDENTS = []; 
         let currentPage = 1;
         const ITEMS_PER_PAGE = 10;
 
@@ -261,7 +334,6 @@
                     ALL_STUDENTS = res.data;
                     document.getElementById('loading-overlay').style.display = 'none';
                     
-                    // เรียก Render ข้อมูลเริ่มต้น
                     renderStats();
                     populateCtrlRooms();
                     populateViewRooms();
@@ -287,16 +359,14 @@
         function getRoomsByLevel(level) {
             let rooms = new Set();
             ALL_STUDENTS.forEach(s => {
-                if(s.level.startsWith(level)) rooms.add(s.level);
+                if(s.level && s.level.startsWith(level)) rooms.add(s.level);
             });
-            // เรียงห้องจากน้อยไปมาก (เช่น ม.1/1, ม.1/2 ... ม.1/10)
             return Array.from(rooms).sort((a,b) => {
                 let nA = parseInt(a.split('/')[1] || 0); let nB = parseInt(b.split('/')[1] || 0);
                 return nA - nB;
             });
         }
 
-        // เช็คว่าเด็กทำด่านนั้นๆ หรือยัง (ดูจากฟิลด์หลัก)
         function checkMissionStatus(s) {
             return {
                 m1: s.citizenId ? true : false,
@@ -305,6 +375,14 @@
                 m4: s.preferencesJson ? true : false,
                 m5: s.housingStatus ? true : false
             };
+        }
+
+        const parseJSONSafe = (str) => { try { return JSON.parse(str||'{}'); } catch(e){ return {}; } };
+
+        // แปลง Link รุปภาพให้แสดงเป็น Thumbnail เล็กๆ
+        function getDriveThumb(url) {
+            const match = url?.match(/[-\w]{25,}/);
+            return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w150` : 'https://via.placeholder.com/80?text=No+Img';
         }
 
         // ==========================================
@@ -316,7 +394,7 @@
             tbody.innerHTML = '';
             
             const rooms = getRoomsByLevel(level);
-            if(rooms.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center">ไม่มีข้อมูลนักเรียน</td></tr>'; return; }
+            if(rooms.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">ไม่มีข้อมูลนักเรียน</td></tr>'; return; }
 
             rooms.forEach(room => {
                 const stInRoom = ALL_STUDENTS.filter(s => s.level === room);
@@ -328,12 +406,12 @@
                     if(st.m1) c1++; if(st.m2) c2++; if(st.m3) c3++; if(st.m4) c4++; if(st.m5) c5++;
                 });
 
-                const rHtml = (done) => `<span class="text-success fw-bold">${done}</span> / <span class="text-danger">${total-done}</span>`;
+                const rHtml = (done) => `<span class="text-success fw-bold">${done}</span> / <span class="text-danger opacity-75">${total-done}</span>`;
                 
                 tbody.innerHTML += `
-                    <tr class="text-center">
-                        <td class="fw-bold">${room}</td>
-                        <td>${total} คน</td>
+                    <tr class="text-center align-middle">
+                        <td class="fw-bold text-primary">${room}</td>
+                        <td class="fw-bold">${total}</td>
                         <td>${rHtml(c1)}</td><td>${rHtml(c2)}</td><td>${rHtml(c3)}</td><td>${rHtml(c4)}</td><td>${rHtml(c5)}</td>
                     </tr>
                 `;
@@ -367,15 +445,13 @@
             const tbody = document.getElementById('ctrl-table-body');
             
             let filtered = ALL_STUDENTS.filter(s => {
-                let mLevel = level === 'all' || s.level.startsWith(level);
+                let mLevel = level === 'all' || (s.level && s.level.startsWith(level));
                 let mRoom = room === 'all' || s.level === room;
-                let mSearch = s.studentId.includes(search) || s.fullName.toLowerCase().includes(search);
+                let mSearch = s.studentId.includes(search) || (s.fullName && s.fullName.toLowerCase().includes(search));
                 return mLevel && mRoom && mSearch;
             });
 
             if(filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">ไม่พบข้อมูล...</td></tr>'; return; }
-            
-            // Limit to 50 items to prevent lag on search
             filtered = filtered.slice(0, 50);
 
             tbody.innerHTML = filtered.map(s => {
@@ -383,24 +459,22 @@
                 let badges = '';
                 [1,2,3,4,5].forEach(i => {
                     let isDone = st['m'+i];
-                    badges += `<span class="badge ${isDone?'bg-success':'bg-secondary'} me-1">ด่าน ${i}</span>`;
+                    badges += `<span class="badge ${isDone?'bg-success':'bg-secondary opacity-50'} me-1 mb-1">ด่าน ${i}</span>`;
                 });
 
                 return `
-                <tr>
+                <tr class="align-middle">
                     <td>${s.studentId}</td><td class="fw-bold">${s.fullName}</td><td>${s.level}</td>
                     <td>${badges}</td>
                     <td>
                         <div class="dropdown">
-                          <button class="btn btn-sm btn-outline-danger dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown">
-                            ⚙️ จัดการ/รีเซต
-                          </button>
+                          <button class="btn btn-sm btn-outline-danger dropdown-toggle rounded-pill shadow-sm" type="button" data-bs-toggle="dropdown">⚙️ รีเซต</button>
                           <ul class="dropdown-menu shadow">
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '1')">รีเซต ด่าน 1 (ข้อมูลส่วนตัว)</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '2')">รีเซต ด่าน 2 (ครอบครัว)</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '3')">รีเซต ด่าน 3 (สุขภาพ)</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '4')">รีเซต ด่าน 4 (สัมพันธภาพ)</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '5')">รีเซต ด่าน 5 (พิกัดบ้าน)</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '1')">ล้างข้อมูล ด่าน 1</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '2')">ล้างข้อมูล ด่าน 2</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '3')">ล้างข้อมูล ด่าน 3</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '4')">ล้างข้อมูล ด่าน 4</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '5')">ล้างข้อมูล ด่าน 5</a></li>
                           </ul>
                         </div>
                     </td>
@@ -409,14 +483,13 @@
         }
 
         async function doReset(studentId, missionNum) {
-            if(confirm(`⚠️ ยืนยันการ "รีเซตข้อมูล" ด่านที่ ${missionNum} ของรหัส ${studentId} หรือไม่?\n\n(การทำแบบนี้จะลบข้อมูลด่านนั้นใน Google Sheet ทำให้เด็กต้องเข้าไปกรอกข้อมูลด่านนี้ใหม่)`)) {
-                // Show loading
+            if(confirm(`⚠️ ยืนยันการ "รีเซตข้อมูล" ด่านที่ ${missionNum} ของรหัส ${studentId} หรือไม่?\n\n(ข้อมูลจะถูกลบทิ้ง เพื่อให้นักเรียนกรอกใหม่)`)) {
                 document.getElementById('loading-overlay').style.display = 'flex';
                 try {
                     const res = await fetchAPI('resetMission', { studentId: studentId, mission: missionNum });
                     if(res.status === 'success') {
                         alert(res.message);
-                        await fetchAdminData(); // รีโหลดข้อมูลใหม่ทั้งหมด
+                        await fetchAdminData();
                     } else throw new Error(res.message);
                 } catch(err) {
                     alert("Error: " + err.message);
@@ -426,7 +499,7 @@
         }
 
         // ==========================================
-        // 📱 Module 3.1: ข้อมูลรายบุคคล (Accordion View)
+        // 📱 Module 3.1: ข้อมูลรายบุคคล (Mobile View)
         // ==========================================
         function populateViewRooms() {
             const level = document.getElementById('view-level').value;
@@ -443,7 +516,7 @@
             const room = document.getElementById('view-room').value;
             const acc = document.getElementById('studentAccordion');
             
-            if(room === 'all' || !room) { acc.innerHTML = '<div class="text-center p-3 text-muted">กรุณาเลือกห้องเรียน</div>'; return; }
+            if(room === 'all' || !room) { acc.innerHTML = '<div class="text-center p-4 text-muted border rounded">กรุณาเลือกห้องเรียน</div>'; return; }
 
             const stInRoom = ALL_STUDENTS.filter(s => s.level === room);
             const totalPages = Math.ceil(stInRoom.length / ITEMS_PER_PAGE) || 1;
@@ -455,25 +528,78 @@
             const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
             const pageData = stInRoom.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
-            if(pageData.length === 0) { acc.innerHTML = '<div class="text-center p-3 text-muted">ไม่มีข้อมูลนักเรียนในหน้านี้</div>'; return; }
+            if(pageData.length === 0) { acc.innerHTML = '<div class="text-center p-4 text-muted border rounded">ไม่มีข้อมูลนักเรียนในห้องนี้</div>'; return; }
 
             acc.innerHTML = pageData.map((s, i) => {
                 const uId = `collapse_${s.studentId}`;
+                let med = parseJSONSafe(s.medicalCondition);
+                let pref = parseJSONSafe(s.preferencesJson);
+                // ดึงรูปโปรไฟล์ (ถ้าไม่มีใช้รูปหุ่น)
+                let profileImg = s.profileImageUrl ? getDriveThumb(s.profileImageUrl) : 'https://via.placeholder.com/80?text=No+Img';
+                
                 return `
-                <div class="accordion-item mb-2 border rounded">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#${uId}">
-                            🧑‍🎓 รหัส: ${s.studentId} | ${s.fullName}
+                <div class="accordion-item mb-2 border-0 shadow-sm rounded overflow-hidden">
+                    <h2 class="accordion-header bg-white">
+                        <button class="accordion-button collapsed d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#${uId}" style="padding: 12px 15px;">
+                            <img src="${profileImg}" class="student-thumb me-3 shadow-sm">
+                            <div class="lh-sm">
+                                <div class="fw-bold text-dark" style="font-size: 1.05rem;">${s.fullName || 'ยังไม่ระบุชื่อ'}</div>
+                                <div class="text-muted small">รหัส: ${s.studentId}</div>
+                            </div>
                         </button>
                     </h2>
                     <div id="${uId}" class="accordion-collapse collapse" data-bs-parent="#studentAccordion">
-                        <div class="accordion-body bg-white">
-                            <div class="data-row"><span class="data-label">เลขบัตร ปชช.</span><span>${s.citizenId || '-'}</span></div>
-                            <div class="data-row"><span class="data-label">วันเกิด</span><span>${s.birthDate || '-'}</span></div>
-                            <div class="data-row"><span class="data-label">ผู้ปกครอง</span><span>${s.guardianName || '-'}</span></div>
-                            <div class="data-row"><span class="data-label">เบอร์ติดต่อ</span><span><a href="tel:${s.guardianPhone}">${s.guardianPhone || '-'}</a></span></div>
-                            <div class="data-row"><span class="data-label">น้ำหนัก/ส่วนสูง</span><span>${s.weight||'-'} กก. / ${s.height||'-'} ซม.</span></div>
-                            <div class="data-row"><span class="data-label">ที่อยู่ (ด่าน 5)</span><span class="text-end" style="max-width:60%;">${s.fullAddress || '-'} (${s.housingStatus||'-'})</span></div>
+                        <div class="accordion-body bg-light p-3">
+                            
+                            <!-- ปุ่มหมวดหมู่ 1 -->
+                            <button class="cat-btn" style="background-color: var(--c-m1);" data-bs-toggle="collapse" data-bs-target="#dt1_${s.studentId}">
+                                <div class="d-flex justify-content-between"><span><i class="bi bi-person-lines-fill"></i> ด่าน 1: ข้อมูลพื้นฐาน</span> <i class="bi bi-chevron-down"></i></div>
+                            </button>
+                            <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt1_${s.studentId}">
+                                <div class="data-row"><span class="data-label">เลข ปชช.</span><span>${s.citizenId || '-'}</span></div>
+                                <div class="data-row"><span class="data-label">วันเกิด</span><span>${s.birthDate || '-'}</span></div>
+                                <div class="data-row border-0 pb-0"><span class="data-label">ศาสนา</span><span>${s.religion || '-'}</span></div>
+                            </div>
+
+                            <!-- ปุ่มหมวดหมู่ 2 -->
+                            <button class="cat-btn" style="background-color: var(--c-m2);" data-bs-toggle="collapse" data-bs-target="#dt2_${s.studentId}">
+                                <div class="d-flex justify-content-between"><span><i class="bi bi-people-fill"></i> ด่าน 2: ครอบครัว</span> <i class="bi bi-chevron-down"></i></div>
+                            </button>
+                            <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt2_${s.studentId}">
+                                <div class="data-row"><span class="data-label">ชื่อบิดา/มารดา</span><span class="text-end">${s.fatherName||'-'} / ${s.motherName||'-'}</span></div>
+                                <div class="data-row"><span class="data-label">ผู้ปกครอง</span><span>${s.guardianName || '-'}</span></div>
+                                <div class="data-row"><span class="data-label">เบอร์ผู้ปกครอง</span><span><a href="tel:${s.guardianPhone}">${s.guardianPhone || '-'}</a></span></div>
+                                <div class="data-row border-0 pb-0"><span class="data-label">เบอร์นักเรียน</span><span><a href="tel:${s.studentPhone}">${s.studentPhone || '-'}</a></span></div>
+                            </div>
+
+                            <!-- ปุ่มหมวดหมู่ 3 -->
+                            <button class="cat-btn" style="background-color: var(--c-m3);" data-bs-toggle="collapse" data-bs-target="#dt3_${s.studentId}">
+                                <div class="d-flex justify-content-between"><span><i class="bi bi-heart-pulse-fill"></i> ด่าน 3: สุขภาพ</span> <i class="bi bi-chevron-down"></i></div>
+                            </button>
+                            <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt3_${s.studentId}">
+                                <div class="data-row"><span class="data-label">น้ำหนัก/ส่วนสูง</span><span>${s.weight||'-'} กก. / ${s.height||'-'} ซม.</span></div>
+                                <div class="data-row"><span class="data-label">สถานะ</span><span>${med.status === 'issue' ? '<span class="text-danger">⚠️ มีประวัติ</span>' : '<span class="text-success">✅ ปกติ</span>'}</span></div>
+                                <div class="data-row border-0 pb-0"><span class="data-label">เจ็บป่วย/อุบัติเหตุ</span><span class="text-end" style="max-width:60%;">${med.ill || med.acc || '-'}</span></div>
+                            </div>
+
+                            <!-- ปุ่มหมวดหมู่ 4 -->
+                            <button class="cat-btn text-dark" style="background-color: var(--c-m4);" data-bs-toggle="collapse" data-bs-target="#dt4_${s.studentId}">
+                                <div class="d-flex justify-content-between"><span><i class="bi bi-puzzle-fill"></i> ด่าน 4: สัมพันธภาพ/เดินทาง</span> <i class="bi bi-chevron-down"></i></div>
+                            </button>
+                            <div class="collapse mb-2 bg-white p-2 border rounded shadow-sm" id="dt4_${s.studentId}">
+                                <div class="data-row"><span class="data-label">วิชา/กิจกรรมที่ชอบ</span><span class="text-end" style="max-width:60%;">${(pref.subs||[]).join(', ')} / ${(pref.acts||[]).join(', ')}</span></div>
+                                <div class="data-row border-0 pb-0"><span class="data-label">การเดินทาง (${pref.dist||'-'} กม.)</span><span>${pref.travel || '-'}</span></div>
+                            </div>
+
+                            <!-- ปุ่มหมวดหมู่ 5 -->
+                            <button class="cat-btn" style="background-color: var(--c-m5);" data-bs-toggle="collapse" data-bs-target="#dt5_${s.studentId}">
+                                <div class="d-flex justify-content-between"><span><i class="bi bi-house-door-fill"></i> ด่าน 5: ที่อยู่อาศัย</span> <i class="bi bi-chevron-down"></i></div>
+                            </button>
+                            <div class="collapse mb-1 bg-white p-2 border rounded shadow-sm" id="dt5_${s.studentId}">
+                                <div class="data-row"><span class="data-label">ลักษณะอยู่อาศัย</span><span>${s.housingStatus || '-'}</span></div>
+                                <div class="data-row border-0 pb-0"><span class="data-label">ที่อยู่จัดส่ง</span><span class="text-end" style="max-width:65%; line-height: 1.4;">${s.fullAddress || '-'}</span></div>
+                            </div>
+
                         </div>
                     </div>
                 </div>`;
@@ -491,18 +617,24 @@
                 getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
             }
         }
+        
+        function selectAllFields() {
+            const checkboxes = document.querySelectorAll('.exp-chk:not([disabled])');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
 
         function generateCustomExport() {
             const level = document.getElementById('exp-level').value;
             const room = document.getElementById('exp-room').value;
             
-            // ดึงค่า Checkbox ที่ถูกติ๊ก
-            const checkboxes = document.querySelectorAll('#checkbox-group input[type="checkbox"]:checked');
+            // ดึงค่าฟิลด์ที่ถูก Check
+            const checkboxes = document.querySelectorAll('.exp-chk:checked');
             const selectedFields = Array.from(checkboxes).map(cb => cb.value);
 
-            // คัดกรองนักเรียน
+            // คัดกรองนักเรียนตามห้อง
             let filtered = ALL_STUDENTS.filter(s => {
-                let mLevel = level === 'all' || s.level.startsWith(level);
+                let mLevel = level === 'all' || (s.level && s.level.startsWith(level));
                 let mRoom = room === 'all' || s.level === room;
                 return mLevel && mRoom;
             });
@@ -511,29 +643,80 @@
 
             // เรียงลำดับจากห้องน้อยไปมาก
             filtered.sort((a,b) => {
-                let arrA = a.level.split('/'); let arrB = b.level.split('/');
-                if(arrA[0] !== arrB[0]) return arrA[0].localeCompare(arrB[0]); // เทียบชั้น
-                return parseInt(arrA[1] || 0) - parseInt(arrB[1] || 0); // เทียบห้อง
+                let arrA = (a.level||'').split('/'); let arrB = (b.level||'').split('/');
+                if(arrA[0] !== arrB[0]) return arrA[0].localeCompare(arrB[0]); 
+                return parseInt(arrA[1] || 0) - parseInt(arrB[1] || 0); 
             });
 
-            // สร้าง Array ของ Object สำหรับ SheetJS
+            // Dictionary สำหรับแปลงและสกัดข้อมูลแบบเจาะลึกทุกเม็ด!
+            const fieldExtractors = {
+                // หมวด 1
+                studentId: { name: "รหัสนักเรียน", val: s => s.studentId },
+                level: { name: "ชั้นเรียน", val: s => s.level },
+                fullName: { name: "ชื่อ-สกุล", val: s => s.fullName },
+                citizenId: { name: "เลขบัตรประชาชน", val: s => s.citizenId },
+                birthDate: { name: "วันเกิด", val: s => s.birthDate },
+                religion: { name: "ศาสนา", val: s => s.religion },
+                profileImageUrl: { name: "ลิงก์ภาพโปรไฟล์", val: s => s.profileImageUrl },
+                
+                // หมวด 2
+                fatherName: { name: "ชื่อบิดา", val: s => s.fatherName },
+                motherName: { name: "ชื่อมารดา", val: s => s.motherName },
+                guardianName: { name: "ชื่อผู้ปกครอง", val: s => s.guardianName },
+                guardianPhone: { name: "เบอร์ผู้ปกครอง", val: s => s.guardianPhone },
+                studentPhone: { name: "เบอร์นักเรียน", val: s => s.studentPhone },
+                
+                // หมวด 3
+                weight: { name: "น้ำหนัก (กก.)", val: s => s.weight },
+                height: { name: "ส่วนสูง (ซม.)", val: s => s.height },
+                medicalStatus: { name: "สถานะสุขภาพ", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.status==='issue'?'มีประวัติ':'ปกติ'; } },
+                medicalAcc: { name: "ประวัติอุบัติเหตุ", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.acc || '-'; } },
+                medicalAccDate: { name: "วันที่เกิดอุบัติเหตุ", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.accDate || '-'; } },
+                medicalIll: { name: "ประวัติเจ็บป่วย", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.ill || '-'; } },
+                medicalIllDate: { name: "วันที่เริ่มป่วย", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.illDate || '-'; } },
+                
+                // หมวด 4
+                prefSubs: { name: "วิชาที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return (p.subs||[]).join(', ') || '-'; } },
+                prefActs: { name: "กิจกรรมที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return (p.acts||[]).join(', ') || '-'; } },
+                prefColor: { name: "สีที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return p.color || '-'; } },
+                prefCareer: { name: "อาชีพในฝัน", val: s => { let p = parseJSONSafe(s.preferencesJson); return p.career || '-'; } },
+                travelMode: { name: "วิธีเดินทางมา รร.", val: s => { let p = parseJSONSafe(s.preferencesJson); return p.travel || '-'; } },
+                travelDist: { name: "ระยะทางมา รร. (กม.)", val: s => { let p = parseJSONSafe(s.preferencesJson); return p.dist || '-'; } },
+                prefScholarships: { name: "ประวัติขอทุนการศึกษา", val: s => { 
+                    let p = parseJSONSafe(s.preferencesJson); 
+                    if(p.scholarships && p.scholarships.length > 0) {
+                        return p.scholarships.map(sch => `${sch.n} (${sch.a}บ.)`).join(' | ');
+                    }
+                    return '-';
+                }},
+                friendsInfo: { name: "การประเมินเพื่อนร่วมชั้น", val: s => { 
+                    let f = parseJSONSafe(s.friendsJson);
+                    let keys = Object.keys(f);
+                    if(keys.length === 0) return '-';
+                    // สกัดคะแนนเพื่อนเป็นข้อความที่อ่านง่าย
+                    return keys.map(k => `รหัส${k}: ไว้ใจ=${f[k].s}, แกล้ง=${f[k].c}`).join(' | ');
+                }},
+                
+                // หมวด 5
+                housingStatus: { name: "ปัจจุบันอาศัยอยู่กับ", val: s => s.housingStatus },
+                fullAddress: { name: "ที่อยู่เต็ม", val: s => s.fullAddress },
+                lat: { name: "ละติจูด", val: s => s.lat },
+                lng: { name: "ลองจิจูด", val: s => s.lng },
+                gpsLocation: { name: "พิกัดรวม (Lat,Lng)", val: s => (s.lat && s.lng) ? `${s.lat},${s.lng}` : '' }
+            };
+
+            // สร้าง Array เพื่อนำไปแปลงเป็น Excel
             const excelData = filtered.map(s => {
                 let rowData = {};
-                // Map ชื่อคอลัมน์ให้เป็นภาษาไทยสวยๆ
-                const colNames = {
-                    studentId: "รหัสนักเรียน", level: "ชั้นเรียน", fullName: "ชื่อ-สกุล",
-                    citizenId: "เลขบัตรประชาชน", birthDate: "วันเกิด", guardianName: "ชื่อผู้ปกครอง",
-                    guardianPhone: "เบอร์ผู้ปกครอง", weight: "น้ำหนัก (กก.)", height: "ส่วนสูง (ซม.)",
-                    housingStatus: "ลักษณะการอยู่อาศัย", fullAddress: "ที่อยู่ปัจจุบัน"
-                };
-                
                 selectedFields.forEach(f => {
-                    rowData[colNames[f]] = s[f] || '';
+                    if(fieldExtractors[f]) {
+                        rowData[fieldExtractors[f].name] = fieldExtractors[f].val(s);
+                    }
                 });
                 return rowData;
             });
 
-            // สร้าง Excel File
+            // สร้างไฟล์ Excel
             const ws = XLSX.utils.json_to_sheet(excelData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "รายชื่อนักเรียน");
