@@ -100,7 +100,27 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        @media (max-width: 768px) { #dashboard-view { flex-direction: column; } .sidebar { width: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); max-height: 40vh; } .main-content { padding: 15px; } .form-grid { grid-template-columns: 1fr; } }
+        /* 📱 จัดการ UI โหมดมือถือใหม่ (Responsive Fix) ป้องกันการทับซ้อนและเลื่อนได้ปกติ */
+        @media (max-width: 768px) { 
+            #dashboard-view { 
+                flex-direction: column; 
+                display: block; 
+                height: auto; 
+            } 
+            .sidebar { 
+                width: 100%; 
+                border-right: none; 
+                border-bottom: 2px dashed rgba(255,193,7,0.4); 
+                max-height: none; 
+                overflow: visible; 
+                padding: 15px; 
+            } 
+            .main-content { padding: 15px; width: 100%; } 
+            .form-grid { grid-template-columns: 1fr; } 
+            .content-card { padding: 25px 15px; margin-top: 10px; }
+            .sidebar-btn { padding: 16px 15px; margin-bottom: 10px; font-size: 1.05rem; }
+            .timer-hud { position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 15px; font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -109,8 +129,8 @@
     <div id="login-view">
         <div class="login-card">
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียนบัวใหญ่" class="login-logo">
-            <h1>เข้าสู่ระบบฐานข้อมูล</h1>
-            <p>สระบัวแห่งความห่วงใย (Buayai I Care)</p>
+            <h1>เข้าสู่ระบบฐานข้อมูลพื้นฐานนักเรียนโรงเรียนบัวใหญ่</h1>
+            <p>สระบัวแห่งความห่วงใย (Buayai I Care School)</p>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" required></div>
                 <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" required></div>
@@ -157,18 +177,18 @@
             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                 <h3 style="margin:0; color:#ffc107;">+ <span id="modal-score">0</span> หยาดน้ำค้าง 💧</h3>
             </div>
-            <button class="btn-submit" onclick="closeModalAndGoNext()">ชื่นชมดอกบัวต่อไป ➔</button>
+            <button class="btn-submit" onclick="closeModalAndGoNext()">ชื่นชมกลีบดอกบัวต่อไป ➔</button>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // ⚙️ การตั้งค่าระบบ
+        // ⚙️ การตั้งค่าระบบ (Production Ready)
         // ==========================================
-        // *** ⚠️ เปลี่ยน URL ตรงนี้เป็น URL ที่ได้จากการ Deploy หลังบ้านของคุณ ⚠️ ***
+        // ใช้ API ตัวล่าสุดที่คุณให้มา
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec';
         
-        const DEV_MODE = true; 
+        const DEV_MODE = false; // 🟢 ปิดโหมดผู้พัฒนา จะล็อกเวลาให้รอ 2 วัน (48 ชั่วโมง) ถ้วน 
         const COOLDOWN_MS = DEV_MODE ? (1 * 60 * 1000) : (2 * 24 * 60 * 60 * 1000); 
 
         let playerState = {
@@ -233,6 +253,12 @@
         async function showDashboardView() {
             document.getElementById('login-view').style.display = 'none'; 
             document.getElementById('dashboard-view').style.display = 'flex';
+            
+            // ถ้าหน้าจอเล็ก ให้เป็น block เพื่อเรียงจากบนลงล่างได้อย่างอิสระ
+            if(window.innerWidth <= 768) {
+                document.getElementById('dashboard-view').style.display = 'block';
+            }
+
             document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
             
             const area = document.getElementById('dynamic-content-area');
@@ -257,27 +283,22 @@
         // ==========================================
         function syncProgress(sd) {
             let u = false;
-            // เช็คด่าน 1
             if (sd.citizenId && sd.fullName && playerState.missions.m1.status !== 'completed') {
                 playerState.missions.m1.status = 'completed'; u = true;
                 if (playerState.missions.m2.status === 'locked') playerState.missions.m2.status = 'unlocked';
             }
-            // เช็คด่าน 2
             if (sd.guardianName && sd.guardianPhone && playerState.missions.m2.status !== 'completed') {
                 playerState.missions.m2.status = 'completed'; u = true;
                 if (playerState.missions.m3.status === 'locked') playerState.missions.m3.status = 'unlocked';
             }
-            // เช็คด่าน 3
             if (sd.weight && sd.height && playerState.missions.m3.status !== 'completed') {
                 playerState.missions.m3.status = 'completed'; u = true;
                 if (playerState.missions.m4.status === 'locked') playerState.missions.m4.status = 'unlocked';
             }
-            // เช็คด่าน 4
             if (sd.preferencesJson && playerState.missions.m4.status !== 'completed') {
                 playerState.missions.m4.status = 'completed'; u = true;
                 if (playerState.missions.m5.status === 'locked') playerState.missions.m5.status = 'unlocked';
             }
-            // เช็คด่าน 5 (ปลดล็อกด่าน 6)
             if (sd.housingStatus && playerState.missions.m5.status !== 'completed') {
                 playerState.missions.m5.status = 'completed'; u = true;
                 if (playerState.missions.m6.status === 'locked') playerState.missions.m6.status = 'unlocked';
@@ -295,8 +316,16 @@
                         let diff = m.unlocksAt - now;
                         if (diff <= 0) { m.status = 'unlocked'; el.textContent = ''; u = true; }
                         else {
-                            let mins = Math.floor(diff/1000/60), secs = Math.floor((diff/1000)%60);
-                            el.textContent = `⏳ ${mins}:${secs.toString().padStart(2,'0')}`;
+                            let mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            let secs = Math.floor((diff % (1000 * 60)) / 1000);
+                            let hours = Math.floor(diff / (1000 * 60 * 60));
+                            
+                            // แสดงผลลัพธ์เป็น ⏳ XX ชม. หรือ ⏳ นาที:วินาที เมื่อต่ำกว่า 1 ชม.
+                            if (hours > 0) {
+                                el.textContent = `⏳ ${hours} ชม.`;
+                            } else {
+                                el.textContent = `⏳ ${mins}:${secs.toString().padStart(2,'0')}`;
+                            }
                         }
                     }
                 }
@@ -317,7 +346,7 @@
         }
 
         // ==========================================
-        // 🌍 ดึงพิกัด GPS (ด่าน 5)
+        // 🌍 ดึงพิกัด GPS
         // ==========================================
         window.getLocation = () => {
             const btn = document.getElementById('btn-gps');
@@ -357,7 +386,7 @@
             if (pageName.startsWith('mission')) {
                 let mId = 'm' + pageName.replace('mission', '');
                 let st = playerState.missions[mId].status;
-                if (st === 'completed') { alert('🌸 คุณประทับกลีบดอกบัวนี้สำเร็จเรียบร้อยแล้ว!'); return; }
+                if (st === 'completed') { alert('🌸 ลูกๆได้ประทับกลีบดอกบัว ดอกนี้สำเร็จเรียบร้อยแล้ว!'); return; }
                 if (st === 'locked' || st === 'cooldown') return; 
             }
 
@@ -378,15 +407,13 @@
                     <p style="font-size: 1.1rem;">ยินดีต้อนรับลูกบัวใหญ่ รหัส: <b style="color: var(--primary);">${localStorage.getItem('studentId')}</b></p>
                     <div style="background:rgba(255,193,7,0.1); padding:20px; border-left:4px solid var(--accent); border-radius:10px; margin-top:20px; line-height:1.7;">
                         <strong style="color:var(--accent); font-size: 1.2rem;">เรื่องราวของคุณคือดอกบัวที่งดงาม 🪷</strong><br><br>
-                        โรงเรียนบัวใหญ่เชื่อว่านักเรียนทุกคนเปรียบเสมือนเมล็ดบัวที่รอวันเบ่งบาน การที่คุณเข้ามาบันทึกข้อมูลและบอกเล่าเรื่องราวของตนเอง เปรียบเสมือนการค่อยๆ <b>ประกอบกลีบดอกบัวของตัวเองให้เบ่งบานสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม</b> <br><br>
-                        เมื่อคุณรวบรวมครบทั้ง 5 กลีบ ดอกบัวประจำตัวของคุณจะพร้อมรับแสงสว่างและการดูแลอย่างใกล้ชิดจากทางโรงเรียนของเราครับ ✨
+                        โรงเรียนบัวใหญ่เชื่อว่านักเรียนทุกคนเปรียบเสมือนเมล็ดบัวที่รอวันเบ่งบาน การที่ลูกๆเข้ามาบันทึกข้อมูลและบอกเล่าเรื่องราวของตนเอง เปรียบเสมือนการค่อยๆ <b>ประกอบกลีบดอกบัวของตัวเองให้เบ่งบานสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม</b> <br><br>
+                        เมื่อสามารถรวบรวมครบทั้ง 5 กลีบ นั่นแสดงว่าดอกบัวประจำตัวของลูก เปิดรับ เปิดใจพร้อมรับแสงสว่างและการดูแลอย่างใกล้ชิดจากทางโรงเรียนบัวใหญ่....แล้ว ✨
                     </div>
                 `;
-                return;
             }
-
             // 🌸 กลีบที่ 1: รากฐานตัวตน
-            if (pageName === 'mission1') {
+            else if (pageName === 'mission1') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
                     <h2 style="color:var(--primary);">🌸 กลีบที่ 1: รากฐานตัวตน</h2>
@@ -406,14 +433,14 @@
                                 </select>
                             </div>
                             <div class="form-group full-width">
-                                <label>📸 ภาพถ่ายนักเรียน ${sd.profileImageUrl ? '<span style="color:var(--success)">(มีรูปเก่าในระบบ)</span>' : ''}</label>
+                                <label>📸 ภาพถ่ายนักเรียนสวมชุดนักเรียนหน้าตรง ยิ้มได้เล็กน้อย ${sd.profileImageUrl ? '<span style="color:var(--success)">(มีรูปเก่าในระบบ)</span>' : ''}</label>
                                 <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*" required><span>คลิกเลือกรูปถ่าย 📂</span></div>
                             </div>
                         </div>
                         <button type="submit" class="btn-submit">ประทับกลีบที่ 1 🪷</button>
                     </form>`;
             }
-            // 🌸 กลีบที่ 2: สายใยครอบครัว (อัปเดตรูปผู้ปกครอง)
+            // 🌸 กลีบที่ 2: สายใยครอบครัว
             else if (pageName === 'mission2') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
@@ -430,14 +457,13 @@
                         <div class="section-box">
                             <h3 class="section-title">📞 ข้อมูลติดต่อ (10 หลัก)</h3>
                             <div class="form-grid">
-                                <div class="form-group"><label>📱 เบอร์นักเรียน</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
-                                <div class="form-group"><label>📞 เบอร์ผู้ปกครอง</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+                                <div class="form-group"><label>📱 เบอร์ติดต่อนักเรียน</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
+                                <div class="form-group"><label>📞 เบอร์ติดต่อผู้ปกครอง</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" pattern="[0-9]{10}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required></div>
                             </div>
                         </div>
                         <div class="section-box">
                             <h3 class="section-title">📸 อัปโหลดหลักฐานผู้ปกครอง</h3>
                             <div class="form-grid">
-                                <!-- 🌟 อัปโหลดรูปผู้ปกครอง -->
                                 <div class="form-group full-width">
                                     <label>📷 ภาพถ่ายผู้ปกครอง ${sd.guardianImageUrl ? '<span style="color:var(--success)">(มีรูปเดิมในระบบ)</span>' : ''}</label>
                                     <div class="file-upload-box">
@@ -445,7 +471,6 @@
                                         <span>คลิกอัปโหลดภาพผู้ปกครอง 📂</span>
                                     </div>
                                 </div>
-                                <!-- 🌟 อัปโหลดลายเซ็นผู้ปกครอง -->
                                 <div class="form-group full-width">
                                     <label>✍️ ลายมือชื่อผู้ปกครอง ${sd.guardianSignatureUrl ? '<span style="color:var(--success)">(มีรูปลายเซ็นเดิมในระบบ)</span>' : ''}</label>
                                     <div class="file-upload-box">
@@ -604,7 +629,6 @@
                             <p style="color:var(--text-muted); font-size:0.9rem;">* กรุณาทำขั้นตอนนี้ขณะอยู่ที่บ้าน ระบบจะช่วยประทับพิกัดจากดาวเทียมให้</p>
                             <button type="button" id="btn-gps" class="btn-gps" onclick="getLocation()">📍 กดเพื่อสแกนพิกัดและที่อยู่บ้าน</button>
                             <div class="form-grid" style="margin-top: 15px;">
-                                <!-- ถอด readonly ออก เพื่อให้พิมพ์ 0 ได้ในกรณีมือถือบางรุ่นไม่ยอมให้เข้าถึง GPS -->
                                 <div class="form-group"><label>ละติจูด (Latitude)</label><input type="text" id="m5-lat" value="${sd.lat || ''}" required placeholder="เช่น 15.1234"></div>
                                 <div class="form-group"><label>ลองจิจูด (Longitude)</label><input type="text" id="m5-lng" value="${sd.lng || ''}" required placeholder="เช่น 102.1234"></div>
                             </div>
@@ -653,7 +677,14 @@
                     </form>`;
             }
 
-            startTimer();
+            if (pageName !== 'dashboard') startTimer();
+
+            // 📱 เลื่อนหน้าจอลงมาที่แบบฟอร์มอัตโนมัติ (เฉพาะโหมดมือถือ)
+            if (window.innerWidth <= 768 && pageName !== 'dashboard') {
+                setTimeout(() => {
+                    document.getElementById('dynamic-content-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            }
         }
 
         // ==========================================
@@ -789,7 +820,6 @@
                     p.guardianName = document.getElementById('m2-guardianName').value;
                     p.studentPhone = document.getElementById('m2-stuPhone').value;
                     p.guardianPhone = document.getElementById('m2-guardPhone').value;
-                    // 🌟 ดึงข้อมูลรูปภาพและลายเซ็นก่อนส่งไปหลังบ้าน
                     if(document.getElementById('m2-img-guard').files.length > 0) {
                         p.guardianImageBase64 = await getBase64(document.getElementById('m2-img-guard').files[0]);
                     }
@@ -845,10 +875,9 @@
                 }
                 savePlayerState();
 
-                // 🌸 Modal ธีมดอกบัว
                 let petalName = ["", "รากฐานตัวตน", "สายใยครอบครัว", "พลังกายสุขภาพ", "สายลมมิตรภาพ", "แหล่งพักพิง"][num];
                 let lotusMsg = num === 5 
-                    ? "ยินดีด้วย! ดอกบัวของคุณเบ่งบานอย่างสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม 🪷✨" 
+                    ? "ยินดีด้วย! ดอกบัวของลูกเบ่งบานอย่างสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม 🪷✨" 
                     : "ดอกบัวของคุณงดงามขึ้นอีกขั้น! 🌸";
                 
                 let prepStr = num === 5 ? "รอทำแบบประเมิน SDQ พิเศษ เพื่อประเมินจุดแข็งและดูแลจิตใจ" : "";
