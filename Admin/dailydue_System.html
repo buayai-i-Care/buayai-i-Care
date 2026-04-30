@@ -23,7 +23,7 @@
 
     body { 
       font-family: 'TH Sarabun New', 'Sarabun', sans-serif; 
-      font-size: 22px; /* ปรับขนาดให้ใหญ่ขึ้นเพราะ TH Sarabun จะดูเล็กกว่าปกติ */
+      font-size: 22px; 
       background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
       min-height: 100vh;
       display: flex;
@@ -131,8 +131,7 @@
       .logo { max-width: 95px; margin-bottom: 10px; }
       .header-title { font-size: 26px; }
       .form-select { font-size: 18px; padding: 12px; border-radius: 12px; }
-      .report-item { flex-direction: column; align-items: flex-start !important; padding: 15px; }
-      .report-item .badge { align-self: flex-start; margin-top: 12px; font-size: 16px !important; padding: 8px 15px !important; }
+      .report-item { flex-direction: row; padding: 15px; }
       .modal-content { padding: 10px; }
       #modal-icon { font-size: 50px !important; margin-bottom: 10px !important; }
       #modal-title { font-size: 24px; }
@@ -164,7 +163,8 @@
       <button class="btn btn-success btn-custom" onclick="showPage('page-vote')">
         🙋 2. เลือกหัวหน้าเวร
       </button>
-      <button class="btn btn-info btn-custom text-white" disabled style="opacity: 0.6; cursor: not-allowed;">
+      <!-- 🌟 เปิดใช้งานปุ่มดูรายงานสรุป -->
+      <button class="btn btn-info btn-custom text-white" onclick="openPasswordModal()">
         📊 3. ดูรายงานสรุป
       </button>
     </div>
@@ -203,6 +203,18 @@
     </div>
   </div>
 
+  <!-- 🌟 Modal รหัสผ่านสำหรับเข้าดูรายงาน -->
+  <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow-lg text-center p-4">
+        <h4 class="fw-bold mb-3 text-info">🔒 ยืนยันตัวตน</h4>
+        <p class="text-muted mb-3" style="font-size: 20px;">กรุณากรอกรหัสผ่านเพื่อเข้าดูรายงานสรุป</p>
+        <input type="password" id="reportPassword" class="form-control text-center mb-4 fs-4" placeholder="รหัสผ่าน">
+        <button class="btn btn-info text-white w-100 py-3 rounded-pill fw-bold fs-5" onclick="verifyPassword()">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal แจ้งเตือน -->
   <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -223,8 +235,13 @@
     // ==========================================
 
     const loading = document.getElementById('loading-overlay');
+    let pwdModal;
 
-    // ฟังก์ชันแสดง Modal
+    document.addEventListener("DOMContentLoaded", function() {
+      pwdModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    });
+
+    // ฟังก์ชันแสดง Modal แจ้งเตือน
     function showModal(title, text, type) {
       const modal = new bootstrap.Modal(document.getElementById('notifyModal'));
       document.getElementById('modal-title').innerText = title;
@@ -232,6 +249,23 @@
       document.getElementById('modal-icon').innerHTML = type === 'success' ? '✅' : '❌';
       document.getElementById('modal-icon').style.color = type === 'success' ? '#2ecc71' : '#e74c3c';
       modal.show();
+    }
+
+    // 🌟 ฟังก์ชันจัดการรหัสผ่าน
+    function openPasswordModal() {
+      document.getElementById('reportPassword').value = '';
+      pwdModal.show();
+    }
+
+    function verifyPassword() {
+      const pwd = document.getElementById('reportPassword').value;
+      if (pwd === "by44") {
+        pwdModal.hide();
+        showPage('page-report');
+      } else {
+        pwdModal.hide();
+        showModal("รหัสผ่านไม่ถูกต้อง", "คุณไม่มีสิทธิ์เข้าถึงหน้ารายงาน", "error");
+      }
     }
 
     function showPage(pageId) {
@@ -274,7 +308,6 @@
 
       const response = await apiRequest({ action: 'getTeachers', day: day });
       if (response) {
-        // แยกลิสต์รายชื่อผู้โหวต (เฉพาะคนที่ยังไม่โหวต) และลิสต์หัวหน้า (รายชื่อทั้งหมด)
         let votersList = response.voters || response;
         let allList = response.all || response;
 
@@ -306,6 +339,7 @@
       }
     }
 
+    // 🌟 ฟังก์ชันโหลดรายงานแบบจัดกลุ่มตามวัน
     async function loadReport() {
       const reportList = document.getElementById('report-list');
       reportList.innerHTML = "<div class='text-center text-muted'>กำลังประมวลผล...</div>";
@@ -315,15 +349,25 @@
         if (data.length === 0) {
           reportList.innerHTML = "<div class='text-center text-muted mt-3 py-4 bg-light rounded-4'>ยังไม่มีข้อมูลการโหวต</div>";
         } else {
-          reportList.innerHTML = data.map(i => `
-            <div class='report-item d-flex justify-content-between align-items-center shadow-sm'>
-              <div>
-                <span class='fw-bold text-primary d-block' style='font-size: 16px;'>${i.day}</span>
-                <span class='text-dark fw-bold' style='font-size: 20px;'>${i.name}</span>
+          let html = '';
+          let currentDay = '';
+
+          data.forEach(i => {
+            // ถ้าวันเปลี่ยน ให้แสดงหัวข้อวันขึ้นมาใหม่
+            if (i.day !== currentDay) {
+              html += `<h4 class="text-primary mt-4 mb-3 fw-bold" style="border-bottom: 2px solid #8ec5fc; padding-bottom: 5px;">📅 ${i.day}</h4>`;
+              currentDay = i.day;
+            }
+
+            html += `
+              <div class='report-item d-flex justify-content-between align-items-center shadow-sm'>
+                <span class='text-dark fw-bold' style='font-size: 22px;'>${i.name}</span>
+                <span class="badge bg-success rounded-pill fs-5 shadow-sm px-3 py-2">${i.votes} โหวต</span>
               </div>
-              <span class="badge bg-success rounded-pill fs-5 shadow-sm px-3 py-2">${i.votes} โหวต</span>
-            </div>
-          `).join('');
+            `;
+          });
+
+          reportList.innerHTML = html;
         }
       } else {
         reportList.innerHTML = "<div class='text-danger text-center'>ไม่สามารถโหลดข้อมูลได้</div>";
