@@ -51,16 +51,22 @@
         #dashboard-view { display: none; min-height: 100vh; }
         .sidebar { width: 300px; background: rgba(26, 5, 0, 0.9); padding: 20px; display: flex; flex-direction: column; backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.05); }
         .player-profile { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed #78350f; margin-bottom: 15px; }
-        .player-avatar { font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 0 15px var(--accent); }
+        .player-avatar { font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 0 15px var(--accent); display: flex; justify-content: center; align-items: center; }
         .score-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; border: 1px solid #78350f; margin-top: 10px; }
         .score-box span { display: block; font-size: 1.5rem; color: #ffc107; font-weight: bold; }
         
+        .sidebar-nav { display: flex; flex-direction: column; flex: 1; }
         .sidebar-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: #fff; text-align: left; padding: 12px 15px; font-family: 'Prompt', sans-serif; font-size: 1rem; cursor: pointer; transition: 0.3s; width: 100%; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-btn:hover:not(.locked):not(.cooldown):not(.completed) { background: rgba(255,255,255,0.1); border-color: var(--accent); }
         .sidebar-btn.active { background: rgba(255, 193, 7, 0.15); border: 1px solid var(--accent); box-shadow: 0 0 15px rgba(255,193,7,0.2); }
         .sidebar-btn.locked { color: var(--locked); cursor: not-allowed; border-style: dashed; }
         .sidebar-btn.completed { border-color: var(--success); background: rgba(34, 197, 94, 0.05); cursor: not-allowed; }
         .sidebar-btn.cooldown { border-color: var(--cooldown); border-style: dashed; cursor: not-allowed; background: rgba(249, 115, 22, 0.05); }
+        
+        .btn-text { flex: 1; text-align: left; }
+        .icon-text { margin-left: 5px; }
+        .divider-btn { margin-top: auto; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); margin-bottom: 10px; }
+        .logout-btn { background: rgba(239,68,68,0.1) !important; color: #fca5a5 !important; justify-content: center; border-color: rgba(239,68,68,0.2) !important; }
         
         .main-content { flex: 1; padding: 30px; position: relative; }
         .content-card { background: var(--bg-card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); max-width: 900px; margin: 0 auto; position: relative; animation: fadeIn 0.4s ease-out; }
@@ -100,25 +106,29 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* 📱 จัดการ UI โหมดมือถือใหม่ (Responsive Fix) ป้องกันการทับซ้อนและเลื่อนได้ปกติ */
+        /* 📱 จัดการ UI โหมดมือถือใหม่ แก้ปัญหาทับซ้อนและจัดรูปแบบ Grid ให้สวยงาม */
         @media (max-width: 768px) { 
-            #dashboard-view { 
-                flex-direction: column; 
-                display: block; 
-                height: auto; 
-            } 
-            .sidebar { 
-                width: 100%; 
-                border-right: none; 
-                border-bottom: 2px dashed rgba(255,193,7,0.4); 
-                max-height: none; 
-                overflow: visible; 
-                padding: 15px; 
-            } 
+            #dashboard-view { flex-direction: column; display: flex; height: auto; } 
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px dashed rgba(255,193,7,0.4); max-height: none; overflow: visible; padding: 15px; } 
+            
+            /* เปลี่ยนปุ่มเมนูด้านซ้ายให้เป็นแบบตาราง 2 คอลัมน์บนมือถือ */
+            .sidebar-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .sidebar-btn { padding: 12px 8px; margin-bottom: 0; font-size: 0.85rem; flex-direction: column; text-align: center; justify-content: center; min-height: 85px; }
+            .sidebar-btn .btn-text { text-align: center; margin-bottom: 5px; font-size: 0.85rem; line-height: 1.3; }
+            .sidebar-btn .icon-text { margin-left: 0; font-size: 1.2rem; }
+            .sidebar-btn .countdown-text { font-size: 0.75rem; margin-top: 3px; }
+            
+            #btn-dash { grid-column: span 2; flex-direction: row; min-height: 50px; }
+            #btn-dash span { text-align: center; width: 100%; font-size: 1rem; }
+            
+            .divider-btn { grid-column: span 2; margin-top: 5px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2); }
+            .divider-btn .sidebar-btn { min-height: 60px; flex-direction: row; justify-content: center; gap: 10px; }
+            
+            .logout-btn { grid-column: span 2; flex-direction: row; min-height: 50px; margin-top: 5px; }
+            
             .main-content { padding: 15px; width: 100%; } 
             .form-grid { grid-template-columns: 1fr; } 
             .content-card { padding: 25px 15px; margin-top: 10px; }
-            .sidebar-btn { padding: 16px 15px; margin-bottom: 10px; font-size: 1.05rem; }
             .timer-hud { position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 15px; font-size: 1rem; }
         }
     </style>
@@ -144,23 +154,26 @@
     <div id="dashboard-view">
         <div class="sidebar">
             <div class="player-profile">
-                <div class="player-avatar">🪷</div>
-                <h3 style="margin: 0; color: var(--accent);">ลูกบัวใหญ่รหัส: <br><span id="display-studentId">-</span></h3>
+                <!-- 🌟 อวาตาร์โปรไฟล์ จะถูกเปลี่ยนเป็นรูปนักเรียนถ้าระบบดึงข้อมูลเจอ -->
+                <div class="player-avatar" id="sidebar-avatar">🪷</div>
+                <h3 style="margin: 0; color: var(--accent);">ลูกบัวใหญ่เลขประจำตัวนักเรียน: <br><span id="display-studentId">-</span></h3>
                 <div class="score-box"><small>หยาดน้ำค้างสะสม 💧</small><span id="display-score">0</span></div>
             </div>
             
-            <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash"><span>🌸 สระบัวหลัก (หน้าแรก)</span></button>
-            <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1"><div>🌸 กลีบที่ 1: รากฐานตัวตน</div><span id="cd-m1"></span><span id="icon-m1">🔓</span></button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2"><div>🌸 กลีบที่ 2: สายใยครอบครัว</div><span id="cd-m2"></span><span id="icon-m2">🔒</span></button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3"><div>🌸 กลีบที่ 3: พลังกายสุขภาพ</div><span id="cd-m3"></span><span id="icon-m3">🔒</span></button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission4', this)" id="btn-m4"><div>🌸 กลีบที่ 4: สายลมมิตรภาพ</div><span id="cd-m4"></span><span id="icon-m4">🔒</span></button>
-            <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5"><div>🌸 กลีบที่ 5: แหล่งพักพิง</div><span id="cd-m5"></span><span id="icon-m5">🔒</span></button>
-            
-            <div style="margin-top:20px; padding-top:10px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                <button class="sidebar-btn locked" onclick="loadContent('mission6', this)" id="btn-m6"><div>💎 พิเศษ: แบบประเมิน SDQ</div><span id="cd-m6"></span><span id="icon-m6">🔒</span></button>
+            <div class="sidebar-nav">
+                <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash"><span>🌸 สระบัวหลัก (หน้าแรก)</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1"><div class="btn-text">🌸 ด่าน 1: รากฐานตัวตน</div><span class="countdown-text" id="cd-m1"></span><span class="icon-text" id="icon-m1">🔓</span></button>
+                <button class="sidebar-btn locked" onclick="loadContent('mission2', this)" id="btn-m2"><div class="btn-text">🌸 ด่าน 2: สายใยครอบครัว</div><span class="countdown-text" id="cd-m2"></span><span class="icon-text" id="icon-m2">🔒</span></button>
+                <button class="sidebar-btn locked" onclick="loadContent('mission3', this)" id="btn-m3"><div class="btn-text">🌸 ด่าน 3: พลังกายสุขภาพ</div><span class="countdown-text" id="cd-m3"></span><span class="icon-text" id="icon-m3">🔒</span></button>
+                <button class="sidebar-btn locked" onclick="loadContent('mission4', this)" id="btn-m4"><div class="btn-text">🌸 ด่าน 4: สายลมมิตรภาพ</div><span class="countdown-text" id="cd-m4"></span><span class="icon-text" id="icon-m4">🔒</span></button>
+                <button class="sidebar-btn locked" onclick="loadContent('mission5', this)" id="btn-m5"><div class="btn-text">🌸 ด่าน 5: แหล่งพักพิง</div><span class="countdown-text" id="cd-m5"></span><span class="icon-text" id="icon-m5">🔒</span></button>
+                
+                <div class="divider-btn">
+                    <button class="sidebar-btn locked" onclick="loadContent('mission6', this)" id="btn-m6"><div class="btn-text">💎 พิเศษ: แบบประเมิน SDQ</div><span class="countdown-text" id="cd-m6"></span><span class="icon-text" id="icon-m6">🔒</span></button>
+                </div>
+                
+                <button class="sidebar-btn logout-btn" onclick="handleLogout()">🚪 ออกจากระบบ</button>
             </div>
-            
-            <button class="sidebar-btn" style="margin-top:auto; background:rgba(239,68,68,0.1); color:#fca5a5;" onclick="handleLogout()">🚪 ออกจากระบบ</button>
         </div>
 
         <div class="main-content">
@@ -183,12 +196,12 @@
 
     <script>
         // ==========================================
-        // ⚙️ การตั้งค่าระบบ (Production Ready)
+        // ⚙️ การตั้งค่าระบบ
         // ==========================================
-        // ใช้ API ตัวล่าสุดที่คุณให้มา
+        // *** ⚠️ ตรวจสอบและเปลี่ยน URL ให้ตรงกับการ Deploy ล่าสุดของคุณ ⚠️ ***
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec';
         
-        const DEV_MODE = true; // 🟢 ปิดโหมดผู้พัฒนา จะล็อกเวลาให้รอ 2 วัน (48 ชั่วโมง) ถ้วน 
+        const DEV_MODE = true; // ปิดโหมดผู้พัฒนา จะล็อกเวลาด่านละ 2 วันตามนโยบาย
         const COOLDOWN_MS = DEV_MODE ? (1 * 60 * 1000) : (2 * 24 * 60 * 60 * 1000); 
 
         let playerState = {
@@ -215,9 +228,6 @@
 
         function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
 
-        // ==========================================
-        // 💡 UX Fix: อัปเดตข้อความเมื่อเลือกรูปภาพ
-        // ==========================================
         document.addEventListener('change', function(e) {
             if(e.target.type === 'file' && e.target.parentElement.classList.contains('file-upload-box')) {
                 const box = e.target.parentElement;
@@ -233,9 +243,6 @@
             }
         });
 
-        // ==========================================
-        // 🔐 Login & Auth
-        // ==========================================
         async function handleLogin(e) {
             e.preventDefault();
             const btn = document.getElementById('loginBtn'), msg = document.getElementById('error-msg');
@@ -254,7 +261,6 @@
             document.getElementById('login-view').style.display = 'none'; 
             document.getElementById('dashboard-view').style.display = 'flex';
             
-            // ถ้าหน้าจอเล็ก ให้เป็น block เพื่อเรียงจากบนลงล่างได้อย่างอิสระ
             if(window.innerWidth <= 768) {
                 document.getElementById('dashboard-view').style.display = 'block';
             }
@@ -262,7 +268,11 @@
             document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
             
             const area = document.getElementById('dynamic-content-area');
-            area.innerHTML = `<div style="text-align:center; padding:50px;">📡 กำลังตรวจสอบสระบัวของคุณ...</div>`;
+            area.innerHTML = `<div style="text-align:center; padding:50px;">📡 กำลังตรวจสอบข้อมูลของคุณ...</div>`;
+
+            updateSidebarUI(); 
+            startGameLoop(); 
+            loadContent('dashboard', document.getElementById('btn-dash'));
 
             try {
                 const res = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
@@ -270,17 +280,23 @@
                     cachedStudentData = res.studentData; 
                     cachedClassmates = res.classmates || [];
                     syncProgress(res.studentData);
+                    
+                    // 🌟 นำภาพ Profile Thumbnail มาแสดงในแถบเมนูด้านซ้าย
+                    if (cachedStudentData.profileImageUrl) {
+                        const avatarDiv = document.getElementById('sidebar-avatar');
+                        avatarDiv.innerHTML = `<img src="${getDriveThumb(cachedStudentData.profileImageUrl)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); box-shadow: 0 0 15px var(--primary-glow);">`;
+                    }
+                    
+                    // 🌟 รีโหลดหน้า Dashboard อีกครั้ง เพื่อให้รูปและข้อมูลชื่อปรากฏตรงกลางจอ
+                    if (currentMission === 'dashboard' || currentMission === '') {
+                        loadContent('dashboard', document.getElementById('btn-dash'));
+                    }
                 }
             } catch (err) { console.error(err); }
-
-            updateSidebarUI(); startGameLoop(); loadContent('dashboard', document.getElementById('btn-dash'));
         }
 
         function handleLogout() { localStorage.clear(); location.reload(); }
 
-        // ==========================================
-        // ⚙️ ระบบเช็คความคืบหน้าด่านต่างๆ
-        // ==========================================
         function syncProgress(sd) {
             let u = false;
             if (sd.citizenId && sd.fullName && playerState.missions.m1.status !== 'completed') {
@@ -319,13 +335,8 @@
                             let mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                             let secs = Math.floor((diff % (1000 * 60)) / 1000);
                             let hours = Math.floor(diff / (1000 * 60 * 60));
-                            
-                            // แสดงผลลัพธ์เป็น ⏳ XX ชม. หรือ ⏳ นาที:วินาที เมื่อต่ำกว่า 1 ชม.
-                            if (hours > 0) {
-                                el.textContent = `⏳ ${hours} ชม.`;
-                            } else {
-                                el.textContent = `⏳ ${mins}:${secs.toString().padStart(2,'0')}`;
-                            }
+                            if (hours > 0) { el.textContent = `⏳ ${hours} ชม.`; } 
+                            else { el.textContent = `⏳ ${mins}:${secs.toString().padStart(2,'0')}`; }
                         }
                     }
                 }
@@ -345,9 +356,6 @@
             }
         }
 
-        // ==========================================
-        // 🌍 ดึงพิกัด GPS
-        // ==========================================
         window.getLocation = () => {
             const btn = document.getElementById('btn-gps');
             const latInput = document.getElementById('m5-lat');
@@ -379,9 +387,6 @@
             } else { alert("เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง"); }
         };
 
-        // ==========================================
-        // 🌸 Content Loader (ฟอร์มของด่าน 1 ถึง 5)
-        // ==========================================
         async function loadContent(pageName, btnElement) {
             if (pageName.startsWith('mission')) {
                 let mId = 'm' + pageName.replace('mission', '');
@@ -402,9 +407,20 @@
 
             // 🪷 หน้าสระบัว (Dashboard)
             if (pageName === 'dashboard') {
+                // 🌟 ตรวจสอบว่ามีรูปภาพหรือไม่ เพื่อนำมาแสดงตรงกลางหน้าจอ
+                let centerProfileImg = '';
+                if (sd.profileImageUrl) {
+                    centerProfileImg = `<div style="text-align:center; margin-bottom: 20px;">
+                                            <img src="${getDriveThumb(sd.profileImageUrl)}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); box-shadow: 0 0 20px var(--primary-glow);">
+                                        </div>`;
+                }
+
                 contentArea.innerHTML = `
-                    <h2 style="color:var(--accent);">🌸 สระบัวแห่งความห่วงใย (Buayai I Care)</h2>
-                    <p style="font-size: 1.1rem;">ยินดีต้อนรับลูกบัวใหญ่ รหัส: <b style="color: var(--primary);">${localStorage.getItem('studentId')}</b></p>
+                    ${centerProfileImg}
+                    <h2 style="text-align:center; color:var(--accent);">🌸 สระบัวแห่งความห่วงใย (Buayai I Care)</h2>
+                    <p style="text-align:center; font-size: 1.1rem;">ยินดีต้อนรับลูกบัวใหญ่ รหัส: <b style="color: var(--primary);">${localStorage.getItem('studentId')}</b><br>
+                    ${sd.fullName ? `<span style="font-size: 1.2rem; color: #fff; font-weight: 500;">${sd.fullName}</span>` : ''}
+                    </p>
                     <div style="background:rgba(255,193,7,0.1); padding:20px; border-left:4px solid var(--accent); border-radius:10px; margin-top:20px; line-height:1.7;">
                         <strong style="color:var(--accent); font-size: 1.2rem;">เรื่องราวของคุณคือดอกบัวที่งดงาม 🪷</strong><br><br>
                         โรงเรียนบัวใหญ่เชื่อว่านักเรียนทุกคนเปรียบเสมือนเมล็ดบัวที่รอวันเบ่งบาน การที่ลูกๆเข้ามาบันทึกข้อมูลและบอกเล่าเรื่องราวของตนเอง เปรียบเสมือนการค่อยๆ <b>ประกอบกลีบดอกบัวของตัวเองให้เบ่งบานสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม</b> <br><br>
@@ -679,7 +695,6 @@
 
             if (pageName !== 'dashboard') startTimer();
 
-            // 📱 เลื่อนหน้าจอลงมาที่แบบฟอร์มอัตโนมัติ (เฉพาะโหมดมือถือ)
             if (window.innerWidth <= 768 && pageName !== 'dashboard') {
                 setTimeout(() => {
                     document.getElementById('dynamic-content-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -711,7 +726,8 @@
 
         function renderClassmates() {
             const con = document.getElementById('classmates-container'); if(!con) return;
-            if(cachedClassmates.length === 0) { con.innerHTML = "<p style='color:var(--text-muted);'>ไม่พบรายชื่อเพื่อนร่วมชั้น</p>"; return; }
+            if(cachedClassmates.length === 0) { con.innerHTML = "<p style='color:var(--text-muted); text-align:center; padding: 20px;'>ไม่พบรายชื่อเพื่อนร่วมชั้น</p>"; return; }
+            
             con.innerHTML = cachedClassmates.map(m => {
                 const r = m4State.friendsRatings[m.studentId] || { s:0, c:0 };
                 return `
@@ -804,6 +820,7 @@
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.textContent='กำลังประทับกลีบดอกบัว... ⏳';
             let p = { studentId: localStorage.getItem('studentId'), mission: String(num) };
+            let sd = cachedStudentData || {};
             
             try {
                 if (num === 1) {
@@ -811,6 +828,10 @@
                     p.fullName = document.getElementById('m1-fullName').value;
                     p.birthDate = document.getElementById('m1-birth').value;
                     p.religion = document.getElementById('m1-religion').value;
+                    
+                    // 🛡️ ป้องกันชั้นที่ 1 (ฝั่งหน้าเว็บ): ส่งค่าชั้นเรียนกลับไปด้วยเสมอ ป้องกันค่ากลายเป็นช่องว่าง
+                    p.level = sd.level; 
+
                     if(document.getElementById('m1-img').files.length > 0) {
                         p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
                     }
@@ -877,7 +898,7 @@
 
                 let petalName = ["", "รากฐานตัวตน", "สายใยครอบครัว", "พลังกายสุขภาพ", "สายลมมิตรภาพ", "แหล่งพักพิง"][num];
                 let lotusMsg = num === 5 
-                    ? "ยินดีด้วย! ดอกบัวของลูกเบ่งบานอย่างสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม 🪷✨" 
+                    ? "ยินดีด้วย! ดอกบัวของคุณเบ่งบานอย่างสมบูรณ์ เป็นสมาชิกที่พร้อมรับการพัฒนาและสง่างาม 🪷✨" 
                     : "ดอกบัวของคุณงดงามขึ้นอีกขั้น! 🌸";
                 
                 let prepStr = num === 5 ? "รอทำแบบประเมิน SDQ พิเศษ เพื่อประเมินจุดแข็งและดูแลจิตใจ" : "";
