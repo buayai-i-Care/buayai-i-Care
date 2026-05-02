@@ -6,7 +6,21 @@
     <title>ระบบตักเตือนความประพฤติออนไลน์ - Buayai I Care School</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <style>
+    
+    <!-- ตั้งค่า Tailwind CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"TH Sarabun New"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
         /* นำเข้าฟอนต์ TH Sarabun New */
         @font-face {
             font-family: 'TH Sarabun New';
@@ -22,31 +36,28 @@
         }
 
         body { 
-            font-family: 'TH Sarabun New', sans-serif; 
             background-color: #f1f5f9;
-            /* ปรับขนาดพื้นฐานให้ยืดหยุ่น */
-            font-size: 1.4rem; 
             color: #1e293b;
+            /* ป้องกันการซูมแปลกๆ บนมือถือ */
+            -webkit-text-size-adjust: 100%;
         }
 
-        /* ใช้ rem หรือ % เพื่อให้ตอบสนองกับขนาดหน้าจอ */
-        .form-control {
-            width: 100%; padding: 10px 14px; font-size: 1.3rem; font-family: 'TH Sarabun New', sans-serif; font-weight: bold;
-            color: #334155; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 12px; transition: all 0.3s;
-            appearance: none;
+        @layer components {
+            .form-control {
+                @apply w-full px-4 py-2 md:py-3 text-2xl md:text-3xl font-bold text-slate-700 bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 disabled:bg-slate-50 disabled:text-slate-400 transition-all appearance-none;
+            }
+            .form-label {
+                @apply block font-bold text-slate-900 mb-2 text-2xl md:text-3xl;
+            }
+            .btn-main {
+                @apply w-full py-3 md:py-4 text-3xl md:text-4xl font-bold rounded-2xl transition-transform active:scale-95 shadow-md flex justify-center items-center gap-2;
+            }
+            .btn-custom {
+                @apply px-4 py-2 md:py-3 text-2xl md:text-3xl font-bold rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2;
+            }
         }
-        .form-control:focus { outline: none; border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
-        .form-control:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; }
-        .form-label { display: block; font-weight: 700; color: #0f172a; margin-bottom: 6px; font-size: 1.4rem; }
-        
-        .btn-main { width: 100%; padding: 14px; font-size: 1.6rem; font-weight: 700; border-radius: 16px; transition: transform 0.1s, box-shadow 0.1s; }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-custom { padding: 10px 16px; font-size: 1.3rem; font-weight: bold; border-radius: 12px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-custom:active { transform: scale(0.96); }
 
-        .hidden { display: none !important; }
-        .modal-backdrop { backdrop-filter: blur(4px); }
-
+        /* ซ่อนลูกศรของ details tag */
         details > summary { list-style: none; outline: none; }
         details > summary::-webkit-details-marker { display: none; }
         .chevron-icon { transition: transform 0.3s ease; }
@@ -67,43 +78,32 @@
             background-image: radial-gradient(#fce7f3 2px, transparent 2px);
             background-size: 30px 30px;
         }
-
-        /* ปรับแต่งสำหรับหน้าจอมือถือโดยเฉพาะ */
-        @media (max-width: 640px) {
-            body { font-size: 1.25rem; }
-            .form-control { font-size: 1.2rem; }
-            .btn-main { font-size: 1.4rem; padding: 12px; }
-            .btn-custom { font-size: 1.2rem; }
-            /* ไอคอนและข้อความแจ้งเตือนย่อลงบนมือถือ */
-            .ph { font-size: 1.2em; } 
-        }
     </style>
 </head>
-<body class="pb-10 bg-slate-100">
+<body class="pb-10 bg-slate-100 text-slate-800">
 
     <div id="loadingOverlay" class="fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center hidden">
-        <i class="ph ph-spinner animate-spin text-red-600 mb-2" style="font-size: 4rem;"></i>
-        <h2 id="loadingText" class="font-bold text-red-800 text-2xl md:text-3xl text-center px-4">กำลังสื่อสารกับฐานข้อมูล...</h2>
+        <i class="ph ph-spinner animate-spin text-red-600 mb-2 text-7xl md:text-8xl"></i>
+        <h2 id="loadingText" class="font-bold text-red-800 text-3xl md:text-4xl text-center px-4">กำลังสื่อสารกับฐานข้อมูล...</h2>
     </div>
 
     <!-- Header พร้อมโลโก้โรงเรียน -->
     <div id="mainHeader" class="bg-red-600 text-white rounded-b-[30px] p-4 md:p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500">
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=300" alt="Logo" class="mx-auto mb-2 w-20 h-20 md:w-24 md:h-24 object-contain bg-white rounded-full p-1 shadow-inner border-2 border-white" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
-        <h1 id="headerTitle" class="font-bold leading-tight text-2xl md:text-[38px]">ระบบตักเตือนพฤติกรรมออนไลน์ ของระบบคะแนนพฤติกรรม E-Point </h1>
-        <p id="headerSubtitle" class="text-xl md:text-2xl opacity-90">Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</p>
+        <h1 id="headerTitle" class="font-bold leading-tight text-3xl md:text-5xl mb-1">ระบบตักเตือนพฤติกรรมออนไลน์ ของระบบคะแนนพฤติกรรม E-Point </h1>
+        <p id="headerSubtitle" class="text-xl md:text-3xl opacity-90 leading-tight">Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่</p>
     </div>
 
     <!-- แท็บเมนูหลัก 3 ส่วน -->
     <div class="max-w-3xl mx-auto px-4 mb-4">
-        <!-- ลบ gap-1 และปรับ padding เพื่อไม่ให้ปุ่มบีบกันเกินไปบนมือถือ -->
-        <div class="flex flex-row bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto snap-x">
-            <button id="tabBtnForm" onclick="switchTab('form')" class="flex-1 py-2 px-3 bg-red-600 text-white font-bold rounded-xl text-lg md:text-[26px] shadow-sm transition whitespace-nowrap snap-center min-w-[120px]">
+        <div class="flex flex-row bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto snap-x gap-1">
+            <button id="tabBtnForm" onclick="switchTab('form')" class="flex-1 py-2 px-3 bg-red-600 text-white font-bold rounded-xl text-2xl md:text-3xl shadow-sm transition whitespace-nowrap snap-center min-w-[110px]">
                 <i class="ph ph-pencil-line inline-block align-middle"></i> บันทึก
             </button>
-            <button id="tabBtnInbox" onclick="switchTab('inbox')" class="flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-lg md:text-[26px] hover:bg-slate-200 transition whitespace-nowrap snap-center min-w-[120px] mx-1">
+            <button id="tabBtnInbox" onclick="switchTab('inbox')" class="flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-2xl md:text-3xl hover:bg-slate-200 transition whitespace-nowrap snap-center min-w-[110px]">
                 <i class="ph ph-envelope-open inline-block align-middle"></i> กล่องข้อความ
             </button>
-            <button id="tabBtnStudent" onclick="switchTab('student')" class="flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-lg md:text-[26px] hover:bg-slate-200 transition whitespace-nowrap snap-center min-w-[120px]">
+            <button id="tabBtnStudent" onclick="switchTab('student')" class="flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-2xl md:text-3xl hover:bg-slate-200 transition whitespace-nowrap snap-center min-w-[110px]">
                 <i class="ph ph-student inline-block align-middle"></i> สำหรับนักเรียน
             </button>
         </div>
@@ -155,7 +155,7 @@
                     <label class="form-label"><i class="ph ph-identification-badge text-red-500"></i> 5. ลงชื่อครูผู้ตักเตือน</label>
                     <input type="text" id="teacherInput" class="form-control" placeholder="ระบุชื่อ-สกุล ของท่าน" required>
                 </div>
-                <button type="submit" class="btn-main bg-red-600 text-white shadow-lg">บันทึกข้อมูลตักเตือน</button>
+                <button type="submit" class="btn-main bg-red-600 text-white">บันทึกข้อมูลตักเตือน</button>
             </form>
         </div>
     </div>
@@ -163,28 +163,28 @@
     <!-- แท็บ 2: กล่องข้อความเจ้าหน้าที่ -->
     <div id="sectionInbox" class="hidden max-w-3xl mx-auto px-4">
         <div id="inboxLoginView" class="bg-white p-6 md:p-8 rounded-[30px] shadow-sm border border-slate-200 text-center mt-2">
-            <i class="ph ph-lock-key text-red-600 mb-2 text-6xl md:text-[70px]"></i>
-            <h2 class="font-bold text-slate-800 mb-6 text-2xl md:text-[38px]">ตรวจสอบรหัสผ่าน</h2>
-            <input type="text" id="loginCode" class="w-full p-3 md:p-4 border-2 border-slate-300 rounded-2xl text-center font-bold text-slate-800 focus:border-red-500 outline-none mb-4 text-xl md:text-[32px]" placeholder="ระบุรหัส (เช่น t32 หรือ m2)">
-            <p id="loginError" class="text-red-500 mb-4 font-bold hidden text-lg md:text-[22px]">รหัสไม่ถูกต้อง กรุณาลองใหม่!</p>
-            <button onclick="doInboxLogin()" class="btn-custom bg-slate-800 text-white w-full py-3">เข้าสู่กล่องข้อความ</button>
+            <i class="ph ph-lock-key text-red-600 mb-2 text-7xl md:text-8xl"></i>
+            <h2 class="font-bold text-slate-800 mb-6 text-4xl md:text-5xl">ตรวจสอบรหัสผ่าน</h2>
+            <input type="text" id="loginCode" class="form-control text-center mb-4 text-3xl" placeholder="ระบุรหัส (เช่น t32 หรือ m2)">
+            <p id="loginError" class="text-red-500 mb-4 font-bold hidden text-2xl md:text-3xl">รหัสไม่ถูกต้อง กรุณาลองใหม่!</p>
+            <button onclick="doInboxLogin()" class="btn-main bg-slate-800 text-white">เข้าสู่กล่องข้อความ</button>
         </div>
 
         <div id="inboxContentView" class="hidden mt-2">
-            <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-800 text-white p-4 rounded-2xl mb-4 gap-2">
-                <div><span id="roleTitle" class="font-bold text-xl md:text-[26px]">...</span></div>
-                <button onclick="logoutInbox()" class="text-red-300 font-bold px-4 py-2 bg-white/10 rounded-lg w-full sm:w-auto">ออกจากระบบ</button>
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-800 text-white p-4 rounded-2xl mb-4 gap-3">
+                <div><span id="roleTitle" class="font-bold text-3xl">...</span></div>
+                <button onclick="logoutInbox()" class="text-red-200 font-bold px-4 py-2 bg-white/10 rounded-lg w-full sm:w-auto text-2xl hover:bg-white/20 transition-colors">ออกจากระบบ</button>
             </div>
 
             <!-- ตัวเลือกด่านสำหรับหัวหน้าระดับ -->
             <div id="headLevelSelector" class="hidden mb-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap flex items-center gap-2">
-                <span class="font-bold text-slate-500 mr-1 text-lg">ชั้น:</span>
-                <button onclick="filterHeadByGrade('ม.1')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.1</button>
-                <button onclick="filterHeadByGrade('ม.2')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.2</button>
-                <button onclick="filterHeadByGrade('ม.3')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.3</button>
-                <button onclick="filterHeadByGrade('ม.4')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.4</button>
-                <button onclick="filterHeadByGrade('ม.5')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.5</button>
-                <button onclick="filterHeadByGrade('ม.6')" class="btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base">ม.6</button>
+                <span class="font-bold text-slate-500 mr-1 text-2xl">ชั้น:</span>
+                <button onclick="filterHeadByGrade('ม.1')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.1</button>
+                <button onclick="filterHeadByGrade('ม.2')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.2</button>
+                <button onclick="filterHeadByGrade('ม.3')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.3</button>
+                <button onclick="filterHeadByGrade('ม.4')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.4</button>
+                <button onclick="filterHeadByGrade('ม.5')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.5</button>
+                <button onclick="filterHeadByGrade('ม.6')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl">ม.6</button>
             </div>
 
             <div id="warningCardsContainer" class="space-y-4"></div>
@@ -194,38 +194,38 @@
     <!-- แท็บ 3: สำหรับนักเรียน (Student Dashboard) -->
     <div id="sectionStudent" class="hidden max-w-3xl mx-auto px-4 bg-lotus min-h-screen rounded-3xl pb-10 border-2 border-pink-100">
         <div id="studentLoginView" class="p-6 md:p-8 text-center mt-6 bg-white rounded-3xl shadow-xl">
-            <i class="ph ph-student text-pink-500 mb-2 text-6xl md:text-[80px]"></i>
-            <h2 class="font-bold text-pink-900 leading-tight mb-2 text-3xl md:text-[38px]">แจ้งตักเตือนพฤติกรรมออนไลน์</h2>
-            <p class="text-pink-600 mb-6 text-lg md:text-[24px]">ระบบ E-Point Buayai I Care School<br>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+            <i class="ph ph-student text-pink-500 mb-2 text-7xl md:text-8xl"></i>
+            <h2 class="font-bold text-pink-900 leading-tight mb-2 text-4xl md:text-5xl">แจ้งตักเตือนพฤติกรรมออนไลน์</h2>
+            <p class="text-pink-600 mb-6 text-2xl md:text-3xl">ระบบ E-Point Buayai I Care School<br>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
             <div class="text-left mt-4 mb-6">
-                <label class="block font-bold text-pink-800 mb-1 text-lg">เลขประจำตัวนักเรียน</label>
+                <label class="block font-bold text-pink-800 mb-2 text-2xl md:text-3xl">เลขประจำตัวนักเรียน</label>
                 <input type="text" id="stuLoginId" class="form-control mb-4" placeholder="ระบุเลข 5 หลัก">
-                <label class="block font-bold text-pink-800 mb-1 text-lg">รหัสผ่าน</label>
+                <label class="block font-bold text-pink-800 mb-2 text-2xl md:text-3xl">รหัสผ่าน</label>
                 <input type="password" id="stuLoginPass" class="form-control" placeholder="ระบุรหัสผ่าน">
-                <p id="stuLoginError" class="text-red-500 mt-2 hidden text-lg md:text-[22px]"></p>
+                <p id="stuLoginError" class="text-red-500 mt-2 hidden text-2xl font-bold"></p>
             </div>
-            <button onclick="doStudentLogin()" class="btn-custom bg-gradient-to-r from-pink-500 to-rose-500 text-white w-full shadow-lg border-0 py-3 md:py-4">ตรวจสอบสถานะ</button>
+            <button onclick="doStudentLogin()" class="btn-main bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0">ตรวจสอบสถานะ</button>
         </div>
 
         <div id="studentDashboardView" class="hidden mt-4">
             <!-- โปรไฟล์นักเรียน -->
             <div class="bg-white rounded-[24px] shadow-md border border-pink-100 p-5 md:p-6 mb-6 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-20 md:h-24 bg-gradient-to-r from-pink-300 to-rose-300"></div>
-                <button onclick="logoutStudent()" class="absolute top-3 right-3 bg-white/40 text-pink-900 px-3 py-1 rounded-full text-sm md:text-[20px] font-bold z-20 flex items-center gap-1 backdrop-blur-sm">ออก <i class="ph ph-sign-out"></i></button>
-                <div class="relative z-10 pt-4">
-                    <img id="stuProfileImg" src="" alt="Profile" class="w-32 h-32 md:w-[180px] md:h-[180px] rounded-full mx-auto border-4 border-white shadow-lg object-cover bg-slate-100 mb-3" onerror="this.src='https://via.placeholder.com/180?text=ไม่มีรูปภาพ'">
-                    <h2 id="stuFullName" class="text-2xl md:text-[34px] font-bold text-slate-800 leading-tight">...</h2>
-                    <p class="text-pink-600 font-bold text-lg md:text-xl mt-1">รหัส: <span id="stuIdText">-</span> | ชั้น: <span id="stuRoomText">...</span></p>
+                <div class="absolute top-0 left-0 w-full h-24 md:h-32 bg-gradient-to-r from-pink-300 to-rose-300"></div>
+                <button onclick="logoutStudent()" class="absolute top-3 right-3 bg-white/50 text-pink-900 px-4 py-1 rounded-full text-xl font-bold z-20 flex items-center gap-1 backdrop-blur-sm shadow-sm hover:bg-white transition-colors">ออก <i class="ph ph-sign-out"></i></button>
+                <div class="relative z-10 pt-6">
+                    <img id="stuProfileImg" src="" alt="Profile" class="w-32 h-32 md:w-40 md:h-40 rounded-full mx-auto border-4 border-white shadow-lg object-cover bg-slate-100 mb-3" onerror="this.src='https://via.placeholder.com/150?text=ไม่มีรูปภาพ'">
+                    <h2 id="stuFullName" class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">...</h2>
+                    <p class="text-pink-600 font-bold text-2xl md:text-3xl mt-1">รหัส: <span id="stuIdText">-</span> | ชั้น: <span id="stuRoomText">...</span></p>
                 </div>
             </div>
 
             <!-- ข้อความเปรียบเปรยดอกบัว -->
-            <div class="bg-gradient-to-b from-white to-pink-50 p-5 md:p-6 rounded-[24px] shadow-sm mb-6 border border-pink-200 text-center relative mt-8">
-                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 shadow-sm border border-pink-100">
-                    <i class="ph ph-flower-lotus text-pink-500 animate-pulse text-4xl"></i>
+            <div class="bg-gradient-to-b from-white to-pink-50 p-5 md:p-6 rounded-[24px] shadow-sm mb-6 border border-pink-200 text-center relative mt-10">
+                <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-3 shadow-sm border border-pink-100">
+                    <i class="ph ph-flower-lotus text-pink-500 animate-pulse text-5xl"></i>
                 </div>
-                <h3 class="text-xl md:text-[28px] font-bold text-pink-800 mt-4 mb-2">ข้อคิดจากสระบัว</h3>
-                <p class="text-slate-700 leading-tight text-lg md:text-[24px]">
+                <h3 class="text-3xl md:text-4xl font-bold text-pink-800 mt-6 mb-2">ข้อคิดจากสระบัว</h3>
+                <p class="text-slate-700 leading-tight text-2xl md:text-3xl">
                     การถูกตักเตือน เปรียบเสมือน <b class="text-rose-600">"ดอกบัวที่มีแมลงมากัดกิน"</b><br>
                     ลูกรักษากายใจให้เข้มแข็ง สู้ภัยแมลง แล้วกลับมา <b class="text-pink-600">เบ่งบานอย่างสง่างาม</b> เพื่อตนเองและครอบครัวนะครับ 🌸
                 </p>
@@ -233,13 +233,13 @@
 
             <!-- 🌟 ส่วนแสดง Timeline 🌟 -->
             <div class="bg-white p-4 md:p-6 rounded-3xl shadow-sm border border-pink-100">
-                <h3 class="text-xl md:text-[30px] font-bold text-slate-800 mb-4 border-b border-pink-100 pb-2 flex justify-between items-center">
+                <h3 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 border-b border-pink-100 pb-2 flex justify-between items-center">
                     <span class="flex items-center"><i class="ph ph-git-merge text-pink-500 mr-2"></i>ประวัติ</span>
-                    <span id="warnCountBadge" class="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-base md:text-[20px] whitespace-nowrap">0 รายการ</span>
+                    <span id="warnCountBadge" class="bg-rose-100 text-rose-600 px-4 py-1 rounded-full text-2xl md:text-3xl whitespace-nowrap">0 รายการ</span>
                 </h3>
                 <div id="noWarningMsg" class="text-center py-8 hidden">
-                    <p class="font-bold text-emerald-600 text-2xl md:text-[28px]">ยินดีด้วย! ลูกประพฤติตนดีเยี่ยม</p>
-                    <p class="text-slate-500 text-lg md:text-xl">ดอกบัวของลูกยังเบ่งบานสมบูรณ์แบบไร้แมลงกัดกิน</p>
+                    <p class="font-bold text-emerald-600 text-3xl md:text-4xl">ยินดีด้วย! ลูกประพฤติตนดีเยี่ยม</p>
+                    <p class="text-slate-500 text-2xl">ดอกบัวของลูกยังเบ่งบานสมบูรณ์แบบไร้แมลงกัดกิน</p>
                 </div>
                 <div id="studentWarningsContainer" class="space-y-6 md:space-y-8">
                     <!-- ข้อมูล Timeline -->
@@ -250,38 +250,38 @@
 
     <!-- Modal หัวหน้าระดับ: แจ้งระเบียบ ปค 16 -->
     <div id="deductModal" class="hidden fixed inset-0 bg-black/70 modal-backdrop z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl relative border-2 border-red-500">
-            <button onclick="closeDeductModal()" class="absolute top-3 right-3 text-slate-400"><i class="ph ph-x-circle text-4xl"></i></button>
-            <div class="text-red-600 mb-2 flex justify-center"><i class="ph ph-warning-octagon text-6xl md:text-[70px]"></i></div>
-            <h2 class="font-bold text-red-700 leading-tight mb-3 text-2xl md:text-[32px]">ยืนยันการส่งตัดคะแนน</h2>
-            <div class="bg-red-50 p-4 rounded-xl border border-red-200 text-left mb-5">
-                <p class="text-slate-800 leading-tight text-lg md:text-[24px]">
+        <div class="bg-white w-full max-w-md rounded-[30px] p-6 md:p-8 text-center shadow-2xl relative border-2 border-red-500">
+            <button onclick="closeDeductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"><i class="ph ph-x-circle text-5xl"></i></button>
+            <div class="text-red-600 mb-2 flex justify-center"><i class="ph ph-warning-octagon text-7xl md:text-8xl"></i></div>
+            <h2 class="font-bold text-red-700 leading-tight mb-4 text-4xl md:text-5xl">ยืนยันการส่งตัดคะแนน</h2>
+            <div class="bg-red-50 p-5 rounded-2xl border border-red-200 text-left mb-6">
+                <p class="text-slate-800 leading-tight text-2xl md:text-3xl">
                     กรุณากรอกรายละเอียดการตัดคะแนน โดยนักเรียนลงลายมือชื่อรับทราบ ด้วยเอกสาร <b>ปค 16</b> และส่งเอกสาร ณ ห้องกิจการนักเรียน เพื่อเสนอตามขั้นตอนของคู่มือนักเรียนต่อไป..
                 </p>
             </div>
-            <button id="btnConfirmDeduct" class="btn-custom bg-red-600 text-white w-full shadow-lg py-3">ยืนยันและแจ้งตักเตือนในระบบ</button>
+            <button id="btnConfirmDeduct" class="btn-main bg-red-600 text-white">ยืนยันและแจ้งตักเตือนในระบบ</button>
         </div>
     </div>
 
     <!-- รหัสผ่านเจ้าหน้าที่ -->
     <div id="formPasswordModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 md:p-8 text-center shadow-2xl">
-            <h2 class="font-bold text-slate-800 mb-4 text-2xl md:text-[32px]">ยืนยันรหัสผ่าน</h2>
+            <h2 class="font-bold text-slate-800 mb-4 text-4xl">ยืนยันรหัสผ่าน</h2>
             <input type="password" id="adminPasswordInput" class="form-control text-center mb-6" placeholder="รหัสยืนยันการบันทึก">
             <div class="flex gap-2">
-                <button onclick="closeFormPasswordModal()" class="flex-1 py-3 bg-slate-200 rounded-xl font-bold text-lg md:text-xl">ยกเลิก</button>
-                <button onclick="confirmSubmitWarning()" id="btnConfirmWarning" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-lg md:text-xl">ยืนยัน</button>
+                <button onclick="closeFormPasswordModal()" class="flex-1 py-3 bg-slate-200 rounded-xl font-bold text-2xl md:text-3xl hover:bg-slate-300 transition-colors">ยกเลิก</button>
+                <button onclick="confirmSubmitWarning()" id="btnConfirmWarning" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold text-2xl md:text-3xl hover:bg-slate-700 transition-colors">ยืนยัน</button>
             </div>
         </div>
     </div>
 
     <!-- Alert Modal -->
     <div id="alertModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-[60] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl">
+        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 md:p-8 text-center shadow-2xl">
             <div id="alertIcon" class="mb-2 flex justify-center"></div>
-            <h2 id="alertTitle" class="font-bold leading-tight mb-2 text-2xl md:text-[36px]"></h2>
-            <p id="alertMessage" class="text-gray-600 mb-6 text-lg md:text-[26px] leading-tight"></p>
-            <button onclick="closeAlert()" id="alertBtn" class="btn-main text-white bg-red-600 py-2">ตกลง</button>
+            <h2 id="alertTitle" class="font-bold leading-tight mb-2 text-4xl"></h2>
+            <p id="alertMessage" class="text-slate-600 mb-6 text-2xl md:text-3xl leading-tight"></p>
+            <button onclick="closeAlert()" id="alertBtn" class="btn-main text-white bg-red-600">ตกลง</button>
         </div>
     </div>
 
@@ -314,17 +314,13 @@
 
         function switchTab(tab) {
             const tabs = ['form', 'inbox', 'student'];
-            // ใช้คลาสแบบ responsive และให้แสดงผลพอดี
-            const activeClass = "flex-1 py-2 px-3 bg-red-600 text-white font-bold rounded-xl text-lg md:text-[26px] shadow-sm whitespace-nowrap snap-center min-w-[120px]";
-            const inactiveClass = "flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-lg md:text-[26px] hover:bg-slate-200 whitespace-nowrap snap-center min-w-[120px] mx-1";
+            const activeClass = "flex-1 py-2 px-3 bg-red-600 text-white font-bold rounded-xl text-2xl md:text-3xl shadow-sm whitespace-nowrap snap-center min-w-[110px]";
+            const inactiveClass = "flex-1 py-2 px-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-2xl md:text-3xl hover:bg-slate-200 whitespace-nowrap snap-center min-w-[110px]";
             
             tabs.forEach(t => {
                 document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = (tab === t) ? activeClass : inactiveClass;
                 document.getElementById(`section${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
             });
-            
-            // กรณีเป็นแท็บ form ลบ margin-x เพื่อจัดหน้าตา
-            if(tab === 'form') document.getElementById('tabBtnForm').classList.remove('mx-1');
             
             document.getElementById(`section${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
             
@@ -362,7 +358,6 @@
             } catch (e) {
                 console.error("Error fetching violations:", e);
                 document.getElementById('violationSelect').innerHTML = '<option value="">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่</option>';
-                // แจ้งเตือนเมื่อเน็ตมือถือมีปัญหาหรือโหลดพัง
                 showAlert('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถโหลดฐานความผิดได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือโหลดหน้าเว็บใหม่');
             }
         }
@@ -471,7 +466,7 @@
         function filterHeadByGrade(grade) {
             selectedHeadGrade = grade;
             document.querySelectorAll('.btn-grade-filter').forEach(btn => {
-                btn.className = btn.innerText === grade ? "btn-grade-filter px-3 py-1 rounded-full bg-slate-800 text-white font-bold text-sm md:text-base" : "btn-grade-filter px-3 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-sm md:text-base";
+                btn.className = btn.innerText === grade ? "btn-grade-filter px-4 py-1 rounded-full bg-slate-800 text-white font-bold text-2xl" : "btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600 text-2xl";
             });
             renderInbox();
         }
@@ -481,7 +476,7 @@
             let displayData = inboxData;
             if (currentRole === 'head' && selectedHeadGrade) displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
             
-            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl text-xl text-slate-500">ไม่มีประวัติค้าง</div>'; return; }
+            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl text-3xl text-slate-500 font-bold">ไม่มีประวัติค้าง</div>'; return; }
 
             displayData.sort((a, b) => parseInt(a.room.split('/')[1] || 0) - parseInt(b.room.split('/')[1] || 0));
 
@@ -493,21 +488,21 @@
 
                 if (currentRole === 'teacher') {
                     if (isHandledByTeacher || isHandledByHead) {
-                        btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 text-lg">รับทราบแล้ว</div>`;
+                        btnAreaContent = `<div class="text-center py-3 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 text-2xl">รับทราบแล้ว</div>`;
                     } else {
-                        btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check-circle"></i> รับทราบ (เรียกพบแล้ว)</button>`;
+                        btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom w-full bg-emerald-500 text-white shadow-md"><i class="ph ph-check-circle"></i> รับทราบ (เรียกพบแล้ว)</button>`;
                     }
                 } else if (currentRole === 'head') {
                     if (isHandledByHead) {
                         const statusLabel = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "ส่งหักคะแนนแล้ว" : "รับทราบแล้ว";
                         const themeClass = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200";
-                        btnAreaContent = `<div class="text-center py-2 px-4 ${themeClass} font-bold rounded-xl border text-lg">${statusLabel}</div>`;
+                        btnAreaContent = `<div class="text-center py-3 px-4 ${themeClass} font-bold rounded-xl border text-2xl">${statusLabel}</div>`;
                     } else {
-                        btnAreaContent = `<div class="flex flex-col sm:flex-row gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1 shadow-md"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1 shadow-md"><i class="ph ph-minus-circle"></i> ส่งหักคะแนน</button></div>`;
+                        btnAreaContent = `<div class="flex flex-col sm:flex-row gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom flex-1 bg-emerald-500 text-white shadow-md"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom flex-1 bg-red-600 text-white shadow-md"><i class="ph ph-minus-circle"></i> ส่งหักคะแนน</button></div>`;
                     }
                 }
                 
-                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-3 md:p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-xl md:text-[28px]">${item.studentName}</div><div class="text-red-500 text-lg md:text-[22px] font-bold">${item.room} | <span class="text-slate-600">${item.violation}</span></div></div></div><i class="ph ph-caret-down text-slate-400 text-2xl md:text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4 text-lg md:text-xl"><b>ลักษณะ:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
+                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3 w-[85%]"><div><div class="font-bold text-3xl text-slate-800 leading-tight">${item.studentName}</div><div class="text-red-500 text-2xl font-bold leading-tight mt-1">${item.room} | <span class="text-slate-600 font-normal break-words whitespace-normal">${item.violation}</span></div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon flex-shrink-0"></i></summary><div class="p-4 border-t"><div class="mb-4 text-2xl bg-slate-50 p-3 rounded-xl border border-slate-100"><b>ลักษณะ:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
             });
             con.innerHTML = html;
         }
@@ -577,20 +572,20 @@
                 else if(w.status.includes('หักคะแนน') || w.status.includes('ตัดคะแนน')) step = 6;
 
                 html += `
-                <div class="bg-pink-50 p-4 md:p-5 rounded-2xl border border-pink-200 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 bg-pink-500 text-white px-3 py-1 rounded-bl-xl font-bold text-sm md:text-[20px]">
+                <div class="bg-pink-50 p-5 md:p-6 rounded-2xl border border-pink-200 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bg-pink-500 text-white px-4 py-1 rounded-bl-2xl font-bold text-xl md:text-2xl shadow-sm">
                         ครั้งที่ ${idx + 1}
                     </div>
                     
-                    <div class="mb-4 border-b border-pink-200 pb-3 mt-4 md:mt-0">
-                        <div class="font-bold text-pink-800 text-lg md:text-[24px]"><i class="ph ph-calendar-blank"></i> วันที่: ${w.date}</div>
-                        <div class="font-bold text-rose-600 text-xl md:text-[26px] mt-1">⚠️ ${w.violation}</div>
-                        <div class="text-slate-600 text-base md:text-[22px] mt-2 bg-white p-3 rounded-lg border border-pink-100 italic"><b>รายละเอียด:</b> ${w.notes}</div>
+                    <div class="mb-5 border-b border-pink-200 pb-4 mt-6 md:mt-2">
+                        <div class="font-bold text-pink-800 text-2xl md:text-3xl"><i class="ph ph-calendar-blank"></i> วันที่: ${w.date}</div>
+                        <div class="font-bold text-rose-600 text-3xl md:text-4xl mt-2 leading-tight">⚠️ ${w.violation}</div>
+                        <div class="text-slate-700 text-2xl md:text-3xl mt-3 bg-white p-4 rounded-xl border border-pink-100 italic leading-tight"><b>รายละเอียด:</b> ${w.notes}</div>
                     </div>
                     
-                    <h4 class="font-bold text-slate-700 mb-3 text-lg md:text-[22px]"><i class="ph ph-git-merge text-pink-400"></i> ลำดับขั้นตอนการดำเนินการ :</h4>
+                    <h4 class="font-bold text-slate-700 mb-4 text-2xl md:text-3xl"><i class="ph ph-git-merge text-pink-400"></i> ลำดับขั้นตอนการดำเนินการ :</h4>
                     
-                    <div class="bg-white p-3 md:p-4 rounded-xl border border-pink-100 shadow-inner space-y-4">
+                    <div class="bg-white p-4 md:p-5 rounded-2xl border border-pink-100 shadow-inner space-y-4">
                         ${generateStepsHtml(step)}
                     </div>
                 </div>`;
@@ -617,17 +612,17 @@
                 }
 
                 return `
-                <div class="relative pl-12 md:pl-14 min-h-[40px] flex items-center">
+                <div class="relative pl-14 md:pl-16 min-h-[44px] flex items-center">
                     <!-- เส้นเชื่อม -->
-                    ${i < 6 ? `<div class="absolute left-[16px] md:left-[20px] top-[30px] md:top-[40px] bottom-[-15px] md:bottom-[-20px] w-[2px] md:w-[3px] ${lineClass} z-0"></div>` : ''}
+                    ${i < 6 ? `<div class="absolute left-[18px] md:left-[22px] top-[34px] md:top-[44px] bottom-[-16px] md:bottom-[-20px] w-[3px] md:w-[4px] ${lineClass} z-0 rounded-full"></div>` : ''}
                     
                     <!-- จุดวงกลม -->
-                    <div class="absolute left-0 top-0 w-[34px] h-[34px] md:w-[42px] md:h-[42px] rounded-full flex items-center justify-center border-2 md:border-4 border-white shadow-sm z-10 ${colorClass} ${nodeClass}">
-                        <i class="ph ${icons[index]} text-lg md:text-[22px]"></i>
+                    <div class="absolute left-0 top-0 w-[40px] h-[40px] md:w-[48px] md:h-[48px] rounded-full flex items-center justify-center border-4 border-white shadow-sm z-10 ${colorClass} ${nodeClass}">
+                        <i class="ph ${icons[index]} text-2xl md:text-3xl"></i>
                     </div>
                     
                     <!-- ข้อความ -->
-                    <div class="text-base md:text-[24px] ${i === activeStep ? 'font-bold text-pink-900' : 'text-slate-500'}">
+                    <div class="text-2xl md:text-3xl ${i === activeStep ? 'font-bold text-pink-900' : 'text-slate-500'}">
                         ${label}
                     </div>
                 </div>`;
@@ -642,9 +637,9 @@
         }
 
         function showAlert(type, title, message) {
-            document.getElementById('alertIcon').innerHTML = `<i class="ph ph-${type==='success'?'check-circle text-green-500':'x-circle text-red-500'} text-[60px] md:text-[80px]"></i>`;
+            document.getElementById('alertIcon').innerHTML = `<i class="ph ph-${type==='success'?'check-circle text-green-500':'x-circle text-red-500'} text-7xl md:text-8xl"></i>`;
             document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertTitle').className = `font-bold leading-tight mb-2 text-2xl md:text-[36px] ${type==='success'?'text-green-600':'text-red-600'}`;
+            document.getElementById('alertTitle').className = `font-bold leading-tight mb-3 text-4xl md:text-5xl ${type==='success'?'text-green-600':'text-red-600'}`;
             document.getElementById('alertMessage').innerText = message;
             document.getElementById('alertModal').classList.remove('hidden');
         }
