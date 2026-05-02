@@ -348,17 +348,22 @@
             try {
                 const res = await fetch(WARNING_API_URL, getFetchOptions({ action: 'getInitialData' }));
                 const result = await res.json();
+                const select = document.getElementById('violationSelect');
+                
                 if(result.status === 'success') {
                     dbViolations = result.data.violations;
-                    const select = document.getElementById('violationSelect');
                     select.innerHTML = '<option value="">-- แตะเพื่อเลือก --</option>';
                     dbViolations.forEach(v => select.innerHTML += `<option value="${v}">${v}</option>`);
                     select.innerHTML += '<option value="OTHER">อื่นๆ (ระบุเอง)</option>';
+                } else {
+                    // 🌟 เพิ่มการดักจับ Error จากฝั่ง GAS ตรงนี้
+                    select.innerHTML = `<option value="">❌ ระบบแจ้งว่า: ${result.message}</option>`;
+                    showAlert('error', 'พบข้อผิดพลาดจากฐานข้อมูล', result.message);
                 }
             } catch (e) {
                 console.error("Error fetching violations:", e);
-                document.getElementById('violationSelect').innerHTML = '<option value="">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่</option>';
-                showAlert('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถโหลดฐานความผิดได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือโหลดหน้าเว็บใหม่');
+                document.getElementById('violationSelect').innerHTML = '<option value="">❌ โหลดข้อมูลไม่สำเร็จ</option>';
+                showAlert('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถโหลดฐานความผิดได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือลิงก์ API');
             }
         }
 
