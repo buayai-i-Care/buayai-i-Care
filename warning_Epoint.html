@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบตักเตือน ระบบ E-Point - Buayai I Care School</title>
+    <title>ระบบตักเตือนและเช็คคะแนนพฤติกรรม - Buayai I Care School</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* นำเข้าฟอนต์ TH Sarabun New เพื่อความคุ้นเคยและอ่านง่าย */
         @font-face {
             font-family: 'TH Sarabun New';
             font-style: normal;
@@ -24,11 +23,10 @@
         body { 
             font-family: 'TH Sarabun New', sans-serif; 
             background-color: #f1f5f9;
-            font-size: 26px; /* ขนาดตัวอักษรใหญ่พิเศษ */
+            font-size: 26px; 
             color: #1e293b;
         }
 
-        /* การตกแต่งฟอร์ม */
         .form-control {
             width: 100%; padding: 12px 16px; font-size: 28px; font-family: 'TH Sarabun New', sans-serif; font-weight: bold;
             color: #334155; background-color: #ffffff; border: 2px solid #cbd5e1; border-radius: 16px; transition: all 0.3s;
@@ -38,7 +36,6 @@
         .form-control:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; }
         .form-label { display: block; font-weight: 700; color: #0f172a; margin-bottom: 8px; font-size: 28px; }
         
-        /* การตกแต่งปุ่มกด */
         .btn-main { width: 100%; padding: 16px; font-size: 32px; font-weight: 700; border-radius: 20px; transition: transform 0.1s, box-shadow 0.1s; }
         .btn-main:active { transform: scale(0.98); }
         .btn-custom { padding: 12px 20px; font-size: 28px; font-weight: bold; border-radius: 16px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -47,50 +44,38 @@
         .hidden { display: none !important; }
         .modal-backdrop { backdrop-filter: blur(4px); }
 
-        /* การตกแต่ง Accordion (การ์ดยุบขยาย) */
         details > summary { list-style: none; outline: none; }
         details > summary::-webkit-details-marker { display: none; }
         .chevron-icon { transition: transform 0.3s ease; }
         details[open] .chevron-icon { transform: rotate(180deg); text-shadow: 0 0 10px rgba(239,68,68,0.5); }
         
-        /* จัดการตัวเลือกใน Dropdown */
         optgroup { font-family: 'Prompt', sans-serif; font-weight: bold; color: #dc2626; font-size: 16px; }
         option { font-family: 'TH Sarabun New', sans-serif; font-weight: normal; color: #1e293b; font-size: 24px; }
 
-        /* อนิเมชันกระพริบสำหรับสถานะปัจจุบันของนักเรียน */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(236, 72, 153, 0); }
             100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
         }
-        .timeline-active-node {
-            animation: pulse-ring 2s infinite;
-        }
-        
-        /* พื้นหลังลายสระบัวสำหรับหน้านักเรียน */
-        .bg-lotus {
-            background-color: #fdf2f8;
-            background-image: radial-gradient(#fce7f3 2px, transparent 2px);
-            background-size: 30px 30px;
-        }
+        .timeline-active-node { animation: pulse-ring 2s infinite; }
+        .bg-lotus { background-color: #fdf2f8; background-image: radial-gradient(#fce7f3 2px, transparent 2px); background-size: 30px 30px; }
     </style>
 </head>
 <body class="pb-10 bg-slate-100">
 
-    <!-- หน้าจอโหลดข้อมูล -->
     <div id="loadingOverlay" class="fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center hidden">
         <i class="ph ph-spinner animate-spin text-red-600 mb-2" style="font-size: 80px;"></i>
-        <h2 id="loadingText" class="font-bold text-red-800 text-[32px]">กำลังเตรียมระบบ...</h2>
+        <h2 id="loadingText" class="font-bold text-red-800 text-[32px]">กำลังสื่อสารกับฐานข้อมูล...</h2>
     </div>
 
-    <!-- ส่วนหัวของแอปพลิเคชัน (จะเปลี่ยนสีตามแท็บที่เลือก) -->
+    <!-- Header พร้อมโลโก้ -->
     <div id="mainHeader" class="bg-red-600 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500">
-        <i id="headerIcon" class="ph ph-warning-circle text-white mb-2" style="font-size: 60px;"></i>
-        <h1 id="headerTitle" class="font-bold leading-tight" style="font-size: 38px;">ระบบบันทึกตักเตือน</h1>
-        <p id="headerSubtitle" style="font-size: 24px; opacity: 0.9;">โรงเรียนบัวใหญ่</p>
+        <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=300" alt="Logo" class="mx-auto mb-2 w-24 h-24 object-contain bg-white rounded-full p-1 shadow-inner border-2 border-white" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
+        <h1 id="headerTitle" class="font-bold leading-tight" style="font-size: 38px;">ระบบตักเตือนพฤติกรรมออนไลน์ ของระบบ E-Point</h1>
+        <p id="headerSubtitle" style="font-size: 24px; opacity: 0.9;">Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
     </div>
 
-    <!-- เมนู 3 แท็บ -->
+    <!-- แท็บเมนูหลัก -->
     <div class="max-w-3xl mx-auto px-4 mb-4">
         <div class="flex bg-white p-2 rounded-2xl shadow-sm border border-slate-200 gap-1 overflow-x-auto">
             <button id="tabBtnForm" onclick="switchTab('form')" class="flex-1 py-3 px-2 bg-red-600 text-white font-bold rounded-[14px] text-[26px] shadow-sm transition whitespace-nowrap">
@@ -105,13 +90,10 @@
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- แท็บที่ 1: แบบฟอร์มบันทึกตักเตือน -->
-    <!-- ========================================================= -->
+    <!-- แท็บ 1: แบบฟอร์มบันทึก -->
     <div id="sectionForm" class="max-w-3xl mx-auto px-4">
         <div class="bg-white p-6 rounded-[24px] shadow-sm border border-slate-200">
             <form id="warningForm" onsubmit="handleFormSubmit(event)">
-                
                 <div class="mb-6">
                     <label class="form-label"><i class="ph ph-users-three text-red-500"></i> 1. เลือกห้องเรียน</label>
                     <select id="gradeSelect" class="form-control" onchange="updateStudentList()" required>
@@ -148,664 +130,386 @@
                 <div class="mb-6">
                     <label class="form-label"><i class="ph ph-siren text-red-500"></i> 3. ฐานความผิด</label>
                     <select id="violationSelect" class="form-control" onchange="toggleOtherViolation()" required>
-                        <option value="">-- กำลังโหลดข้อมูล... --</option>
+                        <option value="">-- กำลังโหลดฐานความผิด... --</option>
                     </select>
                     <input type="text" id="otherViolationInput" class="form-control mt-3 hidden bg-red-50 border-red-300" placeholder="พิมพ์ระบุความผิดที่นี่...">
                 </div>
 
                 <div class="mb-6">
                     <label class="form-label"><i class="ph ph-map-pin-line text-red-500"></i> 4. สถานที่ / ลักษณะที่พบ</label>
-                    <textarea id="notesInput" class="form-control" rows="3" placeholder="ระบุสถานที่ หรือพฤติกรรมที่พบเห็นอย่างชัดเจน..." required></textarea>
+                    <textarea id="notesInput" class="form-control" rows="3" placeholder="ระบุรายละเอียดเหตุการณ์ให้ชัดเจน..." required></textarea>
                 </div>
 
                 <div class="mb-8">
-                    <label class="form-label"><i class="ph ph-identification-badge text-red-500"></i> 5. ลงชื่อผู้ตักเตือน</label>
-                    <input type="text" id="teacherInput" class="form-control" placeholder="ชื่อ-สกุล คุณครูผู้บันทึก" required>
+                    <label class="form-label"><i class="ph ph-identification-badge text-red-500"></i> 5. ลงชื่อครูผู้ตักเตือน</label>
+                    <input type="text" id="teacherInput" class="form-control" placeholder="ระบุชื่อ-สกุล ของท่าน" required>
                 </div>
 
-                <button type="submit" class="btn-main bg-red-600 text-white shadow-[0_4px_15px_rgba(220,38,38,0.4)]">
-                    บันทึกและส่งแจ้งเตือน
+                <button type="submit" class="btn-main bg-red-600 text-white shadow-lg">
+                    บันทึกข้อมูลตักเตือน
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- แท็บที่ 2: กล่องข้อความสำหรับคุณครูและหัวหน้าระดับ -->
-    <!-- ========================================================= -->
+    <!-- แท็บ 2: กล่องข้อความเจ้าหน้าที่ (Inbox) -->
     <div id="sectionInbox" class="hidden max-w-3xl mx-auto px-4">
-        
-        <!-- หน้าล็อกอินเข้ากล่องข้อความ -->
-        <div id="inboxLoginView" class="bg-white p-8 rounded-[30px] shadow-sm border border-slate-200 text-center relative overflow-hidden mt-2">
-            <div class="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
+        <div id="inboxLoginView" class="bg-white p-8 rounded-[30px] shadow-sm border border-slate-200 text-center mt-2">
             <i class="ph ph-lock-key text-red-600 mb-2" style="font-size: 70px;"></i>
-            <h2 class="font-bold text-slate-800 leading-none mb-1" style="font-size: 38px;">ยืนยันตัวตนเจ้าหน้าที่</h2>
-            <p class="text-slate-500 mb-6" style="font-size: 24px;">เพื่อเข้าดูกล่องข้อความตักเตือนนักเรียน</p>
-            <div class="text-left mb-6">
-                <input type="text" id="loginCode" class="w-full p-4 border-2 border-slate-300 rounded-[16px] text-center font-bold text-slate-800 focus:border-red-500 outline-none" style="font-size: 32px;" placeholder="รหัสผู้ใช้ (เช่น t32 หรือ m2)">
-                <p class="text-red-500 text-center mt-2 font-bold hidden" id="loginError" style="font-size: 22px;">รหัสไม่ถูกต้อง!</p>
-            </div>
-            <button onclick="doInboxLogin()" id="btnInboxLogin" class="btn-custom bg-slate-800 text-white w-full shadow-lg">
-                เข้าสู่กล่องข้อความ <i class="ph ph-sign-in"></i>
-            </button>
+            <h2 class="font-bold text-slate-800 mb-6" style="font-size: 38px;">ยืนยันสิทธิ์เข้าถึง</h2>
+            <input type="text" id="loginCode" class="w-full p-4 border-2 border-slate-300 rounded-[16px] text-center font-bold text-slate-800 focus:border-red-500 outline-none mb-6" style="font-size: 32px;" placeholder="ระบุรหัส (เช่น m2)">
+            <p id="loginError" class="text-red-500 mb-4 font-bold hidden text-[22px]">รหัสไม่ถูกต้อง กรุณาลองใหม่!</p>
+            <button onclick="doInboxLogin()" class="btn-custom bg-slate-800 text-white w-full">เข้าสู่กล่องข้อความ</button>
         </div>
 
-        <!-- เนื้อหากล่องข้อความ (แสดงหลังล็อกอินสำเร็จ) -->
         <div id="inboxContentView" class="hidden mt-2">
-            <div class="flex justify-between items-center bg-slate-800 text-white p-4 rounded-2xl shadow-sm mb-4">
-                <div class="leading-tight">
-                    <span class="text-slate-300 text-[20px]">สถานะผู้ใช้งาน</span><br>
-                    <span id="roleTitle" class="font-bold text-[26px]">กำลังโหลด...</span>
-                </div>
-                <button onclick="logoutInbox()" class="bg-white/10 text-red-300 font-bold px-4 py-2 rounded-xl text-[24px] active:bg-white/20">
-                    <i class="ph ph-sign-out"></i> ออก
-                </button>
+            <div class="flex justify-between items-center bg-slate-800 text-white p-4 rounded-2xl mb-4">
+                <div><span id="roleTitle" class="font-bold text-[26px]">...</span></div>
+                <button onclick="logoutInbox()" class="text-red-300 font-bold px-3 py-1 bg-white/10 rounded-lg">ออก</button>
             </div>
-            <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4">
-                <span class="font-bold text-slate-600" style="font-size: 22px;">จัดเรียงข้อมูล:</span>
-                <div class="flex gap-2">
-                    <button onclick="sortWarningData('date')" id="btnSortDateW" class="bg-red-100 text-red-700 font-bold px-4 py-1 rounded-full border border-red-300 active:scale-95 transition" style="font-size: 22px;">วันที่</button>
-                    <button onclick="sortWarningData('violation')" id="btnSortVioW" class="bg-slate-100 text-slate-600 font-bold px-4 py-1 rounded-full border border-slate-300 active:scale-95 transition" style="font-size: 22px;">ความผิด</button>
-                </div>
+
+            <!-- 🌟 ตัวเลือกด่านสำหรับหัวหน้าระดับ -->
+            <div id="headLevelSelector" class="hidden mb-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap gap-2">
+                <span class="font-bold text-slate-500 mr-2">เลือกชั้น:</span>
+                <button onclick="filterHeadByGrade('ม.1')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.1</button>
+                <button onclick="filterHeadByGrade('ม.2')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.2</button>
+                <button onclick="filterHeadByGrade('ม.3')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.3</button>
+                <button onclick="filterHeadByGrade('ม.4')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.4</button>
+                <button onclick="filterHeadByGrade('ม.5')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.5</button>
+                <button onclick="filterHeadByGrade('ม.6')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.6</button>
             </div>
+
             <div id="warningCardsContainer" class="space-y-4"></div>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- แท็บที่ 3: แดชบอร์ดสำหรับนักเรียน (ระบบ E-Point) 🌸 -->
-    <!-- ========================================================= -->
+    <!-- แท็บ 3: สำหรับนักเรียน -->
     <div id="sectionStudent" class="hidden max-w-3xl mx-auto px-4 bg-lotus min-h-screen rounded-3xl pb-10 border-2 border-pink-100">
-        
-        <!-- หน้าล็อกอินของนักเรียน -->
-        <div id="studentLoginView" class="p-8 text-center relative mt-6">
-            <div class="bg-white p-8 rounded-[30px] shadow-xl border border-pink-200">
-                <i class="ph ph-student text-pink-500 mb-2" style="font-size: 80px;"></i>
-                <h2 class="font-bold text-pink-900 leading-tight mb-1" style="font-size: 38px;">เช็คคะแนนพฤติกรรม</h2>
-                <p class="text-pink-600 mb-6" style="font-size: 24px;">ระบบ E-Point โรงเรียนบัวใหญ่</p>
-                
-                <div class="text-left mb-4">
-                    <label class="block font-bold text-pink-800 mb-1" style="font-size: 24px;">เลขประจำตัวนักเรียน</label>
-                    <input type="text" id="stuLoginId" class="w-full p-4 border-2 border-pink-200 rounded-[16px] text-center font-bold text-slate-800 focus:border-pink-500 outline-none" style="font-size: 28px;" placeholder="พิมพ์เลขประจำตัว">
-                </div>
-                <div class="text-left mb-6">
-                    <label class="block font-bold text-pink-800 mb-1" style="font-size: 24px;">รหัสผ่าน</label>
-                    <input type="password" id="stuLoginPass" class="w-full p-4 border-2 border-pink-200 rounded-[16px] text-center font-bold text-slate-800 focus:border-pink-500 outline-none" style="font-size: 28px;" placeholder="พิมพ์รหัสผ่าน">
-                    <p class="text-red-500 text-center mt-2 font-bold hidden" id="stuLoginError" style="font-size: 22px;"></p>
-                </div>
-                
-                <button onclick="doStudentLogin()" id="btnStuLogin" class="btn-custom bg-gradient-to-r from-pink-500 to-rose-500 text-white w-full shadow-lg border-0">
-                    เข้าสู่ระบบ <i class="ph ph-flower-lotus"></i>
-                </button>
+        <div id="studentLoginView" class="p-8 text-center mt-6 bg-white rounded-3xl shadow-xl">
+            <i class="ph ph-student text-pink-500 mb-2" style="font-size: 80px;"></i>
+            <h2 class="font-bold text-pink-900 leading-tight mb-1" style="font-size: 38px;">เช็คสถานะพฤติกรรม</h2>
+            <div class="text-left mt-6 mb-6">
+                <label class="block font-bold text-pink-800 mb-1">เลขประจำตัวนักเรียน</label>
+                <input type="text" id="stuLoginId" class="form-control mb-4" placeholder="ระบุเลข 5 หลัก">
+                <label class="block font-bold text-pink-800 mb-1">รหัสผ่าน</label>
+                <input type="password" id="stuLoginPass" class="form-control" placeholder="ระบุรหัสผ่าน">
+                <p id="stuLoginError" class="text-red-500 mt-2 hidden text-[22px]"></p>
             </div>
+            <button onclick="doStudentLogin()" class="btn-custom bg-gradient-to-r from-pink-500 to-rose-500 text-white w-full shadow-lg border-0">ตรวจสอบสถานะ</button>
         </div>
-
-        <!-- หน้าแดชบอร์ดนักเรียน (แสดงโปรไฟล์ และ Timeline) -->
         <div id="studentDashboardView" class="hidden mt-4">
-            <!-- การ์ดโปรไฟล์ -->
             <div class="bg-white rounded-[24px] shadow-md border border-pink-100 p-6 mb-6 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-pink-300 to-rose-300"></div>
-                <button onclick="logoutStudent()" class="absolute top-4 right-4 bg-white/30 hover:bg-white/50 text-pink-900 px-3 py-1 rounded-full text-[20px] font-bold backdrop-blur-sm transition">
-                    ออก <i class="ph ph-sign-out"></i>
-                </button>
+                <button onclick="logoutStudent()" class="absolute top-4 right-4 bg-white/30 text-pink-900 px-3 py-1 rounded-full text-[20px] font-bold z-20">ออก</button>
                 <div class="relative z-10">
-                    <img id="stuProfileImg" src="https://via.placeholder.com/150?text=ไม่มีรูปภาพ" alt="Profile" class="w-[140px] h-[140px] rounded-full mx-auto border-4 border-white shadow-lg object-cover bg-slate-100 mb-3">
-                    <h2 id="stuFullName" class="text-[34px] font-bold text-slate-800 leading-tight">ชื่อ นามสกุล</h2>
-                    <p class="text-pink-600 font-bold text-[24px]">รหัส: <span id="stuIdText">-</span> | <span id="stuRoomText">ม.-/-</span></p>
+                    <img id="stuProfileImg" src="" alt="Profile" class="w-[180px] h-[180px] rounded-full mx-auto border-4 border-white shadow-lg object-cover bg-slate-100 mb-3" onerror="this.src='https://via.placeholder.com/180?text=ไม่มีรูปภาพ'">
+                    <h2 id="stuFullName" class="text-[34px] font-bold text-slate-800">...</h2>
+                    <p class="text-pink-600 font-bold">รหัส: <span id="stuIdText">-</span> | ชั้น: <span id="stuRoomText">...</span></p>
                 </div>
             </div>
-
-            <!-- ข้อคิดเตือนใจ -->
-            <div class="bg-gradient-to-b from-white to-pink-50 p-6 rounded-[24px] shadow-sm mb-6 border border-pink-200 text-center relative">
-                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 shadow-sm border border-pink-100">
-                    <i class="ph ph-flower-lotus text-pink-500 animate-pulse" style="font-size: 40px;"></i>
-                </div>
-                <h3 class="text-[28px] font-bold text-pink-800 mt-4 mb-2">ข้อคิดเตือนใจจากสระบัว</h3>
-                <p class="text-slate-700 leading-tight text-[24px]">
-                    การถูกหักคะแนนพฤติกรรม เปรียบเสมือน <b class="text-rose-600">"ดอกบัวที่มีแมลงมากัดกิน"</b><br>
-                    ขอให้ลูกรักษากายและใจให้เข้มแข็ง สู้ภัยแมลง แล้วกลับมา <b class="text-pink-600">เบ่งบานอย่างสง่างาม</b> เพื่อเป็นเกียรติแก่ตนเอง ครอบครัว และสังคมนะครับ 🌸
-                </p>
-            </div>
-
-            <!-- กล่องแสดงรายการความผิดและ Timeline -->
-            <div class="bg-white p-6 rounded-[24px] shadow-sm border border-slate-200">
-                <h3 class="text-[30px] font-bold text-slate-800 mb-4 border-b border-pink-100 pb-2 flex items-center justify-between">
-                    <span><i class="ph ph-git-merge text-pink-500 mr-2"></i>สถานะพฤติกรรมล่าสุด</span>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-pink-100">
+                <h3 class="text-[30px] font-bold text-slate-800 mb-4 border-b border-pink-100 pb-2 flex justify-between">
+                    <span><i class="ph ph-git-merge text-pink-500 mr-2"></i>เส้นทางสถานะล่าสุด</span>
                     <span id="warnCountBadge" class="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[20px]">0 รายการ</span>
                 </h3>
-
                 <div id="noWarningMsg" class="text-center py-8 hidden">
-                    <i class="ph ph-check-circle text-emerald-400 mb-2 block" style="font-size: 70px;"></i>
-                    <p class="text-emerald-700 font-bold text-[28px]">ยอดเยี่ยมมาก!</p>
-                    <p class="text-slate-500 text-[24px]">ดอกบัวของลูกเบ่งบาน ไร้รอยแมลงกัดกิน</p>
+                    <p class="font-bold text-emerald-600 text-[28px]">ยินดีด้วย! ลูกประพฤติตนดีเยี่ยม</p>
+                    <p class="text-slate-500">ดอกบัวของลูกยังเบ่งบานสมบูรณ์แบบไร้แมลงกัดกิน</p>
                 </div>
-
                 <div id="studentWarningsContainer" class="space-y-8"></div>
             </div>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- 📍 ส่วนของ MODAL สำหรับป๊อปอัปแจ้งเตือนต่างๆ -->
-    <!-- ========================================================= -->
-
-    <!-- Modal ยืนยันรหัสผ่านก่อนบันทึกตักเตือน -->
-    <div id="formPasswordModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl relative">
-            <button type="button" onclick="closeFormPasswordModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="ph ph-x-circle" style="font-size: 40px;"></i></button>
-            <i class="ph ph-lock-key text-slate-700 mb-2" style="font-size: 70px;"></i>
-            <h2 class="font-bold text-slate-800 leading-tight mb-2" style="font-size: 36px;">รหัสผ่านเจ้าหน้าที่</h2>
-            <p class="text-slate-500 mb-6" style="font-size: 24px;">กรุณากรอกรหัสผ่านเพื่อยืนยันการบันทึก</p>
-            <input type="password" id="adminPasswordInput" class="form-control text-center mb-6" placeholder="ระบุรหัสผ่าน">
-            <button onclick="confirmSubmitWarning()" id="btnConfirmWarning" class="btn-main bg-slate-800 text-white flex justify-center items-center gap-2">
-                <i class="ph ph-paper-plane-right"></i> ยืนยันข้อมูล
-            </button>
+    <!-- 🌟 Modal หัวหน้าระดับชั้น: ส่งหักคะแนน 🌟 -->
+    <div id="deductModal" class="hidden fixed inset-0 bg-black/70 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl relative border-2 border-red-500">
+            <button onclick="closeDeductModal()" class="absolute top-3 right-3 text-slate-400"><i class="ph ph-x-circle" style="font-size: 40px;"></i></button>
+            <div class="text-red-600 mb-2 flex justify-center"><i class="ph ph-warning-octagon" style="font-size: 70px;"></i></div>
+            <h2 class="font-bold text-red-700 leading-tight mb-3" style="font-size: 32px;">ยืนยันการส่งตัดคะแนน</h2>
+            <div class="bg-red-50 p-4 rounded-xl border border-red-200 text-left mb-5">
+                <p class="text-slate-800 leading-tight" style="font-size: 24px;">
+                    <b>หมายเหตุสำคัญ:</b><br>
+                    กรุณากรอกรายละเอียดการตัดคะแนน โดยนักเรียนลงลายมือชื่อรับทราบ ด้วยเอกสาร <b>ปค 16</b> และส่งเอกสาร ณ ห้องกิจการนักเรียน เพื่อเสนอตามขั้นตอนของคู่มือนักเรียนต่อไป..
+                </p>
+            </div>
+            <button id="btnConfirmDeduct" class="btn-custom bg-red-600 text-white w-full shadow-lg">ยืนยันและแจ้งระบบ</button>
         </div>
     </div>
 
-    <!-- Modal แสดงสถานะสำเร็จ / ล้มเหลว -->
+    <!-- Alert Modals อื่นๆ -->
+    <div id="formPasswordModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[30px] p-8 text-center shadow-2xl">
+            <h2 class="font-bold text-slate-800 mb-4 text-[32px]">ยืนยันรหัสเจ้าหน้าที่</h2>
+            <input type="password" id="adminPasswordInput" class="form-control text-center mb-6" placeholder="รหัสยืนยันการบันทึก">
+            <div class="flex gap-2">
+                <button onclick="closeFormPasswordModal()" class="flex-1 py-3 bg-slate-200 rounded-xl font-bold">ยกเลิก</button>
+                <button onclick="confirmSubmitWarning()" id="btnConfirmWarning" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
     <div id="alertModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-[60] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl">
             <div id="alertIcon" class="mb-2"></div>
-            <h2 id="alertTitle" class="font-bold leading-tight mb-2" style="font-size: 36px;"></h2>
-            <p id="alertMessage" class="text-gray-600 mb-6" style="font-size: 26px; line-height: 1.2;"></p>
-            <button onclick="closeAlert()" id="alertBtn" class="btn-main text-white"></button>
+            <h2 id="alertTitle" class="font-bold leading-tight mb-2 text-[36px]"></h2>
+            <p id="alertMessage" class="text-gray-600 mb-6 text-[26px] leading-tight"></p>
+            <button onclick="closeAlert()" id="alertBtn" class="btn-main text-white bg-red-600">ตกลง</button>
         </div>
     </div>
 
-    <!-- Modal ยืนยันการตัดคะแนน (สำหรับหัวหน้าระดับ) -->
-    <div id="deductModal" class="hidden fixed inset-0 bg-black/70 modal-backdrop z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl relative">
-            <button onclick="closeDeductModal()" class="absolute top-3 right-3 text-slate-400"><i class="ph ph-x-circle" style="font-size: 40px;"></i></button>
-            <div class="text-red-600 mb-2 flex justify-center"><i class="ph ph-warning-octagon" style="font-size: 70px;"></i></div>
-            <h2 class="font-bold text-red-700 leading-tight mb-3" style="font-size: 36px;">ยืนยันหักคะแนนความประพฤติ</h2>
-            <div class="bg-red-50 p-4 rounded-xl border border-red-200 text-left mb-5">
-                <p class="text-slate-800 leading-tight" style="font-size: 26px;">
-                    <b>กรณีท่านต้องการตัดคะแนน</b><br>อ้างถึงคู่มือนักเรียน ฯ โปรดรับเอกสารตัดคะแนน พร้อมระบุรายละเอียดได้ที่ห้องกิจการนักเรียน เพื่อเป็นหลักฐานและแจ้งหัวหน้างานแก้ไข ตามลำดับต่อไป
-                </p>
-            </div>
-            <button id="btnConfirmDeduct" class="btn-custom bg-red-600 text-white w-full shadow-lg">ส่งหักคะแนน</button>
-        </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- 📍 JAVASCRIPT LOGIC -->
-    <!-- ========================================================= -->
     <script>
-        // ⚠️ สำคัญมาก: นำลิงก์ API ระบบหลังบ้านที่ได้จากการ Deploy มาใส่ที่นี่
-        const WARNING_API_URL = 'ใส่_URL_WEB_APP_ระบบบันทึกตักเตือน_ของคุณตรงนี้ครับ';
+        const WARNING_API_URL = 'https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec';
 
-        // ตัวแปรส่วนกลาง
-        let dbStudents = {}; 
-        let dbViolations = [];
-        let pendingWarningPayload = null;
-
-        let inboxData = [];
-        let currentRole = "";
-        let currentSort = "date";
+        let dbStudentsCache = {}, dbViolations = [], pendingWarningPayload = null, inboxData = [], currentRole = "", selectedHeadGrade = "";
         let pendingDeductAction = null;
 
-        // 🟢 เมื่อเปิดหน้าเว็บครั้งแรก
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const userCode = urlParams.get('user');
-            
-            // ตรวจสอบว่ามีรหัสส่งมาในลิงก์หรือไม่ (เพื่อเข้ากล่องข้อความอัตโนมัติ)
-            if (userCode) {
-                switchTab('inbox');
-                document.getElementById('loginCode').value = userCode;
-                doInboxLogin();
-            } else {
-                switchTab('form');
+            if (userCode) { 
+                switchTab('inbox'); 
+                document.getElementById('loginCode').value = userCode; 
+                doInboxLogin(); 
             }
-            
             await fetchInitialData();
         };
 
-        // 🟢 ฟังก์ชันสลับการแสดงผล 3 แท็บ
         function switchTab(tab) {
-            const btnForm = document.getElementById('tabBtnForm');
-            const btnInbox = document.getElementById('tabBtnInbox');
-            const btnStudent = document.getElementById('tabBtnStudent');
-            const secForm = document.getElementById('sectionForm');
-            const secInbox = document.getElementById('sectionInbox');
-            const secStudent = document.getElementById('sectionStudent');
+            const tabs = ['form', 'inbox', 'student'];
+            tabs.forEach(t => {
+                document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = (tab === t) ? "flex-1 py-3 px-2 bg-red-600 text-white font-bold rounded-[14px] text-[26px] shadow-sm whitespace-nowrap" : "flex-1 py-3 px-2 bg-slate-100 text-slate-600 font-bold rounded-[14px] text-[26px] hover:bg-slate-200 whitespace-nowrap";
+                document.getElementById(`section${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
+            });
+            document.getElementById(`section${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
             const header = document.getElementById('mainHeader');
-
-            const inactiveClass = "flex-1 py-3 px-2 bg-slate-100 text-slate-600 font-bold rounded-[14px] text-[26px] hover:bg-slate-200 transition whitespace-nowrap";
-            btnForm.className = inactiveClass;
-            btnInbox.className = inactiveClass;
-            btnStudent.className = inactiveClass;
-            secForm.classList.add('hidden');
-            secInbox.classList.add('hidden');
-            secStudent.classList.add('hidden');
-
             if (tab === 'form') {
-                btnForm.className = "flex-1 py-3 px-2 bg-red-600 text-white font-bold rounded-[14px] text-[26px] shadow-sm transition whitespace-nowrap";
-                secForm.classList.remove('hidden');
                 header.className = "bg-red-600 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
-                document.getElementById('headerTitle').innerText = "ระบบบันทึกตักเตือน";
-                document.getElementById('headerSubtitle').innerText = "โรงเรียนบัวใหญ่";
-                document.getElementById('headerIcon').className = "ph ph-warning-circle text-white mb-2";
+                document.getElementById('headerTitle').innerText = "ระบบบริหารกิจการนักเรียน";
             } else if (tab === 'inbox') {
-                btnInbox.className = "flex-1 py-3 px-2 bg-red-600 text-white font-bold rounded-[14px] text-[26px] shadow-sm transition whitespace-nowrap";
-                secInbox.classList.remove('hidden');
                 header.className = "bg-slate-800 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
                 document.getElementById('headerTitle').innerText = "กล่องข้อความเจ้าหน้าที่";
-                document.getElementById('headerSubtitle').innerText = "ฝ่ายปกครอง โรงเรียนบัวใหญ่";
-                document.getElementById('headerIcon').className = "ph ph-envelope-open text-white mb-2";
-            } else if (tab === 'student') {
-                btnStudent.className = "flex-1 py-3 px-2 bg-pink-500 text-white font-bold rounded-[14px] text-[26px] shadow-sm transition whitespace-nowrap";
-                secStudent.classList.remove('hidden');
+            } else {
                 header.className = "bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
-                document.getElementById('headerTitle').innerText = "บันทึกตักเตือน ระบบ E-Point";
-                document.getElementById('headerSubtitle').innerText = "คะแนนพฤติกรรมโรงเรียนบัวใหญ่";
-                document.getElementById('headerIcon').className = "ph ph-flower-lotus text-white mb-2";
+                document.getElementById('headerTitle').innerText = "บันทึกตักเตือน E-Point";
             }
         }
 
-        // 🟢 แสดงหน้าต่างโหลดข้อมูล
-        function showLoading(show, text="กำลังเตรียมระบบ...") {
+        function showLoading(show, text="กำลังประมวลผล...") {
             const overlay = document.getElementById('loadingOverlay');
             document.getElementById('loadingText').textContent = text;
-            if (show) overlay.classList.remove('hidden');
-            else overlay.classList.add('hidden');
+            overlay.classList.toggle('hidden', !show);
         }
 
-        // ==========================================
-        // ส่วนจัดการ แท็บที่ 1: แบบฟอร์ม
-        // ==========================================
         async function fetchInitialData() {
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInitialData' }) });
                 const result = await res.json();
                 if(result.status === 'success') {
-                    dbStudents = result.data.students;
                     dbViolations = result.data.violations;
-                    
                     const select = document.getElementById('violationSelect');
                     select.innerHTML = '<option value="">-- แตะเพื่อเลือก --</option>';
                     dbViolations.forEach(v => select.innerHTML += `<option value="${v}">${v}</option>`);
                     select.innerHTML += '<option value="OTHER">อื่นๆ (ระบุเอง)</option>';
                 }
-            } catch (error) { console.log("รอการเชื่อมต่อ API"); } 
-            finally { showLoading(false); }
+            } catch (e) {}
         }
 
-        function toggleOtherViolation() {
-            const select = document.getElementById('violationSelect');
-            const otherInput = document.getElementById('otherViolationInput');
-            if (select.value === 'OTHER') { otherInput.classList.remove('hidden'); otherInput.setAttribute('required', 'true'); } 
-            else { otherInput.classList.add('hidden'); otherInput.removeAttribute('required'); }
-        }
-
-        function updateStudentList() {
-            const selectedRoom = document.getElementById('gradeSelect').value; 
+        async function updateStudentList() {
+            const selectedRoom = document.getElementById('gradeSelect').value;
             const stuSelect = document.getElementById('studentSelect');
-            stuSelect.innerHTML = '<option value="">-- แตะเพื่อเลือกชื่อนักเรียน --</option>';
-            
             if (!selectedRoom) { stuSelect.disabled = true; return; }
-
-            const baseGrade = selectedRoom.split('/')[0];
-            const studentsInGrade = dbStudents[baseGrade] || [];
-            const studentsInRoom = studentsInGrade.filter(s => s.room === selectedRoom);
-            studentsInRoom.sort((a, b) => a.name.localeCompare(b.name, 'th'));
-
-            if(studentsInRoom.length === 0) {
-                stuSelect.innerHTML = '<option value="">(ไม่มีข้อมูลนักเรียนในห้องนี้)</option>';
-            } else {
-                studentsInRoom.forEach(s => {
-                    stuSelect.innerHTML += `<option value="${s.name}" data-id="${s.id}">${s.name} (${s.id})</option>`;
-                });
+            const grade = selectedRoom.split('/')[0];
+            if (!dbStudentsCache[grade]) {
+                stuSelect.innerHTML = `<option value="">กำลังดิ่งไปดึงข้อมูลชั้น ${grade}...</option>`;
+                stuSelect.disabled = true;
+                try {
+                    const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getStudentsByGrade', grade: grade }) });
+                    const result = await res.json();
+                    if (result.status === 'success') dbStudentsCache[grade] = result.data;
+                    else throw new Error();
+                } catch(e) { stuSelect.innerHTML = '<option value="">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่</option>'; return; }
             }
+            const roomStudents = dbStudentsCache[grade].filter(s => s.room === selectedRoom).sort((a,b) => a.name.localeCompare(b.name, 'th'));
+            stuSelect.innerHTML = '<option value="">-- แตะเลือกชื่อ --</option>';
+            roomStudents.forEach(s => stuSelect.innerHTML += `<option value="${s.name}" data-id="${s.id}">${s.name}</option>`);
             stuSelect.disabled = false;
         }
 
-        document.getElementById('studentSelect').addEventListener('change', function() {
-            const opt = this.options[this.selectedIndex];
-            if(opt.value) { document.getElementById('studentIdVal').value = opt.getAttribute('data-id'); }
-        });
+        document.getElementById('studentSelect').onchange = function() { document.getElementById('studentIdVal').value = this.options[this.selectedIndex].getAttribute('data-id'); };
+        function toggleOtherViolation() { document.getElementById('otherViolationInput').classList.toggle('hidden', document.getElementById('violationSelect').value !== 'OTHER'); }
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            let finalViolation = document.getElementById('violationSelect').value;
-            if (finalViolation === 'OTHER') finalViolation = document.getElementById('otherViolationInput').value.trim();
-
-            const selectedRoom = document.getElementById('gradeSelect').value;
-            const baseGrade = selectedRoom.split('/')[0];
-
             pendingWarningPayload = {
-                action: 'submitWarning',
-                grade: baseGrade,
-                room: selectedRoom,
-                studentId: document.getElementById('studentIdVal').value,
+                action: 'submitWarning', grade: document.getElementById('gradeSelect').value.split('/')[0],
+                room: document.getElementById('gradeSelect').value, studentId: document.getElementById('studentIdVal').value,
                 studentName: document.getElementById('studentSelect').value,
-                violation: finalViolation,
-                notes: document.getElementById('notesInput').value,
-                teacherName: document.getElementById('teacherInput').value
+                violation: document.getElementById('violationSelect').value === 'OTHER' ? document.getElementById('otherViolationInput').value : document.getElementById('violationSelect').value,
+                notes: document.getElementById('notesInput').value, teacherName: document.getElementById('teacherInput').value
             };
-            
             document.getElementById('adminPasswordInput').value = '';
             document.getElementById('formPasswordModal').classList.remove('hidden');
         }
 
-        function closeFormPasswordModal() { document.getElementById('formPasswordModal').classList.add('hidden'); pendingWarningPayload = null; }
+        function closeFormPasswordModal() { document.getElementById('formPasswordModal').classList.add('hidden'); }
 
         async function confirmSubmitWarning() {
-            const pwd = document.getElementById('adminPasswordInput').value.trim();
-            if (!pwd) return alert('กรุณาระบุรหัสผ่าน');
-
-            const btn = document.getElementById('btnConfirmWarning');
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังส่ง...'; btn.disabled = true;
+            const pwd = document.getElementById('adminPasswordInput').value;
+            if(!pwd) return;
+            showLoading(true, "กำลังบันทึกข้อมูล...");
             pendingWarningPayload.password = pwd;
-
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify(pendingWarningPayload) });
                 const result = await res.json();
                 closeFormPasswordModal();
-
-                if (result.status === 'success') {
-                    showAlert('success', 'บันทึกสำเร็จ!', 'ข้อมูลถูกบันทึกและส่งแจ้งเตือนผ่าน Telegram แล้ว');
-                    document.getElementById('warningForm').reset();
-                    document.getElementById('otherViolationInput').classList.add('hidden');
-                    document.getElementById('studentSelect').disabled = true;
-                    document.getElementById('studentSelect').innerHTML = '<option value="">-- กรุณาเลือกห้องเรียนก่อน --</option>';
-                } else { showAlert('error', 'ผิดพลาด!', result.message); }
-            } catch (error) { closeFormPasswordModal(); showAlert('error', 'การเชื่อมต่อล้มเหลว', 'ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่'); } 
-            finally { btn.innerHTML = '<i class="ph ph-paper-plane-right"></i> ยืนยันข้อมูล'; btn.disabled = false; }
+                if(result.status === 'success') { showAlert('success', 'บันทึกสำเร็จ!', 'ข้อมูลถูกส่งเข้าระบบเรียบร้อยแล้ว'); document.getElementById('warningForm').reset(); } 
+                else showAlert('error', 'ล้มเหลว', result.message);
+            } catch(e) { showAlert('error', 'ขัดข้อง', 'โปรดตรวจสอบรหัสผ่านหรือการเชื่อมต่อ'); }
+            finally { showLoading(false); }
         }
 
-        function showAlert(type, title, message) {
-            const modal = document.getElementById('alertModal');
-            const icon = document.getElementById('alertIcon');
-            const titleEl = document.getElementById('alertTitle');
-            const btn = document.getElementById('alertBtn');
-            if (type === 'success') {
-                icon.innerHTML = '<i class="ph ph-check-circle text-green-500" style="font-size: 80px;"></i>'; titleEl.className = "font-bold leading-tight mb-2 text-green-600"; btn.className = "btn-main bg-green-600 text-white"; btn.innerText = "รับทราบ";
-            } else {
-                icon.innerHTML = '<i class="ph ph-x-circle text-red-500" style="font-size: 80px;"></i>'; titleEl.className = "font-bold leading-tight mb-2 text-red-600"; btn.className = "btn-main bg-slate-800 text-white"; btn.innerText = "ลองใหม่อีกครั้ง";
-            }
-            titleEl.innerText = title; document.getElementById('alertMessage').innerText = message;
-            modal.classList.remove('hidden');
-        }
-        function closeAlert() { document.getElementById('alertModal').classList.add('hidden'); }
-
-        // ==========================================
-        // ส่วนจัดการ แท็บที่ 2: กล่องข้อความ
-        // ==========================================
         async function doInboxLogin() {
-            const code = document.getElementById('loginCode').value.trim();
-            const btn = document.getElementById('btnInboxLogin');
-            const err = document.getElementById('loginError');
-            
+            const code = document.getElementById('loginCode').value.trim().toLowerCase();
             if(!code) return;
-
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> ตรวจสอบ...'; btn.disabled = true; err.classList.add('hidden');
-            
+            showLoading(true, "กำลังยืนยันสิทธิ์...");
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInbox', code: code }) });
                 const result = await res.json();
-
-                if (result.status === 'success') {
+                if(result.status === 'success') {
                     currentRole = result.role; inboxData = result.data;
                     document.getElementById('inboxLoginView').classList.add('hidden');
                     document.getElementById('inboxContentView').classList.remove('hidden');
-                    const roleTxt = currentRole === 'teacher' ? `ครูที่ปรึกษา (${result.filter})` : `หัวหน้าระดับชั้น (${result.filter})`;
-                    document.getElementById('roleTitle').textContent = roleTxt;
-                    sortWarningData('date'); 
-                } else { err.textContent = result.message; err.classList.remove('hidden'); }
-            } catch (e) { err.textContent = "เชื่อมต่อล้มเหลว"; err.classList.remove('hidden'); } 
-            finally { btn.innerHTML = 'เข้าสู่กล่องข้อความ <i class="ph ph-sign-in"></i>'; btn.disabled = false; }
+                    
+                    if (currentRole === 'head') {
+                        document.getElementById('headLevelSelector').classList.remove('hidden');
+                        document.getElementById('roleTitle').innerText = `หัวหน้าระดับชั้น (${result.filter})`;
+                        // ให้เลือกชั้นของตัวเองเป็นค่าเริ่มต้น
+                        filterHeadByGrade(result.filter);
+                    } else {
+                        document.getElementById('roleTitle').innerText = `ครูที่ปรึกษา (${result.filter})`;
+                        renderInbox();
+                    }
+                } else { document.getElementById('loginError').classList.remove('hidden'); }
+            } catch(e) { alert("เชื่อมต่อผิดพลาด"); } finally { showLoading(false); }
         }
 
-        function logoutInbox() {
-            document.getElementById('loginCode').value = ''; inboxData = [];
-            document.getElementById('inboxContentView').classList.add('hidden');
-            document.getElementById('inboxLoginView').classList.remove('hidden');
-            window.history.replaceState({}, document.title, window.location.pathname);
+        function logoutInbox() { document.getElementById('inboxContentView').classList.add('hidden'); document.getElementById('inboxLoginView').classList.remove('hidden'); }
+
+        // 🌟 กรองข้อมูลสำหรับหัวหน้าระดับ
+        function filterHeadByGrade(grade) {
+            selectedHeadGrade = grade;
+            document.querySelectorAll('.btn-grade-filter').forEach(btn => {
+                btn.className = btn.innerText === grade ? "btn-grade-filter px-4 py-1 rounded-full bg-slate-800 text-white font-bold border border-slate-800" : "btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600";
+            });
+            renderInbox();
         }
 
-        function sortWarningData(type) {
-            currentSort = type;
-            document.getElementById('btnSortDateW').className = type === 'date' ? "bg-red-100 text-red-700 font-bold px-4 py-1 rounded-full border border-red-300 active:scale-95 transition" : "bg-slate-100 text-slate-600 font-bold px-4 py-1 rounded-full border border-slate-300 active:scale-95 transition";
-            document.getElementById('btnSortVioW').className = type === 'violation' ? "bg-red-100 text-red-700 font-bold px-4 py-1 rounded-full border border-red-300 active:scale-95 transition" : "bg-slate-100 text-slate-600 font-bold px-4 py-1 rounded-full border border-slate-300 active:scale-95 transition";
-            
-            let displayData = [...inboxData];
-            if (type === 'violation') displayData.sort((a, b) => a.violation.localeCompare(b.violation));
+        function renderInbox() {
+            const con = document.getElementById('warningCardsContainer');
+            let displayData = inboxData;
 
-            const container = document.getElementById('warningCardsContainer');
-            if (displayData.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 border border-slate-200 rounded-[20px] bg-white shadow-sm mt-4"><i class="ph ph-check-circle text-green-500 mb-2 block" style="font-size: 70px;"></i><h4 class="font-bold text-slate-700" style="font-size: 30px;">ไม่มีข้อความค้างในระบบ</h4></div>`;
-                return;
+            // กรองข้อมูลตามชั้นถ้าเป็นหัวหน้า
+            if (currentRole === 'head' && selectedHeadGrade) {
+                displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
             }
+
+            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl">ไม่มีประวัติค้างการรับทราบ</div>'; return; }
+
+            // 🌟 เรียงตามเลขห้องจากน้อยไปมาก
+            displayData.sort((a, b) => {
+                const roomA = parseInt(a.room.split('/')[1] || 0);
+                const roomB = parseInt(b.room.split('/')[1] || 0);
+                return roomA - roomB;
+            });
 
             let html = "";
             displayData.forEach(item => {
-                let actionButtons = "";
-                if (currentRole === 'teacher') {
-                    actionButtons = `<button onclick="processInboxAction('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-sm"><i class="ph ph-check-circle"></i> รับทราบ</button>`;
-                } else if (currentRole === 'head') {
-                    actionButtons = `<div class="flex gap-2 w-full"><button onclick="processInboxAction('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1 text-[24px] shadow-sm"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1 text-[24px] shadow-sm"><i class="ph ph-minus-circle"></i> หักคะแนน</button></div>`;
-                }
-
-                html += `
-                <details class="bg-white rounded-[20px] shadow-sm border border-slate-200 overflow-hidden mb-3" id="card-${item.warningId}">
-                    <summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50 hover:bg-red-100 transition select-none">
-                        <div class="flex items-center gap-3 w-[85%]">
-                            <div class="bg-red-600 text-white w-[55px] h-[55px] rounded-full flex items-center justify-center shadow-sm shrink-0"><i class="ph ph-warning-octagon text-[30px]"></i></div>
-                            <div class="leading-tight truncate">
-                                <div class="font-bold text-slate-800 truncate text-[28px]">${item.studentName}</div>
-                                <div class="font-bold text-red-500 truncate text-[22px]">${item.violation}</div>
-                            </div>
-                        </div>
-                        <i class="ph ph-caret-down text-slate-400 text-[35px] chevron-icon"></i>
-                    </summary>
-                    <div class="p-4 bg-white border-t border-slate-100">
-                        <div class="grid grid-cols-2 gap-2 mb-3">
-                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-200"><span class="block text-slate-500 leading-none text-[20px]">ห้องเรียน</span><span class="font-bold text-slate-800 text-[24px]">${item.room}</span></div>
-                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-200"><span class="block text-slate-500 leading-none text-[20px]">วันที่-เวลา</span><span class="font-bold text-slate-800 text-[24px]">${String(item.date).substring(0,10)}</span></div>
-                        </div>
-                        <div class="mb-4"><span class="block font-bold text-slate-600 mb-1 text-[24px]">สถานที่ / ลักษณะที่พบ:</span><p class="text-slate-800 bg-amber-50 p-3 rounded-xl border border-amber-200 leading-tight text-[24px]">${item.notes}</p></div>
-                        <div class="mb-5 font-bold text-slate-500 flex items-center gap-2 text-[22px]"><i class="ph ph-user-circle text-[26px] text-blue-500"></i> ผู้ตักเตือน: ${item.reporter}</div>
-                        <div id="btnArea-${item.warningId}">${actionButtons}</div>
-                    </div>
-                </details>`;
+                let btn = currentRole === 'teacher' ? 
+                    `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full">รับทราบ (แจ้งนักเรียนแล้ว)</button>` : 
+                    `<div class="flex gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1">รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1">ส่งหักคะแนน</button></div>`;
+                
+                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px]">${item.studentName}</div><div class="text-red-500 text-[22px] font-bold">${item.room} | ${item.violation}</div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4"><b>รายละเอียดที่พบ:</b> ${item.notes}</div>${btn}</div></details>`;
             });
-            container.innerHTML = html;
+            con.innerHTML = html;
         }
 
-        async function processInboxAction(wId, actionType, studentName, room) {
-            const btnArea = document.getElementById(`btnArea-${wId}`);
-            const originalContent = btnArea.innerHTML;
-            btnArea.innerHTML = `<div class="text-center font-bold text-blue-600 py-3 text-[26px]"><i class="ph ph-spinner animate-spin inline-block"></i> บันทึกข้อมูล...</div>`;
-
+        async function updateStatus(id, type, name, room) {
+            showLoading(true, "กำลังอัปเดต...");
             try {
-                const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', warningId: wId, actionType: actionType, studentName: studentName, room: room }) });
+                const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', warningId: id, actionType: type, studentName: name, room: room }) });
                 const result = await res.json();
-                if (result.status === 'success') {
-                    document.getElementById(`card-${wId}`).style.display = 'none';
-                    inboxData = inboxData.filter(i => i.warningId !== wId);
-                    if(inboxData.length === 0) renderInbox();
-                } else { alert("ผิดพลาด: " + result.message); btnArea.innerHTML = originalContent; }
-            } catch (e) { alert("การเชื่อมต่อล้มเหลว"); btnArea.innerHTML = originalContent; }
+                if(result.status === 'success') {
+                    // รีโหลดข้อมูลใหม่
+                    const code = document.getElementById('loginCode').value.trim();
+                    const resInbox = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInbox', code: code }) });
+                    const resultInbox = await resInbox.json();
+                    if(resultInbox.status === 'success') { inboxData = resultInbox.data; renderInbox(); }
+                }
+            } catch(e) {} finally { showLoading(false); }
         }
 
-        function openDeductModal(wId, studentName, room) {
-            pendingDeductAction = { wId, studentName, room };
-            document.getElementById('deductModal').classList.remove('hidden');
-            const btn = document.getElementById('btnConfirmDeduct');
-            btn.onclick = async () => {
-                btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังส่งข้อมูล...'; btn.disabled = true;
-                await processInboxAction(pendingDeductAction.wId, 'head_deduct', pendingDeductAction.studentName, pendingDeductAction.room);
-                closeDeductModal(); btn.innerHTML = 'ส่งหักคะแนน'; btn.disabled = false;
-            };
+        function openDeductModal(id, name, room) { 
+            pendingDeductAction = { id, name, room }; 
+            document.getElementById('deductModal').classList.remove('hidden'); 
         }
-        function closeDeductModal() { document.getElementById('deductModal').classList.add('hidden'); pendingDeductAction = null; }
+        function closeDeductModal() { document.getElementById('deductModal').classList.add('hidden'); }
+        document.getElementById('btnConfirmDeduct').onclick = () => { 
+            closeDeductModal(); 
+            updateStatus(pendingDeductAction.id, 'head_deduct', pendingDeductAction.name, pendingDeductAction.room); 
+        };
 
-        // ==========================================
-        // ส่วนจัดการ แท็บที่ 3: แดชบอร์ดนักเรียน
-        // ==========================================
         async function doStudentLogin() {
-            const idInput = document.getElementById('stuLoginId').value.trim();
-            const passInput = document.getElementById('stuLoginPass').value.trim();
-            const err = document.getElementById('stuLoginError');
-            const btn = document.getElementById('btnStuLogin');
-
-            if (!idInput || !passInput) {
-                err.textContent = "กรุณากรอกรหัสประจำตัวและรหัสผ่านให้ครบถ้วน";
-                err.classList.remove('hidden');
-                return;
-            }
-
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> กำลังเข้าสู่ระบบ...';
-            btn.disabled = true;
-            err.classList.add('hidden');
-
+            const sid = document.getElementById('stuLoginId').value;
+            const spw = document.getElementById('stuLoginPass').value;
+            if(!sid || !spw) return;
+            showLoading(true, "กำลังตรวจสอบคะแนน E-Point...");
             try {
-                const res = await fetch(WARNING_API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'studentLogin', studentId: idInput, password: passInput }) 
-                });
+                const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'studentLogin', studentId: sid, password: spw }) });
                 const result = await res.json();
-
-                if (result.status === 'success') {
+                if(result.status === 'success') {
                     document.getElementById('studentLoginView').classList.add('hidden');
                     document.getElementById('studentDashboardView').classList.remove('hidden');
-                    
-                    const data = result.data;
-                    document.getElementById('stuFullName').textContent = data.fullName;
-                    document.getElementById('stuIdText').textContent = data.studentId;
-                    document.getElementById('stuRoomText').textContent = data.room;
-                    
-                    // ระบบสร้าง Thumbnail อัตโนมัติจากลิงก์ Google Drive
-                    if(data.profileImageUrl) {
-                        const match = data.profileImageUrl.match(/[-\w]{25,}/);
-                        const thumbUrl = match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w300` : data.profileImageUrl;
-                        document.getElementById('stuProfileImg').src = thumbUrl;
-                    } else {
-                        document.getElementById('stuProfileImg').src = 'https://via.placeholder.com/150?text=ไม่มีรูปภาพ';
-                    }
-
-                    renderStudentWarnings(data.warnings);
-
-                } else {
-                    err.textContent = result.message || "รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง";
-                    err.classList.remove('hidden');
-                }
-            } catch (e) {
-                err.textContent = "การเชื่อมต่อล้มเหลว โปรดตรวจสอบอินเทอร์เน็ต";
-                err.classList.remove('hidden');
-            } finally {
-                btn.innerHTML = 'เข้าสู่ระบบ <i class="ph ph-flower-lotus"></i>';
-                btn.disabled = false;
-            }
-        }
-
-        function logoutStudent() {
-            document.getElementById('stuLoginId').value = '';
-            document.getElementById('stuLoginPass').value = '';
-            document.getElementById('stuLoginError').classList.add('hidden');
-            
-            document.getElementById('studentDashboardView').classList.add('hidden');
-            document.getElementById('studentLoginView').classList.remove('hidden');
+                    const d = result.data;
+                    document.getElementById('stuFullName').innerText = d.fullName;
+                    document.getElementById('stuIdText').innerText = d.studentId;
+                    document.getElementById('stuRoomText').innerText = d.room;
+                    if(d.profileImageUrl) {
+                        const m = d.profileImageUrl.match(/[-\w]{25,}/);
+                        document.getElementById('stuProfileImg').src = m ? `https://drive.google.com/thumbnail?id=${m[0]}&sz=w300` : d.profileImageUrl;
+                    } else { document.getElementById('stuProfileImg').src = 'https://via.placeholder.com/180?text=ไม่มีรูปภาพ'; }
+                    renderStudentWarnings(d.warnings);
+                } else { document.getElementById('stuLoginError').innerText = "รหัสไม่ถูกต้อง กรุณาลองใหม่"; document.getElementById('stuLoginError').classList.remove('hidden'); }
+            } catch(e) {} finally { showLoading(false); }
         }
 
         function renderStudentWarnings(warnings) {
-            const container = document.getElementById('studentWarningsContainer');
-            const noMsg = document.getElementById('noWarningMsg');
-            const badge = document.getElementById('warnCountBadge');
-
-            if (!warnings || warnings.length === 0) {
-                badge.textContent = "0 รายการ";
-                badge.className = "bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[20px]";
-                noMsg.classList.remove('hidden');
-                container.innerHTML = '';
-                return;
-            }
-
-            badge.textContent = `${warnings.length} รายการ`;
-            badge.className = "bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[20px]";
-            noMsg.classList.add('hidden');
-
-            let html = '';
-            warnings.forEach((warn, idx) => {
-                const timelineHtml = generateTimelineHTML(warn.status);
-                html += `
-                <div class="mb-8 bg-pink-50 p-5 rounded-2xl border border-pink-200 shadow-sm relative overflow-hidden">
-                    <div class="absolute right-0 top-0 bg-pink-500 text-white px-3 py-1 rounded-bl-xl font-bold text-[20px]">
-                        ครั้งที่ ${idx + 1}
-                    </div>
-                    <div class="mb-4 border-b border-pink-200 pb-3">
-                        <div class="font-bold text-pink-800 text-[26px]"><i class="ph ph-calendar-blank"></i> วันที่: ${warn.date}</div>
-                        <div class="font-bold text-rose-600 text-[28px] mt-1"><i class="ph ph-warning-octagon"></i> ความผิด: ${warn.violation}</div>
-                        <div class="text-slate-600 text-[24px] mt-1 bg-white p-2 rounded-lg border border-pink-100"><b>รายละเอียด:</b> ${warn.notes}</div>
-                    </div>
-                    <h4 class="font-bold text-slate-700 mb-3 text-[24px]"><i class="ph ph-git-merge text-pink-400"></i> เส้นทางสถานะ (Timeline)</h4>
-                    ${timelineHtml}
-                </div>
-                `;
+            const con = document.getElementById('studentWarningsContainer');
+            document.getElementById('warnCountBadge').innerText = warnings.length + " รายการ";
+            document.getElementById('noWarningMsg').classList.toggle('hidden', warnings.length > 0);
+            let html = "";
+            warnings.forEach((w, idx) => {
+                let step = w.status.includes('ครูที่ปรึกษา') ? 4 : (w.status.includes('หัวหน้าระดับรับทราบ') ? 5 : (w.status.includes('หักคะแนน') ? 6 : 3));
+                html += `<div class="bg-pink-50 p-5 rounded-2xl border border-pink-200 relative"><div class="absolute right-0 top-0 bg-pink-500 text-white px-3 py-1 rounded-bl-xl font-bold">ครั้งที่ ${idx+1}</div><div class="font-bold text-pink-800 text-[26px]">วันที่: ${w.date}</div><div class="font-bold text-rose-600 text-[28px]">⚠️ ${w.violation}</div><p class="text-[24px] mt-1 bg-white p-2 rounded-lg border border-pink-100">${w.notes}</p><div class="mt-4 p-4 bg-white rounded-xl space-y-4 shadow-inner">${[1,2,3,4,5,6].map(i => {
+                    const labs = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"];
+                    const icons = ["ph-file-text", "ph-bell-ringing", "ph-megaphone", "ph-check-circle", "ph-check-square-offset", "ph-warning-octagon"];
+                    let color = i < step ? "bg-pink-400 text-white" : (i === step ? (i === 6 ? "bg-red-500 text-white timeline-active-node" : "bg-pink-600 text-white timeline-active-node") : "bg-slate-200 text-slate-400");
+                    return `<div class="relative pl-12 h-10"><div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 ${color}"><i class="ph ${icons[i-1]} text-xl"></i></div><div class="text-[26px] ${i === step ? 'font-bold text-pink-900' : 'text-slate-500'}">${labels[i-1]}</div>${i < 6 ? `<div class="absolute left-5 top-8 bottom-[-15px] w-[2px] ${i < step ? 'bg-pink-300' : 'bg-slate-200'}"></div>` : ''}</div>`;
+                }).join('')}</div></div>`;
             });
-            container.innerHTML = html;
+            con.innerHTML = html;
         }
 
-        function generateTimelineHTML(currentStatus) {
-            const steps = [
-                { id: 1, text: "เริ่มบันทึกตักเตือน", icon: "ph-file-text" },
-                { id: 2, text: "แจ้งครูที่ปรึกษา", icon: "ph-bell-ringing" },
-                { id: 3, text: "แจ้งหัวหน้าระดับ", icon: "ph-megaphone" },
-                { id: 4, text: "ครูที่ปรึกษารับทราบ", icon: "ph-check-circle" },
-                { id: 5, text: "หัวหน้าระดับรับทราบ", icon: "ph-check-square-offset" },
-                { id: 6, text: "ส่งหักคะแนนพฤติกรรม", icon: "ph-warning-octagon" }
-            ];
-
-            let activeStepIndex = 3; // เบื้องต้นให้อยู่ขั้น 3
-            if (currentStatus.includes("ครูที่ปรึกษารับทราบ")) activeStepIndex = 4;
-            else if (currentStatus.includes("หัวหน้าระดับรับทราบ")) activeStepIndex = 5;
-            else if (currentStatus.includes("หักคะแนน") || currentStatus.includes("ตัดคะแนน")) activeStepIndex = 6;
-
-            let timelineNodes = '';
-            
-            steps.forEach((step, index) => {
-                const stepNum = index + 1;
-                const isCompleted = stepNum < activeStepIndex;
-                const isActive = stepNum === activeStepIndex;
-
-                let iconColor = "text-slate-400";
-                let bgColor = "bg-slate-200";
-                let textColor = "text-slate-400";
-                let nodeClass = "";
-
-                if (isCompleted) {
-                    iconColor = "text-white";
-                    bgColor = "bg-pink-400";
-                    textColor = "text-pink-700";
-                } else if (isActive) {
-                    iconColor = "text-white";
-                    bgColor = stepNum === 6 ? "bg-red-500" : "bg-pink-600";
-                    textColor = stepNum === 6 ? "text-red-600 font-bold" : "text-pink-800 font-bold";
-                    nodeClass = "timeline-active-node"; 
-                }
-
-                const lineHtml = stepNum < 6 
-                    ? `<div class="absolute left-[20px] top-[40px] bottom-[-20px] w-[3px] ${isCompleted ? 'bg-pink-300' : 'bg-slate-200'}"></div>` 
-                    : '';
-
-                timelineNodes += `
-                <div class="relative pl-14 mb-6 last:mb-0">
-                    ${lineHtml}
-                    <div class="absolute left-0 top-1 w-[43px] h-[43px] rounded-full flex items-center justify-center border-4 border-white shadow-sm z-10 ${bgColor} ${nodeClass}">
-                        <i class="ph ${step.icon} ${iconColor} text-[22px]"></i>
-                    </div>
-                    <div class="${textColor} text-[26px] pt-1">
-                        ${step.text}
-                    </div>
-                </div>
-                `;
-            });
-
-            return `<div class="bg-white p-4 rounded-xl border border-pink-100 shadow-inner">${timelineNodes}</div>`;
+        function logoutStudent() { document.getElementById('studentDashboardView').classList.add('hidden'); document.getElementById('studentLoginView').classList.remove('hidden'); }
+        function showAlert(type, title, message) {
+            const m = document.getElementById('alertModal');
+            document.getElementById('alertIcon').innerHTML = `<i class="ph ph-${type==='success'?'check-circle text-green-500':'x-circle text-red-500'}" style="font-size: 80px;"></i>`;
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertTitle').className = `font-bold leading-tight mb-2 ${type==='success'?'text-green-600':'text-red-600'}`;
+            document.getElementById('alertMessage').innerText = message;
+            m.classList.remove('hidden');
         }
-
+        function closeAlert() { document.getElementById('alertModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
