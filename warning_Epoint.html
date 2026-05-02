@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
+        /* นำเข้าฟอนต์ TH Sarabun New สำหรับความทางการและอ่านง่าย */
         @font-face {
             font-family: 'TH Sarabun New';
             font-style: normal;
@@ -52,13 +53,19 @@
         optgroup { font-family: 'Prompt', sans-serif; font-weight: bold; color: #dc2626; font-size: 16px; }
         option { font-family: 'TH Sarabun New', sans-serif; font-weight: normal; color: #1e293b; font-size: 24px; }
 
+        /* 🌟 Animation สำหรับ Timeline นักเรียน */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(236, 72, 153, 0); }
             100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
         }
         .timeline-active-node { animation: pulse-ring 2s infinite; }
-        .bg-lotus { background-color: #fdf2f8; background-image: radial-gradient(#fce7f3 2px, transparent 2px); background-size: 30px 30px; }
+        
+        .bg-lotus {
+            background-color: #fdf2f8;
+            background-image: radial-gradient(#fce7f3 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
     </style>
 </head>
 <body class="pb-10 bg-slate-100">
@@ -68,14 +75,14 @@
         <h2 id="loadingText" class="font-bold text-red-800 text-[32px]">กำลังสื่อสารกับฐานข้อมูล...</h2>
     </div>
 
-    <!-- Header พร้อมโลโก้ -->
+    <!-- Header พร้อมโลโก้โรงเรียน -->
     <div id="mainHeader" class="bg-red-600 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500">
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=300" alt="Logo" class="mx-auto mb-2 w-24 h-24 object-contain bg-white rounded-full p-1 shadow-inner border-2 border-white" onerror="this.src='https://via.placeholder.com/150?text=Logo'">
-        <h1 id="headerTitle" class="font-bold leading-tight" style="font-size: 38px;">ระบบตักเตือนพฤติกรรมออนไลน์ ของระบบ E-Point</h1>
-        <p id="headerSubtitle" style="font-size: 24px; opacity: 0.9;">Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+        <h1 id="headerTitle" class="font-bold leading-tight" style="font-size: 38px;">ระบบบริหารกิจการนักเรียน</h1>
+        <p id="headerSubtitle" style="font-size: 24px; opacity: 0.9;">Buayai I Care School</p>
     </div>
 
-    <!-- แท็บเมนูหลัก -->
+    <!-- แท็บเมนูหลัก 3 ส่วน -->
     <div class="max-w-3xl mx-auto px-4 mb-4">
         <div class="flex bg-white p-2 rounded-2xl shadow-sm border border-slate-200 gap-1 overflow-x-auto">
             <button id="tabBtnForm" onclick="switchTab('form')" class="flex-1 py-3 px-2 bg-red-600 text-white font-bold rounded-[14px] text-[26px] shadow-sm transition whitespace-nowrap">
@@ -118,46 +125,35 @@
                         </optgroup>
                     </select>
                 </div>
-
                 <div class="mb-6">
-                    <label class="form-label"><i class="ph ph-user-focus text-red-500"></i> 2. ชื่อนักเรียนที่กระทำผิด</label>
-                    <select id="studentSelect" class="form-control" disabled required>
-                        <option value="">-- กรุณาเลือกห้องเรียนก่อน --</option>
-                    </select>
+                    <label class="form-label"><i class="ph ph-user-focus text-red-500"></i> 2. ชื่อนักเรียน</label>
+                    <select id="studentSelect" class="form-control" disabled required><option value="">-- กรุณาเลือกห้องเรียนก่อน --</option></select>
                     <input type="hidden" id="studentIdVal">
                 </div>
-
                 <div class="mb-6">
-                    <label class="form-label"><i class="ph ph-siren text-red-500"></i> 3. ฐานความผิด</label>
-                    <select id="violationSelect" class="form-control" onchange="toggleOtherViolation()" required>
-                        <option value="">-- กำลังโหลดฐานความผิด... --</option>
-                    </select>
+                    <label class="form-label"><i class="ph ph-siren text-red-500"></i> 3. พฤติกรรมที่ไม่หมาะสม</label>
+                    <select id="violationSelect" class="form-control" onchange="toggleOtherViolation()" required><option value="">-- กำลังโหลดฐานความผิด... --</option></select>
                     <input type="text" id="otherViolationInput" class="form-control mt-3 hidden bg-red-50 border-red-300" placeholder="พิมพ์ระบุความผิดที่นี่...">
                 </div>
-
                 <div class="mb-6">
                     <label class="form-label"><i class="ph ph-map-pin-line text-red-500"></i> 4. สถานที่ / ลักษณะที่พบ</label>
                     <textarea id="notesInput" class="form-control" rows="3" placeholder="ระบุรายละเอียดเหตุการณ์ให้ชัดเจน..." required></textarea>
                 </div>
-
                 <div class="mb-8">
                     <label class="form-label"><i class="ph ph-identification-badge text-red-500"></i> 5. ลงชื่อครูผู้ตักเตือน</label>
                     <input type="text" id="teacherInput" class="form-control" placeholder="ระบุชื่อ-สกุล ของท่าน" required>
                 </div>
-
-                <button type="submit" class="btn-main bg-red-600 text-white shadow-lg">
-                    บันทึกข้อมูลตักเตือน
-                </button>
+                <button type="submit" class="btn-main bg-red-600 text-white shadow-lg">บันทึกข้อมูลตักเตือน</button>
             </form>
         </div>
     </div>
 
-    <!-- แท็บ 2: กล่องข้อความเจ้าหน้าที่ (Inbox) -->
+    <!-- แท็บ 2: กล่องข้อความเจ้าหน้าที่ -->
     <div id="sectionInbox" class="hidden max-w-3xl mx-auto px-4">
         <div id="inboxLoginView" class="bg-white p-8 rounded-[30px] shadow-sm border border-slate-200 text-center mt-2">
             <i class="ph ph-lock-key text-red-600 mb-2" style="font-size: 70px;"></i>
             <h2 class="font-bold text-slate-800 mb-6" style="font-size: 38px;">ยืนยันสิทธิ์เข้าถึง</h2>
-            <input type="text" id="loginCode" class="w-full p-4 border-2 border-slate-300 rounded-[16px] text-center font-bold text-slate-800 focus:border-red-500 outline-none mb-6" style="font-size: 32px;" placeholder="ระบุรหัส (เช่น m2)">
+            <input type="text" id="loginCode" class="w-full p-4 border-2 border-slate-300 rounded-[16px] text-center font-bold text-slate-800 focus:border-red-500 outline-none mb-6" style="font-size: 32px;" placeholder="ระบุรหัส (เช่น t32 หรือ m2)">
             <p id="loginError" class="text-red-500 mb-4 font-bold hidden text-[22px]">รหัสไม่ถูกต้อง กรุณาลองใหม่!</p>
             <button onclick="doInboxLogin()" class="btn-custom bg-slate-800 text-white w-full">เข้าสู่กล่องข้อความ</button>
         </div>
@@ -168,7 +164,7 @@
                 <button onclick="logoutInbox()" class="text-red-300 font-bold px-3 py-1 bg-white/10 rounded-lg">ออก</button>
             </div>
 
-            <!-- 🌟 ตัวเลือกด่านสำหรับหัวหน้าระดับ -->
+            <!-- ตัวเลือกด่านสำหรับหัวหน้าระดับ -->
             <div id="headLevelSelector" class="hidden mb-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto whitespace-nowrap gap-2">
                 <span class="font-bold text-slate-500 mr-2">เลือกชั้น:</span>
                 <button onclick="filterHeadByGrade('ม.1')" class="btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600">ม.1</button>
@@ -183,11 +179,12 @@
         </div>
     </div>
 
-    <!-- แท็บ 3: สำหรับนักเรียน -->
+    <!-- แท็บ 3: สำหรับนักเรียน (Student Dashboard - 🌸 PINK THEME) -->
     <div id="sectionStudent" class="hidden max-w-3xl mx-auto px-4 bg-lotus min-h-screen rounded-3xl pb-10 border-2 border-pink-100">
         <div id="studentLoginView" class="p-8 text-center mt-6 bg-white rounded-3xl shadow-xl">
             <i class="ph ph-student text-pink-500 mb-2" style="font-size: 80px;"></i>
-            <h2 class="font-bold text-pink-900 leading-tight mb-1" style="font-size: 38px;">เช็คสถานะพฤติกรรม</h2>
+            <h2 class="font-bold text-pink-900 leading-tight mb-1" style="font-size: 38px;">ดูสถานะพฤติกรรม</h2>
+            <p class="text-pink-600 mb-6" style="font-size: 24px;">ระบบ E-Point Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</p>
             <div class="text-left mt-6 mb-6">
                 <label class="block font-bold text-pink-800 mb-1">เลขประจำตัวนักเรียน</label>
                 <input type="text" id="stuLoginId" class="form-control mb-4" placeholder="ระบุเลข 5 หลัก">
@@ -197,16 +194,32 @@
             </div>
             <button onclick="doStudentLogin()" class="btn-custom bg-gradient-to-r from-pink-500 to-rose-500 text-white w-full shadow-lg border-0">ตรวจสอบสถานะ</button>
         </div>
+
         <div id="studentDashboardView" class="hidden mt-4">
+            <!-- โปรไฟล์นักเรียน -->
             <div class="bg-white rounded-[24px] shadow-md border border-pink-100 p-6 mb-6 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-pink-300 to-rose-300"></div>
-                <button onclick="logoutStudent()" class="absolute top-4 right-4 bg-white/30 text-pink-900 px-3 py-1 rounded-full text-[20px] font-bold z-20">ออก</button>
+                <button onclick="logoutStudent()" class="absolute top-4 right-4 bg-white/30 text-pink-900 px-3 py-1 rounded-full text-[20px] font-bold z-20">ออก <i class="ph ph-sign-out"></i></button>
                 <div class="relative z-10">
                     <img id="stuProfileImg" src="" alt="Profile" class="w-[180px] h-[180px] rounded-full mx-auto border-4 border-white shadow-lg object-cover bg-slate-100 mb-3" onerror="this.src='https://via.placeholder.com/180?text=ไม่มีรูปภาพ'">
                     <h2 id="stuFullName" class="text-[34px] font-bold text-slate-800">...</h2>
                     <p class="text-pink-600 font-bold">รหัส: <span id="stuIdText">-</span> | ชั้น: <span id="stuRoomText">...</span></p>
                 </div>
             </div>
+
+            <!-- ข้อความเปรียบเปรยดอกบัว -->
+            <div class="bg-gradient-to-b from-white to-pink-50 p-6 rounded-[24px] shadow-sm mb-6 border border-pink-200 text-center relative">
+                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2 shadow-sm border border-pink-100">
+                    <i class="ph ph-flower-lotus text-pink-500 animate-pulse" style="font-size: 40px;"></i>
+                </div>
+                <h3 class="text-[28px] font-bold text-pink-800 mt-4 mb-2">ข้อคิดจากสระบัว</h3>
+                <p class="text-slate-700 leading-tight text-[24px]">
+                    การถูกตักเตือน เปรียบเสมือน <b class="text-rose-600">"ดอกบัวที่มีแมลงมากัดกิน"</b><br>
+                    ลูกรักษากายใจให้เข้มแข็ง สู้ภัยแมลง แล้วกลับมา <b class="text-pink-600">เบ่งบานอย่างสง่างาม</b> เพื่อตนเองและครอบครัวนะครับ 🌸
+                </p>
+            </div>
+
+            <!-- 🌟 ส่วนแสดง Timeline รายการความผิด 🌟 -->
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-pink-100">
                 <h3 class="text-[30px] font-bold text-slate-800 mb-4 border-b border-pink-100 pb-2 flex justify-between">
                     <span><i class="ph ph-git-merge text-pink-500 mr-2"></i>เส้นทางสถานะล่าสุด</span>
@@ -216,12 +229,14 @@
                     <p class="font-bold text-emerald-600 text-[28px]">ยินดีด้วย! ลูกประพฤติตนดีเยี่ยม</p>
                     <p class="text-slate-500">ดอกบัวของลูกยังเบ่งบานสมบูรณ์แบบไร้แมลงกัดกิน</p>
                 </div>
-                <div id="studentWarningsContainer" class="space-y-8"></div>
+                <div id="studentWarningsContainer" class="space-y-8">
+                    <!-- ข้อมูล Timeline จะถูกใส่ที่นี่ด้วย JavaScript -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 🌟 Modal หัวหน้าระดับชั้น: ส่งหักคะแนน 🌟 -->
+    <!-- Modal หัวหน้าระดับ: แจ้งระเบียบ ปค 16 -->
     <div id="deductModal" class="hidden fixed inset-0 bg-black/70 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl relative border-2 border-red-500">
             <button onclick="closeDeductModal()" class="absolute top-3 right-3 text-slate-400"><i class="ph ph-x-circle" style="font-size: 40px;"></i></button>
@@ -229,7 +244,6 @@
             <h2 class="font-bold text-red-700 leading-tight mb-3" style="font-size: 32px;">ยืนยันการส่งตัดคะแนน</h2>
             <div class="bg-red-50 p-4 rounded-xl border border-red-200 text-left mb-5">
                 <p class="text-slate-800 leading-tight" style="font-size: 24px;">
-                    <b>หมายเหตุสำคัญ:</b><br>
                     กรุณากรอกรายละเอียดการตัดคะแนน โดยนักเรียนลงลายมือชื่อรับทราบ ด้วยเอกสาร <b>ปค 16</b> และส่งเอกสาร ณ ห้องกิจการนักเรียน เพื่อเสนอตามขั้นตอนของคู่มือนักเรียนต่อไป..
                 </p>
             </div>
@@ -237,10 +251,10 @@
         </div>
     </div>
 
-    <!-- Alert Modals อื่นๆ -->
+    <!-- รหัสผ่านเจ้าหน้าที่ -->
     <div id="formPasswordModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-8 text-center shadow-2xl">
-            <h2 class="font-bold text-slate-800 mb-4 text-[32px]">ยืนยันรหัสเจ้าหน้าที่</h2>
+            <h2 class="font-bold text-slate-800 mb-4 text-[32px]">ยืนยันรหัสผ่าน</h2>
             <input type="password" id="adminPasswordInput" class="form-control text-center mb-6" placeholder="รหัสยืนยันการบันทึก">
             <div class="flex gap-2">
                 <button onclick="closeFormPasswordModal()" class="flex-1 py-3 bg-slate-200 rounded-xl font-bold">ยกเลิก</button>
@@ -249,6 +263,7 @@
         </div>
     </div>
 
+    <!-- Alert Modal -->
     <div id="alertModal" class="hidden fixed inset-0 bg-black/60 modal-backdrop z-[60] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 text-center shadow-2xl">
             <div id="alertIcon" class="mb-2"></div>
@@ -259,6 +274,7 @@
     </div>
 
     <script>
+        // ⚠️ ต้องนำลิงก์ Web App จาก Apps Script มาใส่ตรงนี้ครับ
         const WARNING_API_URL = 'https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec';
 
         let dbStudentsCache = {}, dbViolations = [], pendingWarningPayload = null, inboxData = [], currentRole = "", selectedHeadGrade = "";
@@ -282,16 +298,17 @@
                 document.getElementById(`section${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
             });
             document.getElementById(`section${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
+            
             const header = document.getElementById('mainHeader');
             if (tab === 'form') {
                 header.className = "bg-red-600 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
-                document.getElementById('headerTitle').innerText = "ระบบบริหารกิจการนักเรียน";
+                document.getElementById('headerTitle').innerText = "ระบบตักเตือนออนไลน์ ของระบบ E-Point";
             } else if (tab === 'inbox') {
                 header.className = "bg-slate-800 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
-                document.getElementById('headerTitle').innerText = "กล่องข้อความเจ้าหน้าที่";
+                document.getElementById('headerTitle').innerText = "กล่องข้อความคุณครู/หัวหน้าระดับชั้น";
             } else {
                 header.className = "bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-b-[30px] p-6 shadow-md text-center mb-4 max-w-3xl mx-auto transition-colors duration-500";
-                document.getElementById('headerTitle').innerText = "บันทึกตักเตือน E-Point";
+                document.getElementById('headerTitle').innerText = "บันทึกตักเตือนพฤติกรรมของระบบ E-Point";
             }
         }
 
@@ -301,6 +318,7 @@
             overlay.classList.toggle('hidden', !show);
         }
 
+        // --- ส่วนงานแบบฟอร์ม ---
         async function fetchInitialData() {
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInitialData' }) });
@@ -321,17 +339,16 @@
             if (!selectedRoom) { stuSelect.disabled = true; return; }
             const grade = selectedRoom.split('/')[0];
             if (!dbStudentsCache[grade]) {
-                stuSelect.innerHTML = `<option value="">กำลังดิ่งไปดึงข้อมูลชั้น ${grade}...</option>`;
+                stuSelect.innerHTML = `<option value="">กำลังโหลดชั้น ${grade}...</option>`;
                 stuSelect.disabled = true;
                 try {
                     const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getStudentsByGrade', grade: grade }) });
                     const result = await res.json();
                     if (result.status === 'success') dbStudentsCache[grade] = result.data;
-                    else throw new Error();
-                } catch(e) { stuSelect.innerHTML = '<option value="">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่</option>'; return; }
+                } catch(e) { return; }
             }
             const roomStudents = dbStudentsCache[grade].filter(s => s.room === selectedRoom).sort((a,b) => a.name.localeCompare(b.name, 'th'));
-            stuSelect.innerHTML = '<option value="">-- แตะเลือกชื่อ --</option>';
+            stuSelect.innerHTML = '<option value="">-- โปรดเลือกชื่อ --</option>';
             roomStudents.forEach(s => stuSelect.innerHTML += `<option value="${s.name}" data-id="${s.id}">${s.name}</option>`);
             stuSelect.disabled = false;
         }
@@ -357,22 +374,22 @@
         async function confirmSubmitWarning() {
             const pwd = document.getElementById('adminPasswordInput').value;
             if(!pwd) return;
-            showLoading(true, "กำลังบันทึกข้อมูล...");
+            showLoading(true, "กำลังบันทึก...");
             pendingWarningPayload.password = pwd;
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify(pendingWarningPayload) });
                 const result = await res.json();
                 closeFormPasswordModal();
-                if(result.status === 'success') { showAlert('success', 'บันทึกสำเร็จ!', 'ข้อมูลถูกส่งเข้าระบบเรียบร้อยแล้ว'); document.getElementById('warningForm').reset(); } 
+                if(result.status === 'success') { showAlert('success', 'สำเร็จ!', 'บันทึกข้อมูลการตักเตือนเรียบร้อย'); document.getElementById('warningForm').reset(); } 
                 else showAlert('error', 'ล้มเหลว', result.message);
-            } catch(e) { showAlert('error', 'ขัดข้อง', 'โปรดตรวจสอบรหัสผ่านหรือการเชื่อมต่อ'); }
-            finally { showLoading(false); }
+            } catch(e) {} finally { showLoading(false); }
         }
 
+        // --- ส่วนงาน Inbox (ครู/หัวหน้า) ---
         async function doInboxLogin() {
             const code = document.getElementById('loginCode').value.trim().toLowerCase();
             if(!code) return;
-            showLoading(true, "กำลังยืนยันสิทธิ์...");
+            showLoading(true, "กำลังตรวจสอบความถูกต้องของรหัสผ่าน...");
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInbox', code: code }) });
                 const result = await res.json();
@@ -380,27 +397,24 @@
                     currentRole = result.role; inboxData = result.data;
                     document.getElementById('inboxLoginView').classList.add('hidden');
                     document.getElementById('inboxContentView').classList.remove('hidden');
-                    
                     if (currentRole === 'head') {
                         document.getElementById('headLevelSelector').classList.remove('hidden');
                         document.getElementById('roleTitle').innerText = `หัวหน้าระดับชั้น (${result.filter})`;
-                        // ให้เลือกชั้นของตัวเองเป็นค่าเริ่มต้น
                         filterHeadByGrade(result.filter);
                     } else {
                         document.getElementById('roleTitle').innerText = `ครูที่ปรึกษา (${result.filter})`;
                         renderInbox();
                     }
-                } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch(e) { alert("เชื่อมต่อผิดพลาด"); } finally { showLoading(false); }
+                } else document.getElementById('loginError').classList.remove('hidden');
+            } catch(e) {} finally { showLoading(false); }
         }
 
         function logoutInbox() { document.getElementById('inboxContentView').classList.add('hidden'); document.getElementById('inboxLoginView').classList.remove('hidden'); }
 
-        // 🌟 กรองข้อมูลสำหรับหัวหน้าระดับ
         function filterHeadByGrade(grade) {
             selectedHeadGrade = grade;
             document.querySelectorAll('.btn-grade-filter').forEach(btn => {
-                btn.className = btn.innerText === grade ? "btn-grade-filter px-4 py-1 rounded-full bg-slate-800 text-white font-bold border border-slate-800" : "btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600";
+                btn.className = btn.innerText === grade ? "btn-grade-filter px-4 py-1 rounded-full bg-slate-800 text-white font-bold" : "btn-grade-filter px-4 py-1 rounded-full border border-slate-300 font-bold text-slate-600";
             });
             renderInbox();
         }
@@ -408,39 +422,45 @@
         function renderInbox() {
             const con = document.getElementById('warningCardsContainer');
             let displayData = inboxData;
+            if (currentRole === 'head' && selectedHeadGrade) displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
+            
+            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl">ไม่มีประวัติค้าง</div>'; return; }
 
-            // กรองข้อมูลตามชั้นถ้าเป็นหัวหน้า
-            if (currentRole === 'head' && selectedHeadGrade) {
-                displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
-            }
-
-            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl">ไม่มีประวัติค้างการรับทราบ</div>'; return; }
-
-            // 🌟 เรียงตามเลขห้องจากน้อยไปมาก
-            displayData.sort((a, b) => {
-                const roomA = parseInt(a.room.split('/')[1] || 0);
-                const roomB = parseInt(b.room.split('/')[1] || 0);
-                return roomA - roomB;
-            });
+            displayData.sort((a, b) => parseInt(a.room.split('/')[1] || 0) - parseInt(b.room.split('/')[1] || 0));
 
             let html = "";
             displayData.forEach(item => {
-                let btn = currentRole === 'teacher' ? 
-                    `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full">รับทราบ (แจ้งนักเรียนแล้ว)</button>` : 
-                    `<div class="flex gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1">รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1">ส่งหักคะแนน</button></div>`;
+                let btnAreaContent = "";
+                const isHandledByHead = item.status.includes("หัวหน้าระดับรับทราบ") || item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน");
+                const isHandledByTeacher = item.status.includes("ครูที่ปรึกษารับทราบ");
+
+                if (currentRole === 'teacher') {
+                    if (isHandledByTeacher || isHandledByHead) {
+                        btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200">รับทราบแล้ว</div>`;
+                    } else {
+                        btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check-circle"></i> รับทราบ (เรียกพบแล้ว)</button>`;
+                    }
+                } else if (currentRole === 'head') {
+                    if (isHandledByHead) {
+                        const statusLabel = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "ส่งหักคะแนนแล้ว" : "รับทราบแล้ว";
+                        const themeClass = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200";
+                        btnAreaContent = `<div class="text-center py-2 px-4 ${themeClass} font-bold rounded-xl border">${statusLabel}</div>`;
+                    } else {
+                        btnAreaContent = `<div class="flex gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1 shadow-md"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1 shadow-md"><i class="ph ph-minus-circle"></i> ส่งหักคะแนน</button></div>`;
+                    }
+                }
                 
-                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px]">${item.studentName}</div><div class="text-red-500 text-[22px] font-bold">${item.room} | ${item.violation}</div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4"><b>รายละเอียดที่พบ:</b> ${item.notes}</div>${btn}</div></details>`;
+                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px]">${item.studentName}</div><div class="text-red-500 text-[22px] font-bold">${item.room} | ${item.violation}</div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4"><b>ลักษณะ:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
             });
             con.innerHTML = html;
         }
 
         async function updateStatus(id, type, name, room) {
-            showLoading(true, "กำลังอัปเดต...");
+            showLoading(true, "อัปเดต...");
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', warningId: id, actionType: type, studentName: name, room: room }) });
                 const result = await res.json();
                 if(result.status === 'success') {
-                    // รีโหลดข้อมูลใหม่
                     const code = document.getElementById('loginCode').value.trim();
                     const resInbox = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'getInbox', code: code }) });
                     const resultInbox = await resInbox.json();
@@ -449,21 +469,16 @@
             } catch(e) {} finally { showLoading(false); }
         }
 
-        function openDeductModal(id, name, room) { 
-            pendingDeductAction = { id, name, room }; 
-            document.getElementById('deductModal').classList.remove('hidden'); 
-        }
+        function openDeductModal(id, name, room) { pendingDeductAction = { id, name, room }; document.getElementById('deductModal').classList.remove('hidden'); }
         function closeDeductModal() { document.getElementById('deductModal').classList.add('hidden'); }
-        document.getElementById('btnConfirmDeduct').onclick = () => { 
-            closeDeductModal(); 
-            updateStatus(pendingDeductAction.id, 'head_deduct', pendingDeductAction.name, pendingDeductAction.room); 
-        };
+        document.getElementById('btnConfirmDeduct').onclick = () => { closeDeductModal(); updateStatus(pendingDeductAction.id, 'head_deduct', pendingDeductAction.name, pendingDeductAction.room); };
 
+        // --- ส่วนงานนักเรียน (Student View) ---
         async function doStudentLogin() {
             const sid = document.getElementById('stuLoginId').value;
             const spw = document.getElementById('stuLoginPass').value;
             if(!sid || !spw) return;
-            showLoading(true, "กำลังตรวจสอบคะแนน E-Point...");
+            showLoading(true, "กำลังดึงข้อมูลการตักเตือน ของท่าน...");
             try {
                 const res = await fetch(WARNING_API_URL, { method: 'POST', body: JSON.stringify({ action: 'studentLogin', studentId: sid, password: spw }) });
                 const result = await res.json();
@@ -477,9 +492,9 @@
                     if(d.profileImageUrl) {
                         const m = d.profileImageUrl.match(/[-\w]{25,}/);
                         document.getElementById('stuProfileImg').src = m ? `https://drive.google.com/thumbnail?id=${m[0]}&sz=w300` : d.profileImageUrl;
-                    } else { document.getElementById('stuProfileImg').src = 'https://via.placeholder.com/180?text=ไม่มีรูปภาพ'; }
+                    }
                     renderStudentWarnings(d.warnings);
-                } else { document.getElementById('stuLoginError').innerText = "รหัสไม่ถูกต้อง กรุณาลองใหม่"; document.getElementById('stuLoginError').classList.remove('hidden'); }
+                } else { document.getElementById('stuLoginError').innerText = "รหัสไม่ถูกต้อง"; document.getElementById('stuLoginError').classList.remove('hidden'); }
             } catch(e) {} finally { showLoading(false); }
         }
 
@@ -487,27 +502,81 @@
             const con = document.getElementById('studentWarningsContainer');
             document.getElementById('warnCountBadge').innerText = warnings.length + " รายการ";
             document.getElementById('noWarningMsg').classList.toggle('hidden', warnings.length > 0);
+            
             let html = "";
             warnings.forEach((w, idx) => {
-                let step = w.status.includes('ครูที่ปรึกษา') ? 4 : (w.status.includes('หัวหน้าระดับรับทราบ') ? 5 : (w.status.includes('หักคะแนน') ? 6 : 3));
-                html += `<div class="bg-pink-50 p-5 rounded-2xl border border-pink-200 relative"><div class="absolute right-0 top-0 bg-pink-500 text-white px-3 py-1 rounded-bl-xl font-bold">ครั้งที่ ${idx+1}</div><div class="font-bold text-pink-800 text-[26px]">วันที่: ${w.date}</div><div class="font-bold text-rose-600 text-[28px]">⚠️ ${w.violation}</div><p class="text-[24px] mt-1 bg-white p-2 rounded-lg border border-pink-100">${w.notes}</p><div class="mt-4 p-4 bg-white rounded-xl space-y-4 shadow-inner">${[1,2,3,4,5,6].map(i => {
-                    const labs = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"];
-                    const icons = ["ph-file-text", "ph-bell-ringing", "ph-megaphone", "ph-check-circle", "ph-check-square-offset", "ph-warning-octagon"];
-                    let color = i < step ? "bg-pink-400 text-white" : (i === step ? (i === 6 ? "bg-red-500 text-white timeline-active-node" : "bg-pink-600 text-white timeline-active-node") : "bg-slate-200 text-slate-400");
-                    return `<div class="relative pl-12 h-10"><div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 ${color}"><i class="ph ${icons[i-1]} text-xl"></i></div><div class="text-[26px] ${i === step ? 'font-bold text-pink-900' : 'text-slate-500'}">${labels[i-1]}</div>${i < 6 ? `<div class="absolute left-5 top-8 bottom-[-15px] w-[2px] ${i < step ? 'bg-pink-300' : 'bg-slate-200'}"></div>` : ''}</div>`;
-                }).join('')}</div></div>`;
+                // คำนวณขั้นของ Timeline
+                let step = 3; // เริ่มต้นที่ขั้น 3 (แจ้งหัวหน้า)
+                if(w.status.includes('ครูที่ปรึกษารับทราบ')) step = 4;
+                else if(w.status.includes('หัวหน้าระดับรับทราบ')) step = 5;
+                else if(w.status.includes('หักคะแนน') || w.status.includes('ตัดคะแนน')) step = 6;
+
+                html += `
+                <div class="bg-pink-50 p-5 rounded-2xl border border-pink-200 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bg-pink-500 text-white px-3 py-1 rounded-bl-xl font-bold text-[20px]">
+                        ครั้งที่ ${idx + 1}
+                    </div>
+                    
+                    <div class="mb-4 border-b border-pink-200 pb-3">
+                        <div class="font-bold text-pink-800 text-[26px]"><i class="ph ph-calendar-blank"></i> วันที่: ${w.date}</div>
+                        <div class="font-bold text-rose-600 text-[28px] mt-1">⚠️ พฤติกรรมไม่เหมาะสม: ${w.violation}</div>
+                        <div class="text-slate-600 text-[24px] mt-1 bg-white p-2 rounded-lg border border-pink-100 italic"><b>รายละเอียด:</b> ${w.notes}</div>
+                    </div>
+                    
+                    <h4 class="font-bold text-slate-700 mb-3 text-[24px]"><i class="ph ph-git-merge text-pink-400"></i> ลำดับขั้นตอนการดำเนินการ :</h4>
+                    
+                    <div class="bg-white p-4 rounded-xl border border-pink-100 shadow-inner space-y-5">
+                        ${generateStepsHtml(step)}
+                    </div>
+                </div>`;
             });
             con.innerHTML = html;
         }
 
+        // ฟังก์ชันวาด Node ของ Timeline
+        function generateStepsHtml(activeStep) {
+            const labels = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"];
+            const icons = ["ph-file-text", "ph-bell-ringing", "ph-megaphone", "ph-check-circle", "ph-check-square-offset", "ph-warning-octagon"];
+            
+            return labels.map((label, index) => {
+                const i = index + 1;
+                let colorClass = "bg-slate-200 text-slate-400";
+                let lineClass = "bg-slate-200";
+                let nodeClass = "";
+
+                if (i < activeStep) {
+                    colorClass = "bg-pink-400 text-white";
+                    lineClass = "bg-pink-300";
+                } else if (i === activeStep) {
+                    colorClass = (i === 6) ? "bg-red-500 text-white" : "bg-pink-600 text-white";
+                    nodeClass = "timeline-active-node"; // เปิด Animation กระพริบ
+                }
+
+                return `
+                <div class="relative pl-14 min-h-[45px] flex items-center">
+                    <!-- เส้นเชื่อม -->
+                    ${i < 6 ? `<div class="absolute left-[20px] top-[40px] bottom-[-20px] w-[3px] ${lineClass} z-0"></div>` : ''}
+                    
+                    <!-- จุดวงกลม -->
+                    <div class="absolute left-0 top-0 w-[42px] h-[42px] rounded-full flex items-center justify-center border-4 border-white shadow-sm z-10 ${colorClass} ${nodeClass}">
+                        <i class="ph ${icons[index]} text-[22px]"></i>
+                    </div>
+                    
+                    <!-- ข้อความ -->
+                    <div class="text-[26px] ${i === activeStep ? 'font-bold text-pink-900' : 'text-slate-500'}">
+                        ${label}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         function logoutStudent() { document.getElementById('studentDashboardView').classList.add('hidden'); document.getElementById('studentLoginView').classList.remove('hidden'); }
         function showAlert(type, title, message) {
-            const m = document.getElementById('alertModal');
             document.getElementById('alertIcon').innerHTML = `<i class="ph ph-${type==='success'?'check-circle text-green-500':'x-circle text-red-500'}" style="font-size: 80px;"></i>`;
             document.getElementById('alertTitle').innerText = title;
             document.getElementById('alertTitle').className = `font-bold leading-tight mb-2 ${type==='success'?'text-green-600':'text-red-600'}`;
             document.getElementById('alertMessage').innerText = message;
-            m.classList.remove('hidden');
+            document.getElementById('alertModal').classList.remove('hidden');
         }
         function closeAlert() { document.getElementById('alertModal').classList.add('hidden'); }
     </script>
