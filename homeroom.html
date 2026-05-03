@@ -113,7 +113,10 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
                 <div class="nav-link" onclick="switchMenu('inspection-history', this)"><i class="bi bi-search"></i> ดูประวัติการตรวจระเบียบ</div>
                 <div class="nav-link" onclick="switchMenu('submit', this)"><i class="bi bi-send-check"></i> เสนอหัวหน้าระดับ</div>
                 <div class="nav-link" onclick="switchMenu('print', this)"><i class="bi bi-printer"></i> พิมพ์รายงาน (รายเดือน)</div>
-                <div class="nav-link text-danger" onclick="openWarningModal()"><i class="ph ph-envelope-open-fill"></i> แจ้งตักเตือนพฤติกรรม (Inbox)</div>
+              <div class="nav-link text-danger" onclick="openWarningModal()">
+    <i class="ph ph-envelope-open-fill"></i> แจ้งตักเตือนพฤติกรรม (Inbox) 
+    <span id="warn-count-badge" class="badge bg-danger rounded-pill ms-2 d-none">0</span>
+</div>
             </div>
 
             <div id="menu-head" style="display: none;">
