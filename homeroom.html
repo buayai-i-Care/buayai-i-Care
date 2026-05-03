@@ -1026,6 +1026,191 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
             
             new bootstrap.Modal(document.getElementById('statsDetailModal')).show();
         }
+// --- 🌟 Integrated Warning System Logic 🌟 ---
+const WARNING_API_URL = "[https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec](https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec)";
+let warningInboxData = [];
+let warningSelectedGrade = "";
+
+async function openWarningModal() {
+    const modal = new bootstrap.Modal(document.getElementById('warningModal'));
+    modal.show();
+    
+    // ดึง UserID จากรหัสที่ล็อกอินโฮมรูม (Seamless Login)
+    const userId = document.getElementById('login-username').value.trim().toLowerCase();
+    fetchWarningInbox(userId);
+}
+
+async function fetchWarningInbox(code) {
+    const container = document.getElementById('warning-items-container');
+    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-danger"></div><div class="mt-2 text-danger fw-bold">กำลังติดต่อฝ่ายกิจการนักเรียน...</div></div>';
+    
+    try {
+        const res = await fetch(WARNING_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getInbox', code: code })
+        });
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+            warningInboxData = result.data;
+            if (result.role === 'head') {
+                document.getElementById('head-grade-selector').classList.remove('d-none');
+                warningSelectedGrade = result.filter; // เช่น ม.2
+                renderWarningInbox();
+            } else {
+                document.getElementById('head-grade-selector').classList.add('d-none');
+                renderWarningInbox();
+            }
+        }
+    } catch (e) {
+        container.innerHTML = '<div class="alert alert-danger">ไม่สามารถเชื่อมต่อระบบตักเตือนได้</div>';
+    }
+}
+
+function filterWarningByGrade(grade) {
+    warningSelectedGrade = grade;
+    renderWarningInbox();
+}
+
+function renderWarningInbox() {
+    const container = document.getElementById('warning-items-container');
+    let displayData = warningInboxData;
+
+    // ถ้าเป็นหัวหน้า ให้กรองตามชั้นที่เลือก
+    if (appState.role === 'head' && warningSelectedGrade) {
+        displayData = warningInboxData.filter(item => item.room.startsWith(warningSelectedGrade));
+    }
+
+    if (displayData.length === 0) {
+        container.innerHTML = '<div class="text-center py-5 text-muted"><i class="ph ph-check-circle-fill text-success fs-1"></i><br>ไม่มีรายการค้างจัดการครับ</div>';
+        return;
+    }
+
+    // เรียงห้องจากน้อยไปมาก
+    displayData.sort((a, b) => parseInt(a.room.split('/')[1] || 0) - parseInt(b.room.split('/')[1] || 0));
+
+    let html = "";
+    displayData.forEach(item => {
+        let buttons = "";
+        const isDone = item.status.includes("รับทราบ") || item.status.includes("หักคะแนน");
+
+        if (isDone) {
+            buttons = `<div class="text-center p-2 bg-light text-success fw-bold rounded-3 border">✅ ดำเนินการแล้ว (${item.status})</div>`;
+        } else {
+            if (appState.role === 'teacher') {
+                buttons = `<button onclick="updateWarning('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn btn-success w-100 rounded-pill fw-bold"><i class="ph ph-check-circle"></i> รับทราบ (แจ้ง นร. แล้ว)</button>`;
+            } else {
+                buttons = `
+                <div class="d-flex gap-2">
+                    <button onclick="updateWarning('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn btn-outline-success flex-1 rounded-pill fw-bold">รับทราบ</button>
+                    <button onclick="confirmDeduct('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn btn-danger flex-1 rounded-pill fw-bold">ส่งหักคะแนน</button>
+                </div>`;
+            }
+        }
+
+        html += `
+        <details class="warning-card shadow-sm mb-3">
+            <summary class="warning-card-header">
+                <div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${item.studentName}</div>
+                    <div class="small text-danger fw-bold">${item.room} | ${item.violation}</div>
+                </div>
+                <i class="ph ph-caret-down fs-5 chevron-rotate"></i>
+            </summary>
+            <div class="warning-body">
+                <p class="small mb-3 text-muted"><b>รายละเอียด:</b> ${item.notes}</p>
+                <div id="act-area-${item.warningId}">${buttons}</div>
+            </div>
+        </details>`;
+    });
+    container.innerHTML = html;
+}
+
+async function updateWarning(id, type, name, room) {
+    const area = document.getElementById(`act-area-${id}`);
+    area.innerHTML = '<div class="text-center small py-2"><span class="spinner-border spinner-border-sm"></span> กำลังบันทึก...</div>';
+    
+    try {
+        const res = await fetch(WARNING_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updateStatus', warningId: id, actionType: type, studentName: name, room: room })
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+            // โหลดข้อมูลใหม่เพื่ออัปเดตสถานะ
+            const userId = document.getElementById('login-username').value.trim().toLowerCase();
+            fetchWarningInbox(userId);
+        }
+    } catch (e) { alert("เกิดข้อผิดพลาดในการบันทึก"); }
+}
+
+function confirmDeduct(id, name, room) {
+    const modal = new bootstrap.Modal(document.getElementById('deductConfirmModal'));
+    modal.show();
+    document.getElementById('btn-do-deduct').onclick = () => {
+        modal.hide();
+        updateWarning(id, 'head_deduct', name, room);
+    };
+}
+
+
+
+
+        
     </script>
+<!-- 🚨 Warning Inbox Modal -->
+<div class="modal fade" id="warningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
+            <div class="modal-header bg-danger text-white border-0 px-4 py-3">
+                <h5 class="fw-bold m-0"><i class="ph ph-envelope-open-fill me-2"></i>กล่องข้อความตักเตือน</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light" style="max-height: 70vh; overflow-y: auto;">
+                <!-- ส่วนเลือกชั้นสำหรับหัวหน้า -->
+                <div id="head-grade-selector" class="mb-3 d-none bg-white p-2 rounded-pill border shadow-sm text-center">
+                    <span class="small fw-bold text-muted me-2">เลือกชั้น:</span>
+                    <div class="btn-group btn-group-sm">
+                        <button onclick="filterWarningByGrade('ม.1')" class="btn btn-outline-danger rounded-start-pill px-3">ม.1</button>
+                        <button onclick="filterWarningByGrade('ม.2')" class="btn btn-outline-danger px-3">ม.2</button>
+                        <button onclick="filterWarningByGrade('ม.3')" class="btn btn-outline-danger px-3">ม.3</button>
+                        <button onclick="filterWarningByGrade('ม.4')" class="btn btn-outline-danger px-3">ม.4</button>
+                        <button onclick="filterWarningByGrade('ม.5')" class="btn btn-outline-danger px-3">ม.5</button>
+                        <button onclick="filterWarningByGrade('ม.6')" class="btn btn-outline-danger rounded-end-pill px-3">ม.6</button>
+                    </div>
+                </div>
+                <!-- รายการการ์ดนักเรียน -->
+                <div id="warning-items-container">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-danger" role="status"></div>
+                        <div class="mt-2 fw-bold text-danger">กำลังดึงข้อมูลจากฝ่ายปกครอง...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📋 Modal ยืนยันการตัดคะแนน (ปค 16) -->
+<div class="modal fade" id="deductConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-2xl" style="border-radius: 20px; border: 2px solid #ef4444 !important;">
+            <div class="modal-body p-4 text-center">
+                <i class="ph ph-warning-octagon-fill text-danger mb-3" style="font-size: 60px;"></i>
+                <h5 class="fw-bold text-danger mb-3">ยืนยันการส่งหักคะแนน</h5>
+                <p class="text-dark small text-start bg-red-50 p-3 rounded-3 border border-red-100">
+                    กรุณากรอกรายละเอียดการตัดคะแนน โดยนักเรียนลงลายมือชื่อรับทราบ ด้วยเอกสาร <b>ปค 16</b> และส่ง ณ ห้องกิจการนักเรียน เพื่อเสนอตามขั้นตอนต่อไป
+                </p>
+                <div class="d-grid gap-2 mt-4">
+                    <button id="btn-do-deduct" class="btn btn-danger rounded-pill fw-bold py-2">ยืนยันและแจ้งระบบ</button>
+                    <button class="btn btn-light rounded-pill fw-bold py-2" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    
 </body>
 </html>
