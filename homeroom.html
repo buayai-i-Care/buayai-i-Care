@@ -1059,6 +1059,7 @@ async function fetchWarningInbox(code) {
         
         if (result.status === 'success') {
             warningInboxData = result.data;
+            updateWarningBadge(warningInboxData);
             if (result.role === 'head') {
                 document.getElementById('head-grade-selector').classList.remove('d-none');
                 warningSelectedGrade = result.filter; // เช่น ม.2
