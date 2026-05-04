@@ -512,7 +512,38 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
             }
             studentSelectorModalInstance.hide();
         }
-
+function resetRecordForm() {
+    // รีเซต Checkboxes
+    document.getElementById('chk-announce').checked = false;
+    document.getElementById('chk-health').checked = false;
+    document.getElementById('chk-parent').checked = false;
+    document.getElementById('chk-scholar').checked = false;
+    document.getElementById('chk-other').checked = false;
+    
+    // รีเซต Input Fields
+    document.getElementById('val-announce').value = '';
+    document.getElementById('val-health-other').value = '';
+    document.getElementById('p-grade').checked = false;
+    document.getElementById('p-beh').checked = false;
+    document.getElementById('val-parent-other').value = '';
+    document.getElementById('val-scholar-other').value = '';
+    document.getElementById('val-other').value = '';
+    
+    // ซ่อน Input Fields ที่เกี่ยวข้อง
+    document.getElementById('input-announce').style.display = 'none';
+    document.getElementById('input-health').style.display = 'none';
+    document.getElementById('input-parent').style.display = 'none';
+    document.getElementById('input-scholar').style.display = 'none';
+    document.getElementById('input-other').style.display = 'none';
+    
+    // รีเซต Selected Students
+    selectedStudentsFor.health = [];
+    selectedStudentsFor.parent = [];
+    selectedStudentsFor.scholar = [];
+    document.getElementById('selected-students-health').innerHTML = '';
+    document.getElementById('selected-students-parent').innerHTML = '';
+    document.getElementById('selected-students-scholar').innerHTML = '';
+}
 
         async function fetchDailyStats() {
             const dateVal = document.getElementById('record-date-input').value; if (!dateVal) return;
@@ -573,7 +604,9 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
                 await sendToAPI({ action: 'saveRecord', room: appState.room, date: document.getElementById('record-date-input').value, details: appState.reportDetails, stats: appState.currentStatsStr || "ไม่มีข้อมูลสถิติ" });
                 alert("✨ บันทึกข้อมูลโฮมรูมเรียบร้อยแล้วครับ"); 
                 document.getElementById('week-selector').value = document.getElementById('record-date-input').value; 
-                switchMenu('submit', document.querySelectorAll('.nav-link')[3]); generateTimeline(); 
+                switchMenu('submit', document.querySelectorAll('.nav-link')[3]); 
+                resetRecordForm();
+                generateTimeline(); 
             } catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
