@@ -598,6 +598,7 @@
         
         let pw = sessionStorage.getItem('admin_pw_auto');
         if (!pw) {
+            alert("⚠️ กรุณาปลดล็อกเมนูหัวหน้าระดับก่อน");
             unlockAdmin();
             pw = sessionStorage.getItem('admin_pw_auto');
             if(!pw) return; 
