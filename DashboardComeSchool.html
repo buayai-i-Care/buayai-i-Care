@@ -211,9 +211,8 @@
                     </button>
                 </div>
 
-                <!-- ⚠️ คำอธิบายข้อจำกัด API -->
-                <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm text-amber-800 mb-4">
-                    <i class="ph ph-info font-bold"></i> <b>หมายเหตุ:</b> เนื่องจากฐานข้อมูลปัจจุบันส่งมาเฉพาะ "ยอดรวมรายห้อง" ระบบจึงทำการจำลอง (Mock) รายชื่อนักเรียนเพื่อแสดงผลการทำงาน หากต้องการข้อมูลชื่อจริง ต้องปรับปรุง API หลังบ้านให้ส่งประวัติรายบุคคลครับ
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm text-blue-800 mb-4">
+                    <i class="ph ph-info font-bold"></i> <b>ข้อมูลเชื่อมต่อสำเร็จ:</b> ข้อมูลด้านล่างนี้ถูกดึงมาจากฐานข้อมูลจริงแบบ Real-time โดยดึงยอดนักเรียนที่มีประวัติความผิดสูงสุด 10 อันดับแรก
                 </div>
 
                 <div class="overflow-x-auto">
@@ -240,7 +239,7 @@
     <!-- ⚙️ Scripts -->
     <script>
         // ⚠️ นำลิงก์ Web App (dashboard_backend.gs) มาใส่ที่นี่
-        const API_URL = "https://script.google.com/macros/s/AKfycbyuskPhAOXjBnzBs1FozkCW05tx8A0ILED2l594PC-uojIScW3D8l5jK0dJq6QHy7Hy/exec"; // <-- แก้ไขที่นี่
+        const API_URL = "https://script.google.com/macros/s/AKfycbyuskPhAOXjBnzBs1FozkCW05tx8A0ILED2l594PC-uojIScW3D8l5jK0dJq6QHy7Hy/exec"; 
 
         let RAW_DATA = [];
         let myChart = null;
@@ -270,29 +269,25 @@
             if(viewId === 'view-risk') renderRisk();
         }
 
-        // --- 📡 Data Fetching ---
+        // --- 📡 Data Fetching (สถิติหลัก) ---
         async function loadData() {
             document.getElementById('loadingState').classList.remove('hidden');
             try {
-                // ถ้า API ยังไม่พร้อม ใช้ข้อมูล Mock ชั่วคราวเพื่อให้ UI ทำงานได้
-                /* const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getDashboardData' }) });
+                // เชื่อมต่อดึงข้อมูลของจริงจาก Google Sheets
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'getDashboardData' }) 
+                });
                 const json = await res.json();
-                if(json.status === 'success') RAW_DATA = json.data;
-                */
-
-                // 🛑 MOCK DATA (ลบออกเมื่อต่อ API จริง)
-                const today = new Date().toISOString().split('T')[0];
-                RAW_DATA = [
-                    {date: today, room: "ม.1/1", present: 35, sick: 2, leave: 1, late: 2, absent: 0, total: 40},
-                    {date: today, room: "ม.1/2", present: 38, sick: 0, leave: 0, late: 1, absent: 1, total: 40},
-                    {date: today, room: "ม.2/1", present: 30, sick: 5, leave: 2, late: 3, absent: 2, total: 42},
-                    {date: today, room: "ม.4/12", present: 25, sick: 1, leave: 0, late: 10, absent: 4, total: 40},
-                    {date: today, room: "ม.6/1", present: 39, sick: 0, leave: 1, late: 0, absent: 0, total: 40},
-                ];
-
-                renderChart();
+                
+                if(json.status === 'success') {
+                    RAW_DATA = json.data;
+                    renderChart();
+                } else {
+                    throw new Error(json.message || "ไม่สามารถดึงข้อมูลได้");
+                }
             } catch (error) {
-                alert("การเชื่อมต่อล้มเหลว โปรดตรวจสอบ URL API");
+                alert("การเชื่อมต่อล้มเหลว โปรดตรวจสอบ URL API: " + error.message);
             } finally {
                 document.getElementById('loadingState').classList.add('hidden');
             }
@@ -416,7 +411,7 @@
                 dateLabel = `ประจำวันที่ ${new Date(dDate).toLocaleDateString('th-TH')}`;
                 refDate = new Date(dDate);
             } else if(periodFilter === 'monthly') {
-                const mDate = document.getElementById('dlMonth').value; // format: YYYY-MM
+                const mDate = document.getElementById('dlMonth').value; 
                 if(!mDate) return alert("กรุณาระบุเดือน");
                 filtered = filtered.filter(d => d.date.startsWith(mDate));
                 dateLabel = `ประจำเดือน ${mDate}`;
@@ -430,7 +425,6 @@
 
             const wb = XLSX.utils.book_new();
 
-            // 1. ชีตสรุป (Summary)
             let sumData = { มา:0, สาย:0, ลป:0, ลก:0, ขาด:0, รวม:0 };
             filtered.forEach(r => {
                 sumData.มา += r.present; sumData.สาย += r.late; sumData.ลป += r.sick; sumData.ลก += r.leave; sumData.ขาด += r.absent; sumData.รวม += r.total;
@@ -449,8 +443,6 @@
             const wsSummary = XLSX.utils.aoa_to_sheet(wsSummaryAOA);
             XLSX.utils.book_append_sheet(wb, wsSummary, "สรุปภาพรวม");
 
-            // 2. แยกชีตรายห้อง (รวมยอดตามห้องในรอบเวลา)
-            // หาห้องทั้งหมดที่มีใน filtered
             let rooms = [...new Set(filtered.map(d => d.room))].sort((a,b) => parseInt(a.split('/')[1]||0) - parseInt(b.split('/')[1]||0));
             
             rooms.forEach(rm => {
@@ -471,7 +463,6 @@
                 ].concat(rmDetailRows);
 
                 const wsRm = XLSX.utils.aoa_to_sheet(rmAOA);
-                // ตรวจสอบชื่อชีตห้ามมีความยาวเกิน 31 ตัวอักษรและห้ามมีสัญลักษณ์พิเศษ
                 let safeName = rm.replace(/\//g, "-").substring(0, 30);
                 XLSX.utils.book_append_sheet(wb, wsRm, safeName);
             });
@@ -479,7 +470,7 @@
             XLSX.writeFile(wb, `รายงานสถิติมาเรียน_${gradeFilter}_${periodFilter}.xlsx`);
         }
 
-        // --- ⚠️ View 3: กลุ่มเสี่ยง ---
+        // --- ⚠️ View 3: กลุ่มเสี่ยง (เชื่อม API ของจริง) ---
         function populateRoomDropdown() {
             const select = document.getElementById('riskRoom');
             const grades = [1,2,3,4,5,6];
@@ -496,43 +487,90 @@
             });
         }
 
-        // ข้อมูลจำลองสำหรับโชว์ UI เนื่องจาก API ของจริงยังไม่รองรับ
-        const MOCK_NAMES = ["นาย สมชาย รักดี", "เด็กชาย สุวิทย์ แจ่มใส", "นางสาว วันดี สีสวย", "นาย มานะ อดทน", "เด็กหญิง กาญจนา ใจดี", "นาย ปิติ ตั้งใจ", "นางสาว อรทัย ใบไม้", "เด็กชาย วีระ เก่งกล้า", "นาย ศักดิ์ชัย ใหญ่ยิ่ง", "นางสาว รัตนา พาสุข"];
+        // ตัวแปรเก็บข้อมูลกลุ่มเสี่ยงเพื่อส่งออก Excel
+        window.currentRiskData = [];
 
-        function renderRisk() {
+        async function renderRisk() {
             const type = document.getElementById('riskType').value;
             const room = document.getElementById('riskRoom').value;
+            const period = document.getElementById('riskPeriod').value;
             
             document.getElementById('riskListTitle').innerText = `10 อันดับนักเรียน (${type}) - ${room==='all'?'ทุกระดับชั้น':room}`;
             const tbody = document.getElementById('riskTableBody');
-            tbody.innerHTML = '';
-
-            // สร้าง Mock Data
-            let mockData = [];
-            for(let i=0; i<10; i++) {
-                let mRoom = room === 'all' ? `ม.${Math.floor(Math.random()*6)+1}/${Math.floor(Math.random()*10)+1}` : room;
-                let mCount = Math.floor(Math.random() * 15) + 1; // สุ่มเลข 1-15 ครั้ง
-                mockData.push({ id: `33${Math.floor(Math.random()*900)+100}`, name: MOCK_NAMES[i], room: mRoom, count: mCount });
-            }
             
-            mockData.sort((a,b) => b.count - a.count);
+            // แสดง Loader
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8"><div class="loader"></div><p class="mt-2 text-slate-500 font-bold">กำลังประมวลผลข้อมูล (อาจใช้เวลา 10-20 วินาทีในครั้งแรก)</p></td></tr>';
 
-            mockData.forEach((d, idx) => {
-                let badgeColor = type==='ขาด' ? 'bg-red-100 text-red-700' : (type==='สาย' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700');
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                        <td class="p-3"><span class="bg-slate-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">${idx+1}</span></td>
-                        <td class="p-3 text-slate-500">${d.id}</td>
-                        <td class="p-3 font-bold text-slate-800">${d.name}</td>
-                        <td class="p-3">${d.room}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-1 rounded-lg font-bold ${badgeColor}">${d.count} ครั้ง</span></td>
-                    </tr>
-                `;
-            });
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getRiskData', type: type, room: room, period: period })
+                });
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    let data = json.data;
+                    tbody.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300">🎉 ไม่มีประวัตินักเรียนในกลุ่มเสี่ยงนี้</td></tr>';
+                        window.currentRiskData = [];
+                        return;
+                    }
+
+                    // ตัดเอาแค่ Top 10 มาแสดงบนหน้าเว็บ (แต่ข้อมูลที่โหลดมามีถึง Top 100 เพื่อ Export Excel)
+                    let displayData = data.slice(0, 10);
+
+                    displayData.forEach((d, idx) => {
+                        let badgeColor = type==='ขาด' ? 'bg-red-100 text-red-700' : (type==='สาย' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700');
+                        tbody.innerHTML += `
+                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                <td class="p-3"><span class="bg-slate-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">${idx+1}</span></td>
+                                <td class="p-3 text-slate-500">${d.id}</td>
+                                <td class="p-3 font-bold text-slate-800">${d.name}</td>
+                                <td class="p-3">${d.room}</td>
+                                <td class="p-3 text-center"><span class="px-2 py-1 rounded-lg font-bold ${badgeColor}">${d.count} ครั้ง</span></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    // เก็บข้อมูลสำหรับดาวน์โหลด Excel
+                    window.currentRiskData = data; 
+                } else {
+                    throw new Error(json.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลกลุ่มเสี่ยง");
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500 font-bold">${err.message}</td></tr>`;
+            }
         }
 
         function exportRiskExcel() {
-            alert("ฟีเจอร์ดาวน์โหลดกลุ่มเสี่ยง (ต้องรอให้หลังบ้านอัปเดต API ส่งรายชื่อมาก่อนครับ)");
+            if (!window.currentRiskData || window.currentRiskData.length === 0) {
+                alert("ไม่มีข้อมูลกลุ่มเสี่ยงสำหรับดาวน์โหลด");
+                return;
+            }
+            
+            const type = document.getElementById('riskType').value;
+            const room = document.getElementById('riskRoom').value;
+            
+            const wb = XLSX.utils.book_new();
+            let aoa = [
+                [`รายงานนักเรียนกลุ่มเสี่ยง (สูงสุด 100 อันดับ)`],
+                [`ประเภทความผิด: ${type}`],
+                [`ระดับชั้น/ห้อง: ${room === 'all' ? 'ทุกระดับชั้น' : room}`],
+                [],
+                ["อันดับ", "รหัสนักเรียน", "ชื่อ-สกุล", "ห้องเรียน", "จำนวนครั้ง (ที่พบพฤติกรรม)"]
+            ];
+            
+            window.currentRiskData.forEach((d, i) => {
+                aoa.push([i+1, d.id, d.name, d.room, d.count]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{wch: 8}, {wch: 15}, {wch: 35}, {wch: 15}, {wch: 25}];
+            
+            XLSX.utils.book_append_sheet(wb, ws, "กลุ่มเสี่ยง");
+            XLSX.writeFile(wb, `รายงานกลุ่มเสี่ยง_${type}_${room.replace('/', '-')}.xlsx`);
         }
 
     </script>
