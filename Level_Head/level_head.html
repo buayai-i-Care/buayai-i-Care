@@ -18,11 +18,11 @@
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: #334155; }
         h1, h2, h3, h4, h5, .btn-purple, .nav-link, .menu-card-title { font-family: 'Prompt', sans-serif; }
         
-        /* Sidebar Styles (Rule 3 Compliant) */
+        /* Sidebar Styles */
         .sidebar { width: 280px; background: white; border-right: 1px solid #e2e8f0; position: fixed; height: 100vh; transition: 0.3s; z-index: 1000; }
         .main-content { margin-left: 280px; padding: 2rem; transition: 0.3s; }
         
-        .nav-link { color: #64748b; padding: 0.8rem 1.2rem; border-radius: 0.6rem; margin: 0.2rem 1rem; display: flex; align-items: center; text-decoration: none; transition: 0.2s; }
+        .nav-link { color: #64748b; padding: 0.8rem 1.2rem; border-radius: 0.6rem; margin: 0.2rem 1rem; display: flex; align-items: center; text-decoration: none; transition: 0.2s; font-size: 0.95rem; }
         .nav-link:hover, .nav-link.active { background: var(--purple-light); color: var(--purple-primary); font-weight: 600; }
         .nav-link i { font-size: 1.3rem; margin-right: 12px; }
 
@@ -68,26 +68,34 @@
             font-size: 1.8rem;
             margin-bottom: 1rem;
         }
+        
+        /* 🎨 Icon Colors */
         .bg-icon-purple { background-color: var(--purple-light); color: var(--purple-primary); }
         .bg-icon-blue { background-color: #eff6ff; color: #3b82f6; }
         .bg-icon-green { background-color: #f0fdf4; color: #22c55e; }
         .bg-icon-orange { background-color: #fff7ed; color: #f97316; }
         .bg-icon-red { background-color: #fef2f2; color: #ef4444; }
         .bg-icon-teal { background-color: #f0fdfa; color: #14b8a6; }
+        
+        /* 🌟 สีเพิ่มเติมสำหรับ 6 เมนูใหม่ */
+        .bg-icon-pink { background-color: #fdf2f8; color: #ec4899; }
+        .bg-icon-indigo { background-color: #eef2ff; color: #6366f1; }
+        .bg-icon-cyan { background-color: #ecfeff; color: #06b6d4; }
+        .bg-icon-gray { background-color: #f8fafc; color: #94a3b8; }
     </style>
 </head>
 <body>
 
 <!-- Sidebar -->
 <aside class="sidebar d-flex flex-column shadow-sm" id="sidebarMenu">
-    <div class="p-4 text-center">
-        <h4 class="text-purple-dark fw-bold mb-0">Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h4>
-        <div class="badge bg-purple-light text-purple-dark mt-1 px-3 py-2 rounded-pill shadow-sm">
+    <div class="p-4 text-center pb-2">
+        <h5 class="text-purple-dark fw-bold mb-0">Buayai I-Care</h5>
+        <div class="badge bg-purple-light text-purple-dark mt-2 px-3 py-2 rounded-pill shadow-sm">
             <i class="bi bi-person-badge"></i> <span id="sidebarRole">หัวหน้าระดับ</span>
         </div>
     </div>
     
-    <div class="flex-grow-1 overflow-y-auto pt-2">
+    <div class="flex-grow-1 overflow-y-auto pt-2 pb-4">
         <a href="level_head.html" class="nav-link active"><i class="bi bi-grid-1x2"></i> หน้าหลัก (Dashboard)</a>
         <a href="homeroom.html" class="nav-link"><i class="bi bi-house-door"></i> 1. งานโฮมรูม</a>
         <a href="discipline.html" class="nav-link"><i class="bi bi-shield-check"></i> 2. งานวินัย / E-Point</a>
@@ -95,9 +103,12 @@
         <a href="Task.html" class="nav-link"><i class="bi bi-clipboard-check"></i> 4. ภาระงานอื่นๆ</a>
         <a href="messages.html" class="nav-link"><i class="bi bi-chat-dots"></i> 5. กล่องข้อความ</a>
         <a href="note.html" class="nav-link"><i class="bi bi-bell"></i> 6. เตือนความจำ</a>
+        <!-- เมนูใหม่ใน Sidebar (อัปเดตให้ตรงกับ Bento) -->
+        <a href="advice/head_sdq.html" class="nav-link"><i class="bi bi-clipboard-heart"></i> 7. สารสนเทศ SDQ</a>
+        <a href="teacherjoinflag.html" class="nav-link"><i class="bi bi-flag"></i> 8. ลงเวลาครูหน้าเสาธง</a>
+        <a href="advice/Std_info_dashboard.html" class="nav-link"><i class="bi bi-file-person"></i> 9. ข้อมูลนักเรียน</a>
     </div>
 
-    <!-- Rule 3: Bottom Buttons -->
     <div class="sidebar-footer">
         <a href="https://buayai-i-care.github.io/buayai-i-Care/" class="nav-link text-primary mb-2">
             <i class="bi bi-house-up"></i> กลับเมนูโรงเรียน
@@ -128,11 +139,12 @@
         <i class="bi bi-shield-lock-fill position-absolute" style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.1; transform: rotate(-15deg);"></i>
     </div>
 
-    <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-grid"></i> เมนูการจัดการ</h4>
+    <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-grid"></i> เมนูการจัดการ (12 รายการ)</h4>
 
-    <!-- Menu Grid -->
-    <div class="row g-4">
-        <!-- เมนู 1 -->
+    <!-- Menu Grid (รวมทั้งหมด 12 การ์ด) -->
+    <div class="row g-4 pb-5">
+        
+        <!-- เมนู 1: โฮมรูม -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="homeroom.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -145,7 +157,7 @@
             </a>
         </div>
         
-        <!-- เมนู 2 -->
+        <!-- เมนู 2: งานวินัย -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="discipline.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -158,7 +170,7 @@
             </a>
         </div>
 
-        <!-- เมนู 3 -->
+        <!-- เมนู 3: ผลการเรียน -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="grades.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -171,7 +183,7 @@
             </a>
         </div>
 
-        <!-- เมนู 4 -->
+        <!-- เมนู 4: ภาระงานอื่นๆ -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="Task.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -184,7 +196,7 @@
             </a>
         </div>
 
-        <!-- เมนู 5 -->
+        <!-- เมนู 5: กล่องข้อความ -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="messages.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -197,7 +209,7 @@
             </a>
         </div>
 
-        <!-- เมนู 6 -->
+        <!-- เมนู 6: เตือนความจำ -->
         <div class="col-12 col-md-6 col-xl-4">
             <a href="note.html" class="card menu-card shadow-sm h-100 p-3">
                 <div class="card-body">
@@ -209,6 +221,85 @@
                 </div>
             </a>
         </div>
+
+        <!-- 🌟 เมนู 7 (SDQ) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="advice/head_sdq.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-pink">
+                        <i class="bi bi-clipboard-heart"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">7. ระบบคัดกรอง SDQ</h5>
+                    <p class="text-muted small mb-0">ดูสารสนเทศแบบประเมิน SDQ ของชั้น</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- 🌟 เมนู 8 (ลงเวลาหน้าเสาธง) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="teacherjoinflag.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-indigo">
+                        <i class="bi bi-flag"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">8. ลงเวลาหน้าเสาธง</h5>
+                    <p class="text-muted small mb-0">บันทึกครูร่วมกิจกรรมหน้าเสาธง</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- 🌟 เมนู 9 (ข้อมูลนักเรียน) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="advice/Std_info_dashboard.html" class="card menu-card shadow-sm h-100 p-3">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-cyan">
+                        <i class="bi bi-file-person"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">9. ข้อมูลนักเรียน</h5>
+                    <p class="text-muted small mb-0">ศูนย์ข้อมูลนักเรียนระบบดูแลช่วยเหลือ</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- 🌟 เมนู 10 (ตั้งไว้) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="#" class="card menu-card shadow-sm h-100 p-3" onclick="alert('🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา'); return false;">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-gray">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">10. ระบบกำลังพัฒนา</h5>
+                    <p class="text-muted small mb-0">ฟีเจอร์นี้ตั้งไว้เพื่อรอการอัปเดต</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- 🌟 เมนู 11 (ตั้งไว้) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="#" class="card menu-card shadow-sm h-100 p-3" onclick="alert('🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา'); return false;">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-gray">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">11. ระบบกำลังพัฒนา</h5>
+                    <p class="text-muted small mb-0">ฟีเจอร์นี้ตั้งไว้เพื่อรอการอัปเดต</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- 🌟 เมนู 12 (ตั้งไว้) -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="#" class="card menu-card shadow-sm h-100 p-3" onclick="alert('🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา'); return false;">
+                <div class="card-body">
+                    <div class="menu-icon-wrapper bg-icon-gray">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h5 class="menu-card-title fw-bold text-dark mb-1">12. ระบบกำลังพัฒนา</h5>
+                    <p class="text-muted small mb-0">ฟีเจอร์นี้ตั้งไว้เพื่อรอการอัปเดต</p>
+                </div>
+            </a>
+        </div>
+
     </div>
 </main>
 
@@ -250,7 +341,7 @@
             document.getElementById('userLevel').innerText = displayLevel;
             document.getElementById('sidebarRole').innerText = "หัวหน้าระดับ " + displayLevel;
 
-            // --- เพิ่มการบันทึก Log การเข้าสู่ระบบ ---
+            // --- บันทึก Log การเข้าสู่ระบบ ---
             recordLog(userData.username, userData.name, "เข้าสู่หน้าหลัก (Dashboard)", "สำเร็จ");
 
         } catch(e) {
