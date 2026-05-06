@@ -46,6 +46,12 @@
         .hidden-view { display: none; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* สำหรับ Accordion (ย่อ/ขยาย) */
+        details > summary { list-style: none; outline: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        .chevron-icon { transition: transform 0.3s ease; }
+        details[open] .chevron-icon { transform: rotate(180deg); }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -79,7 +85,15 @@
                 <p class="text-sm text-blue-200">โรงเรียนบัวใหญ่</p>
             </div>
         </div>
-        <button onclick="loadData()" class="bg-white/20 p-2 rounded-full text-white hover:bg-white/30 transition"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+        <div class="flex items-center gap-2">
+            <!-- 🌟 ปุ่มสั่งอัปเดตยอดใหม่ -->
+            <button onclick="forceSync()" class="bg-amber-500 p-2 rounded-lg text-white hover:bg-amber-600 transition flex items-center gap-1 text-sm px-3 shadow-md border border-amber-400" title="สั่งเซิร์ฟเวอร์นับยอดใหม่">
+                <i class="ph ph-database text-lg"></i> อัปเดตยอดใหม่
+            </button>
+            <button onclick="loadData()" class="bg-white/20 p-2 rounded-full text-white hover:bg-white/30 transition shadow-sm border border-white/20" title="รีเฟรชหน้าจอ">
+                <i class="ph ph-arrows-clockwise text-xl"></i>
+            </button>
+        </div>
     </div>
 
     <!-- 🔄 Loading State -->
@@ -96,13 +110,25 @@
         <!-- ========================================== -->
         <div id="view-stats" class="view-section">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-slate-800"><i class="ph ph-chart-polar text-blue-600"></i> สถิติการมาเรียนภาพรวม</h2>
+                <h2 class="text-2xl font-bold text-slate-800"><i class="ph ph-chart-polar text-blue-600"></i> สถิติภาพรวม</h2>
                 <input type="date" id="statDateFilter" class="p-2 border rounded-lg shadow-sm" onchange="renderChart()">
+            </div>
+
+            <!-- 🌟 เพิ่มใหม่: สถานะการเช็คชื่อเข้าแถว (ยุบขยายได้) 🌟 -->
+            <div class="glass-card mb-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-200 pb-2">
+                    <i class="ph ph-list-checks text-emerald-600 text-3xl"></i> การติดตามสถานะการเช็คชื่อห้อง
+                </h3>
+                <p class="text-sm text-slate-500 mb-4">แตะที่ระดับชั้นเพื่อดูสถานะการเช็คชื่อของแต่ละห้องในวันที่เลือก</p>
+                <div id="checkinStatusAccordion" class="space-y-3">
+                    <!-- ข้อมูลสถานะเช็คชื่อรายห้องจะถูกเติมที่นี่โดย JS -->
+                </div>
             </div>
             
             <!-- กราฟแท่ง Stacked -->
             <div class="glass-card mb-6">
-                <p class="text-sm text-slate-500 mb-2 text-center">แตะที่แท่งกราฟระดับชั้น เพื่อดูรายละเอียดแต่ละห้องด้านล่าง 👇</p>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">กราฟสถิติการมาเรียน</h3>
+                <p class="text-sm text-slate-500 mb-4">แตะที่แท่งกราฟระดับชั้น เพื่อดูรายละเอียดสถิติแต่ละห้องด้านล่าง 👇</p>
                 <div class="relative h-[300px] w-full">
                     <canvas id="mainChart"></canvas>
                 </div>
@@ -238,14 +264,20 @@
 
     <!-- ⚙️ Scripts -->
     <script>
+        // =========================================
         // ⚠️ นำลิงก์ Web App (dashboard_backend.gs) มาใส่ที่นี่
+        // =========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbyuskPhAOXjBnzBs1FozkCW05tx8A0ILED2l594PC-uojIScW3D8l5jK0dJq6QHy7Hy/exec"; 
 
         let RAW_DATA = [];
         let myChart = null;
 
         window.onload = () => {
-            document.getElementById('statDateFilter').valueAsDate = new Date();
+            // ตั้งค่าวันที่ปัจจุบันให้ถูกต้องตาม Timezone ไทย
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+            document.getElementById('statDateFilter').value = localISOTime.split('T')[0];
+            
             loadData();
             populateRoomDropdown();
         };
@@ -269,19 +301,68 @@
             if(viewId === 'view-risk') renderRisk();
         }
 
+        // --- ⚡ สั่งอัปเดตยอดรวมใหม่ (Force Sync) ---
+        async function forceSync() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.querySelector('#loadingState p').innerText = "กำลังสั่งเซิร์ฟเวอร์คำนวณยอดใหม่ทั้งหมด... (อาจใช้เวลา 1-2 นาที)";
+            try {
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'forceUpdateSummary' }) 
+                });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    alert("✅ อัปเดตข้อมูลสำเร็จ! " + json.message);
+                    document.querySelector('#loadingState p').innerText = "กำลังประมวลผลฐานข้อมูลโรงเรียน...";
+                    await loadData(); 
+                } else {
+                    throw new Error(json.message || json.error);
+                }
+            } catch(e) {
+                alert("❌ เกิดข้อผิดพลาด: " + e.message);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.querySelector('#loadingState p').innerText = "กำลังประมวลผลฐานข้อมูลโรงเรียน...";
+            }
+        }
+
         // --- 📡 Data Fetching (สถิติหลัก) ---
         async function loadData() {
             document.getElementById('loadingState').classList.remove('hidden');
             try {
-                // เชื่อมต่อดึงข้อมูลของจริงจาก Google Sheets
                 const res = await fetch(API_URL, { 
                     method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'getDashboardData' }) 
                 });
                 const json = await res.json();
                 
                 if(json.status === 'success') {
-                    RAW_DATA = json.data;
+                    // จัดรูปแบบวันที่ให้เป็น ISO เพื่อใช้ Filter ได้ง่าย
+                    RAW_DATA = json.data.map(d => {
+                        let normDate = d.date;
+                        if (normDate.includes('/')) {
+                            let p = normDate.split('/');
+                            if(p.length === 3) normDate = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                        } else {
+                            try {
+                                let dObj = new Date(normDate);
+                                if(!isNaN(dObj)) {
+                                    let y = dObj.getFullYear();
+                                    let m = String(dObj.getMonth()+1).padStart(2,'0');
+                                    let day = String(dObj.getDate()).padStart(2,'0');
+                                    normDate = `${y}-${m}-${day}`;
+                                }
+                            } catch(e){}
+                        }
+                        d.dateIso = normDate;
+                        return d;
+                    });
+                    
+                    if (RAW_DATA.length === 0) {
+                        alert("⚠️ ยังไม่มีข้อมูลสรุปจากเซิร์ฟเวอร์\n\nกรุณากดปุ่ม 'อัปเดตยอดใหม่' ที่มุมขวาบนของจอ เพื่อสั่งให้เซิร์ฟเวอร์ทำการรวบรวมข้อมูลครับ");
+                    }
+                    
                     renderChart();
                 } else {
                     throw new Error(json.message || "ไม่สามารถดึงข้อมูลได้");
@@ -293,13 +374,16 @@
             }
         }
 
-        // --- 📊 View 1: สถิติ (Chart) ---
+        // --- 📊 View 1: สถิติ (Chart & Check-in Status) ---
         function renderChart() {
             const dateFilter = document.getElementById('statDateFilter').value;
             let filteredData = RAW_DATA;
-            if (dateFilter) filteredData = RAW_DATA.filter(d => d.date === dateFilter);
+            if (dateFilter) filteredData = RAW_DATA.filter(d => d.dateIso === dateFilter);
 
-            // กลุ่มข้อมูลตามระดับชั้น
+            // 🌟 1. เรนเดอร์สถานะการเช็คชื่อ
+            renderCheckinStatus(filteredData);
+
+            // 🌟 2. เรนเดอร์กราฟสถิติ
             const grades = ["ม.1", "ม.2", "ม.3", "ม.4", "ม.5", "ม.6"];
             let chartData = { มา:[], สาย:[], ลป:[], ลก:[], ขาด:[] };
 
@@ -344,12 +428,79 @@
             document.getElementById('roomDetailsContainer').classList.add('hidden');
         }
 
+        // 🌟 ฟังก์ชันใหม่: แสดงสถานะเช็คชื่อเข้าแถวรายห้อง (ม.1 - ม.6) 🌟
+        function renderCheckinStatus(filteredData) {
+            const accordion = document.getElementById('checkinStatusAccordion');
+            
+            // โครงสร้างจำนวนห้องของแต่ละระดับชั้นโรงเรียนบัวใหญ่ (ม.4 มี 12 ห้อง)
+            const gradesConfig = [
+                { name: 'ม.1', max: 10 }, { name: 'ม.2', max: 10 }, { name: 'ม.3', max: 10 },
+                { name: 'ม.4', max: 12 }, { name: 'ม.5', max: 10 }, { name: 'ม.6', max: 10 }
+            ];
+
+            let html = '';
+
+            gradesConfig.forEach(g => {
+                let checkedCount = 0;
+                let roomsHtml = '';
+
+                // ตรวจสอบทีละห้องตั้งแต่ทับ 1 ถึงห้องสุดท้าย
+                for (let i = 1; i <= g.max; i++) {
+                    let roomName = `${g.name}/${i}`;
+                    
+                    // ค้นหาว่าห้องนี้มีข้อมูลการบันทึกในวันที่เลือกหรือไม่
+                    let roomData = filteredData.find(d => d.room === roomName);
+                    let isChecked = roomData && roomData.total > 0;
+
+                    if (isChecked) {
+                        checkedCount++;
+                        roomsHtml += `
+                        <div class="flex justify-between items-center p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <span class="font-bold text-emerald-800">${roomName}</span>
+                            <span class="text-xs font-bold bg-emerald-500 text-white px-2 py-1 rounded-md shadow-sm"><i class="ph ph-check-circle"></i> เช็คแล้ว</span>
+                        </div>`;
+                    } else {
+                        roomsHtml += `
+                        <div class="flex justify-between items-center p-2 bg-rose-50 border border-rose-200 rounded-lg opacity-80">
+                            <span class="font-bold text-rose-800">${roomName}</span>
+                            <span class="text-xs font-bold bg-rose-500 text-white px-2 py-1 rounded-md shadow-sm"><i class="ph ph-x-circle"></i> ยังไม่เช็ค</span>
+                        </div>`;
+                    }
+                }
+
+                let isAllChecked = checkedCount === g.max;
+                let headerClass = isAllChecked ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-slate-50 text-slate-800 border-slate-200';
+                let statusBadge = isAllChecked 
+                    ? `<span class="text-emerald-600 text-sm font-bold bg-white px-2 py-1 rounded-full shadow-sm"><i class="ph ph-checks"></i> ครบแล้ว</span>` 
+                    : `<span class="text-amber-600 text-sm font-bold bg-white px-2 py-1 rounded-full shadow-sm"><i class="ph ph-warning"></i> ขาด ${g.max - checkedCount} ห้อง</span>`;
+
+                html += `
+                <details class="bg-white rounded-xl shadow-sm border ${isAllChecked ? 'border-emerald-200' : 'border-slate-200'} overflow-hidden">
+                    <summary class="${headerClass} p-4 font-bold text-lg cursor-pointer flex justify-between items-center select-none hover:brightness-95 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 text-center">${g.name}</span>
+                            <span class="text-sm bg-white px-2 py-1 rounded-md shadow-sm border border-slate-200 text-slate-600">${checkedCount}/${g.max} ห้อง</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            ${statusBadge}
+                            <i class="ph ph-caret-down chevron-icon text-slate-400"></i>
+                        </div>
+                    </summary>
+                    <div class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 bg-white">
+                        ${roomsHtml}
+                    </div>
+                </details>`;
+            });
+
+            accordion.innerHTML = html;
+        }
+
         function showRoomDetails(grade, dateStr) {
             document.getElementById('roomDetailsContainer').classList.remove('hidden');
             document.getElementById('roomDetailsTitle').innerText = `สถิติรายห้อง: ${grade}`;
             
             const grid = document.getElementById('roomGrid');
-            let rooms = RAW_DATA.filter(d => d.room.startsWith(grade) && (!dateStr || d.date === dateStr));
+            let rooms = RAW_DATA.filter(d => d.room.startsWith(grade) && (!dateStr || d.dateIso === dateStr));
             
             // เรียงห้อง
             rooms.sort((a,b) => parseInt(a.room.split('/')[1]||0) - parseInt(b.room.split('/')[1]||0));
@@ -407,13 +558,13 @@
             if(periodFilter === 'daily') {
                 const dDate = document.getElementById('dlDate').value;
                 if(!dDate) return alert("กรุณาระบุวันที่");
-                filtered = filtered.filter(d => d.date === dDate);
+                filtered = filtered.filter(d => d.dateIso === dDate);
                 dateLabel = `ประจำวันที่ ${new Date(dDate).toLocaleDateString('th-TH')}`;
                 refDate = new Date(dDate);
             } else if(periodFilter === 'monthly') {
                 const mDate = document.getElementById('dlMonth').value; 
                 if(!mDate) return alert("กรุณาระบุเดือน");
-                filtered = filtered.filter(d => d.date.startsWith(mDate));
+                filtered = filtered.filter(d => d.dateIso.startsWith(mDate));
                 dateLabel = `ประจำเดือน ${mDate}`;
                 refDate = new Date(mDate + "-01");
             }
@@ -450,7 +601,7 @@
                 let rmSum = { มา:0, สาย:0, ลป:0, ลก:0, ขาด:0 };
                 let rmDetailRows = [ ["วันที่", "มา", "สาย", "ลาป่วย", "ลากิจ", "ขาด", "รวม"] ];
                 
-                roomData.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(r => {
+                roomData.sort((a,b) => new Date(a.dateIso) - new Date(b.dateIso)).forEach(r => {
                     rmSum.มา += r.present; rmSum.สาย += r.late; rmSum.ลป += r.sick; rmSum.ลก += r.leave; rmSum.ขาด += r.absent;
                     rmDetailRows.push([r.date, r.present, r.late, r.sick, r.leave, r.absent, r.total]);
                 });
@@ -470,7 +621,7 @@
             XLSX.writeFile(wb, `รายงานสถิติมาเรียน_${gradeFilter}_${periodFilter}.xlsx`);
         }
 
-        // --- ⚠️ View 3: กลุ่มเสี่ยง (เชื่อม API ของจริง) ---
+        // --- ⚠️ View 3: กลุ่มเสี่ยง ---
         function populateRoomDropdown() {
             const select = document.getElementById('riskRoom');
             const grades = [1,2,3,4,5,6];
@@ -487,7 +638,6 @@
             });
         }
 
-        // ตัวแปรเก็บข้อมูลกลุ่มเสี่ยงเพื่อส่งออก Excel
         window.currentRiskData = [];
 
         async function renderRisk() {
@@ -498,12 +648,12 @@
             document.getElementById('riskListTitle').innerText = `10 อันดับนักเรียน (${type}) - ${room==='all'?'ทุกระดับชั้น':room}`;
             const tbody = document.getElementById('riskTableBody');
             
-            // แสดง Loader
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8"><div class="loader"></div><p class="mt-2 text-slate-500 font-bold">กำลังประมวลผลข้อมูล (อาจใช้เวลา 10-20 วินาทีในครั้งแรก)</p></td></tr>';
 
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'getRiskData', type: type, room: room, period: period })
                 });
                 const json = await res.json();
@@ -518,7 +668,6 @@
                         return;
                     }
 
-                    // ตัดเอาแค่ Top 10 มาแสดงบนหน้าเว็บ (แต่ข้อมูลที่โหลดมามีถึง Top 100 เพื่อ Export Excel)
                     let displayData = data.slice(0, 10);
 
                     displayData.forEach((d, idx) => {
@@ -534,7 +683,6 @@
                         `;
                     });
                     
-                    // เก็บข้อมูลสำหรับดาวน์โหลด Excel
                     window.currentRiskData = data; 
                 } else {
                     throw new Error(json.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลกลุ่มเสี่ยง");
