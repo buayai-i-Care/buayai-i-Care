@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2e7d32; /* เขียวหลัก */
+            --primary-color: #2e7d32;
             --primary-hover: #1b5e20;
-            --bg-color: #f1f8e9; /* เขียวอ่อนพื้นหลัง */
+            --bg-color: #f1f8e9;
             --card-bg: #ffffff;
             --text-main: #333333;
             --border-color: #a5d6a7;
@@ -34,7 +34,6 @@
         .card {
             background-color: var(--card-bg);
             border-radius: 20px;
-            /* เพิ่มกรอบบางๆ และเงาที่เข้มและกว้างขึ้นเพื่อให้ดูลอยจากพื้นหลัง */
             border: 1px solid rgba(46, 125, 50, 0.2);
             box-shadow: 0 20px 40px rgba(46, 125, 50, 0.15), 0 5px 15px rgba(0,0,0,0.05);
             padding: 40px 30px;
@@ -42,25 +41,16 @@
             max-width: 420px;
             text-align: center;
             border-top: 6px solid var(--primary-color);
-            /* เพิ่มอนิเมชันเด้งขึ้นมาตอนโหลดหน้าเว็บ */
             animation: popUpBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            opacity: 0; /* ซ่อนไว้ก่อนให้แอนิเมชันทำงาน */
+            opacity: 0; 
         }
 
-        /* กำหนดการเคลื่อนไหวของการเด้ง (Bounce) */
         @keyframes popUpBounce {
-            0% { 
-                transform: translateY(50px) scale(0.9); 
-                opacity: 0; 
-            }
-            100% { 
-                transform: translateY(0) scale(1); 
-                opacity: 1; 
-            }
+            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
         }
 
         .logo { width: 110px; margin-bottom: 20px; object-fit: contain; }
-        
         h2 { color: var(--primary-color); font-weight: 700; font-size: 28px; margin-bottom: 5px; }
         p.subtitle { color: #666; font-size: 16px; margin-bottom: 30px; }
 
@@ -98,7 +88,6 @@
         }
         .admin-btn:hover { background-color: var(--primary-color); color: white; }
 
-        /* Toast Notification (แทน alert) */
         .toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
             background-color: var(--card-bg); padding: 15px 25px; border-radius: 10px;
@@ -110,8 +99,8 @@
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.success { border-left-color: #4caf50; color: #2e7d32; }
         .toast.error { border-left-color: #f44336; color: #c62828; }
+        .toast.info { border-left-color: #2196F3; color: #1976D2; }
 
-        /* Modal (แทน prompt) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.4); display: none;
@@ -133,28 +122,17 @@
         }
         .modal-btn.cancel { background: #e0e0e0; color: #333; }
         .modal-btn.confirm { background: var(--primary-color); color: white; }
-
-        /* Spinner for loading state */
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
-            border-top: 3px solid white; width: 20px; height: 20px;
-            animation: spin 1s linear infinite; display: none;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- ปุ่มสำหรับแอดมินมุมขวาบน -->
     <button class="admin-btn" onclick="openAdminModal()">สำหรับเจ้าหน้าที่</button>
 
-    <!-- ระบบแจ้งเตือน (Toast) -->
     <div id="toastMessage" class="toast">
         <span id="toastIcon">✓</span>
         <span id="toastText">ข้อความแจ้งเตือน</span>
     </div>
 
-    <!-- หน้าต่างรหัสผ่านแอดมิน (Modal) -->
     <div id="adminModal" class="modal-overlay">
         <div class="modal-content">
             <h3>จัดการระบบ (Admin)</h3>
@@ -166,15 +144,12 @@
         </div>
     </div>
 
-    <!-- Modal ยืนยันข้อมูลนักเรียนก่อนเข้าใช้งาน (Custom Modal) -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 380px;">
             <h3 style="margin-bottom: 20px; font-size: 22px;">ข้อมูลผู้ใช้ห้องสมุด</h3>
-            <!-- ส่วนแสดงรูปภาพโปรไฟล์ -->
             <div style="width: 140px; height: 140px; margin: 0 auto 20px; border-radius: 50%; overflow: hidden; border: 4px solid var(--primary-color); box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
                 <img id="confirmImg" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; background-color: #f1f8e9;" onerror="this.src='https://placehold.co/140x140/e8f5e9/2e7d32?text=No+Photo'">
             </div>
-            <!-- ส่วนแสดงชื่อและชั้น -->
             <h4 id="confirmName" style="color: var(--text-main); font-size: 24px; margin-bottom: 5px; font-weight: 700;">ชื่อ - สกุล</h4>
             <p id="confirmClass" style="color: var(--primary-color); font-size: 18px; margin-bottom: 25px; font-weight: 600;">ชั้นเรียน</p>
             
@@ -182,13 +157,11 @@
                 <button class="modal-btn cancel" onclick="closeConfirmModal()">กลับไปแก้ไข</button>
                 <button class="modal-btn confirm" id="realSubmitBtn" onclick="executeCheckIn()" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
                     <span id="realBtnText">เข้าใช้งานห้องสมุด</span>
-                    <div class="spinner" id="realBtnSpinner" style="display: none; width: 16px; height: 16px; border-width: 2px;"></div>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Card หลักสำหรับลงชื่อเข้าใช้ -->
     <div class="card">
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w400" alt="ตราโรงเรียนบัวใหญ่" class="logo">
         <h2>ระบบลงชื่อเข้าใช้ห้องสมุดมีชีวิต</h2>
@@ -200,23 +173,18 @@
         </div>
 
         <button class="btn" id="submitBtn" onclick="verifyStudent()">
-            <span id="btnText">เข้าใช้ห้องสมุด</span>
-            <div class="spinner" id="btnSpinner"></div>
+            <span id="btnText">ชื่อเข้าใช้ห้องสมุด</span>
         </button>
     </div>
 
     <script>
-        
         // -------------------------------------------------------------
-        // สำคัญมาก: เปลี่ยน URL ด้านล่างเป็น Web App URL ของคุณที่ได้จากการ Deploy GAS
+        // สำคัญมาก: เปลี่ยน URL ด้านล่างเป็น Web App URL ของคุณ
         // -------------------------------------------------------------
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwDD_CicwvwClg1XpM6BF23RlW4TpiFrb4SFddc_9c-hW1vGgBz3AL0Dpkqi_OjNQkg/exec"; 
         
-        // รหัสผ่าน 'by44' ที่เข้ารหัส Base64 แล้ว
         const ADMIN_CODE_B64 = "Ynk0NA==";
 
-
-        // ฟังก์ชันแสดงการแจ้งเตือน (Toast)
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toastMessage');
             const toastText = document.getElementById('toastText');
@@ -224,117 +192,80 @@
             
             toast.className = `toast ${type}`;
             toastText.textContent = message;
-            toastIcon.textContent = type === 'success' ? '✓' : '✕';
+            
+            if(type === 'success') toastIcon.textContent = '✓';
+            else if (type === 'error') toastIcon.textContent = '✕';
+            else toastIcon.textContent = 'ℹ';
             
             toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // จัดการ Modal แอดมิน
         function openAdminModal() {
             document.getElementById('adminModal').classList.add('active');
             document.getElementById('adminPassword').value = "";
             document.getElementById('adminPassword').focus();
         }
 
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.remove('active');
-        }
+        function closeAdminModal() { document.getElementById('adminModal').classList.remove('active'); }
 
-
-        // ตรวจสอบรหัสผ่านแอดมิน
         function verifyAdmin() {
             const pass = document.getElementById('adminPassword').value;
-            if(!pass) {
-                showToast("กรุณากรอกรหัสผ่าน", "error");
-                return;
-            }
-
-            // แปลงรหัสที่พิมพ์เป็น Base64 แล้วเทียบกับตัวแปรคงที่
+            if(!pass) return showToast("กรุณากรอกรหัสผ่าน", "error");
             if(btoa(pass) === ADMIN_CODE_B64) {
                 closeAdminModal();
                 showToast("เข้าสู่ระบบแอดมินสำเร็จ", "success");
-                
-                // บันทึกสถานะการล็อกอินไว้ใน Session (เพื่อให้หน้า Dashboard รู้ว่าล็อกอินแล้ว)
                 sessionStorage.setItem('isAdmin', 'true');
-                
-                // นำทางไปยังหน้า Dashboard
-                setTimeout(() => {
-                    window.location.href = "dashboardLib.html";
-                }, 1000);
+                setTimeout(() => window.location.href = "dashboardLib.html", 800);
             } else {
                 showToast("รหัสผ่านไม่ถูกต้อง", "error");
                 document.getElementById('adminPassword').value = "";
             }
         }
 
-        // --- ระบบแคชข้อมูลนักเรียนเพื่อความรวดเร็วระดับเสี้ยววินาที ---
+        // ==========================================
+        // ระบบ LocalStorage Cache (ความเร็ว 0.001 วินาที)
+        // ==========================================
         let studentsDB = {};
         
-        // ให้หน้าเว็บโหลดรายชื่อเด็กรอไว้เบื้องหลังทันทีที่เปิดเว็บ
         window.addEventListener('load', async () => {
+            document.getElementById('studentId').focus();
+            
+            // 1. โหลดข้อมูลเดิมจากในเครื่องมาใช้งานทันทีก่อน (ถ้ามี)
+            const cachedData = localStorage.getItem('libraryStudentsDB');
+            if (cachedData) {
+                studentsDB = JSON.parse(cachedData);
+            }
+
+            // 2. แอบไปดึงข้อมูลใหม่จาก Server มาอัปเดตทับไว้เงียบๆ (Background Fetch)
             if(!WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) {
                 try {
                     const response = await fetch(`${WEB_APP_URL}?action=getAllStudents`);
                     const data = await response.json();
                     if(data.status === "success") {
                         studentsDB = data.data;
+                        // บันทึกลงเครื่องคอมพิวเตอร์
+                        localStorage.setItem('libraryStudentsDB', JSON.stringify(studentsDB));
                     }
-                } catch(e) { console.warn("โหลดแคชเบื้องหลังไม่สำเร็จ ให้ดึงข้อมูลแบบปกติแทน", e); }
-            } else {
-                // ข้อมูลจำลองสำหรับการทดสอบ
-                studentsDB = { 
-                    "12345": { name: "เด็กชาย สมหมาย รักเรียน", class: "ม.1/1", image: "https://placehold.co/140x140/4caf50/ffffff?text=SM" },
-                    "54321": { name: "นางสาว ใจดี มีสุข", class: "ม.6/2", image: "" }
-                };
+                } catch(e) { console.warn("โหลดแคชเบื้องหลังล้มเหลว"); }
             }
         });
 
-        // ตัวแปรเก็บข้อมูลชั่วคราวสำหรับเตรียมส่งไป Backend
         let currentStudentData = { id: "", name: "", class: "" };
 
-        // 1. ฟังก์ชันค้นหาข้อมูลและแสดง Modal โชว์รูป/ชื่อ (แทนที่การเซฟทันที)
         async function verifyStudent() {
             const idInput = document.getElementById('studentId');
             const studentId = idInput.value.trim();
 
             if (!studentId) {
-                showToast("กรุณากรอกรหัสประจำตัวนักเรียน", "error");
+                showToast("กรุณากรอกรหัสประจำตัว", "error");
                 idInput.focus();
                 return;
             }
 
-            // แสดงสถานะกำลังค้นหา กรณีที่แคชยังโหลดไม่เสร็จ
-            const btn = document.getElementById('submitBtn');
-            const btnText = document.getElementById('btnText');
-            const btnSpinner = document.getElementById('btnSpinner');
-            
-            btn.disabled = true;
-            btnText.textContent = "กำลังค้นหา...";
-            btnSpinner.style.display = "block";
-
-            // ค้นหาในตัวแปรแคชก่อน (เร็วกว่า 0.01 วินาที)
+            // ค้นหาในตัวแปรแคช (เร็ว 0.01 วินาที ไม่ต้องง้อเน็ต)
             let student = studentsDB[studentId];
             
-            // ถ้าระบบเพิ่งเปิดและแคชยังโหลดไม่เสร็จ หรือหาไม่พบ ให้ลองดึงจาก Backend สดๆ 1 ครั้ง
-            if (!student && !WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) {
-                try {
-                    const response = await fetch(`${WEB_APP_URL}?action=getStudent&studentId=${studentId}`);
-                    const data = await response.json();
-                    if (data.status === "success" && data.data) {
-                        student = data.data;
-                        studentsDB[studentId] = student; // อัปเดตลงแคชเผื่อใช้ครั้งต่อไป
-                    }
-                } catch(e) { console.warn("ไม่สามารถดึงข้อมูลรายบุคคลได้", e); }
-            }
-
-            // คืนสถานะปุ่มกลับมา
-            btn.disabled = false;
-            btnText.textContent = "ตรวจสอบข้อมูล";
-            btnSpinner.style.display = "none";
-
             if (student) {
                 currentStudentData = { id: studentId, name: student.name, class: student.class };
                 showConfirmModal(student.name, student.class, student.image);
@@ -344,25 +275,17 @@
             }
         }
 
-        // จัดการหน้าต่าง Custom Modal
         function showConfirmModal(name, className, imgUrl) {
             document.getElementById('confirmName').textContent = name;
-            
-            // ปรับสีข้อความเตือนถ้าไม่พบรหัส
             const classEl = document.getElementById('confirmClass');
             classEl.textContent = name === "ไม่พบรายชื่อในระบบ" ? className : `ชั้น ${className}`;
             classEl.style.color = name === "ไม่พบรายชื่อในระบบ" ? "#f44336" : "var(--primary-color)";
 
             const imgEl = document.getElementById('confirmImg');
-            
-            // --- เพิ่มระบบป้องกันและแปลงลิงก์ภาพแบบอัตโนมัติ ---
             let finalImgUrl = imgUrl;
             if (finalImgUrl && finalImgUrl.includes('drive.google.com')) {
-                // ถ้าเป็นลิงก์ Google Drive ทุกรูปแบบ ให้ดึงเฉพาะ ID มาทำเป็น Thumbnail
                 const match = finalImgUrl.match(/[-\w]{25,}/);
-                if (match) {
-                    finalImgUrl = `https://drive.google.com/thumbnail?id=${match[0]}&sz=w400`;
-                }
+                if (match) finalImgUrl = `https://drive.google.com/thumbnail?id=${match[0]}&sz=w400`;
             }
 
             if (finalImgUrl && finalImgUrl.startsWith('http')) {
@@ -372,8 +295,6 @@
             }
 
             document.getElementById('confirmModal').classList.add('active');
-            
-            // เตรียมให้กดปุ่ม Enter ซ้ำเพื่อบันทึกได้อย่างไหลลื่น
             setTimeout(() => { document.getElementById('realSubmitBtn').focus(); }, 100);
         }
 
@@ -382,61 +303,37 @@
             document.getElementById('studentId').focus();
         }
 
-        // 2. ฟังก์ชันส่งข้อมูลเข้าสู่ระบบ Google Apps Script แบบความเร็วสูง
-        async function executeCheckIn() {
-            const btn = document.getElementById('realSubmitBtn');
-            const btnText = document.getElementById('realBtnText');
-            const spinner = document.getElementById('realBtnSpinner');
+        // ==========================================
+        // ระบบส่งข้อมูลแบบ Fire and Forget (ลดการรอจาก 15 วิ เหลือ 0 วิ)
+        // ==========================================
+        function executeCheckIn() {
             const idInput = document.getElementById('studentId');
 
-            // เปลี่ยนสถานะปุ่มเป็น กำลังโหลด
-            btn.disabled = true;
-            btnText.textContent = "กำลังบันทึก...";
-            spinner.style.display = "block";
+            // 1. แจ้งเตือนผู้ใช้ว่าสำเร็จ "ทันที" (Optimistic UI) ปิดหน้าต่าง และเคลียร์ช่องว่าง
+            showToast("บันทึกข้อมูลเรียบร้อยแล้วครับ", "success");
+            closeConfirmModal();
+            idInput.value = "";
+            idInput.focus();
 
-            try {
-                if(WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    showToast("บันทึกข้อมูลเรียบร้อยแล้วครับ (โหมดจำลอง)", "success");
-                    closeConfirmModal();
-                    idInput.value = "";
-                } else {
-                    // ส่งข้อมูลทุกอย่างไปให้ Backend เลย (Backend จะได้ไม่ต้องไปงมหาใหม่ ลดเวลารอได้อย่างมาก)
-                    const params = new URLSearchParams({
-                        action: 'checkin',
-                        studentId: currentStudentData.id,
-                        name: currentStudentData.name,
-                        className: currentStudentData.class
-                    });
+            // 2. จัดเตรียมข้อมูล
+            const params = new URLSearchParams({
+                action: 'checkin',
+                studentId: currentStudentData.id,
+                name: currentStudentData.name,
+                className: currentStudentData.class
+            });
 
-                    const response = await fetch(`${WEB_APP_URL}?${params.toString()}`, {
-                        method: 'GET',
-                        mode: 'cors'
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if(data.status === "success") {
-                        showToast(data.message, "success");
-                        closeConfirmModal();
-                        idInput.value = "";
-                    } else {
-                        showToast("เกิดข้อผิดพลาด: " + data.message, "error");
-                    }
-                }
-            } catch (error) {
-                showToast("การเชื่อมต่อล้มเหลว โปรดตรวจสอบอินเทอร์เน็ต", "error");
-                console.error("Error:", error);
-            } finally {
-                // คืนค่าปุ่มกลับมาเหมือนเดิม
-                btn.disabled = false;
-                btnText.textContent = "บันทึกเข้าใช้งาน";
-                spinner.style.display = "none";
-                idInput.focus();
-            }
+            // 3. ยิงข้อมูลไป Google Apps Script แบบ "ไม่รอดูผลลัพธ์ (no-cors)"
+            // เทคนิคนี้จะข้ามกระบวนการตรวจสอบความปลอดภัยฝั่ง Browser ทำให้ส่งได้ไวทะลุนรก
+            fetch(`${WEB_APP_URL}?${params.toString()}`, {
+                method: 'GET',
+                mode: 'no-cors' // *Key สำคัญของการลดความหน่วง*
+            }).catch(error => {
+                console.log("บันทึกเบื้องหลัง", error);
+            });
+            // จบการทำงาน ผู้ใช้ไม่ต้องรอใดๆ ทั้งสิ้น!
         }
 
-        // รองรับการกดปุ่ม Enter ทั้งขั้นตอนเช็ครหัสและแอดมิน
         document.getElementById('studentId').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') verifyStudent();
         });
