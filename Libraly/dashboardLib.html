@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard สถิติห้องสมุด - โรงเรียนบัวใหญ่</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้าไลบรารีสำหรับสร้างกราฟ (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- เปลี่ยนจาก SheetJS มาใช้ ExcelJS และ FileSaver เพื่อจัดรูปแบบฟอนต์และหัวตาราง -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-hover: #1b5e20;
+            --bg-color: #f1f8e9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-color: #a5d6a7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* แถบนำทางด้านบน */
+        .navbar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 { font-size: 24px; font-weight: 700; }
+        .logout-btn {
+            background-color: #c62828; color: white;
+            border: none; padding: 8px 16px; border-radius: 8px;
+            font-family: 'Sarabun', sans-serif; cursor: pointer; font-weight: 600;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover { background-color: #b71c1c; }
+
+        .container { padding: 30px; max-width: 1200px; margin: 0 auto; }
+
+        /* แผงควบคุมตัวกรอง */
+        .controls-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .control-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+        .control-group label { font-weight: 600; color: var(--primary-color); margin-bottom: 5px; }
+        .control-group select {
+            padding: 10px; border: 2px solid var(--border-color);
+            border-radius: 8px; font-family: 'Sarabun', sans-serif; font-size: 16px;
+            outline: none; background-color: white;
+        }
+        .control-group select:focus { border-color: var(--primary-color); }
+
+        .export-btn {
+            background-color: #1976d2; color: white; border: none;
+            padding: 12px 20px; border-radius: 8px; font-family: 'Sarabun', sans-serif;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s;
+            display: flex; align-items: center; gap: 8px; height: 45px;
+        }
+        .export-btn:hover { background-color: #1565c0; }
+
+        /* สรุปตัวเลข */
+        .summary-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+        .summary-card {
+            background-color: var(--card-bg); padding: 25px; border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        .summary-card h3 { color: #666; font-size: 18px; margin-bottom: 10px; }
+        .summary-card .number { color: var(--primary-color); font-size: 40px; font-weight: 700; }
+
+        /* พื้นที่กราฟ */
+        .charts-grid {
+            display: grid; grid-template-columns: 1fr; gap: 30px;
+        }
+        @media (min-width: 992px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+        
+        .chart-container {
+            background-color: var(--card-bg); padding: 25px; border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; height: 400px;
+        }
+        .chart-container.full-width { grid-column: 1 / -1; height: 450px; }
+        .chart-title { color: var(--primary-color); font-weight: 700; margin-bottom: 15px; font-size: 20px; text-align: center; }
+
+        /* หน้าจอโหลดข้อมูล */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+        }
+        .spinner {
+            border: 5px solid var(--border-color); border-top: 5px solid var(--primary-color);
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- ตรวจสอบสิทธิ์การเข้าถึง -->
+    <script>
+        if (!sessionStorage.getItem('isAdmin')) {
+            alert('กรุณาเข้าสู่ระบบผ่านหน้าหลัก');
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <!-- หน้าจอโหลดข้อมูล -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h2 style="color: var(--primary-color);">กำลังดึงข้อมูลสถิติ...</h2>
+    </div>
+
+    <!-- แถบนำทาง -->
+    <nav class="navbar">
+        <h1>📊 ระบบสารสนเทศห้องสมุดมีชีวิต โรงเรียนบัวใหญ๋ องค์การบริหารส่วนจังหวัดนครราชสีมา</h1>
+        <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+    </nav>
+
+    <div class="container">
+        <!-- แผงควบคุมตัวกรอง -->
+        <div class="controls-card">
+            <div class="control-group">
+                <label for="filterYear">ปี (พ.ศ.)</label>
+                <select id="filterYear" onchange="updateDashboard()"></select>
+            </div>
+            <div class="control-group">
+                <label for="filterMonth">เดือน</label>
+                <select id="filterMonth" onchange="updateDashboard()">
+                    <option value="all">-- ทุกเดือน --</option>
+                    <option value="0">มกราคม</option>
+                    <option value="1">กุมภาพันธ์</option>
+                    <option value="2">มีนาคม</option>
+                    <option value="3">เมษายน</option>
+                    <option value="4">พฤษภาคม</option>
+                    <option value="5">มิถุนายน</option>
+                    <option value="6">กรกฎาคม</option>
+                    <option value="7">สิงหาคม</option>
+                    <option value="8">กันยายน</option>
+                    <option value="9">ตุลาคม</option>
+                    <option value="10">พฤศจิกายน</option>
+                    <option value="11">ธันวาคม</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="filterDay">วันที่</label>
+                <select id="filterDay" onchange="updateDashboard()">
+                    <option value="all">-- ทุกวัน --</option>
+                    <!-- วันที่จะถูกสร้างด้วย JS -->
+                </select>
+            </div>
+            <button class="export-btn" onclick="exportToExcel()">
+                📥 ดาวน์โหลด Excel
+            </button>
+        </div>
+
+        <!-- สรุปตัวเลข -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>ผู้ใช้งานตามช่วงเวลาที่เลือก</h3>
+                <div class="number" id="sumFiltered">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>ผู้ใช้งานวันนี้</h3>
+                <div class="number" id="sumToday">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>ผู้ใช้งานทั้งหมดในระบบ</h3>
+                <div class="number" id="sumTotal">0</div>
+            </div>
+        </div>
+
+        <!-- พื้นที่กราฟ -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">สถิติแยกตามระดับชั้น (กราฟแท่ง)</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">สัดส่วนผู้ใช้งาน (กราฟโดนัท)</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-container full-width">
+                <h3 class="chart-title">เปรียบเทียบแนวโน้มรายเดือน แยกตามระดับชั้น (กราฟเส้น)</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ตั้งค่าฟอนต์เริ่มต้นสำหรับ Chart.js
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
+        Chart.defaults.font.size = 14;
+
+        // -------------------------------------------------------------
+        // สำคัญมาก: เปลี่ยนเป็น Web App URL ของคุณ
+        // -------------------------------------------------------------
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwDD_CicwvwClg1XpM6BF23RlW4TpiFrb4SFddc_9c-hW1vGgBz3AL0Dpkqi_OjNQkg/exec"; 
+        
+        let allLogs = []; // เก็บข้อมูลดิบทั้งหมด
+        let barChartInstance = null;
+        let pieChartInstance = null;
+        let lineChartInstance = null;
+
+        const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+        // เริ่มต้นการทำงานเมื่อโหลดหน้าเสร็จ
+        window.onload = async () => {
+            initDayOptions();
+            await fetchLogsData();
+        };
+
+        // สร้างตัวเลือกวันที่ 1-31
+        function initDayOptions() {
+            const daySelect = document.getElementById('filterDay');
+            for(let i=1; i<=31; i++) {
+                daySelect.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+            
+            // ตั้งค่าปีเริ่มต้นเป็นปีปัจจุบัน (พ.ศ.)
+            const currentYear = new Date().getFullYear();
+            const yearSelect = document.getElementById('filterYear');
+            yearSelect.innerHTML = `<option value="all">-- ทุกปี --</option>`;
+            // ให้เลือกย้อนหลัง 5 ปี
+            for(let i=0; i<5; i++) {
+                let y = currentYear - i;
+                yearSelect.innerHTML += `<option value="${y}" ${i===0?'selected':''}>${y + 543}</option>`;
+            }
+        }
+
+        // ดึงข้อมูลจาก Backend
+        async function fetchLogsData() {
+            try {
+                // เรียกใช้ API ใหม่ที่เราจะสร้างใน Code.gs
+                const response = await fetch(`${WEB_APP_URL}?action=getLogs`);
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    allLogs = result.data;
+                    document.getElementById('sumTotal').textContent = allLogs.length;
+                    
+                    // นับยอดวันนี้
+                    const todayStr = new Date().toDateString();
+                    const todayCount = allLogs.filter(log => new Date(log.timestamp).toDateString() === todayStr).length;
+                    document.getElementById('sumToday').textContent = todayCount;
+
+                    updateDashboard(); // อัปเดตกราฟ
+                }
+            } catch (error) {
+                console.error("Error fetching logs:", error);
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูล โปรดตรวจสอบอินเทอร์เน็ต");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // อัปเดตข้อมูลทั้งหมดเมื่อมีการเปลี่ยนตัวกรอง
+        function updateDashboard() {
+            const fYear = document.getElementById('filterYear').value;
+            const fMonth = document.getElementById('filterMonth').value;
+            const fDay = document.getElementById('filterDay').value;
+
+            // 1. กรองข้อมูล
+            let filteredLogs = allLogs.filter(log => {
+                const d = new Date(log.timestamp);
+                let match = true;
+                if(fYear !== "all" && d.getFullYear().toString() !== fYear) match = false;
+                if(fMonth !== "all" && d.getMonth().toString() !== fMonth) match = false;
+                if(fDay !== "all" && d.getDate().toString() !== fDay) match = false;
+                return match;
+            });
+
+            document.getElementById('sumFiltered').textContent = filteredLogs.length;
+
+            // 2. จัดกลุ่มข้อมูลตามชั้นเรียน (เช่น ม.1/1, ม.2/1)
+            let classCounts = {};
+            filteredLogs.forEach(log => {
+                const c = log.className || "ไม่ระบุ";
+                classCounts[c] = (classCounts[c] || 0) + 1;
+            });
+
+            // เรียงลำดับชื่อชั้น
+            const sortedClasses = Object.keys(classCounts).sort();
+            const classLabels = sortedClasses;
+            const classData = sortedClasses.map(c => classCounts[c]);
+
+            // อัปเดตกราฟแท่ง (Bar) และ โดนัท (Pie)
+            renderBarChart(classLabels, classData);
+            renderPieChart(classLabels, classData);
+
+            // 3. จัดกลุ่มข้อมูลสำหรับกราฟเส้น (แยกตามเดือน และชั้นเรียนหลัก เช่น ม.1, ม.2)
+            // สำหรับกราฟเส้น เราจะใช้ข้อมูลรายปีที่เลือก (ถ้าเลือกเดือน/วัน ไว้ จะถูกละเว้นสำหรับกราฟนี้เพื่อให้เห็น Trend)
+            let trendLogs = allLogs;
+            if(fYear !== "all") {
+                trendLogs = allLogs.filter(log => new Date(log.timestamp).getFullYear().toString() === fYear);
+            }
+
+            renderLineChart(trendLogs);
+        }
+
+        // วาดกราฟแท่ง
+        function renderBarChart(labels, data) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            if(barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'จำนวนนักเรียน (คน)',
+                        data: data,
+                        backgroundColor: '#4caf50',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // วาดกราฟโดนัท
+        function renderPieChart(labels, data) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if(pieChartInstance) pieChartInstance.destroy();
+
+            // สร้างสีแบบสุ่มแต่คุมโทนสำหรับแต่ละห้อง
+            const colors = labels.map((_, i) => `hsl(${(i * 360 / labels.length) % 360}, 70%, 60%)`);
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // วาดกราฟเส้นเปรียบเทียบรายเดือน แบ่งตามระดับชั้น
+        function renderLineChart(logs) {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            if(lineChartInstance) lineChartInstance.destroy();
+
+            // จัดกลุ่มระดับชั้นหลัก (ตัดทับห้องออก เช่น ม.1/1 -> ม.1)
+            let baseClasses = new Set();
+            logs.forEach(l => {
+                if(l.className) {
+                    baseClasses.add(l.className.split('/')[0]); // เอาเฉพาะตัวหน้า
+                }
+            });
+            let classGroups = Array.from(baseClasses).sort();
+
+            // เตรียมโครงสร้างข้อมูล { "ม.1": [0,0,0...12เดือน], "ม.2": [0,0,0...] }
+            let monthlyData = {};
+            classGroups.forEach(c => monthlyData[c] = new Array(12).fill(0));
+
+            // เติมข้อมูล
+            logs.forEach(log => {
+                const m = new Date(log.timestamp).getMonth();
+                if(log.className) {
+                    const baseC = log.className.split('/')[0];
+                    if(monthlyData[baseC]) {
+                        monthlyData[baseC][m]++;
+                    }
+                }
+            });
+
+            // สร้าง Datasets ให้ Chart.js
+            const datasets = classGroups.map((c, i) => {
+                const color = `hsl(${(i * 360 / classGroups.length) % 360}, 60%, 45%)`;
+                return {
+                    label: c,
+                    data: monthlyData[c],
+                    borderColor: color,
+                    backgroundColor: color,
+                    tension: 0.3,
+                    fill: false
+                };
+            });
+
+            lineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: thaiMonths,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { tooltip: { mode: 'index', intersect: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // ฟังก์ชัน Export ข้อมูลเป็นไฟล์ Excel (รูปแบบใหม่ สวยงาม ฟอนต์ TH Sarabun + แยกชื่อ/สกุล)
+        async function exportToExcel() {
+            if(allLogs.length === 0) return alert("ไม่มีข้อมูลสำหรับส่งออก");
+            
+            // 1. กรองข้อมูลตามที่เลือกไว้ใน Dropdown
+            const fY = document.getElementById('filterYear').value;
+            const fM = document.getElementById('filterMonth').value;
+            const fD = document.getElementById('filterDay').value;
+
+            let exportLogs = allLogs.filter(log => {
+                const d = new Date(log.timestamp);
+                if(fY !== "all" && d.getFullYear().toString() !== fY) return false;
+                if(fM !== "all" && d.getMonth().toString() !== fM) return false;
+                if(fD !== "all" && d.getDate().toString() !== fD) return false;
+                return true;
+            });
+
+            if(exportLogs.length === 0) return alert("ไม่พบข้อมูลในช่วงเวลาที่เลือก");
+
+            // เริ่มสร้างไฟล์ Excel
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'ระบบห้องสมุด โรงเรียนบัวใหญ่';
+
+            // ตั้งค่าฟอนต์มาตรฐาน
+            const defaultFont = { name: 'TH Sarabun New', size: 16 };
+            const boldFont = { name: 'TH Sarabun New', size: 16, bold: true };
+            const titleFont = { name: 'TH Sarabun New', size: 22, bold: true };
+
+            // ==========================================
+            // Sheet 1: สร้างหน้า "สรุปสารสนเทศ"
+            // ==========================================
+            const wsSummary = workbook.addWorksheet('สรุปสารสนเทศ');
+            wsSummary.getColumn(1).width = 40;
+            wsSummary.getColumn(2).width = 15;
+            wsSummary.getColumn(3).width = 10; // เพิ่มคอลัมน์ C สำหรับคำว่า "คน"
+
+            // หัวกระดาษ
+            wsSummary.mergeCells('A1:C1'); // ผสานเซลล์ถึงคอลัมน์ C
+            wsSummary.getCell('A1').value = 'รายงานสรุปสารสนเทศห้องสมุด โรงเรียนบัวใหญ่';
+            wsSummary.getCell('A1').font = titleFont;
+            wsSummary.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // ข้อมูลสรุป
+            wsSummary.getCell('A3').value = 'ยอดผู้ใช้งานทั้งหมด (ในรอบที่เลือก)';
+            wsSummary.getCell('B3').value = exportLogs.length; // ใส่แค่ตัวเลข
+            wsSummary.getCell('C3').value = 'คน'; // ใส่คำว่าคนในคอลัมน์ C
+            
+            wsSummary.getCell('A3').font = boldFont;
+            wsSummary.getCell('B3').font = boldFont;
+            wsSummary.getCell('C3').font = boldFont;
+            wsSummary.getCell('B3').alignment = { horizontal: 'right' };
+            wsSummary.getCell('C3').alignment = { horizontal: 'left' };
+
+            wsSummary.getCell('A5').value = '--- แยกตามระดับชั้น ---';
+            wsSummary.getCell('A5').font = boldFont;
+
+            let classCounts = {};
+            exportLogs.forEach(l => {
+                let c = l.className || "ไม่ระบุ";
+                classCounts[c] = (classCounts[c] || 0) + 1;
+            });
+
+            let rowNum = 6;
+            Object.keys(classCounts).sort().forEach(c => {
+                wsSummary.getCell(`A${rowNum}`).value = `ชั้น ${c}`;
+                wsSummary.getCell(`B${rowNum}`).value = classCounts[c]; // ใส่แค่ตัวเลข
+                wsSummary.getCell(`C${rowNum}`).value = 'คน'; // ใส่คำว่าคนในคอลัมน์ C
+                
+                wsSummary.getCell(`A${rowNum}`).font = defaultFont;
+                wsSummary.getCell(`B${rowNum}`).font = defaultFont;
+                wsSummary.getCell(`C${rowNum}`).font = defaultFont;
+                wsSummary.getCell(`B${rowNum}`).alignment = { horizontal: 'right' };
+                wsSummary.getCell(`C${rowNum}`).alignment = { horizontal: 'left' };
+                rowNum++;
+            });
+
+            // ==========================================
+            // Sheet 2+: แยกรายละเอียดเป็นรายเดือน
+            // ==========================================
+            let logsByMonth = {};
+
+            exportLogs.forEach((l) => {
+                const d = new Date(l.timestamp);
+                const m = d.getMonth();
+                const y = d.getFullYear() + 543;
+                const monthName = `${thaiMonths[m]} ${y}`; 
+
+                if(!logsByMonth[monthName]) logsByMonth[monthName] = [];
+                logsByMonth[monthName].push(l);
+            });
+
+            Object.keys(logsByMonth).forEach(monthName => {
+                // สร้าง Sheet ชื่อตามเดือน
+                const wsMonth = workbook.addWorksheet(monthName.substring(0, 31));
+
+                // กำหนดความกว้างคอลัมน์: A(ลำดับ) B(วันที่) C(เวลา) D(รหัส) E(ชื่อ-สกุล) F(ชั้น)
+                wsMonth.columns = [
+                    { width: 8 }, { width: 15 }, { width: 12 }, { width: 15 },
+                    { width: 40 }, { width: 15 }
+                ];
+
+                // ส่วนหัวตาราง (ชื่อโรงเรียน)
+                wsMonth.mergeCells('A1:F1');
+                wsMonth.getCell('A1').value = 'รายงานรายละเอียดการเข้าใช้ห้องสมุด โรงเรียนบัวใหญ่';
+                wsMonth.getCell('A1').font = titleFont;
+                wsMonth.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                wsMonth.mergeCells('A2:F2');
+                wsMonth.getCell('A2').value = `ประจำเดือน ${monthName}`;
+                wsMonth.getCell('A2').font = boldFont;
+                wsMonth.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // หัวตาราง (รวมชื่อ-สกุล และตัดสถานะออก)
+                const headers = ['ลำดับ', 'วันที่', 'เวลา', 'รหัสนักเรียน', 'ชื่อ-สกุล', 'ชั้นเรียน'];
+                const headerRow = wsMonth.addRow(headers);
+                
+                headerRow.eachCell((cell) => {
+                    cell.font = boldFont;
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } }; // สีพื้นหลังเขียวอ่อน
+                    cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                });
+
+                // ใส่ข้อมูล
+                logsByMonth[monthName].forEach((l, i) => {
+                    const d = new Date(l.timestamp);
+
+                    const row = wsMonth.addRow([
+                        i + 1,
+                        d.toLocaleDateString('th-TH'),
+                        d.toLocaleTimeString('th-TH'),
+                        l.studentId,
+                        l.name, // ใช้ข้อมูลชื่อและนามสกุลเต็ม
+                        l.className
+                    ]);
+
+                    row.eachCell((cell, colNumber) => {
+                        cell.font = defaultFont;
+                        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        // จัดกึ่งกลางหมดยกเว้นคอลัมน์ชื่อ-สกุล(5) ให้ชิดซ้าย
+                        if(colNumber !== 5) {
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        } else {
+                            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                        }
+                    });
+                });
+            });
+
+            // ==========================================
+            // 3. บันทึกและดาวน์โหลดไฟล์
+            // ==========================================
+            const buffer = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buffer]), `รายงานสถิติห้องสมุด_${new Date().getTime()}.xlsx`);
+        }
+
+        // ฟังก์ชันออกจากระบบ
+        function logout() {
+            sessionStorage.removeItem('isAdmin');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
