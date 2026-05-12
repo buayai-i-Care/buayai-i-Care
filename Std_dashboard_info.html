@@ -74,8 +74,8 @@
     <!-- Loading Screen -->
     <div id="loading-overlay">
         <div class="spinner-border mb-3" role="status"></div>
-        <h5 class="fw-bold" style="color: var(--primary-admin);">กำลังเชื่อมต่อฐานข้อมูล...</h5>
-        <p class="text-muted small">โปรดรอสักครู่ ระบบกำลังโหลดข้อมูลนักเรียนทั้งหมด</p>
+        <h5 class="fw-bold" id="loading-text" style="color: var(--primary-admin);">กำลังเชื่อมต่อฐานข้อมูล...</h5>
+        <p class="text-muted small">โปรดรอสักครู่</p>
     </div>
 
     <!-- แถบประกาศตัวหนังสือวิ่ง (Marquee) -->
@@ -291,6 +291,30 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- ⚠️ Custom Modal สำหรับยืนยันการรีเซตด่าน (ทดแทน alert/confirm) -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-labelledby="confirmResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold" id="confirmResetModalLabel"><i class="bi bi-exclamation-triangle-fill"></i> ยืนยันการรีเซตข้อมูล</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <h5 class="fw-bold text-dark mb-3" id="resetModalText">คุณแน่ใจหรือไม่ที่จะรีเซตข้อมูล?</h5>
+                    <p class="text-danger small mb-0 bg-danger bg-opacity-10 p-2 rounded">
+                        * ข้อมูลในด่านนี้จะถูกลบทิ้งจากฐานข้อมูลทันที<br>เพื่อให้นักเรียนกลับเข้าไปกรอกข้อมูลใหม่ได้
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-danger px-4 fw-bold" onclick="executeReset()">ลบทิ้งและรีเซตด่าน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ==========================================
         // ⚙️ การตั้งค่าระบบ
@@ -301,6 +325,9 @@
         let ALL_STUDENTS = []; 
         let currentPage = 1;
         const ITEMS_PER_PAGE = 10;
+        
+        // ตัวแปรสำหรับเก็บข้อมูลชั่วคราวตอนกดปุ่มรีเซตก่อนส่งให้ Modal
+        let resetTarget = { studentId: null, missionNum: null };
 
         // ==========================================
         // 🔐 ตรวจสอบสิทธิ์การเข้าใช้งาน
@@ -339,11 +366,9 @@
                 
                 const res = await response.json();
                 if(res.status === 'success') {
-                    // กรองเอาบรรทัดที่ว่างเปล่าออก
                     ALL_STUDENTS = res.data.filter(s => s && Object.keys(s).length > 0 && s.level);
                     
                     if(ALL_STUDENTS.length === 0) {
-                        // ⚠️ กรณีโหลดสำเร็จ แต่ในชีตไม่มีข้อมูลนักเรียนเลย (ชีตว่าง)
                         document.getElementById('loading-overlay').innerHTML = `
                             <div class="text-center p-4 bg-white rounded shadow" style="max-width: 90%;">
                                 <h5 class="text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ฐานข้อมูลยังว่างเปล่า</h5>
@@ -364,7 +389,6 @@
                 }
             } catch(err) {
                 console.error("Fetch API Error:", err);
-                // ⚠️ กรณีโหลดไม่สำเร็จ (แจ้ง Error ตามจริง)
                 document.getElementById('loading-overlay').innerHTML = `
                     <div class="text-center p-4 bg-white rounded shadow" style="max-width: 90%;">
                         <h5 class="text-danger fw-bold"><i class="bi bi-x-octagon-fill"></i> ดึงข้อมูลจากเซิร์ฟเวอร์ไม่ได้</h5>
@@ -391,7 +415,6 @@
             let rooms = new Set();
             ALL_STUDENTS.forEach(s => {
                 let sLevel = s.level ? String(s.level).trim() : '';
-                // 💡 ฉลาดขึ้น: ถ้าเลือก "ม.1" แต่ใน Sheet มีแต่ "1/1" ก็ดึงมาได้เหมือนกัน
                 let isMatch = sLevel.startsWith(level) || sLevel.startsWith(level.replace('ม.', ''));
                 if(sLevel && isMatch) rooms.add(sLevel);
             });
@@ -403,7 +426,6 @@
         }
 
         function checkMissionStatus(s) {
-            // เช็คด่านให้ตรงกับชื่อ Key ที่ส่งมาจาก GAS ใหม่เป๊ะๆ
             return {
                 m1: (s.citizenId && String(s.citizenId).trim() !== '') ? true : false,
                 m2: (s.guardianName && String(s.guardianName).trim() !== '') ? true : false,
@@ -440,7 +462,6 @@
             
             const rooms = getRoomsByLevel(level);
             
-            // 💡 ถ้าหาสถิติห้องไม่เจอ จะบอกใบ้ให้ว่าใน Sheet มีคำว่าอะไรบ้าง
             if(rooms.length === 0) { 
                 let allLevels = new Set();
                 ALL_STUDENTS.forEach(s => {
@@ -489,7 +510,7 @@
         }
 
         // ==========================================
-        // 🎮 Module 2: Mission Controller
+        // 🎮 Module 2: Mission Controller & Custom Modal
         // ==========================================
         function populateCtrlRooms() {
             const level = document.getElementById('ctrl-level').value;
@@ -509,7 +530,6 @@
             
             let filtered = ALL_STUDENTS.filter(s => {
                 let sLevel = s.level ? String(s.level).trim() : '';
-                // 💡 รองรับการค้นหาชั้นเรียนทั้งรูปแบบ "ม.1/1" และ "1/1"
                 let isLevelMatch = level === 'all' ? true : (sLevel.startsWith(level) || sLevel.startsWith(level.replace('ม.', '')));
                 let mRoom = room === 'all' || sLevel === room;
                 
@@ -521,7 +541,6 @@
                 return isLevelMatch && mRoom && mSearch;
             });
 
-            // เรียงลำดับตามห้องและเลขที่
             filtered.sort((a,b) => {
                 let aNum = parseInt(a.studentNumber || 0); let bNum = parseInt(b.studentNumber || 0);
                 return aNum - bNum;
@@ -538,6 +557,7 @@
                     badges += `<span class="badge ${isDone?'bg-success':'bg-secondary opacity-50'} me-1 mb-1">ด่าน ${i}</span>`;
                 });
 
+                // 🛠️ เปลี่ยน onclick เป็นเรียก confirmReset(Modal) แทน doReset
                 return `
                 <tr class="align-middle">
                     <td>${s.studentId || '-'}</td><td class="fw-bold">${s.fullName || '-'}</td><td>${s.studentNumber || '-'}</td><td>${s.level || '-'}</td>
@@ -546,11 +566,11 @@
                         <div class="dropdown">
                           <button class="btn btn-sm btn-outline-danger dropdown-toggle rounded-pill shadow-sm" type="button" data-bs-toggle="dropdown">⚙️ รีเซต</button>
                           <ul class="dropdown-menu shadow">
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '1')">ล้างข้อมูล ด่าน 1</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '2')">ล้างข้อมูล ด่าน 2</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '3')">ล้างข้อมูล ด่าน 3</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '4')">ล้างข้อมูล ด่าน 4</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="doReset('${s.studentId}', '5')">ล้างข้อมูล ด่าน 5</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="confirmReset('${s.studentId}', '${s.fullName}', '1')">ล้างข้อมูล ด่าน 1</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="confirmReset('${s.studentId}', '${s.fullName}', '2')">ล้างข้อมูล ด่าน 2</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="confirmReset('${s.studentId}', '${s.fullName}', '3')">ล้างข้อมูล ด่าน 3</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="confirmReset('${s.studentId}', '${s.fullName}', '4')">ล้างข้อมูล ด่าน 4</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="confirmReset('${s.studentId}', '${s.fullName}', '5')">ล้างข้อมูล ด่าน 5</a></li>
                           </ul>
                         </div>
                     </td>
@@ -558,19 +578,54 @@
             }).join('');
         }
 
-        async function doReset(studentId, missionNum) {
-            // หมายเหตุ: prompt/confirm/alert จะถูกบล็อคในหน้าพรีวิว หากใช้งานจริงบนเซิร์ฟเวอร์จะใช้งานได้ปกติ
-            console.log(`กดปุ่มรีเซต ด่าน ${missionNum} ของนักเรียนรหัส ${studentId}`);
+        // 🌟 เปิดหน้าต่าง Modal เพื่อยืนยัน (ทดแทน confirm)
+        function confirmReset(studentId, fullName, missionNum) {
+            resetTarget.studentId = studentId;
+            resetTarget.missionNum = missionNum;
+            
+            // อัปเดตข้อความใน Modal ให้ชัดเจน
+            document.getElementById('resetModalText').innerHTML = `
+                คุณกำลังจะรีเซต <b>"ด่านที่ ${missionNum}"</b><br>
+                <span class="text-primary mt-2 d-inline-block">รหัส: ${studentId} | ชื่อ: ${fullName}</span>
+            `;
+            
+            // สั่งเปิด Bootstrap Modal
+            const resetModal = new bootstrap.Modal(document.getElementById('confirmResetModal'));
+            resetModal.show();
+        }
+
+        // 🌟 ฟังก์ชันทำการรีเซตจริง (เรียกเมื่อกดปุ่ม ยืนยัน ใน Modal)
+        async function executeReset() {
+            // ปิด Modal
+            const modalEl = document.getElementById('confirmResetModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if(modalInstance) modalInstance.hide();
+
+            const studentId = resetTarget.studentId;
+            const missionNum = resetTarget.missionNum;
+
+            // แสดงหน้าจอโหลด
             document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = 'กำลังล้างข้อมูลและรีเซตด่าน...';
+            
             try {
                 const res = await fetchAPI('resetMission', { studentId: studentId, mission: missionNum });
                 if(res.status === 'success') {
-                    console.log(res.message); 
-                    await fetchAdminData();
-                } else throw new Error(res.message);
+                    // โหลดข้อมูลนักเรียนใหม่ เพื่อให้แถบสถานะเปลี่ยนเป็นสีเทาทันที
+                    document.getElementById('loading-text').innerText = 'อัปเดตข้อมูลล่าสุด...';
+                    await fetchAdminData(); 
+                } else {
+                    throw new Error(res.message);
+                }
             } catch(err) {
                 console.error("Error: " + err.message);
-                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('loading-overlay').innerHTML = `
+                    <div class="text-center p-4 bg-white rounded shadow" style="max-width: 90%;">
+                        <h5 class="text-danger fw-bold"><i class="bi bi-x-octagon-fill"></i> รีเซตล้มเหลว</h5>
+                        <p class="small text-danger fw-bold mt-3">${err.message}</p>
+                        <button class="btn btn-outline-danger mt-3" onclick="location.reload()">ลองใหม่</button>
+                    </div>
+                `;
             }
         }
 
@@ -599,7 +654,6 @@
                 return sLevel === room;
             });
 
-            // 💡 เรียงลำดับตามเลขที่เวลาเปิดดูในมือถือ
             stInRoom.sort((a,b) => parseInt(a.studentNumber || 0) - parseInt(b.studentNumber || 0));
 
             const totalPages = Math.ceil(stInRoom.length / ITEMS_PER_PAGE) || 1;
@@ -762,7 +816,6 @@
 
             if(filtered.length === 0) { alert("ไม่มีข้อมูลในระดับชั้น/ห้องที่เลือกครับ"); return; }
 
-            // 💡 เรียงลำดับจากห้องน้อยไปมาก แล้วเรียงตาม "เลขที่" นักเรียน
             filtered.sort((a,b) => {
                 let arrA = (a.level||'').split('/'); let arrB = (b.level||'').split('/');
                 if(arrA[0] !== arrB[0]) return arrA[0].localeCompare(arrB[0]); 
@@ -770,7 +823,6 @@
                 return parseInt(a.studentNumber || 0) - parseInt(b.studentNumber || 0);
             });
 
-            // Dictionary สำหรับแปลงและสกัดข้อมูล (เพิ่มฟิลด์รูปภาพและเลขที่ตาม GAS ใหม่)
             const fieldExtractors = {
                 // หมวด 1
                 studentId: { name: "รหัสนักเรียน", val: s => s.studentId },
