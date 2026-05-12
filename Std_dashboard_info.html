@@ -52,6 +52,10 @@
         .table-custom th { background-color: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
         .table-custom td { vertical-align: middle; }
         
+        /* สถิติที่คลิกได้ */
+        .stat-clickable { cursor: pointer; transition: background 0.2s; border-radius: 6px; padding: 5px; display: block; }
+        .stat-clickable:hover { background-color: #e2e8f0; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
+
         /* Accordion 3.1 */
         .accordion-button:not(.collapsed) { background-color: #fdf4ff; color: var(--primary-admin); font-weight: bold; box-shadow: none; }
         .accordion-button:focus { box-shadow: none; }
@@ -114,7 +118,10 @@
             <!-- ========================================== -->
             <div class="tab-pane fade show active" id="mod1">
                 <div class="admin-card">
-                    <h5 class="fw-bold mb-3" style="color: var(--primary-admin);">📊 สถิติการทำภารกิจรายห้อง</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0" style="color: var(--primary-admin);">📊 สถิติการทำภารกิจรายห้อง</h5>
+                        <small class="text-muted fst-italic">คลิกที่ตัวเลขเพื่อดูรายชื่อ <i class="bi bi-hand-index-thumb"></i></small>
+                    </div>
                     <div class="row g-2 mb-3">
                         <div class="col-md-4 col-8">
                             <select id="stat-level-select" class="form-select" onchange="renderStats()">
@@ -149,7 +156,20 @@
             <!-- โมดูล 2: ควบคุมสถานะ/รีเซตภารกิจ (Mission Controller) -->
             <!-- ========================================== -->
             <div class="tab-pane fade" id="mod2">
-                <div class="admin-card">
+                <!-- ส่วนใส่รหัสผ่าน -->
+                <div id="ctrl-auth-section" class="admin-card text-center py-5">
+                    <i class="bi bi-lock-fill text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">ระบบควบคุมและรีเซตด่านถูกล็อค</h5>
+                    <p class="text-muted small">กรุณาใส่รหัสผ่านเพื่อเข้าสู่เมนูนี้</p>
+                    <div class="d-flex justify-content-center mt-3 mx-auto" style="max-width: 300px;">
+                        <input type="password" id="ctrl-pwd-input" class="form-control text-center bg-light" placeholder="รหัสผ่าน (by44)" onkeypress="if(event.key === 'Enter') unlockCtrl()">
+                        <button class="btn text-white ms-2 px-3 fw-bold shadow-sm" style="background-color: var(--primary-admin);" onclick="unlockCtrl()">ยืนยัน</button>
+                    </div>
+                    <p id="ctrl-pwd-error" class="text-danger small mt-2 d-none fw-bold"><i class="bi bi-x-circle"></i> รหัสผ่านไม่ถูกต้อง</p>
+                </div>
+
+                <!-- ส่วนเนื้อหาหลัก (ถูกซ่อนไว้ตอนแรก) -->
+                <div id="ctrl-main-section" class="d-none admin-card">
                     <h5 class="fw-bold mb-1" style="color: var(--primary-admin);">🛠️ ระบบควบคุมและรีเซตด่าน (Mission Controller)</h5>
                     <p class="small text-muted mb-3">* การ "รีเซต" จะล้างข้อมูลในด่านนั้นๆ ให้นักเรียนกลับเข้าไปกรอกข้อมูลใหม่ได้ (ระบบจะเปิดด่านให้อัตโนมัติเมื่อข้อมูลว่าง)</p>
                     
@@ -292,9 +312,43 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- ⚠️ Custom Modal สำหรับยืนยันการรีเซตด่าน (ทดแทน alert/confirm) -->
+    <!-- 📋 Modal แสดงรายชื่อนักเรียนแยกตามการทำภารกิจ -->
     <!-- ========================================== -->
-    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-labelledby="confirmResetModalLabel" aria-hidden="true">
+    <div class="modal fade" id="missionDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="missionDetailTitle"><i class="bi bi-list-check"></i> รายละเอียดการทำด่าน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-success text-white fw-bold">
+                                    <i class="bi bi-check-circle-fill"></i> ทำภารกิจแล้ว (<span id="count-done">0</span> คน)
+                                </div>
+                                <ul id="list-done" class="list-group list-group-flush small" style="max-height: 400px; overflow-y: auto;"></ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-danger text-white fw-bold">
+                                    <i class="bi bi-x-circle-fill"></i> ยังไม่ทำภารกิจ (<span id="count-not-done">0</span> คน)
+                                </div>
+                                <ul id="list-not-done" class="list-group list-group-flush small" style="max-height: 400px; overflow-y: auto;"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ⚠️ Custom Modal สำหรับยืนยันการรีเซตด่าน -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
@@ -319,14 +373,12 @@
         // ==========================================
         // ⚙️ การตั้งค่าระบบ
         // ==========================================
-        // *** นำ URL ที่ได้จากการ Deploy GAS มาใส่ตรงนี้ ***
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzsiwpWMk0zVd1bWx1M-5uhKw_C-AFjU2-dMfRV1d_OF-OzEEqWQDyjfPfKNMauS0fA/exec'; 
         
         let ALL_STUDENTS = []; 
         let currentPage = 1;
         const ITEMS_PER_PAGE = 10;
         
-        // ตัวแปรสำหรับเก็บข้อมูลชั่วคราวตอนกดปุ่มรีเซตก่อนส่งให้ Modal
         let resetTarget = { studentId: null, missionNum: null };
 
         // ==========================================
@@ -352,7 +404,7 @@
         }
 
         // ==========================================
-        // 📡 โหลดข้อมูลทั้งหมดจาก GAS (ฐานข้อมูลจริงเท่านั้น)
+        // 📡 โหลดข้อมูลทั้งหมดจาก GAS
         // ==========================================
         async function fetchAdminData() {
             try {
@@ -380,9 +432,13 @@
                     }
 
                     document.getElementById('loading-overlay').style.display = 'none';
+                    
+                    const oldCtrlRoom = document.getElementById('ctrl-room')?.value;
+                    const oldViewRoom = document.getElementById('view-room')?.value;
+
                     renderStats();
-                    populateCtrlRooms();
-                    populateViewRooms();
+                    populateCtrlRooms(oldCtrlRoom);
+                    populateViewRooms(oldViewRoom);
                     populateExpRooms();
                 } else {
                     throw new Error(res.message);
@@ -409,7 +465,7 @@
         }
 
         // ==========================================
-        // 🛠️ Utilities (เครื่องมือจัดการข้อมูล)
+        // 🛠️ Utilities
         // ==========================================
         function getRoomsByLevel(level) {
             let rooms = new Set();
@@ -426,22 +482,26 @@
         }
 
         function checkMissionStatus(s) {
+            const isFilled = (val) => {
+                if (val === null || val === undefined) return false;
+                const str = String(val).trim();
+                if (str === '' || str === 'undefined' || str === 'null' || str === '{}') return false;
+                return true;
+            };
             return {
-                m1: (s.citizenId && String(s.citizenId).trim() !== '') ? true : false,
-                m2: (s.guardianName && String(s.guardianName).trim() !== '') ? true : false,
-                m3: (s.weight && String(s.weight).trim() !== '') ? true : false,
-                m4: (s.preferencesJson && s.preferencesJson !== '{}' && String(s.preferencesJson).trim() !== '') ? true : false,
-                m5: (s.housingStatus && String(s.housingStatus).trim() !== '') ? true : false
+                m1: isFilled(s.citizenId),
+                m2: isFilled(s.guardianName),
+                m3: isFilled(s.weight),
+                m4: isFilled(s.preferencesJson),
+                m5: isFilled(s.housingStatus)
             };
         }
 
         const parseJSONSafe = (str) => { try { return JSON.parse(str||'{}'); } catch(e){ return {}; } };
-
         function getDriveThumb(url) {
             const match = url?.match(/[-\w]{25,}/);
             return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w150` : 'https://via.placeholder.com/80?text=No+Img';
         }
-
         function calculateAge(dateString) {
             if (!dateString) return '-';
             const today = new Date();
@@ -453,7 +513,7 @@
         }
 
         // ==========================================
-        // 📊 Module 1: สถิติภาพรวม
+        // 📊 Module 1: สถิติภาพรวม (คลิกเพื่อดูรายชื่อได้)
         // ==========================================
         function renderStats() {
             const level = document.getElementById('stat-level-select').value;
@@ -477,6 +537,14 @@
                 return; 
             }
 
+            // ฟังก์ชันย่อยสำหรับสร้างปุ่มคลิกดูรายชื่อ
+            const renderStatCell = (done, total, room, mIdx) => {
+                const notDone = total - done;
+                return `<div class="stat-clickable" onclick="showMissionDetails('${room}', ${mIdx})">
+                            <span class="text-success fw-bold">${done}</span> / <span class="text-danger opacity-75">${notDone}</span>
+                        </div>`;
+            };
+
             rooms.forEach(room => {
                 const stInRoom = ALL_STUDENTS.filter(s => {
                     let sLevel = s.level ? String(s.level).trim() : '';
@@ -489,17 +557,68 @@
                     let st = checkMissionStatus(s);
                     if(st.m1) c1++; if(st.m2) c2++; if(st.m3) c3++; if(st.m4) c4++; if(st.m5) c5++;
                 });
-
-                const rHtml = (done) => `<span class="text-success fw-bold">${done}</span> / <span class="text-danger opacity-75">${total-done}</span>`;
                 
                 tbody.innerHTML += `
                     <tr class="text-center align-middle">
                         <td class="fw-bold text-primary">${room}</td>
                         <td class="fw-bold">${total}</td>
-                        <td>${rHtml(c1)}</td><td>${rHtml(c2)}</td><td>${rHtml(c3)}</td><td>${rHtml(c4)}</td><td>${rHtml(c5)}</td>
+                        <td>${renderStatCell(c1, total, room, 1)}</td>
+                        <td>${renderStatCell(c2, total, room, 2)}</td>
+                        <td>${renderStatCell(c3, total, room, 3)}</td>
+                        <td>${renderStatCell(c4, total, room, 4)}</td>
+                        <td>${renderStatCell(c5, total, room, 5)}</td>
                     </tr>
                 `;
             });
+        }
+
+        // 🌟 ฟังก์ชันแสดง Modal รายชื่อนักเรียนที่ทำ/ยังไม่ทำ
+        function showMissionDetails(room, missionNum) {
+            const missionNames = {
+                1: "ด่าน 1 พื้นฐาน",
+                2: "ด่าน 2 ครอบครัว",
+                3: "ด่าน 3 สุขภาพ",
+                4: "ด่าน 4 สัมพันธภาพ",
+                5: "ด่าน 5 ที่อยู่อาศัย"
+            };
+
+            document.getElementById('missionDetailTitle').innerHTML = `<i class="bi bi-card-list"></i> ห้อง ${room} - ${missionNames[missionNum]}`;
+            
+            let doneList = [];
+            let notDoneList = [];
+
+            const stInRoom = ALL_STUDENTS.filter(s => {
+                let sLevel = s.level ? String(s.level).trim() : '';
+                return sLevel === room;
+            });
+
+            stInRoom.forEach(s => {
+                let st = checkMissionStatus(s);
+                let isDone = st['m' + missionNum];
+                
+                let num = s.studentNumber ? s.studentNumber : '-';
+                let name = s.fullName || 'ไม่ระบุชื่อ';
+                
+                let listHtml = `<li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span><span class="badge bg-secondary me-2">เลขที่ ${num}</span> ${name}</span>
+                                </li>`;
+
+                if(isDone) doneList.push({num: parseInt(num)||999, html: listHtml});
+                else notDoneList.push({num: parseInt(num)||999, html: listHtml});
+            });
+
+            // เรียงลำดับตามเลขที่
+            doneList.sort((a,b) => a.num - b.num);
+            notDoneList.sort((a,b) => a.num - b.num);
+
+            document.getElementById('count-done').innerText = doneList.length;
+            document.getElementById('list-done').innerHTML = doneList.length > 0 ? doneList.map(i=>i.html).join('') : '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูล</li>';
+
+            document.getElementById('count-not-done').innerText = notDoneList.length;
+            document.getElementById('list-not-done').innerHTML = notDoneList.length > 0 ? notDoneList.map(i=>i.html).join('') : '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูล</li>';
+
+            const modal = new bootstrap.Modal(document.getElementById('missionDetailModal'));
+            modal.show();
         }
 
         function exportStatsToExcel() {
@@ -510,15 +629,30 @@
         }
 
         // ==========================================
-        // 🎮 Module 2: Mission Controller & Custom Modal
+        // 🎮 Module 2: Mission Controller (พร้อมรหัสผ่าน)
         // ==========================================
-        function populateCtrlRooms() {
+        function unlockCtrl() {
+            const pwd = document.getElementById('ctrl-pwd-input').value;
+            if (pwd === 'by44') {
+                document.getElementById('ctrl-auth-section').classList.add('d-none');
+                document.getElementById('ctrl-main-section').classList.remove('d-none');
+                document.getElementById('ctrl-pwd-input').value = ''; // ล้างช่องรหัส
+            } else {
+                document.getElementById('ctrl-pwd-error').classList.remove('d-none');
+            }
+        }
+
+        function populateCtrlRooms(preserveValue = null) {
             const level = document.getElementById('ctrl-level').value;
             const rmSelect = document.getElementById('ctrl-room');
+            const oldVal = preserveValue !== null ? preserveValue : rmSelect.value;
+            
             rmSelect.innerHTML = '<option value="all">ทุกห้อง</option>';
             if(level !== 'all') {
                 getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
             }
+            
+            if(Array.from(rmSelect.options).some(o => o.value === oldVal)) rmSelect.value = oldVal;
             renderController();
         }
 
@@ -535,7 +669,6 @@
                 
                 let sid = s.studentId ? String(s.studentId) : '';
                 let sname = s.fullName ? String(s.fullName).toLowerCase() : '';
-                
                 let mSearch = sid.includes(search) || sname.includes(search);
                 
                 return isLevelMatch && mRoom && mSearch;
@@ -557,7 +690,6 @@
                     badges += `<span class="badge ${isDone?'bg-success':'bg-secondary opacity-50'} me-1 mb-1">ด่าน ${i}</span>`;
                 });
 
-                // 🛠️ เปลี่ยน onclick เป็นเรียก confirmReset(Modal) แทน doReset
                 return `
                 <tr class="align-middle">
                     <td>${s.studentId || '-'}</td><td class="fw-bold">${s.fullName || '-'}</td><td>${s.studentNumber || '-'}</td><td>${s.level || '-'}</td>
@@ -578,23 +710,21 @@
             }).join('');
         }
 
-        // 🌟 เปิดหน้าต่าง Modal เพื่อยืนยัน (ทดแทน confirm)
+        // 🌟 เปิดหน้าต่าง Modal เพื่อยืนยัน
         function confirmReset(studentId, fullName, missionNum) {
             resetTarget.studentId = studentId;
             resetTarget.missionNum = missionNum;
             
-            // อัปเดตข้อความใน Modal ให้ชัดเจน
             document.getElementById('resetModalText').innerHTML = `
                 คุณกำลังจะรีเซต <b>"ด่านที่ ${missionNum}"</b><br>
                 <span class="text-primary mt-2 d-inline-block">รหัส: ${studentId} | ชื่อ: ${fullName}</span>
             `;
             
-            // สั่งเปิด Bootstrap Modal
             const resetModal = new bootstrap.Modal(document.getElementById('confirmResetModal'));
             resetModal.show();
         }
 
-        // 🌟 ฟังก์ชันทำการรีเซตจริง (เรียกเมื่อกดปุ่ม ยืนยัน ใน Modal)
+        // 🌟 ฟังก์ชันทำการรีเซตจริง
         async function executeReset() {
             // ปิด Modal
             const modalEl = document.getElementById('confirmResetModal');
@@ -604,14 +734,27 @@
             const studentId = resetTarget.studentId;
             const missionNum = resetTarget.missionNum;
 
-            // แสดงหน้าจอโหลด
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = 'กำลังล้างข้อมูลและรีเซตด่าน...';
             
             try {
                 const res = await fetchAPI('resetMission', { studentId: studentId, mission: missionNum });
                 if(res.status === 'success') {
-                    // โหลดข้อมูลนักเรียนใหม่ เพื่อให้แถบสถานะเปลี่ยนเป็นสีเทาทันที
+                    
+                    // บังคับเปลี่ยนสีตารางทันที (Optimistic Update)
+                    let student = ALL_STUDENTS.find(s => String(s.studentId) === String(studentId));
+                    if(student) {
+                        if(missionNum === '1') student.citizenId = '';
+                        if(missionNum === '2') student.guardianName = '';
+                        if(missionNum === '3') student.weight = '';
+                        if(missionNum === '4') student.preferencesJson = '{}';
+                        if(missionNum === '5') student.housingStatus = '';
+                    }
+
+                    renderController();
+                    renderStats();
+                    renderViewer();
+
                     document.getElementById('loading-text').innerText = 'อัปเดตข้อมูลล่าสุด...';
                     await fetchAdminData(); 
                 } else {
@@ -632,11 +775,15 @@
         // ==========================================
         // 📱 Module 3.1: ข้อมูลรายบุคคล (Mobile View)
         // ==========================================
-        function populateViewRooms() {
+        function populateViewRooms(preserveValue = null) {
             const level = document.getElementById('view-level').value;
             const rmSelect = document.getElementById('view-room');
-            rmSelect.innerHTML = '';
+            const oldVal = preserveValue !== null ? preserveValue : rmSelect.value;
+            
+            rmSelect.innerHTML = '<option value="all">เลือกห้องก่อน</option>';
             getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            
+            if(Array.from(rmSelect.options).some(o => o.value === oldVal)) rmSelect.value = oldVal;
             resetViewPage();
         }
 
@@ -788,10 +935,13 @@
         function populateExpRooms() {
             const level = document.getElementById('exp-level').value;
             const rmSelect = document.getElementById('exp-room');
+            const oldVal = rmSelect.value;
+            
             rmSelect.innerHTML = '<option value="all">ทุกห้องในระดับชั้นนี้</option>';
             if(level !== 'all') {
                 getRoomsByLevel(level).forEach(r => rmSelect.innerHTML += `<option value="${r}">${r}</option>`);
             }
+            if(Array.from(rmSelect.options).some(o => o.value === oldVal)) rmSelect.value = oldVal;
         }
         
         function selectAllFields() {
@@ -824,7 +974,6 @@
             });
 
             const fieldExtractors = {
-                // หมวด 1
                 studentId: { name: "รหัสนักเรียน", val: s => s.studentId },
                 studentNumber: { name: "เลขที่", val: s => s.studentNumber },
                 level: { name: "ชั้นเรียน", val: s => s.level },
@@ -833,8 +982,6 @@
                 birthDate: { name: "วันเกิด", val: s => s.birthDate },
                 religion: { name: "ศาสนา", val: s => s.religion },
                 profileImageUrl: { name: "ลิงก์ภาพโปรไฟล์", val: s => s.profileImageUrl },
-                
-                // หมวด 2
                 fatherName: { name: "ชื่อบิดา", val: s => s.fatherName },
                 motherName: { name: "ชื่อมารดา", val: s => s.motherName },
                 guardianName: { name: "ชื่อผู้ปกครอง", val: s => s.guardianName },
@@ -842,8 +989,6 @@
                 studentPhone: { name: "เบอร์นักเรียน", val: s => s.studentPhone },
                 guardianSignatureUrl: { name: "ลายเซ็นผู้ปกครอง (URL)", val: s => s.guardianSignatureUrl },
                 guardianImageUrl: { name: "รูปถ่ายผู้ปกครอง (URL)", val: s => s.guardianImageUrl },
-                
-                // หมวด 3
                 weight: { name: "น้ำหนัก (กก.)", val: s => s.weight },
                 height: { name: "ส่วนสูง (ซม.)", val: s => s.height },
                 medicalStatus: { name: "สถานะสุขภาพ", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.status==='issue'?'มีประวัติ':'ปกติ'; } },
@@ -851,8 +996,6 @@
                 medicalAccDate: { name: "วันที่เกิดอุบัติเหตุ", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.accDate || '-'; } },
                 medicalIll: { name: "ประวัติโรค/เจ็บป่วย", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.ill || '-'; } },
                 medicalIllDate: { name: "วันที่เริ่มป่วย", val: s => { let m = parseJSONSafe(s.medicalCondition); return m.illDate || '-'; } },
-                
-                // หมวด 4
                 prefSubs: { name: "วิชาที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return (p.subs||[]).join(', ') || '-'; } },
                 prefActs: { name: "กิจกรรมที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return (p.acts||[]).join(', ') || '-'; } },
                 prefColor: { name: "สีที่ชอบ", val: s => { let p = parseJSONSafe(s.preferencesJson); return p.color || '-'; } },
@@ -872,8 +1015,6 @@
                     if(keys.length === 0) return '-';
                     return keys.map(k => `รหัส${k}: ไว้ใจ=${f[k].s}, แกล้ง=${f[k].c}`).join(' | ');
                 }},
-                
-                // หมวด 5
                 housingStatus: { name: "ปัจจุบันอาศัยอยู่กับ", val: s => s.housingStatus },
                 fullAddress: { name: "ที่อยู่เต็ม", val: s => s.fullAddress },
                 lat: { name: "ละติจูด", val: s => s.lat },
