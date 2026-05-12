@@ -162,7 +162,7 @@
                     <h5 class="fw-bold mt-3 text-dark">ระบบควบคุมและรีเซตด่านถูกล็อค</h5>
                     <p class="text-muted small">กรุณาใส่รหัสผ่านเพื่อเข้าสู่เมนูนี้</p>
                     <div class="d-flex justify-content-center mt-3 mx-auto" style="max-width: 300px;">
-                        <input type="password" id="ctrl-pwd-input" class="form-control text-center bg-light" placeholder="รหัสผ่าน ติดต่อ Admin" onkeypress="if(event.key === 'Enter') unlockCtrl()">
+                        <input type="password" id="ctrl-pwd-input" class="form-control text-center bg-light" placeholder="รหัสผ่าน (by44)" onkeypress="if(event.key === 'Enter') unlockCtrl()">
                         <button class="btn text-white ms-2 px-3 fw-bold shadow-sm" style="background-color: var(--primary-admin);" onclick="unlockCtrl()">ยืนยัน</button>
                     </div>
                     <p id="ctrl-pwd-error" class="text-danger small mt-2 d-none fw-bold"><i class="bi bi-x-circle"></i> รหัสผ่านไม่ถูกต้อง</p>
@@ -322,6 +322,11 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 bg-light">
+                    <!-- คำแนะนำสำหรับครู -->
+                    <div class="alert alert-warning py-2 small mb-3 border-0 shadow-sm" style="border-left: 4px solid #f59e0b !important;">
+                        <i class="bi bi-lightbulb-fill text-warning"></i> <b>คำแนะนำสำหรับครู:</b> สามารถคลิกปุ่ม <b>"ดูข้อมูล"</b> ที่รายชื่อสีเขียว เพื่อตรวจสอบคุณภาพข้อมูลของนักเรียนได้ <u class="text-danger">หากพบข้อมูลที่ไม่มีคุณภาพหรือไม่สมบูรณ์ ให้แจ้งแอดมินให้รีเซตด่าน และแจ้งให้นักเรียนกรอกมาใหม่</u>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm h-100">
@@ -340,6 +345,26 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🔍 Modal สำหรับสุ่มตรวจข้อมูลนักเรียน (Quality Check) -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="viewStudentDataModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-search"></i> ตรวจสอบข้อมูลนักเรียน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light" id="viewStudentDataBody">
+                    <!-- ข้อมูลจะถูกแสดงตรงนี้ผ่าน JavaScript -->
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
                 </div>
             </div>
         </div>
@@ -599,12 +624,19 @@
                 let num = s.studentNumber ? s.studentNumber : '-';
                 let name = s.fullName || 'ไม่ระบุชื่อ';
                 
-                let listHtml = `<li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                // สำหรับคนที่ "ทำแล้ว" ให้มีปุ่ม "ดูข้อมูล"
+                let listHtmlDone = `<li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <div><span class="badge bg-secondary me-2">เลขที่ ${num}</span> ${name}</div>
+                                    <button class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.8rem;" onclick="viewStudentData('${s.studentId}', ${missionNum})"><i class="bi bi-search"></i> ดูข้อมูล</button>
+                                </li>`;
+
+                // สำหรับคนที่ "ยังไม่ทำ" ไม่มีปุ่ม
+                let listHtmlNotDone = `<li class="list-group-item d-flex justify-content-between align-items-center py-2">
                                     <span><span class="badge bg-secondary me-2">เลขที่ ${num}</span> ${name}</span>
                                 </li>`;
 
-                if(isDone) doneList.push({num: parseInt(num)||999, html: listHtml});
-                else notDoneList.push({num: parseInt(num)||999, html: listHtml});
+                if(isDone) doneList.push({num: parseInt(num)||999, html: listHtmlDone});
+                else notDoneList.push({num: parseInt(num)||999, html: listHtmlNotDone});
             });
 
             // เรียงลำดับตามเลขที่
@@ -619,6 +651,78 @@
 
             const modal = new bootstrap.Modal(document.getElementById('missionDetailModal'));
             modal.show();
+        }
+
+        // 🌟 ฟังก์ชันสำหรับเปิดดูข้อมูล (Quality Check) เมื่อครูกดปุ่ม "ดูข้อมูล"
+        function viewStudentData(studentId, missionNum) {
+            const student = ALL_STUDENTS.find(s => String(s.studentId) === String(studentId));
+            if (!student) return;
+
+            let content = `<div class="mb-3">
+                               <h6 class="fw-bold text-primary mb-1">เลขที่ ${student.studentNumber || '-'} : ${student.fullName}</h6>
+                               <small class="text-muted">รหัส: ${student.studentId} | ชั้น: ${student.level}</small>
+                           </div>`;
+            
+            content += `<ul class="list-group list-group-flush shadow-sm rounded border">`;
+
+            // Helper function สร้างบรรทัดตารางข้อมูล
+            const addRow = (label, value) => {
+                let displayVal = (value && value !== 'undefined' && value !== 'null' && value !== '{}') ? value : '<span class="text-muted fst-italic">ไม่มีข้อมูล</span>';
+                
+                // ตรวจสอบถ้าเป็นลิงก์ URL ให้สร้างเป็นปุ่มเปิดรูป
+                if (typeof displayVal === 'string' && displayVal.startsWith('http')) {
+                    displayVal = `<a href="${displayVal}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> เปิดดูรูปภาพ</a>`;
+                }
+
+                content += `<li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <span class="fw-bold text-secondary" style="font-size: 0.85rem; flex: 1;">${label}</span>
+                                <span class="text-end" style="flex: 2; word-break: break-word; font-size: 0.9rem;">${displayVal}</span>
+                            </li>`;
+            };
+
+            // เลือกข้อมูลมาแสดงตามด่านที่เลือก
+            if (missionNum == 1) {
+                addRow('เลขบัตร ปชช.', student.citizenId);
+                addRow('วันเกิด', student.birthDate);
+                addRow('ศาสนา', student.religion);
+                addRow('รูปโปรไฟล์', student.profileImageUrl);
+            } else if (missionNum == 2) {
+                addRow('ชื่อบิดา', student.fatherName);
+                addRow('ชื่อมารดา', student.motherName);
+                addRow('ชื่อผู้ปกครอง', student.guardianName);
+                addRow('เบอร์ผู้ปกครอง', student.guardianPhone);
+                addRow('เบอร์นักเรียน', student.studentPhone);
+                addRow('รูปถ่ายผู้ปกครอง', student.guardianImageUrl);
+                addRow('ลายเซ็นผู้ปกครอง', student.guardianSignatureUrl);
+            } else if (missionNum == 3) {
+                addRow('น้ำหนัก', student.weight ? student.weight + ' กก.' : '');
+                addRow('ส่วนสูง', student.height ? student.height + ' ซม.' : '');
+                let med = parseJSONSafe(student.medicalCondition);
+                addRow('สถานะสุขภาพโดยรวม', med.status === 'issue' ? '<span class="text-danger fw-bold">⚠️ มีโรคประจำตัว/ประวัติ</span>' : '<span class="text-success">✅ ปกติแข็งแรง</span>');
+                if (med.ill) addRow('โรคประจำตัว', med.ill);
+                if (med.acc) addRow('ประวัติอุบัติเหตุ', med.acc);
+            } else if (missionNum == 4) {
+                let pref = parseJSONSafe(student.preferencesJson);
+                addRow('วิชาที่ชอบ', (pref.subs || []).join(', '));
+                addRow('กิจกรรมที่ชอบ', (pref.acts || []).join(', '));
+                addRow('อาชีพในฝัน', pref.career);
+                addRow('การเดินทางมา รร.', pref.travel + (pref.dist ? ` (${pref.dist} กม.)` : ''));
+            } else if (missionNum == 5) {
+                addRow('อาศัยอยู่กับ', student.housingStatus);
+                addRow('ที่อยู่ปัจจุบัน', student.fullAddress);
+                let latlng = (student.lat && student.lng) ? `${student.lat},${student.lng}` : null;
+                if(latlng) addRow('พิกัด (GPS)', `<a href="https://maps.google.com/?q=${latlng}" target="_blank" class="text-decoration-none"><i class="bi bi-geo-alt-fill text-danger"></i> ${latlng}</a>`);
+                else addRow('พิกัด (GPS)', null);
+                addRow('รูปลักษณะบ้าน 1', student.homeImgUrl1);
+                addRow('รูปลักษณะบ้าน 2', student.homeImgUrl2);
+            }
+
+            content += `</ul>`;
+            document.getElementById('viewStudentDataBody').innerHTML = content;
+
+            // สั่งเปิด Modal สำหรับดูข้อมูล
+            const viewModal = new bootstrap.Modal(document.getElementById('viewStudentDataModal'));
+            viewModal.show();
         }
 
         function exportStatsToExcel() {
@@ -754,6 +858,11 @@
                     renderController();
                     renderStats();
                     renderViewer();
+
+                    // ซ่อน Modal รายชื่อด่าน (ถ้าเปิดค้างไว้อยู่) ให้ระบบกลับมาหน้าจอเดิม
+                    const detailModal = document.getElementById('missionDetailModal');
+                    const detailInstance = bootstrap.Modal.getInstance(detailModal);
+                    if(detailInstance) detailInstance.hide();
 
                     document.getElementById('loading-text').innerText = 'อัปเดตข้อมูลล่าสุด...';
                     await fetchAdminData(); 
