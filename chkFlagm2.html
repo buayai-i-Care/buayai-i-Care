@@ -401,7 +401,7 @@
             return url;
         }
 
-        // --- การวาดหน้าจอเช็คชื่อ ---
+        // --- การวาดหน้าจอเช็คชื่อ (เวอร์ชันแก้ไขแล้ว) ---
         function render() {
             const container = document.getElementById('student-list');
             if (!studentData || studentData.length === 0) {
@@ -410,21 +410,33 @@
             }
             
             container.innerHTML = studentData.map((std, index) => {
-                const isLeave = (std.preStatus === 'ลป' || std.preStatus === 'ลก');
                 const stdNo = index + 1; 
                 
-                // 🌟 ประมวลผลลิงก์รูปภาพก่อนนำไปแสดง
+                // จุดตรวจสอบที่ 1: จัดลำดับความสำคัญ (ลาออนไลน์ > มา)
+                const initialStatus = (std.preStatus === 'ลป' || std.preStatus === 'ลก') ? std.preStatus : 'มา';
+                const isLeave = (std.preStatus === 'ลป' || std.preStatus === 'ลก');
+                
                 let finalImgUrl = getDriveDirectLink(std.img) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
                 
+                // จุดตรวจสอบที่ 2: เลือกสี Badge ให้ตรงกับสถานะเริ่มต้น
+                let badgeColor = 'bg-success'; // เริ่มต้นที่สีเขียว (มา)
+                if(initialStatus === 'ลป') badgeColor = 'bg-warning text-dark';
+                if(initialStatus === 'ลก') badgeColor = 'bg-info text-dark';
+
                 return `
                 <div class="col-12 col-sm-6 col-md-4 col-xl-3">
-                    <div class="card student-card text-center" id="card-${std.id}">
+                    <!-- ใส่ class 'checked' เพื่อให้ CSS ยุบการ์ดทันที -->
+                    <div class="card student-card text-center checked" id="card-${std.id}">
                         ${isLeave ? '<div class="position-absolute top-0 start-50 translate-middle-x mt-1"><span class="leave-badge shadow-sm"><i class="bi bi-bell-fill"></i> แจ้งลาออนไลน์</span></div>' : ''}
                         
                         <div class="d-flex justify-content-between align-items-center mb-1 mt-2 mx-1">
-                            <span class="history-badge" onclick="loadHistory('${std.id}', this)" title="ดูประวัติ 3 วันล่าสุด"><i class="bi bi-clock-history"></i> ประวัติ</span>
+                            <span class="history-badge" onclick="loadHistory('${std.id}', this)"><i class="bi bi-clock-history"></i> ประวัติ</span>
                             <div class="small fw-bold text-truncate mx-2 text-start" style="flex:1;">${stdNo}. ${std.fullname}</div>
-                            <span id="status-display-${std.id}" class="badge status-badge-display d-none shadow-sm" onclick="reEdit('${std.id}')"></span>
+                            
+                            <!-- จุดตรวจสอบที่ 3: แสดง Badge สถานะทันที (ลบ d-none ออก) -->
+                            <span id="status-display-${std.id}" class="badge status-badge-display shadow-sm ${badgeColor}" onclick="reEdit('${std.id}')">
+                                ${initialStatus} (แก้)
+                            </span>
                         </div>
                         
                         <div class="img-wrapper my-2" id="img-wrapper-${std.id}">
@@ -432,13 +444,14 @@
                         </div>
                         
                         <div class="btn-group w-100 mt-1" id="group-${std.id}">
-                            <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${std.preStatus==='มา'?'checked':''} onchange="collapseCard('${std.id}', 'มา')">
+                            <!-- จุดตรวจสอบที่ 4: ใส่ 'checked' ลงใน Radio Input ตามสถานะ initialStatus -->
+                            <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${initialStatus==='มา'?'checked':''} onchange="collapseCard('${std.id}', 'มา')">
                             <label class="btn btn-outline-success border-0 small px-0 py-2" for="m-${std.id}">มา</label>
                             
-                            <input type="radio" class="btn-check" name="st-${std.id}" id="lp-${std.id}" value="ลป" ${std.preStatus==='ลป'?'checked':''} onchange="collapseCard('${std.id}', 'ลป')">
+                            <input type="radio" class="btn-check" name="st-${std.id}" id="lp-${std.id}" value="ลป" ${initialStatus==='ลป'?'checked':''} onchange="collapseCard('${std.id}', 'ลป')">
                             <label class="btn btn-outline-warning border-0 small px-0 py-2" for="lp-${std.id}">ลป</label>
                             
-                            <input type="radio" class="btn-check" name="st-${std.id}" id="lk-${std.id}" value="ลก" ${std.preStatus==='ลก'?'checked':''} onchange="collapseCard('${std.id}', 'ลก')">
+                            <input type="radio" class="btn-check" name="st-${std.id}" id="lk-${std.id}" value="ลก" ${initialStatus==='ลก'?'checked':''} onchange="collapseCard('${std.id}', 'ลก')">
                             <label class="btn btn-outline-info border-0 small px-0 py-2" for="lk-${std.id}">ลก</label>
                             
                             <input type="radio" class="btn-check" name="st-${std.id}" id="s-${std.id}" value="สาย" onchange="collapseCard('${std.id}', 'สาย')">
