@@ -1,426 +1,620 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ระบบสืบค้นบันทึกเข้าเรียน</title>
-  <!-- โหลด Bootstrap 5 สำหรับจัดหน้าตาเว็บให้สวยงามและรองรับมือถือ -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- โหลด Font TH Sarabun PSK -->
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    /* ตั้งค่าฟอนต์และการแสดงผลหลัก */
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background-color: #f8f9fa;
-      font-size: 18px; /* ขนาดตัวอักษรใหญ่ สบายตา */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบสืบค้นบันทึกเข้าเรียนรายคาบ - Buayai I Care School</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts: Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* สีพื้นฐานทั่วไป */
+            --bg-color: #f8f9fa;
+            --text-main: #333333;
+        }
 
-    /* ตกแต่งแถบด้านบน (Header) */
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 24px;
-      white-space: normal;
-      line-height: 1.2;
-    }
-    .logo-thumbnail {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-right: 15px;
-    }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-size: 18px; /* ขนาดฟอนต์พื้นฐานสำหรับ 40+ */
+        }
 
-    /* ตกแต่งปฏิทิน */
-    .calendar-container {
-      background: white;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-top: 20px;
-    }
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .btn-nav {
-      font-size: 20px;
-      font-weight: bold;
-      padding: 5px 20px;
-    }
-    .table-calendar th {
-      text-align: center;
-      color: #6c757d;
-      font-size: 18px;
-    }
-    .table-calendar td {
-      text-align: center;
-      vertical-align: middle;
-      height: 70px; /* ขนาดช่องปฏิทินให้ใหญ่กดง่าย */
-      width: 14.28%;
-      font-size: 20px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px; /* ทำขอบมนให้แต่ละช่อง */
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    /* ทางเลือกที่ 9: Glowing Border Effect (เอฟเฟกต์ขอบเรืองแสง) */
-    .glowing-border {
-      border: 3px solid #198754 !important; /* ขอบสีเขียวหนา */
-      box-shadow: 0 0 12px rgba(25, 135, 84, 0.4); /* เงาเรืองแสง */
-      color: #198754;
-      font-weight: bold;
-      background-color: #f0fdf4;
-    }
-    .glowing-border:hover {
-      background-color: #d1e7dd;
-    }
+        /* --- Header --- */
+        .app-header {
+            background: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-bottom: 3px solid #22C55E;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .app-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #064E3B;
+            margin: 0;
+            line-height: 1.2;
+        }
 
-    /* สถานะโหลดข้อมูล */
-    #loadingSpinner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 50vh;
-    }
+        /* --- โทนสี 6 เฉดสำหรับแต่ละระดับชั้น --- */
+        .grade-card-1 { --btn-main: #064E3B; --btn-hover: #047857; --btn-bg: #ECFDF5; } /* ม.1 เขียวป่าสน */
+        .grade-card-2 { --btn-main: #00796B; --btn-hover: #009688; --btn-bg: #E0F2F1; } /* ม.2 เขียวหัวเป็ด */
+        .grade-card-3 { --btn-main: #16A34A; --btn-hover: #22C55E; --btn-bg: #DCFCE7; } /* ม.3 เขียวใบไม้ */
+        .grade-card-4 { --btn-main: #65A30D; --btn-hover: #84CC16; --btn-bg: #ECFCCB; } /* ม.4 เขียวตองอ่อน */
+        .grade-card-5 { --btn-main: #556B2F; --btn-hover: #6B8E23; --btn-bg: #F5F5DC; } /* ม.5 เขียวขี้ม้า */
+        .grade-card-6 { --btn-main: #20B2AA; --btn-hover: #48D1CC; --btn-bg: #E0FFFF; } /* ม.6 เขียวมิ้นต์ */
 
-    /* การ์ดข้อมูลรายวัน */
-    .data-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      background: #fff;
-    }
-    .data-card img.thumbnail-img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 8px;
-      cursor: zoom-in; /* เปลี่ยนรูปเมาส์ให้รู้ว่ากดซูมได้ */
-      border: 2px solid #ddd;
-    }
+        /* --- Accordion (ปุ่มเลือกระดับชั้น) --- */
+        .accordion-button {
+            font-size: 22px;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-radius: 12px !important;
+            margin-bottom: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: var(--btn-main);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .accordion-item {
+            border: none;
+            background: transparent;
+        }
+        
+        /* ปุ่มห้องเรียน */
+        .room-btn {
+            background-color: var(--btn-bg);
+            color: var(--btn-main);
+            border: 2px solid var(--btn-main);
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 12px 10px;
+            margin: 5px;
+            width: calc(33.33% - 10px);
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .room-btn:hover, .room-btn:active {
+            background-color: var(--btn-main);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 500px) {
+            .room-btn { width: calc(50% - 10px); }
+        }
 
-    /* ระบบซูมภาพ (Zoom Viewer) */
-    #zoomContainer {
-      width: 100%;
-      height: 60vh;
-      overflow: auto; /* ให้เลื่อนดูภาพได้เมื่อซูม */
-      background-color: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 8px;
-    }
-    #zoomedImage {
-      max-width: 100%;
-      max-height: 100%;
-      transition: transform 0.2s ease;
-      transform-origin: center center;
-    }
-    .zoom-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 15px;
-    }
-    .zoom-slider {
-      width: 60%;
-    }
-  </style>
+        /* --- Calendar UI --- */
+        #calendarView {
+            display: none;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .calendar-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+            color: #16A34A;
+        }
+        .btn-nav {
+            background-color: #f1f5f9;
+            border: none;
+            font-size: 20px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        .btn-back-class {
+            background-color: #EF4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 20px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(239,68,68,0.3);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .day-name {
+            text-align: center;
+            font-weight: 700;
+            color: #64748b;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+        .calendar-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #334155;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .calendar-cell.empty {
+            background-color: transparent;
+            border: none;
+            cursor: default;
+        }
+        /* เอฟเฟกต์กรอบเรืองแสงสำหรับวันที่มีข้อมูล (Glowing Border) */
+        .calendar-cell.has-data {
+            background-color: #ffffff;
+            border: 3px solid #22C55E;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+            color: #16A34A;
+        }
+        .calendar-cell.has-data::after {
+            content: '📷';
+            font-size: 14px;
+            position: absolute;
+            bottom: 2px;
+        }
+        .calendar-cell.has-data:active {
+            transform: scale(0.95);
+        }
+
+        /* --- Modal & Zoom Viewer --- */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        .modal-header {
+            background-color: #16A34A;
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .btn-close-white {
+            filter: invert(1);
+        }
+        .image-viewer-container {
+            width: 100%;
+            height: 350px;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        #modalImage {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.2s ease-out;
+            transform-origin: center center;
+        }
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .btn-zoom {
+            background-color: #cbd5e1;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        input[type=range] {
+            width: 60%;
+        }
+
+        /* Loading Spinner */
+        #loadingScreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: none; /* ซ่อนไว้ก่อนเป็นค่าเริ่มต้น */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .spinner-border {
+            width: 4rem; height: 4rem; color: #16A34A;
+        }
+        
+        /* สถานะการดึงข้อมูลมุมจอ */
+        #syncStatus {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ส่วนหัว (Header) -->
-  <nav class="navbar navbar-light bg-white shadow-sm">
-    <div class="container d-flex align-items-center">
-      <!-- รูปโลโก้จาก ID ที่ให้มา แปลงเป็นลิงก์ uc?id= -->
-      <img src="https://drive.google.com/uc?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj" alt="Logo" class="logo-thumbnail">
-      <span class="navbar-brand mb-0 text-primary">ระบบสืบค้นบันทึกเข้าเรียนรายคาบ<br><small class="text-muted" style="font-size: 16px;">Buayai I Care School</small></span>
-    </div>
-  </nav>
-
-  <div class="container">
-    <!-- หน้าจอโหลดข้อมูล -->
-    <div id="loadingSpinner">
-      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-      <h3 class="mt-3 text-secondary">กำลังดึงข้อมูลปฏิทิน...</h3>
+    <!-- Loading Screen (จะแสดงก็ต่อเมื่อกดชั้นแล้วข้อมูลยังโหลดไม่เสร็จ) -->
+    <div id="loadingScreen">
+        <div class="spinner-border" role="status"></div>
+        <h3 class="mt-3 fw-bold" style="color: #16A34A;" id="loadingText">กำลังดึงข้อมูล...</h3>
+        <p class="text-muted">กรุณารอสักครู่ (Buayai I Care School)</p>
     </div>
 
-    <!-- ส่วนของปฏิทิน -->
-    <div id="calendarSection" style="display: none;">
-      <div class="calendar-container">
-        <div class="calendar-header">
-          <button class="btn btn-outline-primary btn-nav" onclick="prevMonth()">&#10094; ก่อนหน้า</button>
-          <h4 id="monthYearDisplay" class="m-0 text-primary" style="font-weight: 700;"></h4>
-          <button class="btn btn-outline-primary btn-nav" onclick="nextMonth()">ถัดไป &#10095;</button>
-        </div>
-        
-        <table class="table table-borderless table-calendar w-100" style="table-layout: fixed;">
-          <thead>
-            <tr>
-              <th class="text-danger">อา</th>
-              <th>จ</th>
-              <th>อ</th>
-              <th>พ</th>
-              <th>พฤ</th>
-              <th>ศ</th>
-              <th class="text-primary">ส</th>
-            </tr>
-          </thead>
-          <tbody id="calendarBody">
-            <!-- JavaScript จะสร้างช่องปฏิทินที่นี่ -->
-          </tbody>
-        </table>
-      </div>
+    <!-- แถบแจ้งเตือนการดึงข้อมูลมุมจอ (ไม่รบกวนผู้ใช้) -->
+    <div id="syncStatus">กำลังซิงค์ข้อมูล...</div>
+
+    <!-- Header -->
+    <div class="app-header">
+        <!-- โลโก้ รร. ดึงจาก Google Drive -->
+        <img src="https://lh3.googleusercontent.com/d/15qRbrNRtzKrqwii83OBc8AtVywopEMlj" alt="Logo" class="app-logo">
+        <h1 class="app-title">ระบบสืบค้นบันทึกเข้าเรียนรายคาบ ภาคเรียนที่ 1/2569 โรงเรียนบัวใหญ่</h1>
+        <p class="text-muted mb-0" style="font-size: 18px;">Buayai I Care School</p>
     </div>
-  </div>
 
-  <!-- Modal สำหรับแสดงข้อมูลในวันที่เลือก -->
-  <div class="modal fade" id="dayDataModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="dayModalTitle" style="font-size: 22px;">บันทึกการเข้าเรียน</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="container pb-5">
+
+        <!-- Step 1: Class Selection -->
+        <div id="classSelectionView">
+            <h4 class="fw-bold mb-3 text-center" style="color: #334155;">1. กรุณาเลือกระดับชั้นและห้องเรียน</h4>
+            <div class="accordion" id="accordionClasses">
+                <!-- เนื้อหาจะถูกสร้างด้วย JavaScript -->
+            </div>
         </div>
-        <div class="modal-body bg-light" id="dayModalBody">
-          <!-- ข้อมูลจะถูกใส่ที่นี่ -->
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-lg w-100" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal สำหรับระบบ ย่อ/ขยาย/ซูม รูปภาพ -->
-  <div class="modal fade" id="zoomModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header border-0">
-          <h5 class="modal-title" style="font-size: 22px;">โหมดขยายภาพ</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body d-flex flex-column">
-          <!-- พื้นที่แสดงภาพ -->
-          <div id="zoomContainer">
-            <img id="zoomedImage" src="" alt="Zoomed Image">
-          </div>
-          <!-- แถบควบคุมการซูม (เหมาะสำหรับผู้ใหญ่) -->
-          <div class="zoom-controls">
-            <button class="btn btn-light btn-lg" onclick="adjustZoom(-0.5)">- ลดขนาด</button>
-            <input type="range" class="form-range zoom-slider" id="zoomSlider" min="1" max="4" step="0.1" value="1">
-            <button class="btn btn-light btn-lg" onclick="adjustZoom(0.5)">+ ขยาย</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- โหลด Bootstrap JS และ Script ควบคุมการทำงาน -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    
-    // !! สำคัญมาก: เมื่อคุณ Deploy ฝั่ง Code.gs เสร็จ ให้นำ URL ที่ได้มาใส่ตรงนี้ !!
-    const WEB_APP_URL = "ใส่_URL_ที่ได้จาก_APPS_SCRIPT_ตรงนี้"; 
-
-    // ตัวแปรส่วนกลาง
-    let globalData = [];
-    let currentDate = new Date(); // สามารถตั้งค่าเริ่มต้นเป็นวันที่ที่ต้องการได้ (ปัจจุบัน)
-    let currentScale = 1; // สเกลการซูมภาพ
-    
-    // รายชื่อเดือนภาษาไทย
-    const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-
-    // เริ่มทำงานเมื่อเปิดหน้าเว็บ
-    window.onload = function() {
-      // ตรวจสอบว่าผู้ใช้ได้ใส่ URL ของ Web App หรือยัง
-      if (WEB_APP_URL === "https://script.google.com/macros/s/AKfycbwWvKBqSq2weBBARvJmK5aYhLGwGGVXo0Wuigsvga-WaFN-2ziqYmS_sFSOZi48m1UH/exec") {
-        document.getElementById('loadingSpinner').innerHTML = `
-          <h3 class="text-danger mt-3">⚠️ ยังไม่ได้ตั้งค่าการเชื่อมต่อฐานข้อมูล</h3>
-          <p class="text-muted">กรุณาใส่ URL ของ Google Apps Script ในตัวแปร WEB_APP_URL ที่โค้ด HTML</p>
-        `;
-        return;
-      }
-
-      // ใช้ Fetch API เพื่อไปดึงข้อมูล JSON จาก Apps Script
-      fetch(WEB_APP_URL)
-        .then(response => response.json()) // แปลงผลลัพธ์เป็น JSON
-        .then(data => {
-          onDataReceived(data); // ส่งข้อมูลไปให้ฟังก์ชันเดิมวาดปฏิทิน
-        })
-        .catch(error => {
-          console.error("เกิดข้อผิดพลาด:", error);
-          document.getElementById('loadingSpinner').innerHTML = `
-            <h3 class="text-danger mt-3">❌ เกิดข้อผิดพลาดในการดึงข้อมูล</h3>
-            <p class="text-muted">ไม่สามารถติดต่อฐานข้อมูลได้ โปรดตรวจสอบการตั้งค่า Deploy ใน Apps Script</p>
-          `;
-        });
-    };
-
-    function onDataReceived(data) {
-      if(data.error) {
-        alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + data.error);
-        return;
-      }
-      globalData = data;
-      document.getElementById('loadingSpinner').style.display = 'none';
-      document.getElementById('calendarSection').style.display = 'block';
-      
-      // ให้ปฏิทินแสดงเดือนตามข้อมูลล่าสุดที่มี (จากตัวอย่างคือ พฤษภาคม 2026)
-      // หรือถ้าต้องการแสดงเดือนปัจจุบันให้ใช้ currentDate เหมือนเดิม
-      if(globalData.length > 0 && globalData[0].date) {
-         let lastDateParts = globalData[0].date.split('-');
-         if(lastDateParts.length === 3) {
-            currentDate = new Date(lastDateParts[0], parseInt(lastDateParts[1])-1, 1);
-         }
-      }
-      renderCalendar();
-    }
-
-    // ฟังก์ชันสร้างปฏิทิน
-    function renderCalendar() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      
-      // แสดงหัวข้อเดือน พ.ศ.
-      document.getElementById('monthYearDisplay').innerText = `${thaiMonths[month]} พ.ศ. ${year + 543}`;
-      
-      const firstDay = new Date(year, month, 1).getDay(); // วันแรกของเดือนตรงกับวันอะไร
-      const daysInMonth = new Date(year, month + 1, 0).getDate(); // เดือนนี้มีกี่วัน
-      
-      const tbody = document.getElementById('calendarBody');
-      tbody.innerHTML = ''; // ล้างข้อมูลเก่า
-      
-      let date = 1;
-      for (let i = 0; i < 6; i++) {
-        let row = document.createElement('tr');
-        for (let j = 0; j < 7; j++) {
-          let cell = document.createElement('td');
-          if (i === 0 && j < firstDay) {
-            // ช่องว่างก่อนเริ่มวันที่ 1
-            cell.innerText = "";
-            cell.style.border = "none";
-          } else if (date > daysInMonth) {
-            // ช่องว่างหลังวันสุดท้าย
-            cell.innerText = "";
-            cell.style.border = "none";
-          } else {
-            cell.innerText = date;
+        <!-- Step 2: Calendar View -->
+        <div id="calendarView">
+            <button class="btn-back-class" onclick="showClassSelection()">❮ ถอยกลับไปเปลี่ยนชั้น</button>
             
-            // สร้างข้อความวันที่ในรูปแบบ YYYY-MM-DD เพื่อเช็คกับฐานข้อมูล
-            // เติม 0 ข้างหน้าถ้าเลขเป็นหลักเดียว (เช่น เดือน 5 เป็น 05)
-            const checkDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-            
-            // ตรวจสอบว่าใน globalData มีวันที้นี้หรือไม่
-            const dayRecords = globalData.filter(d => d.date === checkDateStr);
-            
-            if (dayRecords.length > 0) {
-              // ทางเลือกที่ 9: ถ้ามีข้อมูล ให้เพิ่มเอฟเฟกต์ Glowing Border
-              cell.classList.add('glowing-border');
-              // สร้างฟังก์ชันเมื่อคลิกที่ช่องเรืองแสง
-              cell.onclick = function() { showDayDetails(checkDateStr, dayRecords); };
+            <div class="calendar-header">
+                <button class="btn-nav" onclick="changeMonth(-1)">❮ ก่อนหน้า</button>
+                <div class="text-center">
+                    <div class="calendar-title" id="monthYearDisplay">พฤษภาคม 2569</div>
+                    <div id="selectedClassDisplay" class="badge bg-success mt-1" style="font-size: 16px;">ชั้น ม.5/6</div>
+                </div>
+                <button class="btn-nav" onclick="changeMonth(1)">ถัดไป ❯</button>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- วัน/วันที่ จะถูกสร้างด้วย JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal แสดงรูปภาพและรายละเอียด -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDateTitle">ข้อมูลประจำวันที่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- พื้นที่แสดงรูปภาพ -->
+                    <div class="image-viewer-container">
+                        <img id="modalImage" src="" alt="ภาพการเข้าเรียน" onerror="this.src='https://via.placeholder.com/500x400?text=ไม่สามารถโหลดภาพได้'">
+                    </div>
+                    
+                    <!-- แถบเครื่องมือซูม -->
+                    <div class="zoom-controls">
+                        <button class="btn-zoom" onclick="adjustZoom(-0.2)">-</button>
+                        <input type="range" class="form-range" id="zoomSlider" min="0.5" max="3" step="0.1" value="1" oninput="applyZoom(this.value)">
+                        <button class="btn-zoom" onclick="adjustZoom(0.2)">+</button>
+                    </div>
+
+                    <!-- รายละเอียดข้อมูล -->
+                    <div class="mt-4">
+                        <p class="mb-1" style="font-size: 20px;"><strong>สถานะ:</strong> <span id="modalStatus" class="badge bg-success" style="font-size: 18px;"></span></p>
+                        <p class="mb-0" style="font-size: 20px;"><strong>รายละเอียด:</strong></p>
+                        <div id="modalDetails" class="p-2 bg-light border rounded mt-1" style="font-size: 18px; word-break: break-word;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-lg w-100 fw-bold" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ==========================================
+        // 🔴 1. ใส่ URL ของ Web App ที่ได้จาก Google Apps Script ตรงนี้
+        // ==========================================
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU2Qeb_jPG4X4IY75gCi9KxLAbUjjPsNuLpk8zxx1juG75l7jsiPsSInDHVrhaV3n2/exec"; 
+
+        // ตัวแปรเก็บข้อมูล
+        let rawData = [];
+        let currentClass = "";
+        let currentDate = new Date(); // วันที่ปัจจุบันสำหรับปฏิทิน
+        let currentZoom = 1;
+
+        // สถานะการโหลดข้อมูล (Background Fetching State)
+        let isDataLoaded = false;
+        let isFetching = false;
+        let pendingClassToLoad = ""; // เก็บชื่อห้องไว้หากผู้ใช้กดขณะที่กำลังโหลด
+
+        // เดือนภาษาไทย
+        const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+        // เริ่มต้นการทำงาน (เข้าเว็บปุ๊บ แสดงปุ่มเลือกระดับชั้นทันที)
+        window.onload = function() {
+            if(WEB_APP_URL === "ใส่_URL_ที่ได้จาก_APPS_SCRIPT_ตรงนี้") {
+                alert("กรุณานำ URL จาก Google Apps Script มาใส่ในตัวแปร WEB_APP_URL ก่อนใช้งานครับ");
+                return;
             }
-            date++;
-          }
-          row.appendChild(cell);
-        }
-        tbody.appendChild(row);
-        if (date > daysInMonth) break;
-      }
-    }
+            
+            // 1. แสดงหน้าจอเลือกระดับชั้นทันที โดยไม่ต้องรอข้อมูล
+            renderClassSelectionUI();
+            
+            // 2. แอบดึงข้อมูลอยู่เบื้องหลัง (Background Fetching)
+            fetchDataBackground();
+        };
 
-    function prevMonth() {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
-    }
+        // ==========================================
+        // 2. ฟังก์ชันแอบดึงข้อมูลจาก Google Sheet แบบเงียบๆ
+        // ==========================================
+        function fetchDataBackground() {
+            isFetching = true;
+            document.getElementById('syncStatus').style.display = 'block';
 
-    function nextMonth() {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar();
-    }
-
-    // ฟังก์ชันแสดงข้อมูลเมื่อกดที่วันที่
-    function showDayDetails(dateStr, records) {
-      // แปลงวันที่ YYYY-MM-DD เป็นภาษาไทย
-      let parts = dateStr.split('-');
-      let thaiDateText = `${parseInt(parts[2])} ${thaiMonths[parseInt(parts[1])-1]} ${parseInt(parts[0])+543}`;
-      
-      document.getElementById('dayModalTitle').innerText = `บันทึกการเข้าเรียนวันที่ ${thaiDateText}`;
-      
-      let modalBody = document.getElementById('dayModalBody');
-      modalBody.innerHTML = '';
-      
-      records.forEach(rec => {
-        // สร้างการ์ดแสดงข้อมูล
-        let card = document.createElement('div');
-        card.className = 'data-card shadow-sm';
-        
-        let statusColor = rec.status.toLowerCase().includes('success') ? 'text-success' : 'text-primary';
-        
-        // ถ้ามี FileID ภาพ ให้ดึงภาพมาโชว์
-        let imgHtml = '';
-        if(rec.fileId && rec.fileId.trim() !== '') {
-           let imgSrc = `https://drive.google.com/uc?id=${rec.fileId}`;
-           imgHtml = `<div class="mt-3 text-center">
-                        <img src="${imgSrc}" class="thumbnail-img" onclick="openZoomModal('${imgSrc}')" title="คลิกเพื่อขยายภาพ">
-                        <p class="text-muted mt-1" style="font-size:14px;">👆 แตะที่ภาพเพื่อขยาย/ซูม</p>
-                      </div>`;
+            fetch(WEB_APP_URL, { method: 'GET', redirect: 'follow' })
+                .then(response => response.json())
+                .then(result => {
+                    if(result.status === 'success') {
+                        rawData = result.data;
+                        isDataLoaded = true;
+                        document.getElementById('syncStatus').style.display = 'none'; // ซ่อนป้ายกำลังซิงค์
+                        
+                        // หากมีคนกดเลือกห้องค้างไว้ (รอข้อมูลอยู่) ให้พาไปหน้าปฏิทินทันที
+                        if (pendingClassToLoad !== "") {
+                            document.getElementById('loadingScreen').style.display = 'none';
+                            proceedToCalendar(pendingClassToLoad);
+                            pendingClassToLoad = "";
+                        }
+                    } else {
+                        document.getElementById('syncStatus').innerText = "❌ โหลดล้มเหลว";
+                        alert("เกิดข้อผิดพลาดจากฐานข้อมูล: " + result.message);
+                    }
+                    isFetching = false;
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    document.getElementById('syncStatus').innerText = "❌ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้";
+                    isFetching = false;
+                });
         }
 
-        card.innerHTML = `
-          <h4 class="${statusColor} fw-bold mb-2">สถานะ: ${rec.status}</h4>
-          <p class="mb-1"><strong>ระดับชั้น:</strong> ${rec.className}</p>
-          <p class="mb-1"><strong>รายละเอียด:</strong> ${rec.details}</p>
-          <p class="mb-1 text-muted" style="font-size:16px;"><strong>บันทึกเมื่อ:</strong> ${rec.timestamp}</p>
-          ${imgHtml}
-        `;
-        modalBody.appendChild(card);
-      });
-      
-      // เปิดหน้าต่าง Modal
-      var dayModal = new bootstrap.Modal(document.getElementById('dayDataModal'));
-      dayModal.show();
-    }
+        // ==========================================
+        // 3. ฟังก์ชันสร้างปุ่มเลือกระดับชั้น (6 โทนสีเขียว)
+        // ==========================================
+        function renderClassSelectionUI() {
+            const classStructure = [
+                { grade: 1, rooms: 10, theme: 'grade-card-1' },
+                { grade: 2, rooms: 10, theme: 'grade-card-2' },
+                { grade: 3, rooms: 10, theme: 'grade-card-3' },
+                { grade: 4, rooms: 12, theme: 'grade-card-4' },
+                { grade: 5, rooms: 10, theme: 'grade-card-5' },
+                { grade: 6, rooms: 10, theme: 'grade-card-6' }
+            ];
+            
+            let html = '';
+            classStructure.forEach((item, index) => {
+                const collapseId = `collapseGrade${item.grade}`;
+                let buttonsHtml = '';
+                for(let i = 1; i <= item.rooms; i++) {
+                    const className = `${item.grade}/${i}`;
+                    buttonsHtml += `<button class="room-btn" onclick="selectClass('${className}')">ม.${className}</button>`;
+                }
 
-    // ----------------------------------------
-    // ระบบซูมภาพ (Zoom Viewer สำหรับผู้ใหญ่)
-    // ----------------------------------------
-    const zoomSlider = document.getElementById('zoomSlider');
-    const zoomedImage = document.getElementById('zoomedImage');
+                html += `
+                <div class="accordion-item mb-2 ${item.theme}">
+                    <h2 class="accordion-header" id="heading${item.grade}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                            มัธยมศึกษาปีที่ ${item.grade}
+                        </button>
+                    </h2>
+                    <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionClasses">
+                        <div class="accordion-body text-center p-2">
+                            ${buttonsHtml}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('accordionClasses').innerHTML = html;
+        }
 
-    function openZoomModal(imgSrc) {
-      // รีเซ็ตค่าการซูมเมื่อเปิดรูปใหม่
-      currentScale = 1;
-      zoomSlider.value = currentScale;
-      zoomedImage.style.transform = `scale(${currentScale})`;
-      zoomedImage.src = imgSrc;
-      
-      var zoomModal = new bootstrap.Modal(document.getElementById('zoomModal'));
-      zoomModal.show();
-    }
+        // ==========================================
+        // 4. การจัดการคลิกเลือกชั้นและแสดงปฏิทิน
+        // ==========================================
+        function selectClass(className) {
+            // ตรวจสอบว่าข้อมูลแอบโหลดเสร็จหรือยัง?
+            if (!isDataLoaded) {
+                // ถ้ายังไม่เสร็จ (ผู้ใช้กดเร็วมาก) -> ขึ้นหน้าจอหมุนติ้วๆ ให้รอแป๊บนึง
+                pendingClassToLoad = className;
+                document.getElementById('loadingScreen').style.display = 'flex';
+                document.getElementById('loadingText').innerText = "กำลังเตรียมข้อมูล ม." + className + "...";
+                
+                // ถ้าระบบหลุดการเชื่อมต่อ ให้ลองดึงใหม่
+                if (!isFetching) fetchDataBackground();
+                return;
+            }
 
-    // เมื่อเลื่อน Slider ให้ขยายภาพ
-    zoomSlider.addEventListener('input', function(e) {
-      currentScale = parseFloat(e.target.value);
-      zoomedImage.style.transform = `scale(${currentScale})`;
-    });
+            // ถ้าข้อมูลพร้อมแล้ว พาไปหน้าปฏิทินทันที
+            proceedToCalendar(className);
+        }
 
-    // ปุ่มกด + / - สำหรับคนที่ไม่อยากเลื่อน Slider
-    function adjustZoom(amount) {
-      currentScale += amount;
-      if (currentScale < 1) currentScale = 1;
-      if (currentScale > 4) currentScale = 4;
-      
-      zoomSlider.value = currentScale;
-      zoomedImage.style.transform = `scale(${currentScale})`;
-    }
-  </script>
+        function proceedToCalendar(className) {
+            currentClass = className;
+            document.getElementById('classSelectionView').style.display = 'none';
+            document.getElementById('calendarView').style.display = 'block';
+            document.getElementById('selectedClassDisplay').innerText = `กำลังดูข้อมูล: ชั้น ม.${className}`;
+            renderCalendar();
+        }
+
+        function showClassSelection() {
+            document.getElementById('calendarView').style.display = 'none';
+            document.getElementById('classSelectionView').style.display = 'block';
+        }
+
+        // ==========================================
+        // 5. ระบบปฏิทินเรืองแสง (Glowing Calendar Engine)
+        // ==========================================
+        function changeMonth(step) {
+            currentDate.setMonth(currentDate.getMonth() + step);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // แสดงหัวปฏิทิน (พฤษภาคม 2569)
+            document.getElementById('monthYearDisplay').innerText = `${thaiMonths[month]} ${year + 543}`;
+
+            const firstDay = new Date(year, month, 1).getDay(); // หาวันแรกของเดือนว่าตรงกับวันอะไร
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); // หาจำนวนวันในเดือนนี้
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = ''; // ล้างข้อมูลเก่า
+
+            // ใส่ชื่อวัน (อา. - ส.)
+            const dayNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+            dayNames.forEach(day => {
+                grid.innerHTML += `<div class="day-name">${day}</div>`;
+            });
+
+            // ใส่ช่องว่างก่อนเริ่มวันที่ 1
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="calendar-cell empty"></div>`;
+            }
+
+            // กรองข้อมูลเฉพาะของ "ชั้น" ที่เลือก และอยู่ใน "เดือน/ปี" ที่กำลังเปิดดู
+            const classData = rawData.filter(d => {
+                if(d.className != currentClass || !d.date) return false;
+                
+                // รูปแบบ date ในชีตอาจเป็น '2026-05-15T...' หรือ object Date
+                let dDate = new Date(d.date);
+                return dDate.getMonth() === month && dDate.getFullYear() === year;
+            });
+
+            // วนลูปสร้างวันที่ 1 ถึงสิ้นเดือน
+            for (let day = 1; day <= daysInMonth; day++) {
+                // เช็คว่าวันนี้มีข้อมูลหรือไม่
+                const entry = classData.find(d => new Date(d.date).getDate() === day);
+                
+                if (entry) {
+                    // วันที่มีข้อมูล: แสดงกรอบเรืองแสงและกดได้
+                    // แปลง object entry เป็น string เพื่อส่งผ่าน onclick
+                    const entryJson = encodeURIComponent(JSON.stringify(entry));
+                    grid.innerHTML += `
+                        <div class="calendar-cell has-data" onclick="openImageModal('${entryJson}', ${day}, ${month}, ${year})">
+                            ${day}
+                        </div>
+                    `;
+                } else {
+                    // วันที่ไม่มีข้อมูล
+                    grid.innerHTML += `<div class="calendar-cell">${day}</div>`;
+                }
+            }
+        }
+
+        // ==========================================
+        // 6. ระบบหน้าต่างป๊อปอัพและซูมภาพ (Modal & Zoom)
+        // ==========================================
+        function openImageModal(entryJsonStr, day, month, year) {
+            const entry = JSON.parse(decodeURIComponent(entryJsonStr));
+            
+            // ตั้งค่าข้อมูล
+            document.getElementById('modalDateTitle').innerText = `${day} ${thaiMonths[month]} ${year + 543}`;
+            document.getElementById('modalStatus').innerText = entry.status || 'มีข้อมูล';
+            document.getElementById('modalDetails').innerText = entry.details || '-';
+            
+            // ดึงภาพ (ใช้ fileId ดึงผ่าน lh3.googleusercontent.com เพื่อความเสถียร)
+            const imgEl = document.getElementById('modalImage');
+            if(entry.fileId) {
+                imgEl.src = `https://lh3.googleusercontent.com/d/${entry.fileId}`;
+            } else {
+                imgEl.src = entry.imageUrl; // สำรองกรณีไม่มี FileId
+            }
+
+            // รีเซ็ตซูม
+            currentZoom = 1;
+            document.getElementById('zoomSlider').value = 1;
+            applyZoom(1);
+
+            // เปิด Modal
+            const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            myModal.show();
+        }
+
+        function adjustZoom(step) {
+            currentZoom += step;
+            if(currentZoom < 0.5) currentZoom = 0.5;
+            if(currentZoom > 3) currentZoom = 3;
+            document.getElementById('zoomSlider').value = currentZoom;
+            applyZoom(currentZoom);
+        }
+
+        function applyZoom(value) {
+            currentZoom = parseFloat(value);
+            document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
+        }
+    </script>
 </body>
 </html>
