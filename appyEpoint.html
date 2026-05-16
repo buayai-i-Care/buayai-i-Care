@@ -87,9 +87,9 @@
             </div>
 
             <div class="text-start mb-4">
-                <label class="small fw-bold mb-1 text-muted">4. รหัสกันลืม (วันเดือนปีเกิด 8 หลัก)</label>
-                <input type="text" id="reg-recovery" class="form-control text-center fw-bold" placeholder="เช่น 30052537" maxlength="8" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                <div class="form-text" style="font-size: 0.75rem;">* ใช้สำหรับรีเซต หากลืมรหัสผ่าน (รูปแบบ วันเดือนปีเกิด)</div>
+                <label class="small fw-bold mb-1 text-muted">4. รหัสกันลืม (วันเดือนปีเกิด 7-8 หลัก)</label>
+                <input type="text" id="reg-recovery" class="form-control text-center fw-bold" placeholder="เช่น 30052537 หรือ 7102554 วันที่ 7 เดือน พ.ค 2554" maxlength="8" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <div class="form-text" style="font-size: 0.75rem;">* ใช้สำหรับรีเซต หากลืมรหัสผ่าน (รูปแบบ วันเดือนปีเกิด ห้ามมี 0 อยู่ด้านหน้า)</div>
             </div>
 
             <button id="btn-submit-reg" class="btn btn-orange w-100 mb-3" onclick="submitRegister()">ลงทะเบียนเข้าใช้งาน</button>
@@ -102,7 +102,7 @@
         <!-- ===================================== -->
         <div id="view-reset" style="display: none;">
             <h3 class="mode-title text-danger">ลืมรหัสผ่าน</h3>
-            <p class="text-muted small mb-4">รีเซตด้วยตนเองผ่านวันเดือนปีเกิด</p>
+            <p class="text-muted small mb-4">รีเซตด้วยตนเองผ่านวันเดือนปีเกิด ห้าม มี 0 ด้านหน้า</p>
 
             <div id="step-verify">
                 <div class="text-start mb-3">
@@ -121,8 +121,8 @@
                 </div>
 
                 <div class="text-start mb-4">
-                    <label class="small fw-bold mb-1 text-muted">3. ยืนยันรหัสกันลืม (วันเดือนปีเกิด 8 หลักตัวเลขเท่านั้น)</label>
-                    <input type="text" id="res-recovery" class="form-control text-center text-danger fw-bold" placeholder="เช่น 30052537" maxlength="8" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    <label class="small fw-bold mb-1 text-muted">3. ยืนยันรหัสกันลืม (วันเดือนปีเกิด 7-8 หลักตัวเลขเท่านั้น ไม่มี 0 ด้านหน้า)</label>
+                    <input type="text" id="res-recovery" class="form-control text-center text-danger fw-bold" placeholder="เช่น 30052537 หรือ 7122554 เกิดวันที่ 7 ธค 2554" maxlength="8" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                 </div>
 
                 <button id="btn-verify-reset" class="btn btn-dark w-100 mb-3 rounded-pill py-2" onclick="verifyRecovery()">ตรวจสอบข้อมูล</button>
