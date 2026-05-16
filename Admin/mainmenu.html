@@ -14,7 +14,7 @@
     <style>
         :root { --admin-purple: #d946ef; --admin-dark: #a21caf; --admin-light: #fdf4ff; --terminal-bg: #1e1e1e; --terminal-green: #00ff00; }
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
-        h1, h2, h3, h4, h5, .nav-link, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
+        h1, h2, h3, h4, h5, .nav-link, .font-prompt, .btn, .guidance-text { font-family: 'Prompt', sans-serif; }
         .top-navbar { background: linear-gradient(135deg, var(--admin-purple), var(--admin-dark)); color: white; height: 70px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3); z-index: 1030; }
         .main-container { padding: 30px 20px; flex-grow: 1; }
         .layout-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
@@ -31,6 +31,18 @@
         .preview-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .preview-table th { background-color: #f1f5f9; position: sticky; top: 0; padding: 10px; z-index: 1; }
         .preview-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        
+        /* สไตล์โซนเมนูใหม่ */
+        .external-sync-zone {
+            background: linear-gradient(135deg, #fef3c7, #fffbeb); 
+            border: 2px dashed #f59e0b;
+        }
+        .btn-sync-external {
+            transition: transform 0.2s;
+        }
+        .btn-sync-external:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -47,6 +59,7 @@
             <div class="action-panel">
                 <div class="row">
                     <div class="col-md-4 border-end pe-3">
+                        <!-- โซนจัดการฐานข้อมูลหลัก -->
                         <ul class="nav nav-pills flex-column" role="tablist">
                             <li class="nav-item"><button class="nav-link active w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-add"><i class="bi bi-person-plus-fill me-2"></i> 1. เพิ่มนักเรียน</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-remove"><i class="bi bi-person-dash-fill me-2"></i> 2. ย้ายออก / ลบ</button></li>
@@ -56,9 +69,54 @@
                             <li class="nav-item mt-2 border-top pt-2"><button class="nav-link w-100 text-start text-primary font-prompt" data-bs-toggle="pill" data-bs-target="#pane-bulksync"><i class="bi bi-cloud-sync-fill me-2"></i> 5. เลื่อนชั้น (ล้างกระดาน)</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start text-success font-prompt" data-bs-toggle="pill" data-bs-target="#pane-import"><i class="bi bi-file-earmark-excel-fill me-2"></i> 6. นำเข้า ม.1/ม.4 (Excel)</button></li>
                             
-                            <!-- 🌟 เมนูที่ 7: Smart Sync -->
                             <li class="nav-item"><button class="nav-link w-100 text-start text-info font-prompt" data-bs-toggle="pill" data-bs-target="#pane-update"><i class="bi bi-arrow-repeat me-2"></i> 7. อัปเดตเด็กเก่า (Excel)</button></li>
                         </ul>
+
+                        <!-- ========================================== -->
+                        <!-- 🌟 โซนใหม่: เมนูอัปเดตระบบภายนอก (สีสันสดใส) -->
+                        <!-- ========================================== -->
+                        <div class="mt-4 p-3 rounded-4 external-sync-zone shadow-sm">
+                            <h6 class="fw-bold text-warning-emphasis font-prompt mb-3"><i class="bi bi-send-check-fill me-1"></i> โอนข้อมูลไประบบอื่นๆ</h6>
+                            <div class="d-flex flex-column gap-2">
+                                <!-- 1. SDQ -->
+                                <a href="https://script.google.com/a/macros/bua-yai.ac.th/s/AKfycbw-3sJxcbBJFPd4v7TBzBxNHoIdwd2NsjxHuqjqIcxP1ynj_NGgI0qURMQXaKm6gLoiSw/exec" target="_blank" class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #f97316;">
+                                    <i class="bi bi-heart-pulse-fill me-2"></i> 1. อัปเดตฐานข้อมูล SDQ
+                                </a>
+                                
+                                <!-- 2. เช็คชื่อเข้าแถว (รลิงก์) -->
+                                <button class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #3b82f6;" onclick="alert('ระบบเช็คชื่อเข้าแถวกำลังเตรียมการ ขออภัยในความไม่สะดวกครับ')">
+                                    <i class="bi bi-person-lines-fill me-2"></i> 2. อัปเดตเช็คชื่อเข้าแถว
+                                </button>
+                                
+                                <!-- 3. E-Point -->
+                                <a href="https://buayai-i-care.github.io/buayai-i-Care/E-POINT/AdminEpoint.html" target="_blank" class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #10b981;">
+                                    <i class="bi bi-star-fill me-2"></i> 3. อัปเดต E-Point
+                                </a>
+                                
+                                <!-- 4. ห้องสมุด (รอลิงก์) -->
+                                <button class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #8b5cf6;" onclick="alert('ระบบห้องสมุดกำลังเตรียมการ ขออภัยในความไม่สะดวกครับ')">
+                                    <i class="bi bi-book-half me-2"></i> 4. อัปเดต ห้องสมุด
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 🌟 กล่องคำชี้แจง -->
+                        <div class="mt-4 p-3 bg-light rounded-4 border-start border-4 border-danger shadow-sm guidance-text" style="font-size: 0.85rem;">
+                            <p class="fw-bold text-danger mb-2 fs-6"><i class="bi bi-exclamation-triangle-fill me-1"></i> คำชี้แจงสำคัญ</p>
+                            <p class="mb-2 text-dark">
+                                ฐานข้อมูลกลางนี้ใช้สำหรับ <b class="text-primary">เพิ่ม ลบ ย้าย</b> และเป็น <b>ฐานข้อมูลประวัตินักเรียน</b> 
+                            </p>
+                            <div class="p-2 bg-danger bg-opacity-10 rounded border border-danger">
+                                <p class="mb-1 text-danger fw-bold">⚠ เมื่อทำรายการใดๆ ในส่วนนี้เสร็จแล้ว ท่านต้องกดอัปเดตอีก 4 ระบบ ทุกครั้ง!</p>
+                                <ul class="mb-0 ps-3 text-dark fw-bold small">
+                                    <li>1. เช็คชื่อเข้าแถว</li>
+                                    <li>2. ระบบ SDQ</li>
+                                    <li>3. ระบบ E-Point</li>
+                                    <li>4. ระบบห้องสมุด</li>
+                                </ul>
+                            </div>
+                        </div>
+
                     </div>
                     
                     <div class="col-md-8 ps-4">
@@ -159,7 +217,7 @@
                                 </button>
                             </div>
 
-                            <!-- 🌟 เมนู 7 (ใหม่): อัปเดตรายชื่อเด็กเก่า Smart Sync -->
+                            <!-- เมนู 7: อัปเดตรายชื่อเด็กเก่า Smart Sync -->
                             <div class="tab-pane fade" id="pane-update">
                                 <h5 class="fw-bold mb-3 text-info"><i class="bi bi-arrow-repeat text-info me-2"></i>อัปเดตข้อมูลนักเรียนปัจจุบัน (ม.2, 3, 5, 6)</h5>
                                 
@@ -229,7 +287,7 @@
         const adminUser = "Admin(ส่วนกลาง)";
         let studentLookup = {}; 
         let pendingImportData = [];
-        let pendingUpdateData = []; // สำหรับเมนู 7
+        let pendingUpdateData = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             let options = '<option value="">-- เลือกห้อง --</option>';
@@ -258,9 +316,6 @@
             } catch (e) { return { success: false, error: "Network Error" }; }
         }
 
-        // ==========================================
-        // ฟังก์ชันระบบเดิม (เมนู 1 - 6)
-        // ==========================================
         async function loadStudents(prefix) {
             const room = document.getElementById(`${prefix}-room-select`).value;
             const sel = document.getElementById(`${prefix}-student-select`);
@@ -306,7 +361,7 @@
                 log(`> ส่วนกลางบันทึกแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: room.split('/')[0] });
                 await callAPI({ action: 'write_log', type: 'ADD', detail: `เพิ่ม นร.ใหม่ ${id} เข้าห้อง ${room}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'เพิ่มข้อมูลและซิงค์เรียบร้อย', 'success');
+                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'เพิ่มข้อมูลและซิงค์เรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
             } else { log(`> [ERROR] ${res.error}`, 'error'); }
         }
 
@@ -317,7 +372,7 @@
                 log(`> ส่วนกลางลบแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
                 await callAPI({ action: 'write_log', type: 'REMOVE', detail: `ลบ นร. ${id}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'ลบข้อมูลและซิงค์แล้ว', 'success'); loadStudents('rm');
+                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'ลบข้อมูลและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('rm');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
@@ -329,7 +384,7 @@
                 log(`> ส่วนกลางแก้ไขแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
                 await callAPI({ action: 'write_log', type: 'EDIT', detail: `แก้ไขชื่อ รหัส ${id} เป็น ${name}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'แก้ไขชื่อและซิงค์แล้ว', 'success'); loadStudents('ed');
+                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'แก้ไขชื่อและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('ed');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
@@ -341,7 +396,7 @@
                 log(`> กำลังซิงค์ข้อมูลห้องเดิม...`, 'working'); await callAPI({ action: 'sync_homeroom', level: res.oldLevel });
                 if(res.oldLevel !== res.newLevel) { log(`> กำลังซิงค์ข้อมูลห้องใหม่...`, 'working'); await callAPI({ action: 'sync_homeroom', level: res.newLevel }); }
                 await callAPI({ action: 'write_log', type: 'TRANSFER', detail: `ย้าย นร. ${id} ไปห้อง ${newRoom} เลขที่ ${newNo}`, user: adminUser });
-                log(`> ซิงค์เสร็จสิ้น!`, 'success'); Swal.fire('สำเร็จ', 'ย้ายห้องและซิงค์ข้อมูลเรียบร้อย', 'success'); loadStudents('tr');
+                log(`> ซิงค์เสร็จสิ้น!`, 'success'); Swal.fire('สำเร็จ', 'ย้ายห้องและซิงค์ข้อมูลเรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('tr');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
@@ -420,14 +475,11 @@
                 let affectedLevels = new Set(pendingImportData.map(s => s.room.split('/')[0]));
                 for (let lvl of affectedLevels) { log(`> กำลัง Sync ข้อมูลโฮมรูม ม.${lvl}...`, 'working'); await callAPI({ action: 'sync_homeroom', level: lvl }); log(`> [SYNC] ม.${lvl} สำเร็จ`, 'success'); }
                 await callAPI({ action: 'write_log', type: 'IMPORT', detail: `นำเข้าเด็กใหม่ (Excel) ${res.added} คน`, user: adminUser });
-                Swal.fire('สำเร็จ', res.message, 'success'); document.getElementById('excel-file').value = ""; document.getElementById('import-preview-container').style.display = 'none'; document.getElementById('import-count-display').classList.add('d-none'); pendingImportData = [];
+                Swal.fire('สำเร็จ', res.message + '\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); document.getElementById('excel-file').value = ""; document.getElementById('import-preview-container').style.display = 'none'; document.getElementById('import-count-display').classList.add('d-none'); pendingImportData = [];
             } else { log(`> [ERROR] ${res.error}`, 'error'); }
             btn.disabled = false; btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> บันทึกเข้าฐานข้อมูลส่วนกลาง';
         }
 
-        // ==========================================
-        // 🌟 ฟังก์ชันใหม่ เมนู 7: อัปเดตเด็กเก่า (Smart Sync)
-        // ==========================================
         async function handleUpdateExcelUpload(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -438,7 +490,6 @@
             document.getElementById('update-preview-container').style.display = 'block';
             document.getElementById('update-stats-container').classList.add('d-none');
             
-            // ดึงข้อมูลทั้งหมดจากส่วนกลางมาไว้ในหน่วยความจำ (Minimal mode) เพื่อความรวดเร็ว
             const resDB = await callAPI({ action: 'getAllStudentsMinimal' });
             if (!resDB.success) {
                 log(`> [ERROR] ไม่สามารถดึงฐานข้อมูลมาเปรียบเทียบได้`, 'error');
@@ -446,7 +497,6 @@
                 return;
             }
             
-            // สร้าง Map สำหรับค้นหาแบบ O(1) Time Complexity
             const dbMap = new Map();
             resDB.data.forEach(s => { dbMap.set(s.id.toString(), s); });
 
@@ -487,11 +537,9 @@
                             let targetRoom = currentRoom;
                             let targetNo = no;
 
-                            // 🔍 กระบวนการเปรียบเทียบข้ามตาราง (Cross-Check)
                             if (dbMap.has(id)) {
                                 let dbRecord = dbMap.get(id);
                                 if (dbRecord.room !== targetRoom || dbRecord.no !== targetNo || dbRecord.name !== fullName) {
-                                    // สีเหลือง: ต้องอัปเดตข้อมูล
                                     countEdit++;
                                     pendingUpdateData.push({ id, name: fullName, room: targetRoom, no: targetNo, action: 'update' });
                                     
@@ -502,11 +550,9 @@
                                     
                                     previewHtml += `<tr style="background-color: #fffbeb;"><td class="fw-bold">${id}</td><td>${fullName}</td><td>ม.${targetRoom} <small class="text-muted">(ที่ ${targetNo})</small></td><td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดต<br><small class="text-muted fw-normal">${changes.join(', ')}</small></td></tr>`;
                                 } else {
-                                    // สีเทา: ตรงกันเป๊ะ ให้ข้ามการประมวลผล
                                     countSkip++;
                                 }
                             } else {
-                                // สีเขียว: เป็นเด็กเข้าใหม่ระหว่างชั้น
                                 countNew++;
                                 pendingUpdateData.push({ id, name: fullName, room: targetRoom, no: targetNo, action: 'add' });
                                 previewHtml += `<tr style="background-color: #f0fdf4;"><td class="fw-bold">${id}</td><td>${fullName}</td><td>ม.${targetRoom} <small class="text-muted">(ที่ ${targetNo})</small></td><td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มใหม่</td></tr>`;
@@ -559,7 +605,6 @@
             if (res.success) {
                 log(`> [SUCCESS] ${res.message}`, 'success');
                 
-                // Sync to all affected levels
                 let affectedLevels = new Set(pendingUpdateData.map(s => s.room.split('/')[0]));
                 for (let lvl of affectedLevels) {
                     log(`> กำลัง Sync ข้อมูลไปยังฐานข้อมูลโฮมรูม ม.${lvl}...`, 'working');
@@ -569,9 +614,8 @@
                 
                 await callAPI({ action: 'write_log', type: 'UPDATE_EXCEL', detail: `อัปเดตเด็กเก่า (Smart Sync) เพิ่ม ${res.added} คน / อัปเดต ${res.updated} คน`, user: adminUser });
 
-                Swal.fire('อัปเดตสำเร็จ!', res.message, 'success');
+                Swal.fire('อัปเดตสำเร็จ!', res.message + '\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
                 
-                // รีเซ็ต UI
                 document.getElementById('update-excel-file').value = "";
                 document.getElementById('update-preview-container').style.display = 'none';
                 document.getElementById('update-stats-container').classList.add('d-none');
