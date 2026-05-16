@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบสืบค้นบันทึกเข้าเรียนรายคาบ - Buayai I Care School</title>
+    <title>ระบบสืบค้นบันทึกเข้าเรียนรายคาบภาคเรียนที่1/2569 - Buayai I Care School</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts: Sarabun -->
@@ -30,6 +30,7 @@
             border-bottom: 3px solid #22C55E;
             text-align: center;
             margin-bottom: 20px;
+            position: relative;
         }
         .app-logo {
             width: 80px;
@@ -43,6 +44,33 @@
             color: #064E3B;
             margin: 0;
             line-height: 1.2;
+        }
+        
+        /* ป้าย Counter (ปรับดีไซน์ใหม่ให้เด่นสะดุดตา) */
+        .visitor-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 15px;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+            letter-spacing: 0.5px;
+            transition: transform 0.3s ease;
+        }
+        .visitor-counter:hover {
+            transform: scale(1.05);
+        }
+        .visitor-counter .count-number {
+            color: #fbbf24; /* สีเหลืองทองเด่นๆ สำหรับตัวเลข */
+            font-size: 26px;
+            margin: 0 8px;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
         }
 
         /* --- โทนสี 6 เฉดสำหรับแต่ละระดับชั้น --- */
@@ -261,7 +289,7 @@
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(255,255,255,0.95);
-            display: none; /* ซ่อนไว้ก่อนเป็นค่าเริ่มต้น */
+            display: none; 
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -287,22 +315,26 @@
 </head>
 <body>
 
-    <!-- Loading Screen (จะแสดงก็ต่อเมื่อกดชั้นแล้วข้อมูลยังโหลดไม่เสร็จ) -->
+    <!-- Loading Screen -->
     <div id="loadingScreen">
         <div class="spinner-border" role="status"></div>
         <h3 class="mt-3 fw-bold" style="color: #16A34A;" id="loadingText">กำลังดึงข้อมูล...</h3>
         <p class="text-muted">กรุณารอสักครู่ (Buayai I Care School)</p>
     </div>
 
-    <!-- แถบแจ้งเตือนการดึงข้อมูลมุมจอ (ไม่รบกวนผู้ใช้) -->
+    <!-- แถบแจ้งเตือนการดึงข้อมูลมุมจอ -->
     <div id="syncStatus">กำลังซิงค์ข้อมูล...</div>
 
     <!-- Header -->
     <div class="app-header">
-        <!-- โลโก้ รร. ดึงจาก Google Drive -->
         <img src="https://lh3.googleusercontent.com/d/15qRbrNRtzKrqwii83OBc8AtVywopEMlj" alt="Logo" class="app-logo">
         <h1 class="app-title">ระบบสืบค้นบันทึกเข้าเรียนรายคาบ ภาคเรียนที่ 1/2569 โรงเรียนบัวใหญ่</h1>
         <p class="text-muted mb-0" style="font-size: 18px;">Buayai I Care School</p>
+        
+        <!-- ป้ายแสดงผู้เข้าชมแบบ Real-time -->
+        <div id="visitorCounterUI" class="visitor-counter">
+            👥 กำลังเชื่อมต่อระบบนับผู้เข้าชม...
+        </div>
     </div>
 
     <div class="container pb-5">
@@ -374,46 +406,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ==========================================
-        // 🔴 1. ใส่ URL ของ Web App ที่ได้จาก Google Apps Script ตรงนี้
+        // 🔴 1. ข้อมูล API จาก Google Sheet 
         // ==========================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU2Qeb_jPG4X4IY75gCi9KxLAbUjjPsNuLpk8zxx1juG75l7jsiPsSInDHVrhaV3n2/exec"; 
 
-        // ตัวแปรเก็บข้อมูล
         let rawData = [];
         let currentClass = "";
-        let currentDate = new Date(); // วันที่ปัจจุบันสำหรับปฏิทิน
+        let currentDate = new Date(); 
         let currentZoom = 1;
 
-        // สถานะการโหลดข้อมูล (Background Fetching State)
         let isDataLoaded = false;
         let isFetching = false;
-        let pendingClassToLoad = ""; // เก็บชื่อห้องไว้หากผู้ใช้กดขณะที่กำลังโหลด
+        let pendingClassToLoad = ""; 
 
-        // เดือนภาษาไทย
         const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
-        // เริ่มต้นการทำงาน (เปลี่ยนเป็น DOMContentLoaded รับประกันว่าหน้าจอและปุ่มต้องขึ้นทันที)
         document.addEventListener('DOMContentLoaded', function() {
-            // แก้ไขเงื่อนไขการตรวจสอบ URL ให้ถูกต้อง
-            if(!WEB_APP_URL || WEB_APP_URL === "ใส่_URL_ที่ได้จาก_APPS_SCRIPT_ตรงนี้") {
-                alert("กรุณานำ URL จาก Google Apps Script มาใส่ในตัวแปร WEB_APP_URL ก่อนใช้งานครับ");
-                return;
-            }
-            
             try {
-                // 1. แสดงหน้าจอเลือกระดับชั้นทันที โดยไม่ต้องรอข้อมูล หรือรอรูปภาพโหลด
                 renderClassSelectionUI();
             } catch(e) {
                 console.error("เกิดข้อผิดพลาดในการสร้าง UI:", e);
             }
-            
-            // 2. แอบดึงข้อมูลอยู่เบื้องหลัง (Background Fetching)
             fetchDataBackground();
         });
 
-        // ==========================================
-        // 2. ฟังก์ชันแอบดึงข้อมูลจาก Google Sheet แบบเงียบๆ
-        // ==========================================
         function fetchDataBackground() {
             isFetching = true;
             document.getElementById('syncStatus').style.display = 'block';
@@ -424,9 +440,8 @@
                     if(result.status === 'success') {
                         rawData = result.data;
                         isDataLoaded = true;
-                        document.getElementById('syncStatus').style.display = 'none'; // ซ่อนป้ายกำลังซิงค์
+                        document.getElementById('syncStatus').style.display = 'none';
                         
-                        // หากมีคนกดเลือกห้องค้างไว้ (รอข้อมูลอยู่) ให้พาไปหน้าปฏิทินทันที
                         if (pendingClassToLoad !== "") {
                             document.getElementById('loadingScreen').style.display = 'none';
                             proceedToCalendar(pendingClassToLoad);
@@ -445,9 +460,6 @@
                 });
         }
 
-        // ==========================================
-        // 3. ฟังก์ชันสร้างปุ่มเลือกระดับชั้น (6 โทนสีเขียว)
-        // ==========================================
         function renderClassSelectionUI() {
             const classStructure = [
                 { grade: 1, rooms: 10, theme: 'grade-card-1' },
@@ -459,7 +471,7 @@
             ];
             
             let html = '';
-            classStructure.forEach((item, index) => {
+            classStructure.forEach((item) => {
                 const collapseId = `collapseGrade${item.grade}`;
                 let buttonsHtml = '';
                 for(let i = 1; i <= item.rooms; i++) {
@@ -484,23 +496,14 @@
             document.getElementById('accordionClasses').innerHTML = html;
         }
 
-        // ==========================================
-        // 4. การจัดการคลิกเลือกชั้นและแสดงปฏิทิน
-        // ==========================================
         function selectClass(className) {
-            // ตรวจสอบว่าข้อมูลแอบโหลดเสร็จหรือยัง?
             if (!isDataLoaded) {
-                // ถ้ายังไม่เสร็จ (ผู้ใช้กดเร็วมาก) -> ขึ้นหน้าจอหมุนติ้วๆ ให้รอแป๊บนึง
                 pendingClassToLoad = className;
                 document.getElementById('loadingScreen').style.display = 'flex';
                 document.getElementById('loadingText').innerText = "กำลังเตรียมข้อมูล ม." + className + "...";
-                
-                // ถ้าระบบหลุดการเชื่อมต่อ ให้ลองดึงใหม่
                 if (!isFetching) fetchDataBackground();
                 return;
             }
-
-            // ถ้าข้อมูลพร้อมแล้ว พาไปหน้าปฏิทินทันที
             proceedToCalendar(className);
         }
 
@@ -517,9 +520,6 @@
             document.getElementById('classSelectionView').style.display = 'block';
         }
 
-        // ==========================================
-        // 5. ระบบปฏิทินเรืองแสง (Glowing Calendar Engine)
-        // ==========================================
         function changeMonth(step) {
             currentDate.setMonth(currentDate.getMonth() + step);
             renderCalendar();
@@ -529,46 +529,33 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
-            // แสดงหัวปฏิทิน (พฤษภาคม 2569)
             document.getElementById('monthYearDisplay').innerText = `${thaiMonths[month]} ${year + 543}`;
 
-            const firstDay = new Date(year, month, 1).getDay(); // หาวันแรกของเดือนว่าตรงกับวันอะไร
-            const daysInMonth = new Date(year, month + 1, 0).getDate(); // หาจำนวนวันในเดือนนี้
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); 
 
             const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = ''; // ล้างข้อมูลเก่า
+            grid.innerHTML = ''; 
 
-            // ใส่ชื่อวัน (อา. - ส.)
             const dayNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
             dayNames.forEach(day => {
                 grid.innerHTML += `<div class="day-name">${day}</div>`;
             });
 
-            // ใส่ช่องว่างก่อนเริ่มวันที่ 1
             for (let i = 0; i < firstDay; i++) {
                 grid.innerHTML += `<div class="calendar-cell empty"></div>`;
             }
 
-            // กรองข้อมูลเฉพาะของ "ชั้น" ที่เลือก และอยู่ใน "เดือน/ปี" ที่กำลังเปิดดู
             const classData = rawData.filter(d => {
-                // ทำความสะอาดชื่อชั้นจากฐานข้อมูล (รองรับทั้ง "5/6", "ม.5/6", "ชั้น 5/6" หรือเว้นวรรค)
                 let cleanClassName = String(d.className).replace(/ม\.|ชั้น|\s/g, '');
-                
                 if(cleanClassName !== currentClass || !d.date) return false;
-                
-                // รูปแบบ date ในชีตอาจเป็น '2026-05-15T...' หรือ object Date
                 let dDate = new Date(d.date);
                 return dDate.getMonth() === month && dDate.getFullYear() === year;
             });
 
-            // วนลูปสร้างวันที่ 1 ถึงสิ้นเดือน
             for (let day = 1; day <= daysInMonth; day++) {
-                // เช็คว่าวันนี้มีข้อมูลหรือไม่
                 const entry = classData.find(d => new Date(d.date).getDate() === day);
-                
                 if (entry) {
-                    // วันที่มีข้อมูล: แสดงกรอบเรืองแสงและกดได้
-                    // แปลง object entry เป็น string เพื่อส่งผ่าน onclick
                     const entryJson = encodeURIComponent(JSON.stringify(entry));
                     grid.innerHTML += `
                         <div class="calendar-cell has-data" onclick="openImageModal('${entryJson}', ${day}, ${month}, ${year})">
@@ -576,53 +563,40 @@
                         </div>
                     `;
                 } else {
-                    // วันที่ไม่มีข้อมูล
                     grid.innerHTML += `<div class="calendar-cell">${day}</div>`;
                 }
             }
         }
 
-        // ==========================================
-        // 6. ระบบหน้าต่างป๊อปอัพและซูมภาพ (Modal & Zoom)
-        // ==========================================
         function openImageModal(entryJsonStr, day, month, year) {
             const entry = JSON.parse(decodeURIComponent(entryJsonStr));
             
-            // ตั้งค่าข้อมูล
             document.getElementById('modalDateTitle').innerText = `${day} ${thaiMonths[month]} ${year + 543}`;
             document.getElementById('modalStatus').innerText = entry.status || 'มีข้อมูล';
             document.getElementById('modalDetails').innerText = entry.details || '-';
             
-            // ดึงภาพ
             const imgEl = document.getElementById('modalImage');
-            
-            // 🌟 แก้ไข: ระบบสกัด ID จาก URL รูปแบบเต็มโดยอัตโนมัติ 
-            // ป้องกันปัญหาภาพไม่ขึ้นหากฐานข้อมูลบันทึกเป็นลิงก์ยาวของ Google Drive
             let extractedFileId = entry.fileId; 
             
             if (entry.imageUrl && entry.imageUrl.includes('/d/')) {
-                // ใช้ Regex ดึง ID ออกมาจากลิงก์ เช่น https://drive.google.com/file/d/(เอาเฉพาะตรงนี้)/view
                 const match = entry.imageUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (match && match[1]) {
                     extractedFileId = match[1];
                 }
             }
 
-            // ถ้ามี ID ที่สกัดได้ ให้แสดงผ่าน lh3.googleusercontent.com เพื่อความเสถียร
             if(extractedFileId && extractedFileId.trim() !== "") {
                 imgEl.src = `https://lh3.googleusercontent.com/d/${extractedFileId}`;
             } else if (entry.imageUrl) {
-                imgEl.src = entry.imageUrl; // สำรอง
+                imgEl.src = entry.imageUrl; 
             } else {
                 imgEl.src = 'https://placehold.co/500x400/eeeeee/EF4444?text=Image+Not+Found';
             }
 
-            // รีเซ็ตซูม
             currentZoom = 1;
             document.getElementById('zoomSlider').value = 1;
             applyZoom(1);
 
-            // เปิด Modal
             const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
             myModal.show();
         }
@@ -638,6 +612,61 @@
         function applyZoom(value) {
             currentZoom = parseFloat(value);
             document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
+        }
+    </script>
+
+    <!-- ======================================================= -->
+    <!-- 🟢 สคริปต์เสริม: ระบบนับจำนวนผู้เข้าชมด้วย Firebase (Real-time) -->
+    <!-- ======================================================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 📌 ข้อมูล Config ที่ผมดึงมาจากภาพที่คุณส่งมา (ใส่ให้ครบแล้วครับ!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNWBCSdBEtogAyvIFkjJ7gBNbOOwAv2Bc",
+            authDomain: "counter-buayai.firebaseapp.com",
+            projectId: "counter-buayai",
+            storageBucket: "counter-buayai.firebasestorage.app",
+            messagingSenderId: "143729655497",
+            appId: "1:143729655497:web:b189121b640aa59fddd718"
+        };
+
+        const counterUI = document.getElementById('visitorCounterUI');
+
+        try {
+            // 1. เริ่มต้นเชื่อมต่อ Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const counterRef = doc(db, "website_stats", "total_visitors");
+
+            // 2. ระบบป้องกันการนับซ้ำถ้ารีเฟรชหน้าเว็บ (เก็บ Session ไว้ในเครื่องผู้ใช้)
+            const hasVisited = localStorage.getItem('hasVisited_CareSchool');
+            
+            if (!hasVisited) {
+                // ถ้าเพิ่งเข้าครั้งแรก ให้บวกเลขในฐานข้อมูลเพิ่ม 1
+                getDoc(counterRef).then((docSnap) => {
+                    if (docSnap.exists()) {
+                        updateDoc(counterRef, { count: increment(1) });
+                    } else {
+                        setDoc(counterRef, { count: 1 }); // สร้างไฟล์ใหม่ถ้ายอดเป็น 0
+                    }
+                    localStorage.setItem('hasVisited_CareSchool', 'true');
+                });
+            }
+
+            // 3. ดึงตัวเลขมาแสดงผลบนหน้าจอแบบสดๆ (Real-time)
+            onSnapshot(counterRef, (doc) => {
+                if (doc.exists()) {
+                    counterUI.innerHTML = `👥 ผู้เข้าชมระบบ: <span class="count-number">${doc.data().count}</span> ครั้ง`;
+                } else {
+                    counterUI.innerHTML = `👥 ผู้เข้าชมระบบ: <span class="count-number">1</span> ครั้ง`;
+                }
+            });
+
+        } catch (error) {
+            console.error("Firebase Error: ", error);
+            counterUI.innerHTML = "👥 ตัวนับผู้ชมขัดข้อง";
         }
     </script>
 </body>
