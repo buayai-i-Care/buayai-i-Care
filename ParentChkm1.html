@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตรวจสอบการมาเรียนของนักเรียน - โรงเรียนบัวใหญ่</title>
+  <title>ตรวจสอบการมาเรียนของนักเรียน ภาคเรียนที่1/2569 - โรงเรียนบัวใหญ่</title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -48,20 +48,27 @@
     .student-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid #f8fafc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     
     /* 🌟 Colors */
-    .bg-present { background-color: #10b981 !important; color: white; } 
-    .bg-absent { background-color: #ef4444 !important; color: white; } 
-    .bg-late { background-color: #f59e0b !important; color: white; } 
-    .bg-leave { background-color: #3b82f6 !important; color: white; } 
-    .bg-leave-kit { background-color: #8b5cf6 !important; color: white; } 
+    .bg-present { background-color: #10b981 !important; color: white !important; } 
+    .bg-absent { background-color: #ef4444 !important; color: white !important; } 
+    .bg-late { background-color: #f59e0b !important; color: white !important; } 
+    .bg-leave { background-color: #3b82f6 !important; color: white !important; } 
+    .bg-leave-kit { background-color: #8b5cf6 !important; color: white !important; } 
 
-    /* 🌟 Calendar Dots */
+    /* 🌟 Calendar Dots & Cells */
     .calendar-box { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
     .cal-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 0.85rem; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 1rem; }
     .cal-day-name { font-weight: bold; color: #64748b; padding-bottom: 5px; }
-    .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9; font-weight: 600; color: #334155; }
+    
+    /* ปรับช่องวันที่ให้เทสีเต็มได้สวยงาม และขยายตัวเลขให้ใหญ่ขึ้นชัดเจน */
+    .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9; font-weight: 700; color: #334155; font-size: 1.4rem; }
     .cal-cell.empty { background: transparent; border: none; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .cal-cell.has-record { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: none; }
+    .cal-cell.has-record:hover { transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 1; opacity: 0.9; }
+    
+    /* กล่องสีสำหรับคำอธิบายด้านบน (แทนจุดไข่ปลา) */
+    .color-box { width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .cal-month-nav { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     
     /* สไตล์กล่องโชว์รายละเอียดวัน */
     .detail-dropdown { background: rgba(255,255,255,0.95); color: #1e293b; border-radius: 12px; padding: 10px; font-size: 0.85rem; max-height: 120px; overflow-y: auto; text-align: left; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); margin-top: 10px; display: none; animation: fadeIn 0.3s ease; }
@@ -99,7 +106,10 @@
     <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
     <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w300-h300" alt="โลโก้โรงเรียนบัวใหญ่" class="org-logo">
     <h4 class="fw-bold mt-2 mb-1">ตรวจสอบการมาเรียนของนักเรียน ระดับชั้นมัธยมศึกษาปีที่ 1-6 </h4>
-    <p class="small mb-1" style="color: rgba(255,255,255,0.9);">ระบบ Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+    <p class="small mb-2" style="color: rgba(255,255,255,0.9);">ระบบ Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
+    
+    <!-- 🟢 กล่องรอรับ Widget นับจำนวน จากไฟล์ counter.js -->
+    <div id="global-visitor-counter"></div>
   </div>
 
   <div class="container">
@@ -121,15 +131,18 @@
         <div id="view-attendance" class="view-section active">
 
             <div class="calendar-box shadow-sm mb-4 mt-2">
-                <div class="cal-header">
-                    <span id="cal-month-title" class="text-primary fs-5"><i class="bi bi-calendar3"></i> เดือน</span>
-                    <div style="font-size: 0.65rem; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-                        <span class="d-flex align-items-center"><span class="dot bg-present me-1"></span>มา (เขียว)</span>
-                        <span class="d-flex align-items-center"><span class="dot bg-leave me-1"></span>ลป (ฟ้า)</span>
-                        <span class="d-flex align-items-center"><span class="dot bg-leave-kit me-1"></span>ลก (ม่วง)</span>
-                        <span class="d-flex align-items-center"><span class="dot bg-late me-1"></span>สาย (ส้ม)</span>
-                        <span class="d-flex align-items-center"><span class="dot bg-absent me-1"></span>ขาด (แดง)</span>
+                <div class="cal-header" style="border-bottom: none; margin-bottom: 5px;">
+                    <div id="cal-month-title" class="cal-month-nav text-primary fs-5 w-100 text-center">
+                        <i class="bi bi-calendar3"></i> เดือน
                     </div>
+                </div>
+                <!-- คำอธิบายสีเปลี่ยนเป็นกล่องสี่เหลี่ยม -->
+                <div class="mb-3 pb-2 border-bottom border-dashed" style="font-size: 0.75rem; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; border-color: #cbd5e1 !important;">
+                    <span class="d-flex align-items-center"><div class="color-box bg-present"></div>มา</span>
+                    <span class="d-flex align-items-center"><div class="color-box bg-leave"></div>ลป</span>
+                    <span class="d-flex align-items-center"><div class="color-box bg-leave-kit"></div>ลก</span>
+                    <span class="d-flex align-items-center"><div class="color-box bg-late"></div>สาย</span>
+                    <span class="d-flex align-items-center"><div class="color-box bg-absent"></div>ขาด</span>
                 </div>
                 <div class="cal-grid" id="calendar-grid"></div>
             </div>
@@ -138,7 +151,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-white mb-3" id="latest-status-box">
                 <p class="mb-1 fw-bold" id="latest-date-text">วันที่ -- เดือน --</p>
                 <h1 class="fw-bold m-0" style="font-size: 3.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);" id="latest-status-text">--</h1>
-                <p class="mb-0 mt-2 small opacity-75"><i class="bi bi-clock"></i> เวลา <span id="latest-time-text">--:--</span> น.</p>
+                <!-- ลบแท็กเวลา <p> ด้านล่างนี้ออกแล้ว -->
             </div>
         </div>
 
@@ -229,6 +242,10 @@
 
     let currentStudentData = null;
     let attendanceRecords = [];
+
+    // --- ตัวแปรควบคุมปฏิทินแบบใหม่ ---
+    let currentCalMonth = new Date().getMonth() + 1;
+    let currentCalYear = new Date().getFullYear();
 
     // --- ควบคุม UI ---
     function toggleSidebar() {
@@ -336,9 +353,22 @@
 
           document.getElementById("latest-status-box").style.display = "block";
           const latest = attendanceRecords[attendanceRecords.length - 1]; 
-          document.getElementById("latest-date-text").innerText = "วันที่ " + latest.date;
+          
+          // เซ็ตค่าเดือนในปฏิทินให้ตรงกับข้อมูลเข้าแถวล่าสุด
+          const latestDateArr = latest.date.split('/');
+          currentCalMonth = parseInt(latestDateArr[1]);
+          currentCalYear = parseInt(latestDateArr[2]);
+
+          // 🌟 แปลงรูปแบบวันที่ให้เป็นข้อความอ่านง่าย (เช่น วันจันทร์ ที่ 14 พฤษภาคม พ.ศ. 2569)
+          const dDay = parseInt(latestDateArr[0]);
+          const dateObj = new Date(currentCalYear, currentCalMonth - 1, dDay);
+          const daysTH = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+          const monthsTHList = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+          
+          document.getElementById("latest-date-text").innerText = `วัน${daysTH[dateObj.getDay()]} ที่ ${dDay} ${monthsTHList[currentCalMonth]} พ.ศ. ${currentCalYear + 543}`;
+          
           document.getElementById("latest-status-text").innerText = latest.status;
-          document.getElementById("latest-time-text").innerText = latest.time;
+          // ลบคำสั่งแสดงผลเวลาตรงนี้ออกแล้ว
           
           let colorClass = latest.status === "มา" ? "bg-present" : latest.status === "ขาด" ? "bg-absent" : latest.status === "สาย" ? "bg-late" : latest.status === "ลก" ? "bg-leave-kit" : "bg-leave";
           document.getElementById("latest-status-box").className = "card border-0 shadow-sm rounded-4 p-4 text-center text-white mb-3 " + colorClass;
@@ -363,38 +393,77 @@
       document.getElementById('detail-lk').innerHTML = buildDetailHTML(datesMap['lk'], 'text-dark');
     }
 
-    // --- สร้างปฏิทินจุดสี ---
+    // --- ควบคุมการเลื่อนเดือนปฏิทิน ---
+    function changeMonth(step) {
+        currentCalMonth += step;
+        if(currentCalMonth > 12) { currentCalMonth = 1; currentCalYear++; }
+        else if(currentCalMonth < 1) { currentCalMonth = 12; currentCalYear--; }
+        generateCalendar();
+    }
+
+    // --- กดดูรายละเอียดเวลาเช็คอินรายวัน ---
+    function showDayDetail(date, status, time) {
+        let text = `สถานะ: <b class="fs-5">${status}</b><br>เวลาสแกน/เช็คอิน: <b>${time} น.</b>`;
+        showModal(`ข้อมูลวันที่ ${date}`, text, 'success');
+    }
+
+    // --- สร้างปฏิทินเทสีเต็มช่อง (แบบมีปฏิสัมพันธ์) ---
     function generateCalendar() {
         if(attendanceRecords.length === 0) return;
-        const latestDateArr = attendanceRecords[attendanceRecords.length - 1].date.split('/');
-        const tMonth = parseInt(latestDateArr[1]);
-        const tYear = parseInt(latestDateArr[2]);
         const monthsTH = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
         
-        document.getElementById("cal-month-title").innerHTML = `<i class="bi bi-calendar3"></i> ${monthsTH[tMonth]} ${tYear+543}`;
+        // แทรกลูกศรเลื่อนเดือนซ้าย-ขวา
+        document.getElementById("cal-month-title").innerHTML = `
+            <button class="btn btn-sm btn-light border shadow-sm p-1 px-2" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
+            <span class="mx-2 fw-bold"><i class="bi bi-calendar3"></i> ${monthsTH[currentCalMonth]} ${currentCalYear+543}</span>
+            <button class="btn btn-sm btn-light border shadow-sm p-1 px-2" onclick="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
+        `;
 
         let statusMap = {};
+        let timeMap = {};
         attendanceRecords.forEach(r => {
             let p = r.date.split('/');
-            if(parseInt(p[1]) === tMonth && parseInt(p[2]) === tYear) statusMap[parseInt(p[0])] = r.status;
+            if(parseInt(p[1]) === currentCalMonth && parseInt(p[2]) === currentCalYear) {
+                statusMap[parseInt(p[0])] = r.status;
+                timeMap[parseInt(p[0])] = r.time; // เก็บเวลาไว้ใช้ตอนคลิก
+            }
         });
 
         const grid = document.getElementById("calendar-grid");
         grid.innerHTML = '<div class="cal-day-name text-danger">อา</div><div class="cal-day-name">จ</div><div class="cal-day-name">อ</div><div class="cal-day-name">พ</div><div class="cal-day-name">พฤ</div><div class="cal-day-name">ศ</div><div class="cal-day-name text-primary">ส</div>';
         
-        let firstDay = new Date(tYear, tMonth - 1, 1).getDay(); 
-        let daysInMonth = new Date(tYear, tMonth, 0).getDate(); 
+        let firstDay = new Date(currentCalYear, currentCalMonth - 1, 1).getDay(); 
+        let daysInMonth = new Date(currentCalYear, currentCalMonth, 0).getDate(); 
+        
+        const today = new Date();
 
         for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell empty"></div>`;
         for(let d=1; d<=daysInMonth; d++) {
-            let dotHtml = "";
+            let cellClass = "cal-cell";
+            let onClick = "";
+
             if(statusMap[d]) {
+                // เปลี่ยนจากจุดไข่ปลา เป็นการเทสีเต็มช่องปฏิทิน
                 let colorClass = statusMap[d] === "มา" ? "bg-present" : statusMap[d] === "ขาด" ? "bg-absent" : statusMap[d] === "สาย" ? "bg-late" : statusMap[d] === "ลก" ? "bg-leave-kit" : "bg-leave";
-                dotHtml = `<div class="dot ${colorClass}"></div>`;
+                cellClass += ` ${colorClass} has-record shadow-sm`;
+                
+                // กำหนดให้กดได้
+                let formattedDate = `${d} ${monthsTH[currentCalMonth]} ${currentCalYear+543}`;
+                onClick = `onclick="showDayDetail('${formattedDate}', '${statusMap[d]}', '${timeMap[d] || '-'})"`;
             }
-            grid.innerHTML += `<div class="cal-cell">${d}${dotHtml}</div>`;
+
+            // ไฮไลต์วันปัจจุบัน (วันนี้) ให้กรอบหนาขึ้นเพื่อให้ดูง่าย
+            if(d === today.getDate() && currentCalMonth === today.getMonth()+1 && currentCalYear === today.getFullYear()) {
+                cellClass += " border border-3 border-dark";
+            }
+
+            grid.innerHTML += `<div class="${cellClass}" ${onClick}>${d}</div>`;
         }
     }
   </script>
+  
+  <!-- 🟢 ดึงโค้ดนับจำนวน (Widget) จากไฟล์ counter.js มาทำงาน -->
+  <script type="module" src="counter.js"></script>
+  
 </body>
 </html>
