@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนรับข้อมูลแบบแจ้งเตือน - Buayai I-Care School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #1e293b; 
+            color: #fff; 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px 0;
+        }
+        .register-card { 
+            background: white; 
+            color: #1e293b; 
+            border-radius: 25px; 
+            padding: 30px; 
+            width: 90%; 
+            max-width: 450px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+        }
+        .btn-round { 
+            border-radius: 15px; 
+            padding: 12px; 
+            font-weight: 600; 
+        }
+        .logo-img {
+            max-width: 110px;
+            height: auto;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-card text-center">
+        <!-- โลโก้โรงเรียนบัวใหญ่ แบบ Google Drive Thumbnail -->
+        <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w300" alt="โลโก้โรงเรียนบัวใหญ่" class="logo-img mx-auto mb-3">
+        
+        <h4 class="fw-bold mt-2 mb-1">ระบบแจ้งเตือน Buayai I-Care School</h4>
+        <p class="text-muted small mb-4">ระบบรับข่าวสาร การมาโรงเรียน นัดหมาย ตักเตือน และคะแนนพฤติกรรมของนักเรียน</p>
+
+        <!-- 1. เลือกบทบาทผู้ใช้งาน -->
+        <div class="text-start mb-3">
+            <label class="small fw-bold mb-1"><i class="bi bi-person-workspace"></i> เลือกสถานะ/บทบาทของคุณ</label>
+            <select id="user-role" class="form-select rounded-pill" onchange="handleRoleChange()">
+                <option value="Parent">ผู้ปกครองนักเรียน</option>
+                <option value="Teacher">ครูที่ปรึกษา / ครูประจำชั้น</option>
+                <option value="Head">หัวหน้าระดับชั้น</option>
+            </select>
+        </div>
+
+        <!-- 2. ระบุห้องเรียน / ระดับชั้น -->
+        <div class="text-start mb-3" id="class-group">
+            <label class="small fw-bold mb-1" id="class-label"><i class="bi bi-door-open-fill"></i> ระบุห้องเรียนของบุตรหลาน (เช่น ม.3/1)</label>
+            <input type="text" id="target-class" class="form-control rounded-pill text-center fw-bold" placeholder="ตัวอย่าง ม.3/1">
+        </div>
+
+        <!-- 3. ระบบพิสูจน์ตัวตนอัจฉริยะ -->
+        <div id="verification-area" class="text-start mb-4">
+            <!-- ส่วนของผู้ปกครอง -->
+            <div id="parent-verification-fields">
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1 text-danger"><i class="bi bi-card-text"></i> เลขประจำตัวนักเรียน (5 หลัก)</label>
+                    <input type="text" id="student-id" class="form-control rounded-pill text-center" placeholder="กรอกเลขประจำตัวนักเรียน 5 หลัก" maxlength="5">
+                </div>
+                <div class="mb-0">
+                    <label class="small fw-bold mb-1 text-danger"><i class="bi bi-telephone-fill"></i> เบอร์โทรศัพท์ผู้ปกครอง (เริ่มต้นด้วยเลข 0)</label>
+                    <input type="tel" id="parent-phone" class="form-control rounded-pill text-center" placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก (เช่น 0812345678)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+            </div>
+
+            <!-- ส่วนของครูและหัวหน้าระดับ -->
+            <div id="staff-verification-fields" style="display: none;">
+                <div class="mb-0">
+                    <label class="small fw-bold mb-1 text-primary"><i class="bi bi-shield-lock-fill"></i> ยืนยันรหัสครู / ชื่อผู้ใช้งาน (เช่น t21, t35)</label>
+                    <input type="text" id="staff-password" class="form-control rounded-pill text-center" placeholder="ระบุรหัสชื่อผู้ใช้งานเพื่อยืนยันสิทธิ์">
+                </div>
+            </div>
+        </div>
+
+        <!-- ปุ่มกดสมัคร -->
+        <button id="btn-subscribe" class="btn btn-primary w-100 btn-round shadow mb-3" onclick="requestPermission()">
+            <i class="bi bi-check-circle-fill me-2"></i> เปิดใช้งานการแจ้งเตือน
+        </button>
+        
+        <div id="status-msg" class="small fw-bold text-danger mb-3"></div>
+
+        <!-- 🌟 แทรกโค้ด นับจำนวนผู้เข้าชม -->
+        <div id="global-visitor-counter"></div>
+    </div>
+
+    <!-- โหลด Firebase SDK Compatibility -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+
+    <script>
+        // ใส่ค่า Config ของโรงเรียนบัวใหญ่
+        const firebaseConfig = {
+          apiKey: "AIzaSyCkut_cRVN78by46Sco8reHIuo49CL8_Gc",
+          authDomain: "bauyai-i-care-school.firebaseapp.com",
+          projectId: "bauyai-i-care-school",
+          storageBucket: "bauyai-i-care-school.firebasestorage.app",
+          messagingSenderId: "4078337060",
+          appId: "1:4078337060:web:fb329101fdc0fe909fde5b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        function handleRoleChange() {
+            const role = document.getElementById('user-role').value;
+            const classGroup = document.getElementById('class-group');
+            const classLabel = document.getElementById('class-label');
+            const classInput = document.getElementById('target-class');
+            const parentFields = document.getElementById('parent-verification-fields');
+            const staffFields = document.getElementById('staff-verification-fields');
+            
+            document.getElementById('status-msg').innerText = "";
+
+            if (role === 'Parent') {
+                classInput.placeholder = "ตัวอย่าง ม.3/1";
+                classLabel.innerHTML = '<i class="bi bi-door-open-fill"></i> ระบุห้องเรียนของบุตรหลาน (เช่น ม.3/1)';
+                parentFields.style.display = 'block';
+                staffFields.style.display = 'none';
+            } else if (role === 'Teacher') {
+                classInput.placeholder = "ตัวอย่าง ม.3/1";
+                classLabel.innerHTML = '<i class="bi bi-door-open-fill"></i> ระบุห้องเรียนที่ปรึกษาของคุณครู (เช่น ม.3/1)';
+                parentFields.style.display = 'none';
+                staffFields.style.display = 'block';
+            } else if (role === 'Head') {
+                classInput.placeholder = "ตัวอย่าง ม.3";
+                classLabel.innerHTML = '<i class="bi bi-layers-half"></i> ระบุระดับชั้นที่ท่านดูแล (เช่น ม.3)';
+                parentFields.style.display = 'none';
+                staffFields.style.display = 'block';
+            }
+        }
+
+        async function requestPermission() {
+            const msgDiv = document.getElementById('status-msg');
+            const btn = document.getElementById('btn-subscribe');
+            const role = document.getElementById('user-role').value;
+            const className = document.getElementById('target-class').value.trim();
+
+            if (!className) {
+                msgDiv.className = "small fw-bold text-warning";
+                msgDiv.innerText = "กรุณาระบุห้องเรียนหรือระดับชั้นก่อนครับ";
+                return;
+            }
+
+            let verificationData = {};
+            if (role === 'Parent') {
+                const stdId = document.getElementById('student-id').value.trim();
+                const phone = document.getElementById('parent-phone').value.trim();
+                if (!stdId || stdId.length !== 5) {
+                    msgDiv.className = "small fw-bold text-warning";
+                    msgDiv.innerText = "กรุณากรอกรหัสนักเรียน 5 หลักให้ครบถ้วน";
+                    return;
+                }
+                
+                const phoneRegex = /^0\d{9}$/;
+                if (!phoneRegex.test(phone)) {
+                    msgDiv.className = "small fw-bold text-warning";
+                    msgDiv.innerText = "กรุณากรอกเบอร์โทรศัพท์ 10 หลัก (เริ่มต้นด้วยเลข 0) ให้ถูกต้อง";
+                    return;
+                }
+                verificationData = { studentId: stdId, phone: phone };
+            } else {
+                const password = document.getElementById('staff-password').value.trim();
+                if (!password) {
+                    msgDiv.className = "small fw-bold text-warning";
+                    msgDiv.innerText = "กรุณากรอกรหัสประจำตัวครู / ชื่อผู้ใช้งานของคุณ";
+                    return;
+                }
+                verificationData = { password: password };
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังยืนยันสิทธิ์...';
+                
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    throw new Error('เบราว์เซอร์ไม่ได้รับอนุญาตส่งการแจ้งเตือน กรุณาเปิดอนุญาตสิทธิ์ที่ไอคอนแม่กุญแจข้าง URL');
+                }
+
+                // ดึง FCM Token
+                const currentToken = await messaging.getToken({
+                    vapidKey: 'BK-Bd7uJbIH8i_EeXwb8vCNFMOIeUU9MRDM37Cpx57QU-IDOKQpPxyvtmioboBPkZ1aS9psnw1_rilkn8n_wFm0' // ⚠️ อย่าลืมคัดลอก Public VAPID Key จาก Firebase Console มาใส่แทนที่ตรงนี้
+                });
+
+                if (currentToken) {
+                    await sendTokenToGAS(currentToken, role, className, verificationData);
+                } else {
+                    throw new Error('ไม่สามารถเชื่อมต่อสิทธิ์ความปลอดภัย Firebase ได้ กรุณาลองใหม่อีกครั้ง');
+                }
+
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> เปิดใช้งานการแจ้งเตือน';
+                msgDiv.className = "small fw-bold text-danger";
+                msgDiv.innerText = error.message;
+            }
+        }
+
+        // 🌟 อัปเดตลิงก์ API ล่าสุดที่คุณครูเจนมาให้แล้วเรียบร้อยครับ 🌟
+        async function sendTokenToGAS(token, role, className, verificationData) {
+            const API_URL = "https://script.google.com/macros/s/AKfycbxSGub6bYzgA95aILNBzwSDDYO0CzzXC3_jmGKvmD72f8hp20p3ez5l_yCBUIH2l2fQ/exec";
+            
+            try {
+                const payload = {
+                    action: 'registerFCMToken',
+                    token: token,
+                    role: role,
+                    className: className,
+                    verification: verificationData
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                
+                if (res.status === 'success') {
+                    document.getElementById('status-msg').className = "small fw-bold text-success";
+                    document.getElementById('status-msg').innerText = "🎉 ยืนยันตัวตนสำเร็จ! และบันทึกการแจ้งเตือนลงระบบเรียบร้อย";
+                    document.getElementById('btn-subscribe').innerHTML = '✨ สมัครรับแจ้งเตือนแล้ว';
+                    document.getElementById('btn-subscribe').className = "btn btn-success w-100 btn-round shadow mb-3";
+                } else {
+                    throw new Error(res.message || "การตรวจสอบสิทธิ์ไม่ถูกต้อง ไม่พบข้อมูลของคุณในฐานข้อมูลโรงเรียน");
+                }
+            } catch (err) {
+                throw new Error("❌ สมัครไม่สำเร็จ: " + err.message);
+            }
+        }
+    </script>
+
+    <!-- 🟢 ดึงโค้ดนับจำนวน (Widget) จากไฟล์ counter.js มาทำงาน -->
+    <script type="module" src="global-counter.js"></script>
+</body>
+</html>
