@@ -86,8 +86,8 @@
         <div class="d-flex align-items-center justify-content-center" style="height: 100vh; background: var(--primary-dark);">
             <div class="card p-5 shadow-lg border-0 text-center" style="width: 90%; max-width: 400px; border-radius: 30px;">
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=200" alt="Logo" width="90" class="mx-auto mb-4">
-                <h4 class="fw-bold mb-1 font-prompt">Fast-Track Attendance</h4>
-                <p class="text-muted small mb-4">ระบบบริหารจัดการคณะครู v4.6 (TH-Sarabun)</p>
+                <h4 class="fw-bold mb-1 font-prompt">ระบบบันทึกการมาเรียน</h4>
+                <p class="text-muted small mb-4">Buayai I Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
                 <div class="form-floating mb-3"><input type="text" id="username" class="form-control rounded-4" placeholder="t21"><label>รหัสคุณครู</label></div>
                 <div class="form-floating mb-4"><input type="password" id="password" class="form-control rounded-4" placeholder="Password"><label>รหัสผ่าน</label></div>
                 <button id="btn-login" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="runLogin()">เข้าสู่ระบบ</button>
@@ -100,14 +100,15 @@
     <div id="app-interface" style="display: none;">
         <div class="sidebar d-flex flex-column" id="sidebar">
             <div class="p-4 text-center mt-4">
-                <h5 class="fw-bold text-info mb-0 font-prompt">Buayai I-Care</h5>
-                <p class="text-white-50 small">ระบบดูแลช่วยเหลือนักเรียน</p>
+                <h5 class="fw-bold text-info mb-0 font-prompt">Buayai I-Care School</h5>
+                <p class="text-white-50 small">ระบบดูแลช่วยเหลือนักเรียนดิจิทัล</p>
             </div>
             <div class="nav flex-column mb-auto">
                 <div class="nav-link-custom active" id="nav-checkin" onclick="switchTab('checkin')"><i class="bi bi-person-check"></i> 1. เช็คชื่อเข้าแถว</div>
                 <div class="nav-link-custom" id="nav-export" onclick="switchTab('export')"><i class="bi bi-file-earmark-excel"></i> 2. ดาวน์โหลด Excel</div>
-                <a href="homeroom.html" class="nav-link-custom nav-link-external" target="_blank"><i class="bi bi-journal-bookmark-fill"></i> 3. เปิดโฮมรูม</a>
-                <a href="advice/sdq.html" class="nav-link-custom nav-link-external" target="_blank"><i class="bi bi-clipboard2-pulse-fill"></i> 4. เปิด SDQ</a>
+                <div class="nav-link-custom" id="nav-manage" onclick="switchTab('manage')"><i class="bi bi-pencil-square"></i> 3. ดูสถิติและแก้ไขข้อมูล</div>
+                <a href="homeroom.html" class="nav-link-custom nav-link-external" target="_blank"><i class="bi bi-journal-bookmark-fill"></i> 4. เปิดโฮมรูม</a>
+                <a href="advice/sdq.html" class="nav-link-custom nav-link-external" target="_blank"><i class="bi bi-clipboard2-pulse-fill"></i> 5. เปิด SDQ</a>
             </div>
             <div class="p-4 border-top border-secondary">
                 <div class="small mb-3 text-info opacity-75" id="user-display">ผู้ใช้: -</div>
@@ -116,17 +117,30 @@
         </div>
 
         <main class="main-content">
-            <!-- หน้าต่างเช็คชื่อนักเรียน -->
+            <!-- หน้าต่าง 1: เช็คชื่อนักเรียน -->
             <div id="tab-checkin">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <div>
-                        <h3 class="fw-bold m-0 font-prompt">เช็คชื่อ <span id="class-display" class="text-primary">...</span></h3>
+                        <h3 class="fw-bold m-0 font-prompt">เช็คชื่อเข้าร่วมกิจกรรมหน้าเสาธง <span id="class-display" class="text-primary class-display-text">...</span></h3>
                         <div class="mt-2 d-flex align-items-center gap-2">
                             <label class="small fw-bold text-muted">วันที่:</label>
                             <input type="date" id="checkin-date" class="form-control form-control-sm rounded-pill" style="max-width: 160px;">
                         </div>
                     </div>
                 </div>
+
+                <!-- 🌟 สวิตซ์ 2 อัน ยุบขยายการ์ด / เริ่มต้น มา -->
+                <div class="d-flex flex-wrap gap-4 mb-3 p-3 bg-white rounded-4 shadow-sm border" style="max-width: 500px;">
+                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                        <input class="form-check-input mt-0" type="checkbox" id="toggle-collapse-cards" checked onchange="handleToggleCollapse()">
+                        <label class="form-check-label small fw-bold text-dark" style="cursor: pointer;" for="toggle-collapse-cards">ยุบขยายการ์ดอัตโนมัติ</label>
+                    </div>
+                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                        <input class="form-check-input mt-0" type="checkbox" id="toggle-default-present" checked onchange="render()">
+                        <label class="form-check-label small fw-bold text-dark" style="cursor: pointer;" for="toggle-default-present">เริ่ม "มา" ทั้งหมด</label>
+                    </div>
+                </div>
+
                 <div id="student-list" class="row g-2" style="padding-bottom: 120px;"></div>
                 <div class="save-bar">
                     <button class="btn btn-success btn-lg w-100 shadow-lg rounded-pill py-3 fw-bold" id="btn-save-main" onclick="submitAttendance()">
@@ -135,7 +149,7 @@
                 </div>
             </div>
 
-            <!-- หน้าต่างดาวน์โหลด Excel -->
+            <!-- หน้าต่าง 2: ดาวน์โหลด Excel -->
             <div id="tab-export" style="display: none;">
                 <div class="max-w-xl mx-auto">
                     <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
@@ -150,6 +164,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 🌟 หน้าต่าง 3: ดูสถิติและแก้ไขข้อมูล -->
+            <div id="tab-manage" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div>
+                        <h3 class="fw-bold m-0 font-prompt">ดูสถิติและแก้ไข <span id="manage-class-display" class="text-primary class-display-text">...</span></h3>
+                        <div class="mt-2 d-flex align-items-center gap-2">
+                            <label class="small fw-bold text-muted">เลือกวันที่:</label>
+                            <input type="date" id="manage-date" class="form-control form-control-sm rounded-pill" style="max-width: 160px;" onchange="loadManageData()">
+                        </div>
+                    </div>
+                    
+                    <!-- สวิตช์สลับโหมด ดู / แก้ไข -->
+                    <div class="btn-group bg-white p-1 rounded-pill shadow-sm border" role="group">
+                        <input type="radio" class="btn-check" name="manageMode" id="mode-view" autocomplete="off" checked onchange="renderManageData()">
+                        <label class="btn btn-outline-primary border-0 rounded-pill px-4" for="mode-view"><i class="bi bi-eye"></i> โหมดดู</label>
+                      
+                        <input type="radio" class="btn-check" name="manageMode" id="mode-edit" autocomplete="off" onchange="renderManageData()">
+                        <label class="btn btn-outline-warning border-0 rounded-pill px-4" for="mode-edit"><i class="bi bi-pencil-square"></i> โหมดแก้ไข</label>
+                    </div>
+                </div>
+
+                <div id="manage-content" style="padding-bottom: 120px;">
+                    <!-- ลิสต์รายชื่อจะถูกสร้างที่นี่ -->
+                </div>
+
+                <div class="save-bar d-none" id="manage-save-bar">
+                    <button class="btn btn-warning btn-lg w-100 shadow-lg rounded-pill py-3 fw-bold text-dark" onclick="confirmEditAttendance()">
+                        <i class="bi bi-save me-2"></i> ยืนยันการเปลี่ยนแปลงข้อมูล
+                    </button>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -171,11 +218,25 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // ⚠️ สำคัญ: ใส่ URL Web App จาก Google Apps Script (Backend V2) ตรงนี้ครับ
+        // ⚠️ ลิงก์ Web App Backend ของคุณครู (นำลิงก์ล่าสุดมาวางที่นี่)
         const API_URL = "https://script.google.com/macros/s/AKfycbwkVHI-PC-B2-y6XOQh39vfeohZbfGAqyG1pfd09gOZaVxxB_htdYY4YGx3Ia4I1VHN/exec"; 
 
         let currentUser = {}, studentData = [], pendingData = [];
+        let manageDataList = []; // ตัวแปรเก็บข้อมูลสำหรับแท็บใหม่ (ดู/แก้ไข)
         window.currentNamesByStatus = {};
+
+        // 🌟 ดักฟังคำสั่งรีเฟรชหน้าจอ (Silent Sync) จากระบบแจ้งเตือน
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function(event) {
+                if (event.data && event.data.action === 'RELOAD_STUDENT_DATA') {
+                    console.log('🔄 ได้รับคำสั่งอัปเดตข้อมูลนักเรียนอัตโนมัติแบบไร้เสียง (Silent Background Sync)...');
+                    if (currentUser && currentUser.assignedClass) {
+                        loadStudents(); 
+                    }
+                }
+            });
+        }
+        // ====================================================================================
 
         async function fetchAPI(payload) {
             try {
@@ -198,9 +259,15 @@
             const res = await fetchAPI({ action: 'login', u: u, p: p });
             if (res && res.status === 'success') {
                 currentUser = res; document.getElementById('login-page').style.display = 'none'; document.getElementById('app-interface').style.display = 'block';
-                document.getElementById('user-display').innerText = "คุณครู: " + res.name; document.getElementById('class-display').innerText = "ห้อง " + res.assignedClass;
+                
+                document.getElementById('user-display').innerText = "คุณครู: " + res.name; 
+                document.querySelectorAll('.class-display-text').forEach(el => el.innerText = "ห้อง " + res.assignedClass); 
+                
                 const today = new Date().toISOString().split('T')[0];
-                document.getElementById('checkin-date').value = today; document.getElementById('export-start-date').value = today; document.getElementById('export-end-date').value = today;
+                document.getElementById('checkin-date').value = today; 
+                document.getElementById('export-start-date').value = today; 
+                document.getElementById('export-end-date').value = today;
+                
                 loadStudents();
             } else { btn.disabled = false; btn.innerHTML = 'เข้าสู่ระบบ'; document.getElementById('login-msg').innerText = "รหัสผ่านไม่ถูกต้อง"; }
         }
@@ -210,13 +277,55 @@
             if(res) { studentData = res; render(); }
         }
 
+        // 🌟 ฟังก์ชันสำหรับสวิตซ์ "ยุบขยายการ์ด"
+        function handleToggleCollapse() {
+            const shouldCollapse = document.getElementById('toggle-collapse-cards').checked;
+            const cards = document.querySelectorAll('.student-card');
+            
+            cards.forEach(card => {
+                const id = card.id.replace('card-', '');
+                const radioChecked = document.querySelector(`input[name="st-${id}"]:checked`);
+                
+                if (shouldCollapse && radioChecked) {
+                    card.classList.add('checked');
+                } else {
+                    card.classList.remove('checked');
+                }
+            });
+        }
+
         function render() {
             const container = document.getElementById('student-list');
             if(!studentData.length) return container.innerHTML = '<p class="text-center py-5">ไม่พบรายชื่อในระบบ</p>';
             
-            container.innerHTML = studentData.map((std, i) => `
+            // อ่านค่าจากสวิตซ์ควบคุม
+            const isDefaultPresent = document.getElementById('toggle-default-present').checked;
+            const shouldCollapse = document.getElementById('toggle-collapse-cards').checked;
+            
+            container.innerHTML = studentData.map((std, i) => {
+                // 🌟 ตรวจสอบเงื่อนไขตามสวิตซ์ "เริ่มต้นสถานะมา"
+                let initialStatus = '';
+                const isLeave = (std.preStatus === 'ลป' || std.preStatus === 'ลก');
+                if (isLeave) {
+                    initialStatus = std.preStatus; // ถ้านักเรียนลา ให้แสดงว่าลาเสมอ
+                } else if (isDefaultPresent) {
+                    initialStatus = 'มา'; // ถ้าเปิดสวิตซ์ ให้ติ๊ก "มา" อัตโนมัติ
+                }
+                
+                let badgeColor = 'bg-secondary';
+                if(initialStatus === 'มา') badgeColor = 'var(--color-present)';
+                if(initialStatus === 'สาย') badgeColor = 'var(--color-late)';
+                if(initialStatus === 'ลป') badgeColor = 'var(--color-leave-sick)';
+                if(initialStatus === 'ลก') badgeColor = 'var(--color-leave-kit)';
+
+                // 🌟 ตรวจสอบว่าควรยุบการ์ดหรือไม่
+                const cardClass = (initialStatus !== '' && shouldCollapse) ? 'checked' : '';
+                const badgeClass = (initialStatus !== '') ? '' : 'd-none';
+                const displayStatus = (initialStatus !== '') ? `${initialStatus} (แตะเพื่อแก้)` : '';
+
+                return `
                 <div class="col-12 col-md-6 col-xl-4">
-                    <div class="student-card" id="card-${std.id}">
+                    <div class="student-card ${cardClass}" id="card-${std.id}">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="fw-bold d-flex align-items-center">
                                 <span class="badge bg-primary rounded-circle me-2" style="width:25px; height:25px; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">${i+1}</span>
@@ -224,22 +333,22 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <button class="history-btn" onclick="viewHistory('${std.id}', '${std.fullname}')"><i class="bi bi-clock-history"></i></button>
-                                <span id="badge-${std.id}" class="status-display-badge d-none" onclick="toggleEdit('${std.id}')"></span>
+                                <span id="badge-${std.id}" class="status-display-badge ${badgeClass}" onclick="toggleEdit('${std.id}')" style="${initialStatus !== '' ? 'background-color:' + badgeColor + '; color:white;' : ''}">${displayStatus}</span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-3 img-wrapper">
                             <img src="${std.img}" class="img-profile" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                             <div class="flex-grow-1 btn-group-status">
                                 <div class="btn-group w-100">
-                                    <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${std.preStatus==='มา'?'checked':''} onchange="autoCollapse('${std.id}', 'มา')">
+                                    <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${initialStatus==='มา'?'checked':''} onchange="autoCollapse('${std.id}', 'มา')">
                                     <label class="btn btn-outline-secondary btn-present" for="m-${std.id}">มา</label>
                                     <input type="radio" class="btn-check" name="st-${std.id}" id="s-${std.id}" value="สาย" onchange="autoCollapse('${std.id}', 'สาย')">
                                     <label class="btn btn-outline-secondary btn-late" for="s-${std.id}">สาย</label>
                                 </div>
                                 <div class="btn-group w-100 mt-1">
-                                    <input type="radio" class="btn-check" name="st-${std.id}" id="lk-${std.id}" value="ลก" ${std.preStatus==='ลก'?'checked':''} onchange="autoCollapse('${std.id}', 'ลก')">
+                                    <input type="radio" class="btn-check" name="st-${std.id}" id="lk-${std.id}" value="ลก" ${initialStatus==='ลก'?'checked':''} onchange="autoCollapse('${std.id}', 'ลก')">
                                     <label class="btn btn-outline-secondary btn-kit" for="lk-${std.id}">ลก</label>
-                                    <input type="radio" class="btn-check" name="st-${std.id}" id="lp-${std.id}" value="ลป" ${std.preStatus==='ลป'?'checked':''} onchange="autoCollapse('${std.id}', 'ลป')">
+                                    <input type="radio" class="btn-check" name="st-${std.id}" id="lp-${std.id}" value="ลป" ${initialStatus==='ลป'?'checked':''} onchange="autoCollapse('${std.id}', 'ลป')">
                                     <label class="btn btn-outline-secondary btn-sick" for="lp-${std.id}">ลป</label>
                                     <input type="radio" class="btn-check" name="st-${std.id}" id="k-${std.id}" value="ขาด" onchange="autoCollapse('${std.id}', 'ขาด')">
                                     <label class="btn btn-outline-secondary btn-absent" for="k-${std.id}">ขาด</label>
@@ -248,9 +357,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
-            // ตรวจสอบสถานะใบลาแล้วยุบการ์ดอัตโนมัติ
-            studentData.forEach(s => { if(s.preStatus !== 'มา') autoCollapse(s.id, s.preStatus); });
+            `;
+            }).join('');
         }
 
         async function viewHistory(id, name) {
@@ -264,15 +372,31 @@
 
         function autoCollapse(id, status) {
             const card = document.getElementById(`card-${id}`), badge = document.getElementById(`badge-${id}`);
-            if(!card) return; card.classList.add('checked'); badge.classList.remove('d-none'); badge.innerText = status + " (แตะเพื่อแก้)";
+            if(!card) return; 
+            
+            badge.classList.remove('d-none'); 
+            badge.innerText = status + " (แตะเพื่อแก้)";
             let color = status==='สาย'?'var(--color-late)':status==='ลก'?'var(--color-leave-kit)':status==='ลป'?'var(--color-leave-sick)':status==='ขาด'?'var(--color-absent)':'var(--color-present)';
-            badge.style.backgroundColor = color; badge.style.color = "white";
+            badge.style.backgroundColor = color; 
+            badge.style.color = "white";
+
+            const shouldCollapse = document.getElementById('toggle-collapse-cards').checked;
+            if (shouldCollapse) {
+                card.classList.add('checked');
+            } else {
+                card.classList.remove('checked');
+            }
         }
 
         function toggleEdit(id) { document.getElementById(`card-${id}`).classList.remove('checked'); document.getElementById(`badge-${id}`).classList.add('d-none'); }
 
         function submitAttendance() {
-            pendingData = studentData.map(std => ({ id: std.id, fullname: std.fullname, status: document.querySelector(`input[name="st-${std.id}"]:checked`)?.value || 'ขาด' }));
+            pendingData = studentData.map(std => {
+                const radioChecked = document.querySelector(`input[name="st-${std.id}"]:checked`);
+                // หากไม่ได้เลือกอะไรเลย ให้ตั้งเป็น 'ขาด'
+                return { id: std.id, fullname: std.fullname, status: radioChecked ? radioChecked.value : 'ขาด' };
+            });
+            
             let s = {'มา':0, 'สาย':0, 'ลก':0, 'ลป':0, 'ขาด':0}, names = {'มา':[], 'สาย':[], 'ลก':[], 'ลป':[], 'ขาด':[]};
             pendingData.forEach(p => { s[p.status]++; names[p.status].push(p.fullname); });
             window.currentNamesByStatus = names;
@@ -306,6 +430,168 @@
             const res = await fetchAPI({ action: 'saveAttendance', className: currentUser.assignedClass, list: pendingData, teacher: currentUser.name, checkDate: document.getElementById('checkin-date').value });
             saveBtn.disabled = false; saveBtn.innerHTML = oldTxt;
             if(res && res.status === 'success') { Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'ระบบสรุปยอดให้แล้วครับ', timer: 1500, showConfirmButton: false }); loadStudents(); }
+        }
+
+        // ==========================================
+        // 🌟 แท็บ 3: ระบบดูสถิติภาพรวมและแก้ไขข้อมูล
+        // ==========================================
+        async function loadManageData() {
+            const dateVal = document.getElementById('manage-date').value;
+            if(!dateVal) return;
+            
+            document.getElementById('manage-content').innerHTML = '<div class="text-center py-5"><span class="spinner-border text-primary"></span><p class="mt-2 text-muted small">กำลังโหลดข้อมูล...</p></div>';
+            
+            // ดึงข้อมูลประจำวันที่เลือก
+            const res = await fetchAPI({ action: 'getAttendanceRange', className: currentUser.assignedClass, startDate: dateVal, endDate: dateVal });
+            
+            if (res && res.status === 'success') {
+                const logs = res.data;
+                // สร้างข้อมูลรายคนโดยแมปกับฐานรายชื่อหลัก
+                manageDataList = studentData.map(std => {
+                    const studentLogs = logs.filter(l => String(l.id) === String(std.id));
+                    const latestLog = studentLogs.length > 0 ? studentLogs[studentLogs.length - 1] : null;
+                    return {
+                        id: std.id,
+                        fullname: std.fullname,
+                        status: latestLog ? latestLog.status : '-' 
+                    };
+                });
+                renderManageData();
+            } else {
+                document.getElementById('manage-content').innerHTML = '<div class="text-center py-5 text-muted">ไม่พบข้อมูลในวันที่เลือก หรือเกิดข้อผิดพลาด</div>';
+            }
+        }
+
+        function renderManageData() {
+            const mode = document.querySelector('input[name="manageMode"]:checked').id; 
+            const container = document.getElementById('manage-content');
+            const saveBar = document.getElementById('manage-save-bar');
+            
+            if (mode === 'mode-edit') saveBar.classList.remove('d-none');
+            else saveBar.classList.add('d-none');
+
+            // จัดเรียงลำดับการแสดงผลตามสเปก
+            const order = ['ลก', 'ลป', 'สาย', 'ขาด', 'มา', '-'];
+            const groupNames = { 'ลก': 'ลากิจ (ลก)', 'ลป': 'ลาป่วย (ลป)', 'สาย': 'สาย', 'ขาด': 'ขาด', 'มา': 'มา', '-': 'ยังไม่ได้เช็คชื่อ' };
+            const colors = { 'ลก': 'var(--color-leave-kit)', 'ลป': 'var(--color-leave-sick)', 'สาย': 'var(--color-late)', 'ขาด': 'var(--color-absent)', 'มา': 'var(--color-present)', '-': '#94a3b8' };
+            
+            let html = '';
+            
+            order.forEach(st => {
+                const studentsInGroup = manageDataList.filter(s => s.status === st);
+                if (studentsInGroup.length > 0) {
+                    html += `
+                    <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                        <div class="card-header border-0 text-white fw-bold d-flex justify-content-between align-items-center p-3" style="background-color: ${colors[st]}">
+                            <span><i class="bi bi-tag-fill me-2"></i> ${groupNames[st]}</span>
+                            <span class="badge bg-white text-dark rounded-pill shadow-sm">จำนวน ${studentsInGroup.length} คน</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                    `;
+                    
+                    studentsInGroup.forEach((std, index) => {
+                        if (mode === 'mode-edit') {
+                            // โหมดแก้ไข
+                            html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3 cursor-pointer" onclick="changeStudentStatus('${std.id}', '${std.fullname}', '${std.status}')" style="background-color:#f8fafc;">
+                                <span><b>${index + 1}.</b> ${std.fullname}</span>
+                                <span class="badge bg-white text-primary border border-primary"><i class="bi bi-pencil-square"></i> แก้ไข</span>
+                            </li>`;
+                        } else {
+                            // โหมดดู
+                            html += `
+                            <li class="list-group-item p-3 text-dark">
+                                <b>${index + 1}.</b> ${std.fullname}
+                            </li>`;
+                        }
+                    });
+                    
+                    html += `</ul></div></div>`;
+                }
+            });
+            
+            if (html === '') html = '<div class="text-center text-muted py-5">ไม่มีข้อมูลสำหรับวันนี้</div>';
+            container.innerHTML = html;
+        }
+
+        function changeStudentStatus(id, name, currentStatus) {
+            Swal.fire({
+                title: `แก้ไขสถานะ`,
+                html: `<p class="fw-bold text-primary mb-3">${name}</p>`,
+                input: 'select',
+                inputOptions: {
+                    'มา': 'มา (Present)',
+                    'สาย': 'สาย (Late)',
+                    'ลก': 'ลากิจ (Leave - Kit)',
+                    'ลป': 'ลาป่วย (Leave - Sick)',
+                    'ขาด': 'ขาด (Absent)'
+                },
+                inputValue: currentStatus === '-' ? 'มา' : currentStatus,
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-check-circle"></i> เปลี่ยนสถานะ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: 'var(--accent-blue)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const newStatus = result.value;
+                    const stdIndex = manageDataList.findIndex(s => s.id === id);
+                    if (stdIndex > -1) {
+                        manageDataList[stdIndex].status = newStatus;
+                        renderManageData(); 
+                    }
+                }
+            });
+        }
+
+        function confirmEditAttendance() {
+            const missing = manageDataList.filter(s => s.status === '-');
+            if (missing.length > 0) {
+                Swal.fire('ข้อควรระวัง', 'มีนักเรียนบางคนยังไม่มีสถานะ กรุณาเลือกสถานะให้ครบก่อนบันทึกครับ', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'ยืนยันการเปลี่ยนแปลงข้อมูล?',
+                text: "ข้อมูลสถานะใหม่จะถูกบันทึกทับในระบบสำหรับวันที่เลือก",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'ใช่, บันทึกเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const saveBtn = document.querySelector('#manage-save-bar button');
+                    const oldTxt = saveBtn.innerHTML;
+                    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังอัปเดตข้อมูล...';
+                    saveBtn.disabled = true;
+
+                    const checkDate = document.getElementById('manage-date').value;
+                    const listToSave = manageDataList.map(s => ({ id: s.id, fullname: s.fullname, status: s.status }));
+
+                    const res = await fetchAPI({ 
+                        action: 'saveAttendance', 
+                        className: currentUser.assignedClass, 
+                        list: listToSave, 
+                        teacher: currentUser.name, 
+                        checkDate: checkDate 
+                    });
+
+                    saveBtn.disabled = false; 
+                    saveBtn.innerHTML = oldTxt;
+
+                    if (res && res.status === 'success') {
+                        Swal.fire('อัปเดตสำเร็จ!', 'ข้อมูลถูกแก้ไขเรียบร้อยแล้ว', 'success');
+                        loadManageData(); 
+                        
+                        const today = new Date().toISOString().split('T')[0];
+                        if (checkDate === today) loadStudents();
+                    } else {
+                        Swal.fire('ผิดพลาด', res ? res.message : 'ไม่สามารถบันทึกได้', 'error');
+                    }
+                }
+            });
         }
 
         // ==========================================
@@ -436,11 +722,23 @@
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        
+        // อัปเดตสวิตช์หน้าจอเพื่อรองรับแท็บที่ 3
         function switchTab(tab) {
             document.getElementById('tab-checkin').style.display = tab === 'checkin' ? 'block' : 'none';
             document.getElementById('tab-export').style.display = tab === 'export' ? 'block' : 'none';
+            document.getElementById('tab-manage').style.display = tab === 'manage' ? 'block' : 'none';
+            
             document.getElementById('nav-checkin').classList.toggle('active', tab === 'checkin');
             document.getElementById('nav-export').classList.toggle('active', tab === 'export');
+            document.getElementById('nav-manage').classList.toggle('active', tab === 'manage');
+            
+            // โหลดข้อมูลอัตโนมัติเมื่อกดเข้าหน้า 3 ครั้งแรก
+            if (tab === 'manage' && manageDataList.length === 0) {
+                document.getElementById('manage-date').value = new Date().toISOString().split('T')[0];
+                loadManageData();
+            }
+            
             if(window.innerWidth < 992) toggleSidebar();
         }
     </script>
