@@ -141,6 +141,11 @@
         <div class="login-card">
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" class="logo-img">
             <h4 class="fw-bold mb-1" style="color: var(--orange-dark);">ระบบคะแนนพฤติกรรม E-Point </h4>
+            
+    <!-- 🟢 กล่องรอรับ Widget นับจำนวน จากไฟล์ counter.js -->
+    <div id="global-visitor-counter"></div>
+
+            
             <p class="text-muted small mb-4">เข้าสู่ระบบคะแนนพฤติกรรม E-Point Buayai I care school</p>
             
             <select id="login-room" class="form-select text-center fw-bold" onchange="loadStudents()">
@@ -649,5 +654,8 @@
             toggleSidebar();
         }
     </script>
+  <!-- 🟢 ดึงโค้ดนับจำนวน (Widget) จากไฟล์ counter.js มาทำงาน -->
+    <script type="module" src="global-counter.js"></script>
+    
 </body>
 </html>
