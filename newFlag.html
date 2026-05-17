@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Integrated Teacher System | Buayai I-Care</title>
+    <title> ระบบเชคชื่อเข้าแถวโรงเรียนบัวใหญ | Buayai I-Care School</title>
     
     <!-- ส่วนโหลดไลบรารีภายนอก -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -173,6 +173,11 @@
                         <div class="mt-2 d-flex align-items-center gap-2">
                             <label class="small fw-bold text-muted">เลือกวันที่:</label>
                             <input type="date" id="manage-date" class="form-control form-control-sm rounded-pill" style="max-width: 160px;" onchange="loadManageData()">
+                            
+                            <!-- 🌟 ปุ่มดึงข้อมูลล่าสุด -->
+                            <button class="btn btn-sm btn-outline-primary rounded-pill shadow-sm px-3" onclick="loadManageData()" title="โหลดข้อมูลใหม่ล่าสุด">
+                                <i class="bi bi-arrow-clockwise"></i> ดึงข้อมูลล่าสุด
+                            </button>
                         </div>
                     </div>
                     
@@ -218,8 +223,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // ⚠️ ลิงก์ Web App Backend ของคุณครู
-        // (นำลิงก์ที่ Deploy ใหม่ล่าสุดจาก Code.gs มาวางอัปเดตที่นี่ได้เลยครับ)
+        // ⚠️ ลิงก์ Web App Backend ของคุณครู (นำลิงก์ล่าสุดมาวางที่นี่)
         const API_URL = "https://script.google.com/macros/s/AKfycbwkVHI-PC-B2-y6XOQh39vfeohZbfGAqyG1pfd09gOZaVxxB_htdYY4YGx3Ia4I1VHN/exec"; 
 
         let currentUser = {}, studentData = [], pendingData = [];
