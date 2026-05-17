@@ -127,6 +127,9 @@
             </div>
             
             <div class="flex items-center gap-2">
+            <!-- 🟢 กล่องรอรับ Widget นับจำนวน จากไฟล์ counter.js -->
+            <div id="global-visitor-counter"></div>
+                    
                 <div id="header-role-badge" class="hidden bg-white text-ocean-900 px-3 py-1 rounded-full text-xs font-bold font-heading shadow-sm"></div>
                 <!-- ปุ่มเข้าสู่หน้าประมวลผล SDQ -->
                 <button id="btn-process-sdq-desktop" onclick="accessReportSDQ()" class="bg-lotus-500 hover:bg-lotus-600 text-white px-3 py-1.5 rounded-full text-xs font-bold font-heading shadow-sm transition md:flex items-center d-none">
@@ -1054,5 +1057,8 @@
         }
 
     </script>
+  <!-- 🟢 ดึงโค้ดนับจำนวน (Widget) จากไฟล์ counter.js มาทำงาน -->
+  <script type="module" src="global-counter.js"></script>
+    
 </body>
 </html>
