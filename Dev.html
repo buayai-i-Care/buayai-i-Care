@@ -141,9 +141,11 @@
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียนบัวใหญ่" class="login-logo">
             <h1>เข้าสู่ระบบฐานข้อมูลพื้นฐานนักเรียนโรงเรียนบัวใหญ่</h1>
             <p>สระบัวแห่งความห่วงใย (Buayai I Care School)</p>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" required></div>
-                <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" required></div>
+            <!-- 🛠️ เพิ่ม autocomplete="off" ที่ฟอร์มเพื่อป้องกันเบราว์เซอร์จำข้อมูล -->
+            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+                <!-- 🛠️ ใส่ autocomplete="off" และ new-password เพื่อบังคับให้ต้องพิมพ์ใหม่ -->
+                <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" autocomplete="off" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" autocomplete="new-password" required></div>
                 <button type="submit" id="loginBtn" class="btn-submit">เริ่มสะสมกลีบดอกบัว 🌸</button>
                 <div id="error-msg" style="color:var(--danger); margin-top:10px;"></div>
             </form>
@@ -221,9 +223,19 @@
         let cachedStudentData = null, cachedClassmates = [];
 
         window.onload = () => {
+            // 🛠️ ลบการจดจำสถานะการล็อกอินเดิมทิ้งทุกครั้งที่เปิด/รีเฟรชหน้าเว็บ
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('studentId');
+            
+            // 🛠️ เคลียร์ค่าในช่องกรอกรหัสผ่านเพื่อความชัวร์ ป้องกันเบราว์เซอร์แอบเติมให้
+            document.getElementById('studentId').value = '';
+            document.getElementById('password').value = '';
+
             const savedState = localStorage.getItem('playerState');
             if(savedState) playerState = JSON.parse(savedState);
-            if (localStorage.getItem('isLoggedIn') === 'true') showDashboardView();
+            
+            // 🛠️ เอาเงื่อนไขที่เช็คว่าล็อกอินแล้วให้เข้าหน้า Dashboard ออก 
+            // เพื่อบังคับให้ทุกคนต้องเจอหน้าต่าง Login เสมอเวลาเปิดลิงก์ใหม่
         };
 
         function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
