@@ -224,12 +224,17 @@
             // 🛠️ เคลียร์ค่าในช่องกรอกรหัสผ่านเพื่อความชัวร์ ป้องกันเบราว์เซอร์แอบเติมให้
             document.getElementById('studentId').value = '';
             document.getElementById('password').value = '';
-
-            const savedState = localStorage.getItem('playerState');
-            if(savedState) playerState = JSON.parse(savedState);
+            // 🛠️ ย้ายการโหลด playerState ไปทำตอนที่ทราบรหัสนักเรียนแล้ว เพื่อแยกข้อมูลรายบุคคล
         };
 
-        function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
+        function savePlayerState() { 
+            const sid = localStorage.getItem('studentId');
+            if (sid) {
+                // บันทึกความจำลงในชื่อเฉพาะของนักเรียนคนนั้นๆ ป้องกันข้อมูลทับกัน
+                localStorage.setItem('playerState_' + sid, JSON.stringify(playerState)); 
+            }
+            updateSidebarUI(); 
+        }
 
         document.addEventListener('change', function(e) {
             if(e.target.type === 'file' && e.target.parentElement.classList.contains('file-upload-box')) {
@@ -268,21 +273,42 @@
                 document.getElementById('dashboard-view').style.display = 'block';
             }
 
-            document.getElementById('display-studentId').textContent = localStorage.getItem('studentId');
+            const sid = localStorage.getItem('studentId');
+            document.getElementById('display-studentId').textContent = sid;
             
-            const area = document.getElementById('dynamic-content-area');
-            area.innerHTML = `<div style="text-align:center; padding:50px;">📡 กำลังตรวจสอบข้อมูลของคุณ...</div>`;
+            // 🛠️ โหลดข้อมูลสถานะด่านแยกตามรหัสนักเรียน
+            const savedState = localStorage.getItem('playerState_' + sid);
+            if(savedState) {
+                playerState = JSON.parse(savedState);
+            } else {
+                // คืนค่าเริ่มต้นถ้านักเรียนเพิ่งเคยล็อกอินเครื่องนี้เป็นครั้งแรก
+                playerState = { score: 0, missions: { m1: {status:'unlocked',unlocksAt:0}, m2: {status:'locked',unlocksAt:0}, m3: {status:'locked',unlocksAt:0}, m4: {status:'locked',unlocksAt:0}, m5: {status:'locked',unlocksAt:0}, m6: {status:'locked',unlocksAt:0} } };
+            }
 
-            updateSidebarUI(); 
-            startGameLoop(); 
-            loadContent('dashboard', document.getElementById('btn-dash'));
+            const area = document.getElementById('dynamic-content-area');
+            area.innerHTML = `<div style="text-align:center; padding:50px; font-size:1.2rem; color:var(--accent);">📡 กำลังดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์...</div>`;
+
+            // 🛠️ แช่แข็ง UI ไว้ก่อน: ซ่อนสถานะปุ่มและใส่ไอคอนโหลด เพื่อไม่ให้นักเรียนเห็นสถานะเก่าที่อาจจะผิดพลาด
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                if(btn.id !== 'btn-dash' && !btn.classList.contains('logout-btn')) {
+                    btn.classList.add('locked');
+                    let icon = btn.querySelector('.icon-text');
+                    if(icon) icon.textContent = '⏳';
+                }
+            });
 
             try {
                 const res = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
                 if(res.status === 'success' && res.studentData) { 
                     cachedStudentData = res.studentData; 
                     cachedClassmates = res.classmates || [];
+                    
+                    // 🛠️ ทำการประมวลผลเช็คความจริงจากฐานข้อมูลก่อน
                     syncProgress(res.studentData);
+                    
+                    // 🛠️ ค่อยอนุญาตให้อัปเดตเมนูด้านซ้าย หลังจากได้ความจริงมาแล้วเท่านั้น!
+                    updateSidebarUI(); 
+                    startGameLoop(); 
                     
                     // 🌟 นำภาพ Profile Thumbnail มาแสดงในแถบเมนูด้านซ้าย
                     if (cachedStudentData.profileImageUrl) {
@@ -290,39 +316,59 @@
                         avatarDiv.innerHTML = `<img src="${getDriveThumb(cachedStudentData.profileImageUrl)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); box-shadow: 0 0 15px var(--primary-glow);">`;
                     }
                     
-                    // 🌟 รีโหลดหน้า Dashboard อีกครั้ง เพื่อให้รูปและข้อมูลชื่อปรากฏตรงกลางจอ
+                    // 🌟 รีโหลดหน้า Dashboard อีกครั้ง
                     if (currentMission === 'dashboard' || currentMission === '') {
                         loadContent('dashboard', document.getElementById('btn-dash'));
                     }
+                } else {
+                    throw new Error("ไม่สามารถดึงข้อมูลได้");
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err); 
+                area.innerHTML = `<div style="text-align:center; padding:50px; color:var(--danger);">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณารีเฟรชหน้าเว็บ</div>`;
+            }
         }
 
         function handleLogout() { localStorage.clear(); location.reload(); }
 
         function syncProgress(sd) {
-            let u = false;
-            if (sd.citizenId && sd.fullName && playerState.missions.m1.status !== 'completed') {
-                playerState.missions.m1.status = 'completed'; u = true;
-                if (playerState.missions.m2.status === 'locked') playerState.missions.m2.status = 'unlocked';
-            }
-            if (sd.guardianName && sd.guardianPhone && playerState.missions.m2.status !== 'completed') {
-                playerState.missions.m2.status = 'completed'; u = true;
-                if (playerState.missions.m3.status === 'locked') playerState.missions.m3.status = 'unlocked';
-            }
-            if (sd.weight && sd.height && playerState.missions.m3.status !== 'completed') {
-                playerState.missions.m3.status = 'completed'; u = true;
-                if (playerState.missions.m4.status === 'locked') playerState.missions.m4.status = 'unlocked';
-            }
-            if (sd.preferencesJson && playerState.missions.m4.status !== 'completed') {
-                playerState.missions.m4.status = 'completed'; u = true;
-                if (playerState.missions.m5.status === 'locked') playerState.missions.m5.status = 'unlocked';
-            }
-            if (sd.housingStatus && playerState.missions.m5.status !== 'completed') {
-                playerState.missions.m5.status = 'completed'; u = true;
-                if (playerState.missions.m6.status === 'locked') playerState.missions.m6.status = 'unlocked';
-            }
-            if(u) savePlayerState();
+            // 🛠️ 1. ตรวจสอบข้อมูลจากฐานข้อมูลอย่างเข้มงวด (ใช้ String().trim() ดักค่าที่ถูกลบแต่ดันเหลือช่องว่างเปล่าๆ ไว้)
+            const m1Done = !!(sd.citizenId && String(sd.citizenId).trim() !== ""); 
+            const m2Done = !!(sd.guardianName && String(sd.guardianName).trim() !== "");
+            const m3Done = !!(sd.weight && sd.height);
+            const m4Done = !!(sd.preferencesJson && String(sd.preferencesJson).trim() !== "{}" && String(sd.preferencesJson).trim() !== "");
+            const m5Done = !!(sd.housingStatus && String(sd.housingStatus).trim() !== "");
+
+            // 🛠️ 2. ฟังก์ชันตรวจสอบและบังคับสถานะให้ตรงความจริง 100%
+            const checkStatus = (mId, isDone, prevDone) => {
+                if (isDone) {
+                    playerState.missions[mId].status = 'completed'; // มีข้อมูล = ผ่าน
+                    playerState.missions[mId].unlocksAt = 0; 
+                } else {
+                    // ไม่มีข้อมูล (ยังไม่ทำ หรือ โดนรีเซต)
+                    if (prevDone) {
+                        // ด่านก่อนหน้าผ่านแล้ว ด่านนี้ต้องทำได้เลย (เปลี่ยนเป็น unlocked เสมอ ไม่ว่าความจำเดิมจะเป็น completed ก็ตาม)
+                        if (playerState.missions[mId].status === 'completed' || playerState.missions[mId].status === 'locked') {
+                            playerState.missions[mId].status = 'unlocked';
+                            playerState.missions[mId].unlocksAt = 0;
+                        }
+                    } else {
+                        // ด่านก่อนหน้ายังไม่ผ่าน ด่านนี้ต้องถูกล็อค
+                        playerState.missions[mId].status = 'locked';
+                        playerState.missions[mId].unlocksAt = 0;
+                    }
+                }
+            };
+
+            // อัปเดตสถานะเช็คทีละด่านอย่างเป็นระบบ (ต้องผ่านด่านหน้าก่อน ด่านหลังถึงเปิด)
+            checkStatus('m1', m1Done, true);
+            checkStatus('m2', m2Done, m1Done);
+            checkStatus('m3', m3Done, m2Done);
+            checkStatus('m4', m4Done, m3Done);
+            checkStatus('m5', m5Done, m4Done);
+            checkStatus('m6', false, m5Done);
+
+            savePlayerState(); // บันทึกความจำใหม่ทับทันที
         }
 
         function startGameLoop() {
