@@ -108,7 +108,8 @@
 
         /* 📱 จัดการ UI โหมดมือถือใหม่ แก้ปัญหาทับซ้อนและจัดรูปแบบ Grid ให้สวยงาม */
         @media (max-width: 768px) { 
-            #dashboard-view { flex-direction: column; display: flex; height: auto; } 
+            /* 🛠️ ลบ display: flex ออกเพื่อป้องกันบั๊กหน้าจอซ้อนกันตอนล็อกเอาท์ */
+            #dashboard-view { flex-direction: column; height: auto; } 
             .sidebar { width: 100%; border-right: none; border-bottom: 2px dashed rgba(255,193,7,0.4); max-height: none; overflow: visible; padding: 15px; } 
             
             /* เปลี่ยนปุ่มเมนูด้านซ้ายให้เป็นแบบตาราง 2 คอลัมน์บนมือถือ */
@@ -217,20 +218,18 @@
         let cachedStudentData = null, cachedClassmates = [];
 
         window.onload = () => {
-            // 🛠️ ลบการจดจำสถานะการล็อกอินเดิมทิ้งทุกครั้งที่เปิด/รีเฟรชหน้าเว็บ
+            // 🛠️ ลบการจดจำสถานะการล็อกอินเดิมทิ้งทุกครั้งที่เปิด/รีเฟรชหน้าเว็บ บังคับกรอกใหม่เสมอ
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('studentId');
             
-            // 🛠️ เคลียร์ค่าในช่องกรอกรหัสผ่านเพื่อความชัวร์ ป้องกันเบราว์เซอร์แอบเติมให้
             document.getElementById('studentId').value = '';
             document.getElementById('password').value = '';
-            // 🛠️ ย้ายการโหลด playerState ไปทำตอนที่ทราบรหัสนักเรียนแล้ว เพื่อแยกข้อมูลรายบุคคล
         };
 
         function savePlayerState() { 
             const sid = localStorage.getItem('studentId');
             if (sid) {
-                // บันทึกความจำลงในชื่อเฉพาะของนักเรียนคนนั้นๆ ป้องกันข้อมูลทับกัน
+                // บันทึกความจำลงในชื่อเฉพาะของนักเรียนคนนั้นๆ ป้องกันข้อมูลทับกัน 100%
                 localStorage.setItem('playerState_' + sid, JSON.stringify(playerState)); 
             }
             updateSidebarUI(); 
@@ -269,10 +268,6 @@
             document.getElementById('login-view').style.display = 'none'; 
             document.getElementById('dashboard-view').style.display = 'flex';
             
-            if(window.innerWidth <= 768) {
-                document.getElementById('dashboard-view').style.display = 'block';
-            }
-
             const sid = localStorage.getItem('studentId');
             document.getElementById('display-studentId').textContent = sid;
             
@@ -281,14 +276,13 @@
             if(savedState) {
                 playerState = JSON.parse(savedState);
             } else {
-                // คืนค่าเริ่มต้นถ้านักเรียนเพิ่งเคยล็อกอินเครื่องนี้เป็นครั้งแรก
                 playerState = { score: 0, missions: { m1: {status:'unlocked',unlocksAt:0}, m2: {status:'locked',unlocksAt:0}, m3: {status:'locked',unlocksAt:0}, m4: {status:'locked',unlocksAt:0}, m5: {status:'locked',unlocksAt:0}, m6: {status:'locked',unlocksAt:0} } };
             }
 
             const area = document.getElementById('dynamic-content-area');
             area.innerHTML = `<div style="text-align:center; padding:50px; font-size:1.2rem; color:var(--accent);">📡 กำลังดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์...</div>`;
 
-            // 🛠️ แช่แข็ง UI ไว้ก่อน: ซ่อนสถานะปุ่มและใส่ไอคอนโหลด เพื่อไม่ให้นักเรียนเห็นสถานะเก่าที่อาจจะผิดพลาด
+            // 🛠️ แช่แข็ง UI ไว้ก่อน: ซ่อนสถานะปุ่มและใส่ไอคอนโหลด จนกว่าจะรู้ข้อมูลจริงจากเซิร์ฟเวอร์
             document.querySelectorAll('.sidebar-btn').forEach(btn => {
                 if(btn.id !== 'btn-dash' && !btn.classList.contains('logout-btn')) {
                     btn.classList.add('locked');
@@ -303,20 +297,18 @@
                     cachedStudentData = res.studentData; 
                     cachedClassmates = res.classmates || [];
                     
-                    // 🛠️ ทำการประมวลผลเช็คความจริงจากฐานข้อมูลก่อน
+                    // 🛠️ ประมวลผลเช็คความจริงจากฐานข้อมูล 100% 
                     syncProgress(res.studentData);
                     
-                    // 🛠️ ค่อยอนุญาตให้อัปเดตเมนูด้านซ้าย หลังจากได้ความจริงมาแล้วเท่านั้น!
+                    // 🛠️ อัปเดตเมนูด้านซ้ายเมื่อได้ความจริงมาแล้วเท่านั้น
                     updateSidebarUI(); 
                     startGameLoop(); 
                     
-                    // 🌟 นำภาพ Profile Thumbnail มาแสดงในแถบเมนูด้านซ้าย
                     if (cachedStudentData.profileImageUrl) {
                         const avatarDiv = document.getElementById('sidebar-avatar');
                         avatarDiv.innerHTML = `<img src="${getDriveThumb(cachedStudentData.profileImageUrl)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); box-shadow: 0 0 15px var(--primary-glow);">`;
                     }
                     
-                    // 🌟 รีโหลดหน้า Dashboard อีกครั้ง
                     if (currentMission === 'dashboard' || currentMission === '') {
                         loadContent('dashboard', document.getElementById('btn-dash'));
                     }
@@ -332,35 +324,35 @@
         function handleLogout() { localStorage.clear(); location.reload(); }
 
         function syncProgress(sd) {
-            // 🛠️ 1. ตรวจสอบข้อมูลจากฐานข้อมูลอย่างเข้มงวด (ใช้ String().trim() ดักค่าที่ถูกลบแต่ดันเหลือช่องว่างเปล่าๆ ไว้)
+            // 🛠️ ตรวจสอบข้อมูลจากฐานข้อมูลอย่างเข้มงวด (กันค่าที่เป็น String เปล่าๆ หลุดเข้ามา)
             const m1Done = !!(sd.citizenId && String(sd.citizenId).trim() !== ""); 
             const m2Done = !!(sd.guardianName && String(sd.guardianName).trim() !== "");
             const m3Done = !!(sd.weight && sd.height);
             const m4Done = !!(sd.preferencesJson && String(sd.preferencesJson).trim() !== "{}" && String(sd.preferencesJson).trim() !== "");
             const m5Done = !!(sd.housingStatus && String(sd.housingStatus).trim() !== "");
 
-            // 🛠️ 2. ฟังก์ชันตรวจสอบและบังคับสถานะให้ตรงความจริง 100%
+            // 🛠️ ฟังก์ชันบังคับสถานะให้ตรงความจริง 100% 
             const checkStatus = (mId, isDone, prevDone) => {
                 if (isDone) {
-                    playerState.missions[mId].status = 'completed'; // มีข้อมูล = ผ่าน
+                    playerState.missions[mId].status = 'completed'; // มีข้อมูลแสดงว่าทำแล้ว
                     playerState.missions[mId].unlocksAt = 0; 
                 } else {
-                    // ไม่มีข้อมูล (ยังไม่ทำ หรือ โดนรีเซต)
+                    // ไม่มีข้อมูล (เพราะยังไม่ทำ หรือโดนครูรีเซตข้อมูลลบทิ้งไป)
                     if (prevDone) {
-                        // ด่านก่อนหน้าผ่านแล้ว ด่านนี้ต้องทำได้เลย (เปลี่ยนเป็น unlocked เสมอ ไม่ว่าความจำเดิมจะเป็น completed ก็ตาม)
+                        // ด่านก่อนหน้าผ่านแล้ว ด่านนี้ต้องถูกเปิด (ปลดล็อกเสมอแม้อดีตจะเคย Completed)
                         if (playerState.missions[mId].status === 'completed' || playerState.missions[mId].status === 'locked') {
                             playerState.missions[mId].status = 'unlocked';
                             playerState.missions[mId].unlocksAt = 0;
                         }
                     } else {
-                        // ด่านก่อนหน้ายังไม่ผ่าน ด่านนี้ต้องถูกล็อค
+                        // ด่านก่อนหน้ายังไม่ผ่าน ด่านนี้ต้องถูกล็อก
                         playerState.missions[mId].status = 'locked';
                         playerState.missions[mId].unlocksAt = 0;
                     }
                 }
             };
 
-            // อัปเดตสถานะเช็คทีละด่านอย่างเป็นระบบ (ต้องผ่านด่านหน้าก่อน ด่านหลังถึงเปิด)
+            // อัปเดตสถานะเช็คทีละด่านอย่างเป็นระบบ
             checkStatus('m1', m1Done, true);
             checkStatus('m2', m2Done, m1Done);
             checkStatus('m3', m3Done, m2Done);
@@ -368,7 +360,7 @@
             checkStatus('m5', m5Done, m4Done);
             checkStatus('m6', false, m5Done);
 
-            savePlayerState(); // บันทึกความจำใหม่ทับทันที
+            savePlayerState(); 
         }
 
         function startGameLoop() {
@@ -397,6 +389,7 @@
             document.getElementById('display-score').textContent = playerState.score.toLocaleString();
             for (let i = 1; i <= 6; i++) {
                 let mId = 'm'+i, status = playerState.missions[mId].status, btn = document.getElementById('btn-'+mId), icon = document.getElementById('icon-'+mId);
+                if (!btn || !icon) continue;
                 btn.className = 'sidebar-btn';
                 if (status === 'locked') { btn.classList.add('locked'); icon.textContent = '🔒'; }
                 else if (status === 'unlocked') { icon.textContent = '🔓'; }
@@ -444,7 +437,7 @@
                 if (st === 'locked' || st === 'cooldown') return; 
             }
 
-            // 🛠️ ระบบล็อกหน้าด่านขั้นเด็ดขาด: ป้องกันนักเรียนกดเข้าด่านก่อนข้อมูลจริงจาก Sheets จะโหลดเสร็จ (ป้องกันบั๊ก ม.2/1)
+            // 🛠️ ล็อกไม่ให้หลุดเข้าฟอร์มจนกว่าข้อมูลชั้นเรียนจริงจากฐานข้อมูลจะมาถึง (ป้องกันบั๊ก ม.2/1)
             if (pageName !== 'dashboard' && !cachedStudentData) {
                 alert('📡 ระบบกำลังดาวน์โหลดข้อมูลประวัติและชั้นเรียนดั้งเดิมของคุณจากเซิร์ฟเวอร์ โปรดรอสักครู่แล้วกดเข้าด่านใหม่อีกครั้งครับ');
                 return;
@@ -460,9 +453,7 @@
             let sd = cachedStudentData || {};
             const isSel = (v, t) => v === t ? 'selected' : '';
 
-            // 🪷 หน้าสระบัว (Dashboard)
             if (pageName === 'dashboard') {
-                // 🌟 ตรวจสอบว่ามีรูปภาพหรือไม่ เพื่อนำมาแสดงตรงกลางหน้าจอ
                 let centerProfileImg = '';
                 if (sd.profileImageUrl) {
                     centerProfileImg = `<div style="text-align:center; margin-bottom: 20px;">
@@ -483,7 +474,6 @@
                     </div>
                 `;
             }
-            // 🌸 กลีบที่ 1: รากฐานตัวตน
             else if (pageName === 'mission1') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
@@ -511,7 +501,6 @@
                         <button type="submit" class="btn-submit">ประทับกลีบที่ 1 🪷</button>
                     </form>`;
             }
-            // 🌸 กลีบที่ 2: สายใยครอบครัว
             else if (pageName === 'mission2') {
                 contentArea.innerHTML = `
                     <div class="timer-hud">⏱ <span id="mission-timer-display">00:00</span></div>
@@ -554,7 +543,6 @@
                         <button type="submit" class="btn-submit">ประทับกลีบที่ 2 🪷</button>
                     </form>`;
             }
-            // 🌸 กลีบที่ 3: พลังกายสุขภาพ
             else if (pageName === 'mission3') {
                 let h = {}; try { h = JSON.parse(sd.medicalCondition || '{}'); } catch(e){}
                 contentArea.innerHTML = `
@@ -597,7 +585,6 @@
                     </form>`;
                 calcBMI();
             }
-            // 🌸 กลีบที่ 4: สายลมมิตรภาพ
             else if (pageName === 'mission4') {
                 let pref = {}; try { pref = JSON.parse(sd.preferencesJson || '{}'); } catch(e){}
                 m4State.friendsRatings = JSON.parse(sd.friendsJson || '{}');
@@ -682,10 +669,36 @@
                     </form>`;
                 
                 renderClassmates(); renderScholarships(); toggleTravel();
-                if(pref.subs) pref.subs.forEach(s => { let c = document.querySelector(`#m4-subs input[value="${s}"]`); if(c) c.checked=true; });
-                if(pref.subs?.includes('อื่นๆ')) document.getElementById('m4-s-o').style.display='block';
-                if(pref.acts) pref.acts.forEach(a => { let c = document.querySelector(`#m4-acts input[value="${s}"]`); if(c) c.checked=true; });
-                if(pref.acts?.includes('อื่นๆ')) document.getElementById('m4-a-o').style.display='block';
+                
+                // 🛠️ แก้ไขโค้ดแสดงความชอบให้ครอบคลุม (แม้จะเป็นคำตอบอื่นๆ ก็ดึงมาโชว์ได้สมบูรณ์)
+                if(pref.subs) {
+                    const stdSubs = ['คณิต','ไทย','อังกฤษ','วิทยาศาสตร์','ศิลปะ','พละ'];
+                    pref.subs.forEach(s => {
+                        if (stdSubs.includes(s)) {
+                            let c = document.querySelector(`#m4-subs input[value="${s}"]`); if(c) c.checked=true;
+                        } else {
+                            let cOther = document.querySelector(`#m4-subs input[value="อื่นๆ"]`); if(cOther) cOther.checked=true;
+                            document.getElementById('m4-s-o').style.display = 'block'; document.getElementById('m4-s-o').value = s;
+                        }
+                    });
+                }
+                if(pref.acts) {
+                    const stdActs = ['กีฬา','เพลง','ซีรี่ส์','เกม'];
+                    pref.acts.forEach(a => {
+                        if (stdActs.includes(a)) {
+                            let c = document.querySelector(`#m4-acts input[value="${a}"]`); if(c) c.checked=true;
+                        } else {
+                            let cOther = document.querySelector(`#m4-acts input[value="อื่นๆ"]`); if(cOther) cOther.checked=true;
+                            document.getElementById('m4-a-o').style.display = 'block'; document.getElementById('m4-a-o').value = a;
+                        }
+                    });
+                }
+                if(pref.career) {
+                    const stdCareers = ['ตำรวจ','ทหาร','หมอ','พยาบาล','ครู','ธุรกิจส่วนตัว'];
+                    let sel = document.getElementById('m4-career');
+                    if(stdCareers.includes(pref.career)) { sel.value = pref.career; } 
+                    else { sel.value = 'อื่นๆ'; document.getElementById('m4-c-o').style.display='block'; document.getElementById('m4-c-o').value = pref.career; }
+                }
             }
             // 🌸 กลีบที่ 5: แหล่งพักพิง (ที่อยู่และรูปภาพ)
             else if (pageName === 'mission5') {
@@ -845,7 +858,7 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 600; // บีบอัดให้กว้างสุด 600px 
+                        const MAX_WIDTH = 600; 
                         const MAX_HEIGHT = 600;
                         let width = img.width; let height = img.height;
 
@@ -859,7 +872,6 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        // แปลงเป็น Base64 แบบบีบอัดคุณภาพ 60% เพื่อให้ส่งผ่านเน็ตได้เร็วปรี๊ด
                         resolve(canvas.toDataURL('image/jpeg', 0.6));
                     };
                     img.onerror = (e) => reject(e);
@@ -880,10 +892,10 @@
             try {
                 if (num === 1) {
                     p.citizenId = document.getElementById('m1-citizenId').value;
-                    p.fullName = sd.fullName; // 🔒 ดึงข้อมูลจากฐานข้อมูลโดยตรงเพื่อความปลอดภัยสูงสุด ป้องกันนักเรียนเปลี่ยนชื่อหน้าเว็บ
+                    p.fullName = sd.fullName; // 🔒 ดึงข้อมูลจากฐานข้อมูลโดยตรง ป้องกันนักเรียนเปลี่ยนชื่อหน้าเว็บ
                     p.birthDate = document.getElementById('m1-birth').value;
                     p.religion = document.getElementById('m1-religion').value;
-                    p.level = sd.level; // 🔒 ดึงข้อมูลชั้นเรียนจริงจากฐานข้อมูลตรงๆ 100%
+                    p.level = sd.level; // 🔒 ดึงข้อมูลชั้นเรียนจริงจากฐานข้อมูล 
 
                     if(document.getElementById('m1-img').files.length > 0) {
                         p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
