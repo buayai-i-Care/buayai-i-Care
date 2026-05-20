@@ -40,7 +40,7 @@
             width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1px solid #78350f; border-radius: 10px; color: #fff; box-sizing: border-box; font-family: 'Prompt', sans-serif; transition: 0.3s;
         }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
-        input:disabled, select:disabled { background: rgba(255,255,255,0.05); color: #64748b; border-color: #1e293b; cursor: not-allowed; }
+        input:disabled, select:disabled { background: rgba(255,255,255,0.05); color: #a1a1aa; border-color: #451a03; cursor: not-allowed; }
         
         .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #ea580c); color: white; border: none; border-radius: 10px; font-family: 'Prompt', sans-serif; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px var(--primary-glow); margin-top: 20px; }
         .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
@@ -135,15 +135,12 @@
 </head>
 <body>
 
-    <!-- [ View 1: Login ] -->
     <div id="login-view">
         <div class="login-card">
             <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียนบัวใหญ่" class="login-logo">
             <h1>เข้าสู่ระบบฐานข้อมูลพื้นฐานนักเรียนโรงเรียนบัวใหญ่</h1>
             <p>สระบัวแห่งความห่วงใย (Buayai I Care School)</p>
-            <!-- 🛠️ เพิ่ม autocomplete="off" ที่ฟอร์มเพื่อป้องกันเบราว์เซอร์จำข้อมูล -->
             <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
-                <!-- 🛠️ ใส่ autocomplete="off" และ new-password เพื่อบังคับให้ต้องพิมพ์ใหม่ -->
                 <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" autocomplete="off" required></div>
                 <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" autocomplete="new-password" required></div>
                 <button type="submit" id="loginBtn" class="btn-submit">เริ่มสะสมกลีบดอกบัว 🌸</button>
@@ -152,11 +149,9 @@
         </div>
     </div>
 
-    <!-- [ View 2: Dashboard ] -->
     <div id="dashboard-view">
         <div class="sidebar">
             <div class="player-profile">
-                <!-- 🌟 อวาตาร์โปรไฟล์ จะถูกเปลี่ยนเป็นรูปนักเรียนถ้าระบบดึงข้อมูลเจอ -->
                 <div class="player-avatar" id="sidebar-avatar">🪷</div>
                 <h3 style="margin: 0; color: var(--accent);">ลูกบัวใหญ่เลขประจำตัวนักเรียน: <br><span id="display-studentId">-</span></h3>
                 <div class="score-box"><small>หยาดน้ำค้างสะสม 💧</small><span id="display-score">0</span></div>
@@ -183,7 +178,6 @@
         </div>
     </div>
 
-    <!-- [ Modal ยินดีด้วยเมื่อได้รับกลีบ ] -->
     <div id="custom-modal">
         <div class="modal-content">
             <div style="font-size: 4rem; margin-bottom: 10px;" id="modal-icon">🌸</div>
@@ -233,9 +227,6 @@
 
             const savedState = localStorage.getItem('playerState');
             if(savedState) playerState = JSON.parse(savedState);
-            
-            // 🛠️ เอาเงื่อนไขที่เช็คว่าล็อกอินแล้วให้เข้าหน้า Dashboard ออก 
-            // เพื่อบังคับให้ทุกคนต้องเจอหน้าต่าง Login เสมอเวลาเปิดลิงก์ใหม่
         };
 
         function savePlayerState() { localStorage.setItem('playerState', JSON.stringify(playerState)); updateSidebarUI(); }
@@ -407,6 +398,12 @@
                 if (st === 'locked' || st === 'cooldown') return; 
             }
 
+            // 🛠️ ระบบล็อกหน้าด่านขั้นเด็ดขาด: ป้องกันนักเรียนกดเข้าด่านก่อนข้อมูลจริงจาก Sheets จะโหลดเสร็จ (ป้องกันบั๊ก ม.2/1)
+            if (pageName !== 'dashboard' && !cachedStudentData) {
+                alert('📡 ระบบกำลังดาวน์โหลดข้อมูลประวัติและชั้นเรียนดั้งเดิมของคุณจากเซิร์ฟเวอร์ โปรดรอสักครู่แล้วกดเข้าด่านใหม่อีกครั้งครับ');
+                return;
+            }
+
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
 
@@ -448,8 +445,8 @@
                     <form onsubmit="submitMission(event, 1)">
                         <div class="form-grid">
                             <div class="form-group full-width"><label>🆔 เลขบัตรประชาชน</label><input type="text" id="m1-citizenId" value="${sd.citizenId || ''}" maxlength="13" required></div>
-                            <div class="form-group full-width"><label>👤 ชื่อ-สกุล</label><input type="text" id="m1-fullName" value="${sd.fullName || ''}" required></div>
-                            <div class="form-group"><label>🏫 ชั้น (ล็อก 🔒)</label><input type="text" value="${sd.level || 'ม.2/1'}" disabled></div>
+                            <div class="form-group full-width"><label>👤 ชื่อ-สกุล (ล็อกข้อมูลโรงเรียน 🔒)</label><input type="text" id="m1-fullName" value="${sd.fullName || ''}" disabled></div>
+                            <div class="form-group"><label>🏫 ชั้นเรียน (ล็อกข้อมูลโรงเรียน 🔒)</label><input type="text" value="${sd.level || ''}" disabled placeholder="ไม่มีข้อมูลชั้นเรียนในฐานข้อมูล"></div>
                             <div class="form-group"><label>📅 วันเกิด (คลิกไอคอนปฏิทิน)</label><input type="date" id="m1-birth" value="${sd.birthDate || ''}" required></div>
                             <div class="form-group full-width"><label>🕊️ ศาสนา</label>
                                 <select id="m1-religion" required>
@@ -641,7 +638,7 @@
                 renderClassmates(); renderScholarships(); toggleTravel();
                 if(pref.subs) pref.subs.forEach(s => { let c = document.querySelector(`#m4-subs input[value="${s}"]`); if(c) c.checked=true; });
                 if(pref.subs?.includes('อื่นๆ')) document.getElementById('m4-s-o').style.display='block';
-                if(pref.acts) pref.acts.forEach(a => { let c = document.querySelector(`#m4-acts input[value="${a}"]`); if(c) c.checked=true; });
+                if(pref.acts) pref.acts.forEach(a => { let c = document.querySelector(`#m4-acts input[value="${s}"]`); if(c) c.checked=true; });
                 if(pref.acts?.includes('อื่นๆ')) document.getElementById('m4-a-o').style.display='block';
             }
             // 🌸 กลีบที่ 5: แหล่งพักพิง (ที่อยู่และรูปภาพ)
@@ -837,12 +834,10 @@
             try {
                 if (num === 1) {
                     p.citizenId = document.getElementById('m1-citizenId').value;
-                    p.fullName = document.getElementById('m1-fullName').value;
+                    p.fullName = sd.fullName; // 🔒 ดึงข้อมูลจากฐานข้อมูลโดยตรงเพื่อความปลอดภัยสูงสุด ป้องกันนักเรียนเปลี่ยนชื่อหน้าเว็บ
                     p.birthDate = document.getElementById('m1-birth').value;
                     p.religion = document.getElementById('m1-religion').value;
-                    
-                    // 🛡️ ป้องกันชั้นที่ 1 (ฝั่งหน้าเว็บ): ส่งค่าชั้นเรียนกลับไปด้วยเสมอ ป้องกันค่ากลายเป็นช่องว่าง
-                    p.level = sd.level; 
+                    p.level = sd.level; // 🔒 ดึงข้อมูลชั้นเรียนจริงจากฐานข้อมูลตรงๆ 100%
 
                     if(document.getElementById('m1-img').files.length > 0) {
                         p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
