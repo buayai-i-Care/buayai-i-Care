@@ -2,56 +2,45 @@
 const EPOINT_APP_URL = 'https://buayai-i-care.github.io/buayai-i-Care/warning_Epoint.html';
 const CSS_URL = 'https://cdn.jsdelivr.net/gh/buayai-i-Care/buayai-i-Care@main/css_Global_waring.css';
 
-// 2. ฟังก์ชันตรวจสอบรหัสห้องอัตโนมัติ (ฉบับแก้บั๊กขั้นสุด)
+// 2. ฟังก์ชันค้นหารหัสห้องแบบ "สแกนลึก" (Deep Scanner) - วิธีใหม่ล่าสุด
 function getTeacherCode() {
+    // ฟังก์ชันย่อยสกัดรหัสห้องจากข้อความ
+    const extractRoomCode = (text) => {
+        if (!text || typeof text !== 'string') return null;
+        // รองรับทั้ง "ม.2/1", "2/1", "ม. 2/1", "ชั้น 2/1"
+        const match = text.match(/(?:ม\.|ม|ชั้น)?\s*([1-6])\s*\/\s*([1-9][0-9]?)/);
+        if (match) return 't' + match[1] + match[2];
+        return null;
+    };
+
     try {
-        let roomStr = "";
-
-        // ขั้นที่ 1: พยายามอ่านจากตัวแปรบนหน้าเว็บโดยตรง
-        try {
-            if (typeof currentUser !== 'undefined' && currentUser != null) {
-                roomStr = currentUser.assignedClass || currentUser.className || currentUser.room || "";
-            }
-        } catch(e) {}
-
-        // ขั้นที่ 2: ถ้าไม่ได้ ลองหาใน LocalStorage แบบหว่านแห (ครอบคลุมหลายชื่อ)
-        if (!roomStr) {
-            const keysToCheck = ['currentUser', 'user', 'userData', 'teacher_info', 'login_data'];
-            for (let k of keysToCheck) {
-                let data = localStorage.getItem(k) || sessionStorage.getItem(k);
-                if (data) {
-                    try {
-                        let parsed = JSON.parse(data);
-                        roomStr = parsed.assignedClass || parsed.className || parsed.room || "";
-                        if (roomStr) break;
-                    } catch(e) {}
-                }
+        // วิธีใหม่ที่ 1: กวาดหาข้อมูลจาก "ทุก Key" ใน Storage ของ Browser
+        // โดยไม่สนชื่อตัวแปรว่าจะเป็นอะไร ระบบจะควานหาข้อความที่ตรงกับรูปแบบห้องเอง
+        const storages = [localStorage, sessionStorage];
+        for (let storage of storages) {
+            for (let i = 0; i < storage.length; i++) {
+                let key = storage.key(i);
+                let value = storage.getItem(key);
+                let code = extractRoomCode(value);
+                if (code) return code; // ถ้าเจอ คืนค่าทันที
             }
         }
 
-        // ขั้นที่ 3: นำคำที่ได้ (เช่น "ม.2/1" หรือ "2/1") มาแกะเป็นรหัส (เช่น "t21")
-        if (roomStr) {
-            // หาตัวเลขระดับชั้น 1-6 และห้อง 1-20
-            let match = roomStr.match(/([1-6])\s*\/\s*([1-9][0-9]?)/);
-            if (match) return 't' + match[1] + match[2];
-        }
+        // วิธีใหม่ที่ 2: กวาดหาข้อความบนหน้าเว็บ (กรณีมีป้ายบอกชื่อห้องบนเว็บ)
+        let bodyCode = extractRoomCode(document.body.innerText);
+        if (bodyCode) return bodyCode;
 
-        // ขั้นที่ 4: (ไม้ตาย) กวาดสายตาจากข้อความทั้งหมดบนจอ และชื่อหัวเว็บ
-        // จะมองหาคำว่า "ม.2/1", "ม. 2/1", "ชั้น 2/1", "ม2/1" อย่างเจาะจง (ป้องกันการสับสนกับวันที่)
-        const pageText = document.title + " " + (document.body ? document.body.innerText : "");
-        const screenMatch = pageText.match(/(?:ม\.|ม|ชั้น)\s*([1-6])\s*\/\s*([1-9][0-9]?)/);
-        
-        if (screenMatch) {
-            return 't' + screenMatch[1] + screenMatch[2];
-        }
+        // วิธีใหม่ที่ 3: วิเคราะห์จาก URL (เช่น ระบบ chkFlagm2.html -> เดาว่าเป็น ม.2)
+        let urlMatch = window.location.href.match(/m([1-6])/i);
+        if (urlMatch) return 'm' + urlMatch[1]; // ส่งเป็นหัวหน้าระดับ ม.X
 
     } catch (e) {
-        console.error("E-Point Widget Error:", e);
+        console.error("Widget Scanner Error:", e);
     }
     
-    // ถ้าไม่เจอจากทุกทางจริงๆ จะแจ้งเตือนใน Console (ให้กด F12 ดู)
-    console.warn("E-Point Widget: ไม่พบรหัสห้องเรียนบนหน้าเว็บนี้ ระบบจะดึงข้อมูล ม.3/2 มาให้แทน");
-    return 't32';
+    // 🌟 สำคัญ: ยกเลิกการบังคับใช้ t32 (ม.3/2) หากหาไม่เจอ 
+    // คืนค่าว่างไป เพื่อป้องกันการดึงข้อมูลผิดห้อง
+    return ''; 
 }
 
 // 3. แทรกโครงสร้าง Widget 
@@ -77,11 +66,17 @@ document.body.insertAdjacentHTML('beforeend', widgetHTML);
 
 // 4. ฟังก์ชันเปิด Widget (ทำงานเมื่อถูกคลิก)
 window.openEpointWidget = () => {
-    // 🌟 แกะรหัสอัตโนมัติ ณ วินาทีที่ครูกดปุ่ม
     const user = getTeacherCode(); 
-    
     const iframe = document.getElementById('epointIframe');
-    iframe.src = `${EPOINT_APP_URL}?user=${user}&view=compact`;
+    
+    // หากสแกนเจอผู้ใช้ จะส่ง user ไปล็อกอินอัตโนมัติ
+    // แต่ถ้าหาไม่เจอจริงๆ จะเปิดหน้าจอปกติให้แทน เพื่อความปลอดภัยของข้อมูล
+    if (user) {
+        iframe.src = `${EPOINT_APP_URL}?user=${user}&view=compact`;
+    } else {
+        iframe.src = `${EPOINT_APP_URL}?view=compact`;
+    }
+    
     document.getElementById('epointModalWidget').classList.add('show');
 };
 
