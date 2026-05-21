@@ -2,37 +2,55 @@
 const EPOINT_APP_URL = 'https://buayai-i-care.github.io/buayai-i-Care/warning_Epoint.html';
 const CSS_URL = 'https://cdn.jsdelivr.net/gh/buayai-i-Care/buayai-i-Care@main/css_Global_waring.css';
 
-// 2. ฟังก์ชันตรวจสอบรหัสห้องอัตโนมัติ (ขั้นสูง: รองรับระบบ Login ของ chkFlagm2.html)
+// 2. ฟังก์ชันตรวจสอบรหัสห้องอัตโนมัติ (ฉบับแก้บั๊กขั้นสุด)
 function getTeacherCode() {
     try {
-        // เช็คชั้นที่ 1: ดึงจาก LocalStorage (ระบบ Login มักจะเก็บข้อมูลไว้ที่นี่)
-        let storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            let parsed = JSON.parse(storedUser);
-            if (parsed && parsed.assignedClass) {
-                let match = parsed.assignedClass.match(/(\d+)\/(\d+)/);
-                if (match) return 't' + match[1] + match[2];
+        let roomStr = "";
+
+        // ขั้นที่ 1: พยายามอ่านจากตัวแปรบนหน้าเว็บโดยตรง
+        try {
+            if (typeof currentUser !== 'undefined' && currentUser != null) {
+                roomStr = currentUser.assignedClass || currentUser.className || currentUser.room || "";
+            }
+        } catch(e) {}
+
+        // ขั้นที่ 2: ถ้าไม่ได้ ลองหาใน LocalStorage แบบหว่านแห (ครอบคลุมหลายชื่อ)
+        if (!roomStr) {
+            const keysToCheck = ['currentUser', 'user', 'userData', 'teacher_info', 'login_data'];
+            for (let k of keysToCheck) {
+                let data = localStorage.getItem(k) || sessionStorage.getItem(k);
+                if (data) {
+                    try {
+                        let parsed = JSON.parse(data);
+                        roomStr = parsed.assignedClass || parsed.className || parsed.room || "";
+                        if (roomStr) break;
+                    } catch(e) {}
+                }
             }
         }
 
-        // เช็คชั้นที่ 2: ดึงจากตัวแปร Global บนหน้าเว็บ (ดึงจาก currentUser)
-        if (typeof currentUser !== 'undefined' && currentUser.assignedClass) {
-            let match = currentUser.assignedClass.match(/(\d+)\/(\d+)/); 
-            if (match) return 't' + match[1] + match[2]; 
+        // ขั้นที่ 3: นำคำที่ได้ (เช่น "ม.2/1" หรือ "2/1") มาแกะเป็นรหัส (เช่น "t21")
+        if (roomStr) {
+            // หาตัวเลขระดับชั้น 1-6 และห้อง 1-20
+            let match = roomStr.match(/([1-6])\s*\/\s*([1-9][0-9]?)/);
+            if (match) return 't' + match[1] + match[2];
         }
+
+        // ขั้นที่ 4: (ไม้ตาย) กวาดสายตาจากข้อความทั้งหมดบนจอ และชื่อหัวเว็บ
+        // จะมองหาคำว่า "ม.2/1", "ม. 2/1", "ชั้น 2/1", "ม2/1" อย่างเจาะจง (ป้องกันการสับสนกับวันที่)
+        const pageText = document.title + " " + (document.body ? document.body.innerText : "");
+        const screenMatch = pageText.match(/(?:ม\.|ม|ชั้น)\s*([1-6])\s*\/\s*([1-9][0-9]?)/);
         
-        // เช็คชั้นที่ 3: กวาดสายตาจากข้อความที่แสดงอยู่บนหน้าเว็บ (กรณีหาตัวแปรไม่เจอ)
-        const pageText = document.body.innerText;
-        const screenMatch = pageText.match(/ม\.(\d+)\/(\d+)/); // หาคำว่า ม.X/Y
         if (screenMatch) {
             return 't' + screenMatch[1] + screenMatch[2];
         }
 
     } catch (e) {
-        console.error("Widget: ไม่สามารถอ่านรหัสห้องได้", e);
+        console.error("E-Point Widget Error:", e);
     }
     
-    // ถ้าหาจากทั้ง 3 วิธีไม่เจอเลย ให้ใช้ค่า Default เพื่อไม่ให้ระบบพัง
+    // ถ้าไม่เจอจากทุกทางจริงๆ จะแจ้งเตือนใน Console (ให้กด F12 ดู)
+    console.warn("E-Point Widget: ไม่พบรหัสห้องเรียนบนหน้าเว็บนี้ ระบบจะดึงข้อมูล ม.3/2 มาให้แทน");
     return 't32';
 }
 
