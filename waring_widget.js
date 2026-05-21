@@ -1,49 +1,39 @@
-// 1. กำหนด URL (ตรวจสอบลิงก์ให้ตรงกับที่ฝากไฟล์ไว้)
+// =======================================================
+// ไฟล์ waring_widget.js (แก้ไขบน GitHub ที่เดียวจบ)
+// =======================================================
+
 const EPOINT_APP_URL = 'https://buayai-i-care.github.io/buayai-i-Care/warning_Epoint.html';
 const CSS_URL = 'https://cdn.jsdelivr.net/gh/buayai-i-Care/buayai-i-Care@main/css_Global_waring.css';
 
-// 2. ฟังก์ชันค้นหารหัสห้องแบบ "สแกนลึก" (Deep Scanner) - วิธีใหม่ล่าสุด
-function getTeacherCode() {
-    // ฟังก์ชันย่อยสกัดรหัสห้องจากข้อความ
-    const extractRoomCode = (text) => {
-        if (!text || typeof text !== 'string') return null;
-        // รองรับทั้ง "ม.2/1", "2/1", "ม. 2/1", "ชั้น 2/1"
-        const match = text.match(/(?:ม\.|ม|ชั้น)?\s*([1-6])\s*\/\s*([1-9][0-9]?)/);
-        if (match) return 't' + match[1] + match[2];
-        return null;
-    };
-
+// 1. ฟังก์ชันดึงรหัสที่แม่นยำที่สุด (ดึงจากระบบของคุณสุโดยตรง)
+function getTeacherCodeLive() {
     try {
-        // วิธีใหม่ที่ 1: กวาดหาข้อมูลจาก "ทุก Key" ใน Storage ของ Browser
-        // โดยไม่สนชื่อตัวแปรว่าจะเป็นอะไร ระบบจะควานหาข้อความที่ตรงกับรูปแบบห้องเอง
-        const storages = [localStorage, sessionStorage];
-        for (let storage of storages) {
-            for (let i = 0; i < storage.length; i++) {
-                let key = storage.key(i);
-                let value = storage.getItem(key);
-                let code = extractRoomCode(value);
-                if (code) return code; // ถ้าเจอ คืนค่าทันที
-            }
+        // 🌟 วิธีที่ 1 (กุญแจทองคำ): ดึงจากหน่วยความจำที่ระบบ chkFlagm2.html บันทึกไว้ตอน Login
+        let savedUser = sessionStorage.getItem('teacher_pw_auto');
+        if (savedUser) {
+            return savedUser; // คืนค่า t21, t32 ฯลฯ ได้ตรงเป๊ะแน่นอน 100%
         }
 
-        // วิธีใหม่ที่ 2: กวาดหาข้อความบนหน้าเว็บ (กรณีมีป้ายบอกชื่อห้องบนเว็บ)
-        let bodyCode = extractRoomCode(document.body.innerText);
-        if (bodyCode) return bodyCode;
+        // วิธีที่ 2 (สำรอง): ดึงจากตัวแปร currentUser ตรงๆ
+        if (typeof currentUser !== 'undefined' && currentUser.assignedClass) {
+            let match = currentUser.assignedClass.match(/([1-6])\s*[\/\-]\s*([1-9][0-9]?)/);
+            if (match) return 't' + match[1] + match[2];
+        }
 
-        // วิธีใหม่ที่ 3: วิเคราะห์จาก URL (เช่น ระบบ chkFlagm2.html -> เดาว่าเป็น ม.2)
-        let urlMatch = window.location.href.match(/m([1-6])/i);
-        if (urlMatch) return 'm' + urlMatch[1]; // ส่งเป็นหัวหน้าระดับ ม.X
+        // วิธีที่ 3 (สำรองขั้นสุด): กวาดสายตาจากบนหน้าจอ
+        let screenText = document.title + " " + document.body.innerText;
+        let visualMatch = screenText.match(/(?:ม\.|ม|ชั้น|ห้อง)\s*([1-6])\s*[\/\-]\s*([1-9][0-9]?)/);
+        if (visualMatch) return 't' + visualMatch[1] + visualMatch[2];
 
-    } catch (e) {
-        console.error("Widget Scanner Error:", e);
+    } catch (err) {
+        console.error("E-Point Widget Error:", err);
     }
     
-    // 🌟 สำคัญ: ยกเลิกการบังคับใช้ t32 (ม.3/2) หากหาไม่เจอ 
-    // คืนค่าว่างไป เพื่อป้องกันการดึงข้อมูลผิดห้อง
+    // ถ้าไม่เจอจริงๆ (เช่น ครูยังไม่ได้ล็อกอิน) ให้คืนค่าว่างไปเพื่อความปลอดภัย
     return ''; 
 }
 
-// 3. แทรกโครงสร้าง Widget 
+// 2. สร้างโครงสร้าง Widget (ปุ่มและ Modal)
 const widgetHTML = `
     <link rel="stylesheet" href="${CSS_URL}">
     <button id="epoint-btn" class="epoint-widget-btn" title="ระบบตักเตือน E-Point">
@@ -61,18 +51,20 @@ const widgetHTML = `
     </div>
 `;
 
-// แปะ Widget เข้าไปในหน้าเว็บ
-document.body.insertAdjacentHTML('beforeend', widgetHTML);
+// แทรก Widget เข้าไปในหน้าเว็บ (ป้องกันการแทรกซ้ำ)
+if (!document.getElementById('epoint-btn')) {
+    document.body.insertAdjacentHTML('beforeend', widgetHTML);
+}
 
-// 4. ฟังก์ชันเปิด Widget (ทำงานเมื่อถูกคลิก)
+// 3. ฟังก์ชันเปิดหน้าต่าง
 window.openEpointWidget = () => {
-    const user = getTeacherCode(); 
+    // 🌟 ดึงข้อมูลจาก Session ทันทีที่ครูคลิก
+    const userCode = getTeacherCodeLive(); 
     const iframe = document.getElementById('epointIframe');
     
-    // หากสแกนเจอผู้ใช้ จะส่ง user ไปล็อกอินอัตโนมัติ
-    // แต่ถ้าหาไม่เจอจริงๆ จะเปิดหน้าจอปกติให้แทน เพื่อความปลอดภัยของข้อมูล
-    if (user) {
-        iframe.src = `${EPOINT_APP_URL}?user=${user}&view=compact`;
+    // ถ้ารู้รหัส จะส่งรหัส (เช่น user=t21) ไปให้ Auto-login
+    if (userCode) {
+        iframe.src = `${EPOINT_APP_URL}?user=${userCode}&view=compact`;
     } else {
         iframe.src = `${EPOINT_APP_URL}?view=compact`;
     }
@@ -80,5 +72,5 @@ window.openEpointWidget = () => {
     document.getElementById('epointModalWidget').classList.add('show');
 };
 
-// 5. ผูกปุ่มคลิก
+// 4. ผูกปุ่มคลิกให้ทำงาน
 document.getElementById('epoint-btn').onclick = () => openEpointWidget();
