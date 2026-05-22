@@ -69,7 +69,37 @@
 details[open] .chevron-rotate { transform: rotate(180deg); }
 .status-badge-pill { font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; font-weight: 700; }
 
+/* --- ชุดคำสั่งตั้งค่าหน้ากระดาษเมื่อสั่งพิมพ์ --- */
+@media print {
+    /* ซ่อนแถบด้านบน เมนูด้านข้าง และปุ่มกดต่างๆ */
+    .top-navbar, .sidebar, #print-controls, .hamburger-btn, #sidebar-overlay {
+        display: none !important;
+    }
+    
+    /* บังคับให้แสดงแค่เฉพาะส่วนของเนื้อหารายงาน */
+    body * {
+        visibility: hidden;
+    }
+    #view-print, #view-print * {
+        visibility: visible;
+    }
+    
+    /* จัดตำแหน่งหน้ากระดาษรายงานให้พอดีขอบซ้ายบน */
+    #view-print {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
 
+    /* บังคับให้พื้นหลังและสีสันต่างๆ แสดงตอนพิมพ์ */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
 
         
     </style>
