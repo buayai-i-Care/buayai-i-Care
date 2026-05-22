@@ -405,7 +405,8 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
                 document.querySelectorAll('.current-room-badge').forEach(el => { el.innerText = 'ห้อง ' + appState.room; el.style.display = 'inline-block'; });
                 document.querySelectorAll('.current-room-text').forEach(el => el.innerText = appState.room);
                 
-                const teacherNames = appState.name.split(/[,/]/).map(n => n.trim()).filter(n => n);
+                // เปลี่ยนจาก split(/[,/]/) เป็น split(',')
+const teacherNames = appState.name.split(',').map(n => n.trim()).filter(n => n);
                 let html = ''; teacherNames.forEach(n => html += `<div><div class="sign-line mt-3"></div><p class="mb-0">( <span class="fw-bold">${n}</span> )</p><small class="text-muted">ครูที่ปรึกษา</small></div>`);
                 document.getElementById('print-teachers-container').innerHTML = html;
                 
