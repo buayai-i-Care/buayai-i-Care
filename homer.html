@@ -424,32 +424,47 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
             finally { document.getElementById('btn-login').innerHTML = 'เข้าสู่ระบบ'; document.getElementById('btn-login').disabled = false; }
         }
 
-        function setupUI() {
-            document.getElementById('login-view').style.display = 'none'; document.getElementById('app-view').style.display = 'block'; document.getElementById('top-user-name').innerText = appState.name;
-            
-            if (appState.role === 'teacher') {
-                document.getElementById('menu-teacher').style.display = 'block';
-                document.querySelectorAll('.current-room-badge').forEach(el => { el.innerText = 'ห้อง ' + appState.room; el.style.display = 'inline-block'; });
-                document.querySelectorAll('.current-room-text').forEach(el => el.innerText = appState.room);
-                
-                // เปลี่ยนจาก split(/[,/]/) เป็น split(',')
-const teacherNames = appState.name.split(',').map(n => n.trim()).filter(n => n);
-                let html = ''; teacherNames.forEach(n => html += `<div><div class="sign-line mt-3"></div><p class="mb-0">( <span class="fw-bold">${n}</span> )</p><small class="text-muted">ครูที่ปรึกษา</small></div>`);
-                document.getElementById('print-teachers-container').innerHTML = html;
-                
-                const d = formatISODate(now); document.getElementById('record-date-input').value = d; document.getElementById('insp-inline-date').value = d; document.getElementById('week-selector').value = d; document.getElementById('print-month-selector').value = d.substring(0, 7);
-                fetchDailyStats(); generateTimeline(); switchMenu('record');
-            } else {
-                document.getElementById('menu-teacher').style.display = 'none'; document.getElementById('menu-head').style.display = 'block';
-                document.getElementById('head-dashboard-subtitle').innerText = appState.room;
-                
-                const d = formatISODate(now);
-                document.getElementById('head-week-selector').value = d;
-                document.getElementById('stats-week-picker').value = d;
-                
-                switchMenu('head-dashboard'); loadHeadDashboard(); 
-            }
-        }
+function setupUI() {
+    document.getElementById('login-view').style.display = 'none'; 
+    document.getElementById('app-view').style.display = 'block'; 
+    document.getElementById('top-user-name').innerText = appState.name;
+    
+    if (appState.role === 'teacher') {
+        document.getElementById('menu-teacher').style.display = 'block';
+        document.querySelectorAll('.current-room-badge').forEach(el => { el.innerText = 'ห้อง ' + appState.room; el.style.display = 'inline-block'; });
+        document.querySelectorAll('.current-room-text').forEach(el => el.innerText = appState.room);
+        
+        // เปลี่ยนจาก split(/[,/]/) เป็น split(',')
+        const teacherNames = appState.name.split(',').map(n => n.trim()).filter(n => n);
+        let html = ''; 
+        // 🌟 แก้ไขตรงนี้: เพิ่ม class="text-center" เข้าไปที่ div ตัวแรก
+        teacherNames.forEach(n => html += `<div class="text-center"><div class="sign-line mt-3"></div><p class="mb-0">( <span class="fw-bold">${n}</span> )</p><small class="text-muted">ครูที่ปรึกษา</small></div>`);
+        document.getElementById('print-teachers-container').innerHTML = html;
+        
+        const d = formatISODate(now); 
+        document.getElementById('record-date-input').value = d; 
+        document.getElementById('insp-inline-date').value = d; 
+        document.getElementById('week-selector').value = d; 
+        document.getElementById('print-month-selector').value = d.substring(0, 7);
+        fetchDailyStats(); 
+        generateTimeline(); 
+        switchMenu('record');
+    } else {
+        document.getElementById('menu-teacher').style.display = 'none'; 
+        document.getElementById('menu-head').style.display = 'block';
+        document.getElementById('head-dashboard-subtitle').innerText = appState.room;
+        
+        const d = formatISODate(now);
+        document.getElementById('head-week-selector').value = d;
+        document.getElementById('stats-week-picker').value = d;
+        
+        switchMenu('head-dashboard'); 
+        loadHeadDashboard(); 
+    }
+}
+
+
+        
         
         function logout() { window.location.href = window.location.pathname; }
         
