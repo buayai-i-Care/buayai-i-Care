@@ -1280,9 +1280,76 @@ function updateWarningBadge(data) {
         if (badge) badge.classList.add('d-none');
         if (badgeHead) badgeHead.classList.add('d-none');
     }
+  
 }
 
 
+// ====================================================
+        // ดึงข้อมูลเดิมกลับไปแก้ไขที่หน้าบันทึก (ฉบับแก้ไข UX นุ่มนวล)
+        // ====================================================
+        function loadRecordToEdit(dateStr, rawDetails) {
+            // 1. เปลี่ยนหน้าแบบเงียบๆ (ไม่ส่งค่าปุ่มเข้าไป เพื่อไม่ให้ Sidebar เด้งเปิด)
+            switchMenu('record');
+            
+            // อัปเดตแถบสีเมนูหลักให้ชี้ไปที่ "บันทึกโฮมรูม" ให้ถูกต้อง
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active', 'active-head'));
+            document.querySelectorAll('.nav-link')[0].classList.add('active');
+            
+            // 2. ใส่วันที่ และดึงสถิติกลับมา
+            document.getElementById('record-date-input').value = dateStr;
+            fetchDailyStats();
+            
+            // 3. รีเซตฟอร์มให้ว่างก่อน
+            resetRecordForm();
+            
+            // 4. แยกข้อความแล้วติ๊ก Checkbox ให้ตรงกับของเดิม
+            let parts = rawDetails.split('<br>');
+            parts.forEach(p => {
+                if (p.includes('1. ประกาศ:')) {
+                    document.getElementById('chk-announce').checked = true;
+                    toggleInput('input-announce', document.getElementById('chk-announce'));
+                    document.getElementById('val-announce').value = p.replace(/<b>1\. ประกาศ:<\/b>\s*/, '').replace(/<span.*<\/span>/, '').trim();
+                }
+                if (p.includes('2. ตรวจระเบียบ/สุขภาพ:')) {
+                    document.getElementById('chk-health').checked = true;
+                    toggleInput('input-health', document.getElementById('chk-health'));
+                    document.getElementById('val-health-other').value = p.replace(/<b>2\. ตรวจระเบียบ\/สุขภาพ:<\/b>\s*/, '').replace(/<span.*<\/span>/, '').trim();
+                }
+                if (p.includes('3. ติดต่อ ผปค.:')) {
+                    document.getElementById('chk-parent').checked = true;
+                    toggleInput('input-parent', document.getElementById('chk-parent'));
+                    document.getElementById('val-parent-other').value = p.replace(/<b>3\. ติดต่อ ผปค\.:<\/b>\s*/, '').replace(/<span.*<\/span>/, '').trim();
+                }
+                if (p.includes('4. มอบทุน:')) {
+                    document.getElementById('chk-scholar').checked = true;
+                    toggleInput('input-scholar', document.getElementById('chk-scholar'));
+                    document.getElementById('val-scholar-other').value = p.replace(/<b>4\. มอบทุน:<\/b>\s*/, '').replace(/<span.*<\/span>/, '').trim();
+                }
+                if (p.includes('5. อื่นๆ:')) {
+                    document.getElementById('chk-other').checked = true;
+                    toggleInput('input-other', document.getElementById('chk-other'));
+                    document.getElementById('val-other').value = p.replace(/<b>5\. อื่นๆ:<\/b>\s*/, '').replace(/<span.*<\/span>/, '').replace(/<br>/g, '\n').trim();
+                }
+            });
+            
+            // 5. เลื่อนหน้าจอขึ้นบนสุดแบบนุ่มนวล (Smooth Scroll)
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // 6. แจ้งเตือนแบบเนียนๆ โดยเปลี่ยนสีปุ่ม "บันทึกข้อมูล" เป็นสีเหลืองชั่วคราว 4 วินาที
+            const btnSave = document.getElementById('btn-save-record');
+            const originalHTML = btnSave.innerHTML;
+            
+            btnSave.innerHTML = `<i class="bi bi-pencil-square me-2"></i> แก้ไขข้อมูลวันที่ ${dateStr.split('-').reverse().join('/')}`;
+            btnSave.classList.replace('btn-success', 'btn-warning');
+            btnSave.classList.add('text-dark');
+            
+            setTimeout(() => {
+                btnSave.innerHTML = originalHTML;
+                btnSave.classList.replace('btn-warning', 'btn-success');
+                btnSave.classList.remove('text-dark');
+            }, 4000);
+        }
+        
 
         
     </script>
