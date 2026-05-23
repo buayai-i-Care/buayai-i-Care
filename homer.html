@@ -644,27 +644,7 @@ function resetRecordForm() {
 
 
         const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
-
-        // 🌟 เพิ่มฟังก์ชันตัวช่วยสำหรับแปลงวันที่จาก 23/05/2026 เป็น 23 พ.ค. 69
-        function formatThaiShortDate(dateStr) {
-            if (!dateStr || !dateStr.includes('/')) return dateStr;
-            let parts = dateStr.split('/');
-            if (parts.length !== 3) return dateStr;
-            
-            let day = parseInt(parts[0], 10);
-            let month = parseInt(parts[1], 10);
-            let year = parseInt(parts[2], 10);
-            
-            const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-            
-            // เช็คว่าเป็น ค.ศ. หรือ พ.ศ. (ถ้าเป็น 20xx ให้บวก 543)
-            let isGregorian = year < 2500;
-            let thaiYear = isGregorian ? year + 543 : year;
-            let shortYear = thaiYear.toString().slice(-2);
-            
-            return `${day} ${thaiMonths[month - 1]} ${shortYear}`;
-        }
-
+        
         async function openSummaryPullerModal() {
             pullSummaryModal.show(); 
             document.getElementById('pull-summary-loading').classList.remove('d-none'); 
@@ -672,22 +652,50 @@ function resetRecordForm() {
             
             try {
                 const res = await sendToAPI({ action: "getAllInspectionsSummary", room: appState.room });
-                if(res.success && res.summaries.length > 0) {
+                if(res.success && res.summaries && res.summaries.length > 0) {
                     let html = '';
+                    
+                    // 🎨 กำหนดชุดสีตามหมวดหมู่ (แก้ไขเพิ่มได้ตามต้องการ)
+                    const catColors = {
+                        'ทรงผม': '#ec4899',       // สีชมพู
+                        'เล็บ': '#0ea5e9',         // สีฟ้า
+                        'การแต่งกาย': '#8b5cf6',   // สีม่วง
+                        'ถุงเท้า': '#f97316',      // สีส้ม
+                        'รองเท้า': '#8b4513',      // สีน้ำตาล
+                        'อื่นๆ': '#64748b'          // สีเทา
+                    };
+
+                    // 📅 Array สำหรับแปลงชื่อวันและเดือนภาษาไทย
+                    const thDays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+                    const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
                     res.summaries.forEach((s, idx) => { 
                         let cat = s.category || "ทั่วไป";
+                        let bgColor = catColors[cat] || '#64748b'; // ถ้าไม่ตรงกับหมวดไหนเลยให้ใช้สีเทา
+
+                        // 📆 แปลงวันที่จากรูปแบบ dd/MM/yyyy (จากฝั่ง Server) ให้เป็น วันจันทร์ 23 พ.ค. 69
+                        let formattedDate = s.date;
+                        if(s.date && s.date.includes('/')) {
+                            let parts = s.date.split('/');
+                            let d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // เรียงเป็น yyyy-MM-dd เพื่อเข้า Date Object
+                            
+                            if(!isNaN(d.getTime())) {
+                                let dayName = "วัน" + thDays[d.getDay()];
+                                let dateNum = d.getDate();
+                                let monthName = thMonths[d.getMonth()];
+                                let yearTh = (d.getFullYear() + 543).toString().slice(-2);
+                                formattedDate = `${dayName} ${dateNum} ${monthName} ${yearTh}`;
+                            }
+                        }
                         
-                        // 🌟 นำวันที่มาผ่านฟังก์ชันแปลงโฉมเป็นแบบไทย
-                        let niceDate = formatThaiShortDate(s.date);
-                        let title = `${cat} [${niceDate}]`;
-                        
+                        let title = `${cat} [${formattedDate}]`;
                         let insertText = `- ${title}: ${s.text}`;
                         
                         html += `
                         <label class="form-check mb-2 bg-white p-3 border rounded-3 shadow-sm d-flex align-items-start" style="cursor: pointer; transition: 0.2s;">
                             <input class="form-check-input mt-1 me-3 fs-4" type="checkbox" value="${insertText}" id="sum_chk_${idx}">
                             <div class="text-dark w-100">
-                                <span class="badge bg-primary mb-2 py-1 px-2 shadow-sm" style="font-size: 0.85rem;">
+                                <span class="badge mb-2 py-1 px-2 shadow-sm" style="font-size: 0.85rem; background-color: ${bgColor}; color: white; border-radius: 8px;">
                                     <i class="bi bi-tag-fill me-1"></i> ${title}
                                 </span>
                                 <div class="small text-muted fw-bold">${s.text}</div>
@@ -715,7 +723,6 @@ function resetRecordForm() {
             if(selected.length > 0) {
                 let otherBox = document.getElementById('val-other'); 
                 let currentText = otherBox.value.trim(); 
-                
                 let newText = selected.join('\n');
                 otherBox.value = currentText ? (currentText + '\n\n' + newText) : newText;
                 
