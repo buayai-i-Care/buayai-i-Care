@@ -779,28 +779,68 @@ function resetRecordForm() {
             const dateInput = document.getElementById('week-selector').value; if (!dateInput) return;
             document.getElementById('timeline-container').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 small text-muted">กำลังดึงข้อมูล...</div></div>';
             document.getElementById('box-submit-action').style.display = 'none'; document.getElementById('teacher-sig-box').style.display = 'none';
+            
             const selectedDate = new Date(dateInput); const day = selectedDate.getDay(); const diff = selectedDate.getDate() - day + (day === 0 ? -6 : 1);
             const monday = new Date(selectedDate.setDate(diff)); let friday = new Date(monday); friday.setDate(monday.getDate() + 4);
-            let records = []; try { const res = await sendToAPI({ action: 'getHomeroomData', room: appState.room, startDate: formatISODate(monday), endDate: formatISODate(friday) }); if(res && res.data) records = res.data; } catch(e) {}
+            
+            let records = []; 
+            try { const res = await sendToAPI({ action: 'getHomeroomData', room: appState.room, startDate: formatISODate(monday), endDate: formatISODate(friday) }); if(res && res.data) records = res.data; } catch(e) {}
+            
             let timelineHTML = ''; let startStr = '', endStr = ''; let weekStatus = 'Draft'; let weekTeacherNote = ''; let weekHeadRemark = ''; let weekSignature = ''; let hasAnyRecord = false;
+            
             for (let i = 0; i < 5; i++) {
                 let currentDay = new Date(monday); currentDay.setDate(monday.getDate() + i); let currentISODate = formatISODate(currentDay);
                 let dateStr = currentDay.toLocaleDateString('th-TH', { weekday: 'short', year: '2-digit', month: 'short', day: 'numeric' });
-                if (i === 0) startStr = currentDay.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); if (i === 4) endStr = currentDay.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
-                let record = records.slice().reverse().find(r => r.date === currentISODate); let statusIcon, textClass, detailBox; let todayISODate = formatISODate(now);
+                if (i === 0) startStr = currentDay.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); 
+                if (i === 4) endStr = currentDay.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+                
+                let record = records.slice().reverse().find(r => r.date === currentISODate); 
+                let statusIcon, textClass, detailBox, editBtn = ''; 
+                let todayISODate = formatISODate(now);
+                
                 if (record) {
-                    hasAnyRecord = true; if(record.status === 'Submitted') weekStatus = 'Submitted'; if(record.status === 'Approved') weekStatus = 'Approved';
-                    if(record.teacherNote) weekTeacherNote = record.teacherNote; if(record.headRemark) weekHeadRemark = record.headRemark; if(record.signature) weekSignature = record.signature;
-                    statusIcon = '<div class="timeline-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>'; textClass = 'text-success'; detailBox = `<div class="p-2 bg-light rounded-3 small text-muted border border-success border-opacity-25 mb-1">${record.details}</div><div class="small text-success fw-bold" style="font-size: 0.7rem;">📊 ${record.stats}</div>`;
-                } else if (currentISODate === todayISODate) { statusIcon = '<div class="timeline-icon bg-warning text-dark"><i class="bi bi-exclamation-lg"></i></div>'; textClass = 'text-warning'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-warning border-opacity-25">รอการบันทึกข้อมูลวันนี้</div>';
-                } else if (currentISODate < todayISODate) { statusIcon = '<div class="timeline-icon bg-secondary text-white"><i class="bi bi-x"></i></div>'; textClass = 'text-secondary'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-secondary border-opacity-25">ไม่มีข้อมูลบันทึก</div>';
-                } else { statusIcon = '<div class="timeline-icon bg-secondary text-white"><i class="bi bi-dash"></i></div>'; textClass = 'text-secondary'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-secondary border-opacity-25">ยังไม่ถึงกำหนด</div>'; }
-                timelineHTML += `<div class="timeline-item">${statusIcon}<div class="timeline-line"></div><div class="mb-1 fw-bold ${textClass}">${dateStr}</div>${detailBox}</div>`;
+                    hasAnyRecord = true; 
+                    if(record.status === 'Submitted') weekStatus = 'Submitted'; 
+                    if(record.status === 'Approved') weekStatus = 'Approved';
+                    if(record.teacherNote) weekTeacherNote = record.teacherNote; 
+                    if(record.headRemark) weekHeadRemark = record.headRemark; 
+                    if(record.signature) weekSignature = record.signature;
+                    
+                    statusIcon = '<div class="timeline-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>'; 
+                    textClass = 'text-success'; 
+                    detailBox = `<div class="p-2 bg-light rounded-3 small text-muted border border-success border-opacity-25 mb-1">${record.details}</div><div class="small text-success fw-bold" style="font-size: 0.7rem;">📊 ${record.stats}</div>`;
+                    
+                    // 🌟 สร้างปุ่มแก้ไข และแปลงข้อความให้ส่งผ่านฟังก์ชันได้ปลอดภัย
+                    let safeDetails = record.details.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+                    editBtn = `<button class="btn btn-sm btn-outline-primary py-0 px-2 ms-2 rounded-pill shadow-sm" style="font-size: 0.75rem;" onclick="loadRecordToEdit('${currentISODate}', '${safeDetails}')"><i class="bi bi-pencil-square"></i> แก้ไข</button>`;
+                    
+                } else if (currentISODate === todayISODate) { 
+                    statusIcon = '<div class="timeline-icon bg-warning text-dark"><i class="bi bi-exclamation-lg"></i></div>'; textClass = 'text-warning'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-warning border-opacity-25">รอการบันทึกข้อมูลวันนี้</div>';
+                } else if (currentISODate < todayISODate) { 
+                    statusIcon = '<div class="timeline-icon bg-secondary text-white"><i class="bi bi-x"></i></div>'; textClass = 'text-secondary'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-secondary border-opacity-25">ไม่มีข้อมูลบันทึก</div>';
+                } else { 
+                    statusIcon = '<div class="timeline-icon bg-secondary text-white"><i class="bi bi-dash"></i></div>'; textClass = 'text-secondary'; detailBox = '<div class="p-2 bg-light rounded-3 small text-muted border border-secondary border-opacity-25">ยังไม่ถึงกำหนด</div>'; 
+                }
+                
+                timelineHTML += `<div class="timeline-item">${statusIcon}<div class="timeline-line"></div><div class="mb-1 fw-bold ${textClass}">${dateStr} ${editBtn}</div>${detailBox}</div>`;
             }
-            document.getElementById('timeline-container').innerHTML = timelineHTML; document.getElementById('week-range-display').innerHTML = `<i class="bi bi-calendar2-range text-primary"></i> รอบสัปดาห์: <b>${startStr} - ${endStr}</b>`;
-            appState.isSubmitted = (weekStatus === 'Submitted' || weekStatus === 'Approved'); appState.isApproved = (weekStatus === 'Approved'); appState.teacherNote = weekTeacherNote; appState.headRemark = weekHeadRemark; appState.headSignatureData = weekSignature;
-            if(hasAnyRecord) { document.getElementById('box-submit-action').style.display = 'block'; document.getElementById('teacher-sig-box').style.display = 'block'; document.getElementById('teacher-note').value = weekTeacherNote; } 
-            else { document.getElementById('teacher-status-badge').className = 'badge bg-secondary text-white border shadow-sm rounded-pill p-2 px-3 fs-6'; document.getElementById('teacher-status-badge').innerHTML = '<i class="bi bi-info-circle"></i> สถานะ: ไม่มีข้อมูลในสัปดาห์นี้'; }
+            document.getElementById('timeline-container').innerHTML = timelineHTML; 
+            document.getElementById('week-range-display').innerHTML = `<i class="bi bi-calendar2-range text-primary"></i> รอบสัปดาห์: <b>${startStr} - ${endStr}</b>`;
+            
+            appState.isSubmitted = (weekStatus === 'Submitted' || weekStatus === 'Approved'); 
+            appState.isApproved = (weekStatus === 'Approved'); 
+            appState.teacherNote = weekTeacherNote; 
+            appState.headRemark = weekHeadRemark; 
+            appState.headSignatureData = weekSignature;
+            
+            if(hasAnyRecord) { 
+                document.getElementById('box-submit-action').style.display = 'block'; 
+                document.getElementById('teacher-sig-box').style.display = 'block'; 
+                document.getElementById('teacher-note').value = weekTeacherNote; 
+            } else { 
+                document.getElementById('teacher-status-badge').className = 'badge bg-secondary text-white border shadow-sm rounded-pill p-2 px-3 fs-6'; 
+                document.getElementById('teacher-status-badge').innerHTML = '<i class="bi bi-info-circle"></i> สถานะ: ไม่มีข้อมูลในสัปดาห์นี้'; 
+            }
             updateSyncUI(hasAnyRecord);
         }
 
