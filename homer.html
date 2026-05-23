@@ -1376,6 +1376,17 @@ function updateWarningBadge(data) {
                 btnSave.classList.remove('text-dark');
             }, 4000);
         }
+
+// ฟังก์ชันเตรียมข้อมูลก่อนพิมพ์
+function preparePrint() {
+    // ดึงชื่อจาก appState.name ที่เราเพิ่งดึงมาจากชีตตอน Login
+    document.getElementById('display-teacher-name').innerText = appState.name;
+    
+    // แล้วค่อยสั่งพิมพ์
+    window.print();
+}
+
+
         
 
         
