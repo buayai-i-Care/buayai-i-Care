@@ -641,28 +641,73 @@ function resetRecordForm() {
             } catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
-        const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
+const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
+        
         async function openSummaryPullerModal() {
-            pullSummaryModal.show(); document.getElementById('pull-summary-loading').classList.remove('d-none'); document.getElementById('pull-summary-list').classList.add('d-none');
+            pullSummaryModal.show(); 
+            document.getElementById('pull-summary-loading').classList.remove('d-none'); 
+            document.getElementById('pull-summary-list').classList.add('d-none');
+            
             try {
                 const res = await sendToAPI({ action: "getAllInspectionsSummary", room: appState.room });
                 if(res.success && res.summaries.length > 0) {
                     let html = '';
-                    res.summaries.forEach((s, idx) => { html += `<label class="form-check mb-2 bg-white p-3 border rounded-3 shadow-sm d-flex align-items-start" style="cursor: pointer;"><input class="form-check-input mt-1 me-2" type="checkbox" value="${s.text}" id="sum_chk_${idx}"><div class="small text-dark"><span class="badge bg-primary mb-1"><i class="bi bi-calendar-event"></i> วันที่ ${s.date}</span><br>${s.text}</div></label>`; });
+                    res.summaries.forEach((s, idx) => { 
+                        // 🌟 จัดกลุ่มข้อความในรูปแบบ: หมวดหมู่ [วันที่ตรวจ]
+                        let cat = s.category || "ทั่วไป";
+                        let title = `${cat} [${s.date}]`;
+                        
+                        // 🌟 กำหนดข้อความที่จะถูกนำไปพิมพ์ลงในกล่อง "เรื่องอื่นๆ"
+                        let insertText = `- ${title}: ${s.text}`;
+                        
+                        html += `
+                        <label class="form-check mb-2 bg-white p-3 border rounded-3 shadow-sm d-flex align-items-start" style="cursor: pointer; transition: 0.2s;">
+                            <input class="form-check-input mt-1 me-3 fs-4" type="checkbox" value="${insertText}" id="sum_chk_${idx}">
+                            <div class="text-dark w-100">
+                                <span class="badge bg-primary mb-2 py-1 px-2 shadow-sm" style="font-size: 0.85rem;">
+                                    <i class="bi bi-tag-fill me-1"></i> ${title}
+                                </span>
+                                <div class="small text-muted fw-bold">${s.text}</div>
+                            </div>
+                        </label>`; 
+                    });
                     document.getElementById('pull-summary-list').innerHTML = html;
-                } else { document.getElementById('pull-summary-list').innerHTML = '<div class="text-center text-muted py-3">ไม่พบประวัติการตรวจในฐานข้อมูล</div>'; }
-            } catch(e) { document.getElementById('pull-summary-list').innerHTML = '<div class="text-center text-danger py-3">ดึงข้อมูลล้มเหลว</div>'; }
-            document.getElementById('pull-summary-loading').classList.add('d-none'); document.getElementById('pull-summary-list').classList.remove('d-none');
+                } else { 
+                    document.getElementById('pull-summary-list').innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox fs-1"></i><br>ยังไม่มีประวัติการตรวจในระบบครับ</div>'; 
+                }
+            } catch(e) { 
+                document.getElementById('pull-summary-list').innerHTML = '<div class="text-center text-danger py-4"><i class="bi bi-x-circle fs-1"></i><br>เชื่อมต่อข้อมูลล้มเหลว</div>'; 
+            }
+            
+            document.getElementById('pull-summary-loading').classList.add('d-none'); 
+            document.getElementById('pull-summary-list').classList.remove('d-none');
         }
+
         function insertSelectedSummaries() {
-            let selected = []; document.querySelectorAll('#pull-summary-list input[type="checkbox"]:checked').forEach(cb => { selected.push(cb.value); });
+            let selected = []; 
+            // กวาดหา checkbox ทุกตัวที่ถูกครูติ๊กเลือก
+            document.querySelectorAll('#pull-summary-list input[type="checkbox"]:checked').forEach(cb => { 
+                selected.push(cb.value); 
+            });
+            
             if(selected.length > 0) {
-                let otherBox = document.getElementById('val-other'); let currentText = otherBox.value.trim(); let newText = selected.join('\n');
+                let otherBox = document.getElementById('val-other'); 
+                let currentText = otherBox.value.trim(); 
+                
+                // นำข้อความที่เลือกมาต่อกัน โดยขึ้นบรรทัดใหม่
+                let newText = selected.join('\n');
+                
+                // หากในกล่องเดิมมีข้อความที่ครูพิมพ์ค้างไว้อยู่แล้ว จะเว้นบรรทัดให้ก่อนแทรกข้อมูลใหม่ลงไป
                 otherBox.value = currentText ? (currentText + '\n\n' + newText) : newText;
-                document.getElementById('chk-other').checked = true; document.getElementById('input-other').style.display = 'block';
+                
+                // เปิดการทำงานของ "5. เรื่องอื่นๆ" ให้อัตโนมัติ (เผื่อครูยังไม่ได้กดติ๊กหัวข้อ)
+                document.getElementById('chk-other').checked = true; 
+                document.getElementById('input-other').style.display = 'block';
             }
             pullSummaryModal.hide();
         }
+
+        
 
         let inspPageInline = 0; const INSP_PER_PAGE_INLINE = 10;
         function checkInlineInspOther() { document.getElementById('insp-inline-other').style.display = (document.getElementById('insp-inline-cat').value === 'อื่นๆ') ? 'block' : 'none'; }
