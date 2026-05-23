@@ -69,52 +69,65 @@
 details[open] .chevron-rotate { transform: rotate(180deg); }
 .status-badge-pill { font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; font-weight: 700; }
 
+
 @media print {
-    /* ซ่อนส่วนประกอบ UI ที่ไม่จำเป็นตอนพิมพ์ */
-    .sidebar, .btn, .navbar, .no-print, .hamburger-btn, #sidebar-overlay {
+    /* 1. ซ่อนทุกอย่างที่เป็นส่วนควบคุม (UI/Sidebar/Navbar/Buttons) */
+    .sidebar, 
+    .navbar, 
+    .btn, 
+    .no-print, 
+    .hamburger-btn, 
+    #sidebar-overlay,
+    .d-flex, /* ซ่อนแถบหัวข้อที่มีปุ่มกดด้านบน */
+    .bg-white.p-3.rounded-4.shadow-sm, /* ซ่อนแถบหัวข้อที่เหลือ */
+    header,
+    nav {
         display: none !important;
     }
 
-    /* บังคับภาพรวมให้เป็นสีขาว-ดำ */
+    /* 2. บังคับทุกอย่างให้เป็นสีขาว-ดำ และไม่มีพื้นหลัง */
     body, .main-content, .card-custom {
         background-color: white !important;
         color: black !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    /* สไตล์ตารางให้เป็นทางการและเหลี่ยม */
+    /* 3. จัดการตารางให้เป็นเหลี่ยมและดำสนิท */
     table {
         border-collapse: collapse !important;
         border: 1px solid black !important;
-        border-radius: 0 !important; /* ปรับขอบให้เหลี่ยม */
         width: 100% !important;
+        margin-top: 20px !important;
     }
 
     th, td {
         border: 1px solid black !important;
         padding: 8px !important;
         color: black !important;
+        background-color: white !important; /* บังคับพื้นหลังเซลล์ให้ขาว */
     }
 
-    /* --- ส่วนที่ปรับปรุง: นำสีพื้นหลังหัวตารางออก --- */
-    thead, thead th, thead tr, th {
-        background-color: white !important; /* บังคับเป็นพื้นหลังขาว */
+    /* 4. เคลียร์สีพื้นหลังหัวตาราง (Thead) */
+    thead, th {
+        background-color: white !important;
         background: white !important;
-        border: 1px solid black !important;
         color: black !important;
         font-weight: bold !important;
+        border: 1px solid black !important;
     }
 
-    /* ลบเงาและสีที่อาจติดมาจาก Bootstrap */
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: white !important;
-    }
-    
+    /* 5. ป้องกันการแสดงสีจาก Bootstrap */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-        box-shadow: none !important;
     }
 }
+
+
+
+        
         
     </style>
 </head>
