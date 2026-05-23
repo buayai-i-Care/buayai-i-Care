@@ -329,9 +329,29 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
             </div>
 
             <!-- พิมพ์รายงาน -->
-            <div id="view-print" style="display: none;">
-                <div id="print-controls" class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border"><span class="fw-bold text-muted mx-3"><i class="bi bi-calendar-month"></i> เลือกเดือน:</span><input type="month" id="print-month-selector" class="form-control form-control-sm rounded-pill border-primary text-primary fw-bold" style="width: auto;" onchange="generatePrintReport()"></div><button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i> พิมพ์เอกสาร PDF</button></div><div class="a4-paper"><div class="text-center mb-4"><img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" width="80" class="mb-3"><h4 class="fw-bold">รายงานการจัดกิจกรรมโฮมรูม (Homeroom)</h4><p>ชั้นมัธยมศึกษาปีที่ <span class="current-room-text"></span> ประจำเดือน <span id="print-month-display" class="fw-bold">...</span></p></div><table class="mock-sheet mb-4"><thead><tr><th width="15%">วันที่</th><th width="55%">รายการบันทึกโฮมรูม</th><th width="30%">สถิติ</th></tr></thead><tbody id="print-tbody"><tr><td colspan="3" class="text-center text-muted py-4">กรุณาเลือกเดือนเพื่อดูรายงาน</td></tr></tbody></table><div class="sign-area d-flex justify-content-around align-items-end w-100"><div id="print-teachers-container" class="d-flex justify-content-around flex-wrap" style="width: 60%;"></div><div id="print-head-area" style="width: 35%;"><div id="print-head-pending"><div class="sign-line mt-3"></div><p class="mb-0 text-muted">( รอหัวหน้าระดับรับทราบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small></div><div id="print-head-approved" style="display: none;"><img id="print-head-sig-img" src="" class="preview-sig-img"><br><p class="mb-0">( ผู้ตรวจสอบ )</p><small class="text-muted">หัวหน้าระดับชั้น</small><br><small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small></div></div></div></div>
-            </div>
+<div id="view-print" style="display: none;">
+        <div id="print-controls" class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><div class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border"><span class="fw-bold text-muted mx-3"><i class="bi bi-calendar-month"></i> เลือกเดือน:</span><input type="month" id="print-month-selector" class="form-control form-control-sm rounded-pill border-primary text-primary fw-bold" style="width: auto;" onchange="generatePrintReport()"></div><button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i> พิมพ์เอกสาร PDF</button></div><div class="a4-paper"><div class="text-center mb-4"><img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียน" width="80" class="mb-3"><h4 class="fw-bold">รายงานการจัดกิจกรรมโฮมรูม (Homeroom)</h4><p>ชั้นมัธยมศึกษาปีที่ <span class="current-room-text"></span> ประจำเดือน <span id="print-month-display" class="fw-bold">...</span></p></div><table class="mock-sheet mb-4"><thead><tr><th width="15%">วันที่</th><th width="55%">รายการบันทึกโฮมรูม</th><th width="30%">สถิติ</th></tr></thead><tbody id="print-tbody"><tr><td colspan="3" class="text-center text-muted py-4">กรุณาเลือกเดือนเพื่อดูรายงาน</td></tr></tbody></table><div class="sign-area d-flex justify-content-around align-items-end w-100"><div id="print-teachers-container" class="d-flex justify-content-around flex-wrap" style="width: 60%;"></div>
+                
+                <div id="print-head-area" style="width: 35%;">
+                    <div id="print-head-pending" class="text-center">
+                        <div class="sign-line mt-3"></div>
+                        <p class="mb-0 text-muted d-print-none">( รอหัวหน้าระดับรับทราบ )</p>
+                        <small class="text-muted">หัวหน้าระดับชั้น</small>
+                    </div>
+                    <div id="print-head-approved" style="display: none;" class="text-center">
+                        <img id="print-head-sig-img" src="" class="preview-sig-img"><br>
+                        <p class="mb-0">( ผู้ตรวจสอบ )</p>
+                        <small class="text-muted">หัวหน้าระดับชั้น</small><br>
+                        <small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small>
+                    </div>
+                </div>
+
+            </div></div>
+    </div>
+
+
+
+            
 
             <!-- หน้าหัวหน้า Dashboard -->
             <div id="view-head-dashboard" style="display: none;">
