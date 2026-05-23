@@ -641,8 +641,30 @@ function resetRecordForm() {
             } catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
-const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
-        
+
+
+        const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummaryModal'));
+
+        // 🌟 เพิ่มฟังก์ชันตัวช่วยสำหรับแปลงวันที่จาก 23/05/2026 เป็น 23 พ.ค. 69
+        function formatThaiShortDate(dateStr) {
+            if (!dateStr || !dateStr.includes('/')) return dateStr;
+            let parts = dateStr.split('/');
+            if (parts.length !== 3) return dateStr;
+            
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            let year = parseInt(parts[2], 10);
+            
+            const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            
+            // เช็คว่าเป็น ค.ศ. หรือ พ.ศ. (ถ้าเป็น 20xx ให้บวก 543)
+            let isGregorian = year < 2500;
+            let thaiYear = isGregorian ? year + 543 : year;
+            let shortYear = thaiYear.toString().slice(-2);
+            
+            return `${day} ${thaiMonths[month - 1]} ${shortYear}`;
+        }
+
         async function openSummaryPullerModal() {
             pullSummaryModal.show(); 
             document.getElementById('pull-summary-loading').classList.remove('d-none'); 
@@ -653,11 +675,12 @@ const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummar
                 if(res.success && res.summaries.length > 0) {
                     let html = '';
                     res.summaries.forEach((s, idx) => { 
-                        // 🌟 จัดกลุ่มข้อความในรูปแบบ: หมวดหมู่ [วันที่ตรวจ]
                         let cat = s.category || "ทั่วไป";
-                        let title = `${cat} [${s.date}]`;
                         
-                        // 🌟 กำหนดข้อความที่จะถูกนำไปพิมพ์ลงในกล่อง "เรื่องอื่นๆ"
+                        // 🌟 นำวันที่มาผ่านฟังก์ชันแปลงโฉมเป็นแบบไทย
+                        let niceDate = formatThaiShortDate(s.date);
+                        let title = `${cat} [${niceDate}]`;
+                        
                         let insertText = `- ${title}: ${s.text}`;
                         
                         html += `
@@ -685,7 +708,6 @@ const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummar
 
         function insertSelectedSummaries() {
             let selected = []; 
-            // กวาดหา checkbox ทุกตัวที่ถูกครูติ๊กเลือก
             document.querySelectorAll('#pull-summary-list input[type="checkbox"]:checked').forEach(cb => { 
                 selected.push(cb.value); 
             });
@@ -694,13 +716,9 @@ const pullSummaryModal = new bootstrap.Modal(document.getElementById('pullSummar
                 let otherBox = document.getElementById('val-other'); 
                 let currentText = otherBox.value.trim(); 
                 
-                // นำข้อความที่เลือกมาต่อกัน โดยขึ้นบรรทัดใหม่
                 let newText = selected.join('\n');
-                
-                // หากในกล่องเดิมมีข้อความที่ครูพิมพ์ค้างไว้อยู่แล้ว จะเว้นบรรทัดให้ก่อนแทรกข้อมูลใหม่ลงไป
                 otherBox.value = currentText ? (currentText + '\n\n' + newText) : newText;
                 
-                // เปิดการทำงานของ "5. เรื่องอื่นๆ" ให้อัตโนมัติ (เผื่อครูยังไม่ได้กดติ๊กหัวข้อ)
                 document.getElementById('chk-other').checked = true; 
                 document.getElementById('input-other').style.display = 'block';
             }
