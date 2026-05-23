@@ -625,8 +625,8 @@ function resetRecordForm() {
             if(document.getElementById('chk-health').checked) {
                 let healthOther = document.getElementById('val-health-other').value;
                 let selectedCount = selectedStudentsFor['health'].length;
-                let selectedStr = selectedCount > 0 ? ` <br><span style="color:#2563eb; font-size:0.9em;">[ รายชื่อที่เกี่ยวข้อง ${selectedCount} คน: ${selectedStudentsFor['health'].map(s=>s.name).join(', ')} ]</span>` : '';
-                details.push(`<b>2. ตรวจระเบียบ/สุขภาพ:</b> ${healthOther || '(ตรวจสอบเรียบร้อย)'}${selectedStr}`);
+                let selectedStr = selectedCount > 0 ? ` <br><span style="color:#2563eb; font-size:0.9em;">[ ได้แก่ ${selectedCount} คน: ${selectedStudentsFor['health'].map(s=>s.name).join(', ')} ]</span>` : '';
+                details.push(`<b>2. ตรวจระเบียบ/สุขภาพ:</b> ${healthOther || '(ดำเนินการเรียบร้อย)'}${selectedStr}`);
             }
             
             if(document.getElementById('chk-parent').checked) {
