@@ -1427,7 +1427,25 @@ function preparePrint() {
 }
 
 
-        
+        // ฟังก์ชันสำหรับกรองสถิติ ซ่อนค่าที่เป็น 0
+function formatCompactStats(statsStr) {
+    if (!statsStr || statsStr === "ไม่มีข้อมูลสถิติ" || statsStr === "?") {
+        return statsStr || "-";
+    }
+    
+    // โครงสร้างข้อความคือ "รวม X | มา X | สาย X | ลา X | ขาด X"
+    let parts = statsStr.split(' | ');
+    
+    // กรองเอาเฉพาะส่วนที่ไม่ลงท้ายด้วย " 0" (เพื่อซ่อนค่า 0 ออกไป)
+    let filteredParts = parts.filter(part => {
+        let text = part.trim();
+        // ยกเว้นคำว่า "รวม" ให้แสดงเสมอแม้จะเป็น 0 ก็ตาม (ถ้าต้องการ)
+        if (text.startsWith("รวม")) return true; 
+        return !text.endsWith(" 0");
+    });
+    
+    return filteredParts.join(' | ');
+}
 
         
     </script>
