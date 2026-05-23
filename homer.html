@@ -71,58 +71,40 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
 
 
 @media print {
-    /* 1. ซ่อนเฉพาะส่วนที่เป็นเครื่องมือควบคุม (UI/Buttons/Sidebar/Nav) */
+    /* 🌟 1. บังคับกระดาษ A4 แนวตั้ง และตั้งระยะขอบ */
+    @page {
+        size: A4 portrait;
+        margin: 1.5cm; 
+    }
+
+    /* 🌟 2. ล้างระยะห่างส่วนเกินตอนพิมพ์ */
+    .a4-paper {
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        width: 100% !important;
+    }
+
+    /* 🌟 3. บังคับคอลัมน์สถิติ (คอลัมน์ที่ 3) ไม่ให้ตัดคำขึ้นบรรทัดใหม่ และย่อฟอนต์ลงเล็กน้อย */
+    #print-tbody td:nth-child(3) {
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+    }
+
+    /* ... โค้ดซ่อนเมนู .sidebar, .btn ฯลฯ ของเดิมคงไว้ตามปกติ ... */
     .sidebar, .btn, .navbar, .no-print, .hamburger-btn, #sidebar-overlay, .top-navbar, #print-controls {
         display: none !important;
     }
-
-    /* 2. บังคับให้ส่วนเนื้อหาและส่วนหัว (Header) แสดงผลตามปกติ แต่เป็นสีขาว-ดำ */
     body, .main-content, .card-custom, #view-print {
-        background-color: white !important;
-        color: black !important;
-        box-shadow: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        visibility: visible !important;
+        background-color: white !important; color: black !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; visibility: visible !important;
     }
-
-    /* 3. บังคับส่วนหัวรายงานให้แสดงสีขาว (เอาสีพื้นหลังออก) */
     .text-center.mb-4, .card-header, .header-report {
-        display: block !important;
-        background-color: white !important;
-        color: black !important;
-        border: none !important;
-        margin-bottom: 20px !important;
+        display: block !important; background-color: white !important; color: black !important; border: none !important; margin-bottom: 20px !important;
     }
-
-    /* 4. จัดการตารางให้เป็นเหลี่ยมและดำสนิท */
-    table {
-        border-collapse: collapse !important;
-        border: 1px solid black !important;
-        width: 100% !important;
-        background-color: white !important;
-    }
-
-    th, td {
-        border: 1px solid black !important;
-        padding: 8px !important;
-        color: black !important;
-        background-color: white !important;
-    }
-
-    th {
-        background-color: white !important;
-        font-weight: bold !important;
-    }
-
-    /* 5. ล้างพื้นหลังทุกประเภทที่อาจติดมากับ Bootstrap */
-    *, .bg-dark, .bg-primary, .bg-light, .shadow {
-        background-color: white !important;
-        background: white !important;
-        color: black !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-    }
+    table { border-collapse: collapse !important; border: 1px solid black !important; width: 100% !important; background-color: white !important; }
+    th, td { border: 1px solid black !important; padding: 8px !important; color: black !important; background-color: white !important; }
+    th { background-color: white !important; font-weight: bold !important; }
+    *, .bg-dark, .bg-primary, .bg-light, .shadow { background-color: white !important; background: white !important; color: black !important; box-shadow: none !important; border-radius: 0 !important; }
 }
 
 
