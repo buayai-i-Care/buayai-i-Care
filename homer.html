@@ -320,12 +320,14 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
                         <p class="mb-0 text-muted d-print-none">( รอหัวหน้าระดับรับทราบ )</p>
                         <small class="text-muted">หัวหน้าระดับชั้น</small>
                     </div>
-                    <div id="print-head-approved" style="display: none;" class="text-center">
-                        <img id="print-head-sig-img" src="" class="preview-sig-img"><br>
-                        <p class="mb-0">( ผู้ตรวจสอบ )</p>
-                        <small class="text-muted">หัวหน้าระดับชั้น</small><br>
-                        <small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small>
-                    </div>
+<div id="print-head-approved" style="display: none;" class="text-center">
+        <img id="print-head-sig-img" src="" class="preview-sig-img"><br>
+        <p class="mb-0">( <span id="print-head-name" class="fw-bold">ผู้ตรวจสอบ</span> )</p>
+        <small class="text-muted">หัวหน้าระดับชั้น</small><br>
+        <small class="text-danger" style="font-size: 0.7rem;" id="print-head-remark"></small>
+    </div>
+
+                    
                 </div>
 
             </div></div>
@@ -903,15 +905,31 @@ function resetRecordForm() {
             const firstDay = new Date(year, month, 1); const lastDay = new Date(year, month + 1, 0);
             document.getElementById('print-month-display').innerText = firstDay.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }); document.getElementById('print-tbody').innerHTML = `<tr><td colspan="3" class="text-center py-5"><span class="spinner-border spinner-border-sm text-primary"></span> กำลังดึงข้อมูล...</td></tr>`;
             let records = []; try { const res = await sendToAPI({ action: 'getHomeroomData', room: appState.room, startDate: formatISODate(firstDay), endDate: formatISODate(lastDay) }); if(res && res.data) records = res.data; } catch(e) {}
-            let tbodyHTML = ''; let latestSignature = ''; let latestRemark = '';
+            
+            // 🌟 แก้ไข: เพิ่มตัวแปรสำหรับเก็บชื่อหัวหน้าล่าสุด
+            let tbodyHTML = ''; let latestSignature = ''; let latestRemark = ''; let latestHeadName = '';
+            
             if (records.length === 0) { tbodyHTML = `<tr><td colspan="3" class="text-center text-muted py-5">ไม่มีข้อมูลการบันทึกในเดือนที่เลือก</td></tr>`; } 
             else { records.sort((a,b) => new Date(a.date) - new Date(b.date)); records.forEach(r => {
                 tbodyHTML += `<tr><td class="text-center fw-bold">${new Date(r.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</td><td>${r.details}</td><td class="small fw-bold text-muted">${r.stats}</td></tr>`;
-                if (r.status === 'Approved' && r.signature) { latestSignature = r.signature; latestRemark = r.headRemark; }
+                // 🌟 แก้ไข: เก็บชื่อ headName จากข้อมูลมาด้วย
+                if (r.status === 'Approved' && r.signature) { latestSignature = r.signature; latestRemark = r.headRemark; latestHeadName = r.headName; }
             }); }
+            
             document.getElementById('print-tbody').innerHTML = tbodyHTML;
-            if (latestSignature) { document.getElementById('print-head-pending').style.display = 'none'; document.getElementById('print-head-approved').style.display = 'block'; document.getElementById('print-head-sig-img').src = latestSignature; document.getElementById('print-head-remark').innerText = latestRemark ? "หมายเหตุ: " + latestRemark : ""; } 
-            else { document.getElementById('print-head-pending').style.display = 'block'; document.getElementById('print-head-approved').style.display = 'none'; }
+            
+            if (latestSignature) { 
+                document.getElementById('print-head-pending').style.display = 'none'; 
+                document.getElementById('print-head-approved').style.display = 'block'; 
+                document.getElementById('print-head-sig-img').src = latestSignature; 
+                document.getElementById('print-head-remark').innerText = latestRemark ? "หมายเหตุ: " + latestRemark : ""; 
+                // 🌟 แก้ไข: นำชื่อไปใส่ ถ้าไม่มีข้อมูลเก่าให้แสดงคำว่า 'ผู้ตรวจสอบ' กันเหนียวไว้
+                document.getElementById('print-head-name').innerText = latestHeadName || "ผู้ตรวจสอบ";
+            } 
+            else { 
+                document.getElementById('print-head-pending').style.display = 'block'; 
+                document.getElementById('print-head-approved').style.display = 'none'; 
+            }
         }
 
         async function loadHeadDashboard() {
@@ -960,7 +978,7 @@ function resetRecordForm() {
 
         function previewSignature(event) { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById('sig-preview').src = e.target.result; document.getElementById('sig-preview').style.display = 'block'; appState.headSignatureData = e.target.result; }; reader.readAsDataURL(file); } }
 
-        async function headApproveReport() {
+async function headApproveReport() {
             if(!appState.headSignatureData) return alert("กรุณาอัปโหลดลายมือชื่อเพื่อรับทราบครับ");
             const remark = document.getElementById('head-remark').value; const btn = document.getElementById('btn-approve'); const originalText = btn.innerHTML; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...'; btn.disabled = true;
             
@@ -970,7 +988,8 @@ function resetRecordForm() {
             const monday = new Date(targetDate.setDate(diff)); let friday = new Date(monday); friday.setDate(monday.getDate() + 4);
             
             try {
-                await sendToAPI({ action: 'approveReport', room: document.getElementById('review-room').innerText, startDate: formatISODate(monday), endDate: formatISODate(friday), headRemark: remark, signature: appState.headSignatureData });
+                // 🌟 แก้ไข: เพิ่ม headName: appState.name เข้าไปใน payload ด้วย
+                await sendToAPI({ action: 'approveReport', room: document.getElementById('review-room').innerText, startDate: formatISODate(monday), endDate: formatISODate(friday), headRemark: remark, signature: appState.headSignatureData, headName: appState.name });
                 appState.headRemark = remark; appState.isApproved = true; bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide(); updateSyncUI(true); alert("✨ รับทราบรายงานเรียบร้อยแล้ว");
             } catch(e) { alert("❌ เกิดข้อผิดพลาด"); } finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
