@@ -71,24 +71,31 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
 
 
 @media print {
-    /* 1. ซ่อน UI และส่วนหัวที่ไม่ต้องการ (รวมถึง โลโก้ และหัวข้อรายงาน) */
-    .sidebar, .btn, .navbar, .no-print, .hamburger-btn, #sidebar-overlay,
-    .top-navbar, #print-controls, /* ปุ่มและเมนูต่างๆ */
-    #view-print .text-center.mb-4 /* ส่วนนี้คือ โลโก้ และหัวข้อรายงานที่เราจะนำออก */ {
+    /* 1. ซ่อนเฉพาะส่วนที่เป็นเครื่องมือควบคุม (UI/Buttons/Sidebar/Nav) */
+    .sidebar, .btn, .navbar, .no-print, .hamburger-btn, #sidebar-overlay, .top-navbar, #print-controls {
         display: none !important;
     }
 
-    /* 2. บังคับให้พื้นหลังเป็นสีขาวล้วน และตัวหนังสือเป็นสีดำ */
+    /* 2. บังคับให้ส่วนเนื้อหาและส่วนหัว (Header) แสดงผลตามปกติ แต่เป็นสีขาว-ดำ */
     body, .main-content, .card-custom, #view-print {
         background-color: white !important;
         color: black !important;
         box-shadow: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        visibility: visible !important; /* บังคับให้เห็นเฉพาะตาราง */
+        visibility: visible !important;
     }
 
-    /* 3. ตารางต้องเป็นสีดำ ขอบเหลี่ยม ไม่เอาพื้นหลังหัวตาราง */
+    /* 3. บังคับส่วนหัวรายงานให้แสดงสีขาว (เอาสีพื้นหลังออก) */
+    .text-center.mb-4, .card-header, .header-report {
+        display: block !important;
+        background-color: white !important;
+        color: black !important;
+        border: none !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* 4. จัดการตารางให้เป็นเหลี่ยมและดำสนิท */
     table {
         border-collapse: collapse !important;
         border: 1px solid black !important;
@@ -100,28 +107,21 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
         border: 1px solid black !important;
         padding: 8px !important;
         color: black !important;
-        background-color: white !important; /* บังคับขาว */
+        background-color: white !important;
     }
 
     th {
-        background-color: white !important; /* ลบสีเทาออก */
-        background: white !important;
+        background-color: white !important;
         font-weight: bold !important;
-        border: 1px solid black !important;
     }
 
-    /* 4. ป้องกันการแสดงสีอื่นๆ จาก Bootstrap */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        box-shadow: none !important;
-        border-radius: 0 !important; /* เปลี่ยนขอบมนเป็นขอบเหลี่ยม */
-    }
-    
-    /* ซ่อนตารางหัวตารางส่วนลายเซ็นหากไม่ต้องการ */
-    .sign-area {
-        margin-top: 50px !important;
+    /* 5. ล้างพื้นหลังทุกประเภทที่อาจติดมากับ Bootstrap */
+    *, .bg-dark, .bg-primary, .bg-light, .shadow {
+        background-color: white !important;
+        background: white !important;
         color: black !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
     }
 }
 
