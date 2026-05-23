@@ -71,38 +71,44 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
 
 /* --- ชุดคำสั่งตั้งค่าหน้ากระดาษเมื่อสั่งพิมพ์ --- */
 @media print {
-    /* ซ่อนส่วนที่ไม่ต้องการให้พิมพ์ */
-    .top-navbar, .sidebar, #print-controls, .hamburger-btn, #sidebar-overlay, .btn {
+    /* 1. ซ่อน UI ส่วนที่ไม่เกี่ยวข้อง */
+    .sidebar, .btn, .navbar, .no-print {
         display: none !important;
     }
-    
-    /* บังคับทุกอย่างให้เป็นสีขาว/ดำ และไม่มีพื้นหลังสี */
-    body, .main-content, .card-custom, .a4-paper { 
-        background-color: white !important; 
-        color: black !important; 
-        width: 100%;
-        margin: 0;
-        padding: 0;
+
+    /* 2. บังคับทุกอย่างให้เป็นสีขาว-ดำ */
+    body, .main-content, .card-custom {
+        background-color: white !important;
+        color: black !important;
+        box-shadow: none !important;
     }
 
-    /* ตาราง */
-    .mock-sheet { border: 1px solid black !important; }
-    .mock-sheet th, .mock-sheet td { 
-        border: 1px solid black !important; 
-        background-color: white !important; 
-        color: black !important; 
-    }
-    .mock-sheet th { background-color: #f0f0f0 !important; } /* เทาอ่อนเพื่อให้แยกหัวตารางได้ */
-
-    /* ขีดเส้นลายเซ็น */
-    .sign-line { 
-        border-bottom: 1px solid black !important; 
-        width: 180px; 
-        margin: 20px auto 5px auto; 
+    /* 3. ปรับสไตล์ตารางให้เป็นทางการ (เหลี่ยม, ดำ, ไม่มีสีพื้น) */
+    table {
+        border-collapse: collapse !important;
+        border: 1px solid black !important;
+        border-radius: 0 !important; /* เอาขอบมนออก */
+        width: 100% !important;
     }
 
-    /* อื่นๆ */
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    th, td {
+        border: 1px solid black !important; /* เส้นขอบดำ */
+        padding: 8px !important;
+        color: black !important;
+    }
+
+    /* 4. เอาพื้นหลังหัวตารางออก */
+    th {
+        background-color: transparent !important;
+        background: none !important;
+        font-weight: bold !important;
+    }
+
+    /* 5. ป้องกันการแสดงสีอื่นๆ ที่อาจติดมากับ Bootstrap */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
         
     </style>
