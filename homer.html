@@ -100,7 +100,38 @@ details[open] .chevron-rotate { transform: rotate(180deg); }
         print-color-adjust: exact !important;
     }
 }
+/* 🖨️ การตั้งค่าสำหรับการพิมพ์ให้ออกมาเป็นทางการและประหยัดหมึก */
+@media print {
+    /* ซ่อนส่วนที่ไม่ต้องการให้ติดไปในการพิมพ์ */
+    .sidebar, .btn, #sidebarOverlay, .no-print {
+        display: none !important;
+    }
 
+    /* ปรับพื้นหลังและสีตัวอักษรให้ขาว-ดำทั้งหมด */
+    body, .main-content, .card-custom {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* ปรับเส้นขอบตารางและกรอบการ์ดให้เป็นสีดำ (สำหรับทางการ) */
+    .table, .table td, .table th, .card-custom {
+        border: 1px solid #000000 !important;
+    }
+
+    /* บังคับให้ตัวอักษรทุกจุดเป็นสีดำ */
+    * {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* ขยายความกว้างเต็มหน้ากระดาษ */
+    .container-fluid {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+}
         
     </style>
 </head>
