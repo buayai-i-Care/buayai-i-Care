@@ -899,7 +899,8 @@ function resetRecordForm() {
             catch(e) { alert("❌ มีปัญหาการเชื่อมต่อ"); btn.innerHTML = '<i class="bi bi-cursor-fill me-2"></i> กดเพื่อเสนอรายงาน'; btn.disabled = false; }
         }
 
-        async function generatePrintReport() {
+
+async function generatePrintReport() {
             const monthInput = document.getElementById('print-month-selector').value; if(!monthInput) return;
             const year = parseInt(monthInput.split('-')[0]); const month = parseInt(monthInput.split('-')[1]) - 1; 
             const firstDay = new Date(year, month, 1); const lastDay = new Date(year, month + 1, 0);
@@ -911,7 +912,9 @@ function resetRecordForm() {
             
             if (records.length === 0) { tbodyHTML = `<tr><td colspan="3" class="text-center text-muted py-5">ไม่มีข้อมูลการบันทึกในเดือนที่เลือก</td></tr>`; } 
             else { records.sort((a,b) => new Date(a.date) - new Date(b.date)); records.forEach(r => {
-                tbodyHTML += `<tr><td class="text-center fw-bold">${new Date(r.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</td><td>${r.details}</td><td class="small fw-bold text-muted">${r.stats}</td></tr>`;
+                // 🌟 แก้ไข: ครอบ r.stats ด้วย formatCompactStats(r.stats) เพื่อซ่อนค่าที่เป็น 0
+                tbodyHTML += `<tr><td class="text-center fw-bold">${new Date(r.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</td><td>${r.details}</td><td class="small fw-bold text-muted">${formatCompactStats(r.stats)}</td></tr>`;
+                
                 // 🌟 แก้ไข: เก็บชื่อ headName จากข้อมูลมาด้วย
                 if (r.status === 'Approved' && r.signature) { latestSignature = r.signature; latestRemark = r.headRemark; latestHeadName = r.headName; }
             }); }
@@ -931,6 +934,7 @@ function resetRecordForm() {
                 document.getElementById('print-head-approved').style.display = 'none'; 
             }
         }
+        
 
         async function loadHeadDashboard() {
             const tbody = document.getElementById('head-table-body');
