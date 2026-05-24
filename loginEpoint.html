@@ -228,7 +228,8 @@
                 <div class="nav-link" onclick="switchMenu('noti', this)" id="menu-noti">
                     <i class="bi bi-envelope-paper-fill" id="sidebar-envelope-icon"></i> กล่องข้อความ <span id="noti-badge" class="badge bg-danger rounded-pill ms-auto d-none blink-badge shadow-sm">0</span>
                 </div>
-                <div class="nav-link text-muted"><i class="bi bi-gear"></i> ตั้งไว้ (5)</div>
+                <!-- 🌟 แก้ไขเมนูจาก ตั้งไว้ (5) เป็น การมาเรียน 🌟 -->
+                <div class="nav-link" onclick="openAttendancePage()"><i class="bi bi-calendar2-check-fill text-info"></i> การมาเรียน</div>
                 <div class="nav-link text-muted"><i class="bi bi-gear"></i> ตั้งไว้ (6)</div>
             </div>
             <button class="btn btn-outline-danger w-100 rounded-pill mt-auto flex-shrink-0" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</button>
@@ -654,6 +655,16 @@
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); el.classList.add('active');
             ['dashboard', 'past', 'late', 'noti'].forEach(m => { const view = document.getElementById(`view-${m}`); if(view) view.style.display = (m === menuId) ? 'block' : 'none'; });
             toggleSidebar();
+        }
+
+        // 🌟 เปิดหน้าการมาเรียน (ส่งพารามิเตอร์รหัสนักเรียนไปกับ URL)
+        function openAttendancePage() {
+            if(currentUser && currentUser.id) {
+                const targetUrl = `https://buayai-i-care.github.io/buayai-i-Care/ParentChkm1.html?id=${currentUser.id}`;
+                window.open(targetUrl, '_blank');
+            } else {
+                alert("กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้");
+            }
         }
 
         function openImage(url) { document.getElementById('full-image').src = url; new bootstrap.Modal(document.getElementById('imgModal')).show(); }
