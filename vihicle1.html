@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ระบบยานพาหนะ - โรงเรียนบัวใหญ่</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+      :root { --primary: #0d6efd; --bg: #f4f6f8; }
+      body { font-family: 'Prompt', sans-serif; background-color: var(--bg); padding-bottom: 80px; }
+      .container { max-width: 600px; margin-top: 15px; }
+      
+      .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
+      .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+      .detail-section { display: none; padding-top: 15px; border-top: 1px dashed #ddd; margin-top: 10px; }
+
+      .badge-mode { font-weight: normal; font-size: 0.85em; padding: 5px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
+      .bg-bus { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+      .bg-parent { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+      .bg-self { background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+
+      .nav-pills { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; }
+      .nav-pills .nav-item { white-space: nowrap; }
+
+      @media print {
+        @page { size: A4; margin: 1cm; }
+        body { background-color: white; font-family: 'Sarabun', sans-serif; }
+        .no-print, nav, .nav-pills { display: none !important; }
+        #tab-report { display: block !important; }
+        #reportCard { box-shadow: none; border: none; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid #000 !important; padding: 8px; vertical-align: top; }
+        .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+      }
+      .print-header { display: none; }
+    </style>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-light bg-white sticky-top shadow-sm no-print">
+      <div class="container-fluid justify-content-center">
+        <a href="javascript:location.reload()" class="navbar-brand mb-0 h1 text-primary fw-bold">
+          <i class="bi bi-car-front-fill"></i> โรงเรียนบัวใหญ่
+        </a>
+      </div>
+    </nav>
+
+    <div class="container">
+      
+      <!-- เมนู นำทาง -->
+      <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm mb-3 no-print">
+        <li class="nav-item"><a class="nav-link active rounded-pill" onclick="switchTab('survey', this)">แบบสอบถาม</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill text-danger" onclick="switchTab('warning', this)"><i class="bi bi-exclamation-triangle-fill"></i> ตักเตือน</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('missing', this)">ติดตามผล</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('report', this)">รายงาน</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('data', this)">ข้อมูล</a></li>
+      </ul>
+
+      <!-- Tab: Survey -->
+      <div id="tab-survey" class="tab-content">
+        <div class="card p-3">
+          <h5 class="text-primary"><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</h5>
+          <select class="form-select mb-3 mt-2" id="selClass" onchange="loadStudentList()">
+            <option value="" disabled selected>เลือกห้องเรียน...</option>
+          </select>
+          <select class="form-select mb-3" id="selStudent" disabled>
+            <option value="" selected>รอเลือกห้อง...</option>
+          </select>
+          <div class="row g-2">
+             <div class="col-6"><input type="tel" id="telStudent" class="form-control" placeholder="เบอร์นักเรียน *" maxlength="10"></div>
+             <div class="col-6"><input type="tel" id="telParent" class="form-control" placeholder="เบอร์ผู้ปกครอง *" maxlength="10"></div>
+          </div>
+        </div>
+
+        <form onsubmit="submitData(event)">
+          <!-- Sections รถรับส่ง, ผู้ปกครอง, ขับมาเอง -->
+          <div class="card" id="card-bus">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-warning mb-0">รถรับส่งนักเรียน</h6>
+                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkBus" onchange="toggleDetail('bus')"></div>
+              </div>
+              <div id="detail-bus" class="detail-section">
+                <select class="form-select form-select-sm mb-2" id="rankBus"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                <input type="text" class="form-control mb-2" id="busDriver" placeholder="ชื่อคนขับ *">
+                <input type="tel" class="form-control mb-2" id="busDriverPhone" placeholder="เบอร์โทรคนขับรถ *" maxlength="10">
+                <input type="text" class="form-control mb-2" id="busVillage" placeholder="ชื่อหมู่บ้าน (ที่ลงรถ) *">
+                <div class="row g-2 mb-2">
+                  <div class="col-6"><select class="form-select" id="busType" onchange="checkOther('busType','busTypeOther')"><option value="">ประเภทรถ *</option><option value="รถตู้">รถตู้</option><option value="สองแถว">สองแถว</option><option value="อื่นๆ">อื่นๆ</option></select></div>
+                  <div class="col-6"><input type="text" id="busTypeOther" class="form-control d-none" placeholder="โปรดระบุ *"></div>
+                </div>
+                <div class="row g-2 mb-2">
+                   <div class="col-6"><select class="form-select" id="busBrand" onchange="checkOther('busBrand','busBrandOther')"></select></div>
+                   <div class="col-6"><input type="text" id="busBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
+                </div>
+                <input type="text" class="form-control" id="busPlate" placeholder="ทะเบียน (กข 1234) *">
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="card-parent">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                 <h6 class="fw-bold text-success mb-0">ผู้ปกครองมาส่ง</h6>
+                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkParent" onchange="toggleDetail('parent')"></div>
+              </div>
+              <div id="detail-parent" class="detail-section">
+                 <select class="form-select form-select-sm mb-2" id="rankParent"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                <input type="text" class="form-control" id="parentDriver" placeholder="ชื่อผู้ปกครอง (คนขับ) *">
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="card-self">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                 <h6 class="fw-bold text-primary mb-0">ขับขี่มาเอง</h6>
+                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkSelf" onchange="toggleDetail('self')"></div>
+              </div>
+              <div id="detail-self" class="detail-section">
+                <select class="form-select form-select-sm mb-2" id="rankSelf"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                <div class="row g-2 mb-2">
+                   <div class="col-6"><select class="form-select" id="selfBrand" onchange="checkOther('selfBrand','selfBrandOther')"></select></div>
+                   <div class="col-6"><input type="text" id="selfBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
+                </div>
+                <input type="text" class="form-control" id="selfPlate" placeholder="ทะเบียน (1กข 1234) *">
+              </div>
+            </div>
+          </div>
+
+          <div class="card bg-light border-0 mb-3">
+             <div class="card-body py-2 form-check">
+                   <input class="form-check-input" type="checkbox" id="checkConsent">
+                   <label class="form-check-label small" for="checkConsent">ข้าพเจ้ายินยอมให้จัดเก็บข้อมูลเพื่อความปลอดภัย</label>
+             </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 rounded-pill mb-5">บันทึกข้อมูล</button>
+        </form>
+      </div>
+
+      <!-- Tab: Warning System -->
+      <div id="tab-warning" class="tab-content" style="display:none;">
+        <div class="card p-3 border-danger" style="border-width: 2px;">
+          <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ระบบตักเตือนยานพาหนะ</h5>
+          <p class="small text-muted mb-2">ค้นหาจากป้ายทะเบียนเพื่อออกใบเตือน</p>
+          
+          <div class="input-group mb-3">
+            <input type="text" id="searchPlateText" class="form-control form-control-lg" placeholder="ระบุทะเบียน เช่น กข1234">
+            <button class="btn btn-danger" type="button" onclick="executeSearchPlate()"><i class="bi bi-search"></i> ค้นหา</button>
+          </div>
+
+          <div id="warningResultArea" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Missing -->
+      <div id="tab-missing" class="tab-content" style="display:none;">
+        <div class="card p-3">
+          <h5><i class="bi bi-search"></i> ตรวจสอบคนยังไม่ส่ง</h5>
+          <select id="missingClass" class="form-select mb-3 mt-2" onchange="checkMissing()"><option value="" disabled selected>เลือกห้อง...</option></select>
+          <ul id="missingList" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+      
+      <!-- Tab: Report -->
+       <div id="tab-report" class="tab-content" style="display:none;">
+         <div class="card p-3 mb-3 no-print">
+            <h5 class="text-primary"><i class="bi bi-printer"></i> พิมพ์รายงาน</h5>
+            <select id="reportClassSelect" class="form-select mb-3" onchange="loadClassReport()"><option value="" selected disabled>-- เลือกห้องที่จะพิมพ์ --</option></select>
+            <button class="btn btn-secondary w-100" onclick="window.print()" id="btnPrint" disabled><i class="bi bi-file-earmark-pdf"></i> พิมพ์ PDF</button>
+         </div>
+
+         <div id="reportCard" class="card p-3">
+            <div class="print-header">
+               <h2>รายงานข้อมูลยานพาหนะนักเรียน</h2><h4 id="reportClassTitle">ห้อง: -</h4>
+            </div>
+            <div class="table-responsive">
+               <table class="table table-bordered table-striped" id="reportTable">
+                  <thead class="table-light text-center">
+                     <tr><th>#</th><th>รหัส</th><th>ชื่อ-สกุล</th><th>การเดินทาง</th></tr>
+                  </thead>
+                  <tbody><tr><td colspan="4" class="text-center">เลือกห้องเพื่อแสดงข้อมูล</td></tr></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+
+      <!-- Tab: Data Dashboard -->
+      <div id="tab-data" class="tab-content" style="display:none;">
+         <div class="card p-3 mb-3 no-print">
+            <h5 class="text-primary"><i class="bi bi-bar-chart-fill"></i> แสดงข้อมูลทั้งหมด</h5>
+            <div class="mb-3">
+               <label class="fw-bold small">จัดเรียงตาม:</label>
+               <select id="sortOption" class="form-select form-select-sm" onchange="renderDashboard()">
+                  <option value="class">ห้องเรียน</option>
+                  <option value="driver">ชื่อคนขับ</option>
+                  <option value="village">หมู่บ้าน</option>
+               </select>
+            </div>
+            <button class="btn btn-sm btn-success w-100" onclick="loadAllDataForDashboard()">โหลดข้อมูล</button>
+         </div>
+         <div class="card p-3">
+            <span class="badge bg-secondary mb-2" id="countDisplay">0 รายการ</span>
+            <div class="table-responsive">
+               <table class="table table-hover table-bordered" id="dashboardTable" style="font-size: 0.9rem;">
+                  <thead class="table-primary"><tr><th>ห้อง</th><th>ชื่อ</th><th>รายละเอียด</th></tr></thead>
+                  <tbody><tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+
+    </div>
+
+    <div id="loading" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.9); z-index:99; justify-content:center; align-items:center;">
+       <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+    </div>
+
+    <script>
+      // ==========================================
+      // ตั้งค่าเชื่อมต่อ Google Script Web App API
+      // ==========================================
+      const API_URL = "https://script.google.com/macros/s/AKfycbwLfVhG-N0xxNJcOyC_LUfPt0qS8oUeEtVzAxEcwjJqtAh_tN-l_bT1BdQPeFXPsO_H/exec"; 
+      
+      const carBrands = ["Toyota", "Honda", "Isuzu", "Mitsubishi", "Yamaha", "GPX", "Vespa", "Suzuki", "อื่นๆ"];
+      let globalData = []; 
+
+      // --- ระบบ API Call (เชื่อมโยงฐานข้อมูล) ---
+      async function callAPI(action, payload = {}) {
+        if (!API_URL) {
+           alert("เกิดข้อผิดพลาด: ไม่พบ API_URL");
+           return null;
+        }
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+            body: JSON.stringify({ action: action, ...payload })
+          });
+          const result = await response.json();
+          if(!result.success) throw new Error(result.message);
+          return result.data;
+        } catch (error) {
+          console.error("API Error:", error);
+          alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
+          throw error;
+        }
+      }
+
+      window.onload = async function() {
+        populateOptions('busBrand', carBrands);
+        populateOptions('selfBrand', carBrands);
+        
+        // ดึงข้อมูลห้องเรียนตอนโหลดเว็บ
+        try {
+           const classes = await callAPI('getClassList');
+           const selects = ['selClass', 'missingClass', 'reportClassSelect'];
+           selects.forEach(id => {
+              const el = document.getElementById(id);
+              if(el) classes.forEach(c => el.add(new Option(c, c)));
+           });
+        } catch(e) {}
+      };
+
+      // --- Navigation ---
+      function switchTab(tabName, link) {
+        if (tabName === 'data') {
+           if (prompt("รหัสผ่าน (Admin):") !== '8888') { alert("รหัสผิด"); return; }
+           loadAllDataForDashboard();
+        }
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'text-danger'));
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        if(link) {
+           link.classList.add('active');
+           if(tabName === 'warning') link.classList.add('bg-danger', 'text-white');
+        }
+      }
+
+      function toggleLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+      function populateOptions(id, arr) {
+        const el = document.getElementById(id);
+        el.innerHTML = '<option value="">ยี่ห้อ...</option>';
+        arr.forEach(x => el.add(new Option(x, x)));
+      }
+      function checkOther(selId, inpId) {
+         document.getElementById(inpId).classList.toggle('d-none', document.getElementById(selId).value !== 'อื่นๆ');
+      }
+      function toggleDetail(mode) {
+         document.getElementById('detail-' + mode).style.display = document.getElementById('check' + mode.charAt(0).toUpperCase() + mode.slice(1)).checked ? 'block' : 'none';
+      }
+
+      // --- Survey Logic ---
+      async function loadStudentList() {
+        const cls = document.getElementById('selClass').value;
+        const selSt = document.getElementById('selStudent');
+        selSt.disabled = true; selSt.innerHTML = '<option>กำลังโหลด...</option>';
+        const list = await callAPI('getStudentsByClass', { className: cls });
+        selSt.innerHTML = '<option value="" disabled selected>-- เลือกชื่อตนเอง --</option>';
+        list.forEach(s => selSt.add(new Option(s.name, s.id)));
+        selSt.disabled = false;
+      }
+
+      async function submitData(e) {
+         e.preventDefault();
+         if(!document.getElementById('checkConsent').checked) { alert('กรุณายินยอมให้จัดเก็บข้อมูล'); return; }
+         const stId = document.getElementById('selStudent').value;
+         if(!stId) return alert('กรุณาเลือกชื่อ');
+         
+         const isBus = document.getElementById('checkBus').checked;
+         const isParent = document.getElementById('checkParent').checked;
+         const isSelf = document.getElementById('checkSelf').checked;
+
+         const data = {
+           className: document.getElementById('selClass').value,
+           studentId: stId,
+           studentName: document.getElementById('selStudent').options[document.getElementById('selStudent').selectedIndex].text,
+           studentPhone: document.getElementById('telStudent').value.trim(),
+           parentPhone: document.getElementById('telParent').value.trim(),
+           
+           busRank: isBus ? document.getElementById('rankBus').value : '',
+           busDriverName: isBus ? document.getElementById('busDriver').value.trim() : '',
+           busType: isBus ? document.getElementById('busType').value : '',
+           busTypeOther: isBus && document.getElementById('busTypeOther') ? document.getElementById('busTypeOther').value.trim() : '',
+           busBrand: isBus ? document.getElementById('busBrand').value : '',
+           busPlate: isBus ? document.getElementById('busPlate').value.trim() : '',
+           busDriverPhone: isBus ? document.getElementById('busDriverPhone').value.trim() : '',
+           busVillage: isBus ? document.getElementById('busVillage').value.trim() : '',
+           
+           parentRank: isParent ? document.getElementById('rankParent').value : '',
+           parentDriverName: isParent ? document.getElementById('parentDriver').value.trim() : '',
+           
+           selfRank: isSelf ? document.getElementById('rankSelf').value : '',
+           selfBrand: isSelf ? document.getElementById('selfBrand').value : '',
+           selfBrandOther: isSelf && document.getElementById('selfBrandOther') ? document.getElementById('selfBrandOther').value.trim() : '',
+           selfPlate: isSelf ? document.getElementById('selfPlate').value.trim() : ''
+         };
+
+         toggleLoading(true);
+         try {
+           await callAPI('submitSurvey', { data: data });
+           alert('บันทึกสำเร็จ!'); location.reload();
+         } catch(e) {}
+         toggleLoading(false);
+      }
+
+      // --- WARNING SYSTEM LOGIC ---
+      let currentWarningStudent = null;
+
+      async function executeSearchPlate() {
+         const plate = document.getElementById('searchPlateText').value;
+         if(!plate) return alert('กรุณากรอกทะเบียนรถ');
+         
+         toggleLoading(true);
+         const res = await callAPI('searchPlate', { plate: plate });
+         toggleLoading(false);
+
+         const area = document.getElementById('warningResultArea');
+         area.style.display = 'block';
+
+         if (res.found) {
+            currentWarningStudent = res;
+            area.innerHTML = `
+               <div class="alert alert-warning mt-3">
+                  <h6 class="fw-bold mb-1"><i class="bi bi-person-check"></i> พบข้อมูลนักเรียน!</h6>
+                  <p class="mb-2 small">
+                     ชื่อ: <strong>${res.name}</strong><br>
+                     ห้อง: <strong>${res.className}</strong> (รหัส: ${res.studentId})<br>
+                     ป้ายทะเบียน: <strong>${res.plate}</strong> (${res.type})
+                  </p>
+                  <hr>
+                  <div class="mb-2">
+                     <label class="form-label small fw-bold text-danger">ระบุข้อหา/ความผิด</label>
+                     <select id="warningTopic" class="form-select form-select-sm mb-2">
+                        <option value="ไม่สวมหมวกกันน็อก">ไม่สวมหมวกกันน็อก</option>
+                        <option value="ท่อเสียงดัง/ดัดแปลงสภาพ">ท่อเสียงดัง/ดัดแปลงสภาพ</option>
+                        <option value="ขับขี่หวาดเสียว">ขับขี่หวาดเสียว</option>
+                        <option value="จอดผิดที่">จอดผิดที่</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                     </select>
+                     <textarea id="warningDetail" class="form-control form-control-sm" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+                  </div>
+                  <button class="btn btn-danger w-100" onclick="saveWarning()">บันทึกการตักเตือน</button>
+               </div>
+            `;
+         } else {
+            area.innerHTML = `
+               <div class="alert alert-secondary mt-3 text-center">
+                  <i class="bi bi-search fs-3 text-muted d-block mb-2"></i>
+                  <h6 class="fw-bold">ไม่พบข้อมูลทะเบียนในระบบ</h6>
+                  <p class="small text-muted">ยานพาหนะนี้อาจยังไม่ได้ลงทะเบียนในระบบ หรือกรอกข้อมูลผิดพลาด</p>
+                  <button class="btn btn-outline-primary btn-sm rounded-pill mt-2" onclick="switchTab('survey', document.querySelector('.nav-link'))">
+                     แนะนำให้ลงทะเบียนทันที
+                  </button>
+               </div>
+            `;
+         }
+      }
+
+      async function saveWarning() {
+         if(!currentWarningStudent) return;
+         
+         const payload = {
+            className: currentWarningStudent.className,
+            studentId: currentWarningStudent.studentId,
+            name: currentWarningStudent.name,
+            plate: currentWarningStudent.plate,
+            type: currentWarningStudent.type,
+            topic: document.getElementById('warningTopic').value,
+            detail: document.getElementById('warningDetail').value
+         };
+
+         if(confirm(`ยืนยันการตักเตือน: ${payload.name} ?`)) {
+            toggleLoading(true);
+            try {
+               const res = await callAPI('submitWarning', { data: payload });
+               alert(`บันทึกการตักเตือนเรียบร้อย!\nรหัสอ้างอิง: ${res.warningId}`);
+               document.getElementById('searchPlateText').value = '';
+               document.getElementById('warningResultArea').style.display = 'none';
+            } catch(e) {}
+            toggleLoading(false);
+         }
+      }
+
+      // --- MISSING & REPORT ---
+      async function checkMissing() {
+         const cls = document.getElementById('missingClass').value;
+         const ul = document.getElementById('missingList');
+         ul.innerHTML = '<li>กำลังโหลด...</li>';
+         const list = await callAPI('getUnansweredByClass', { className: cls });
+         ul.innerHTML = list.length === 0 ? '<li>ครบถ้วน!</li>' : list.map(s => `<li class="list-group-item">${s.name}</li>`).join('');
+      }
+
+      async function loadClassReport() {
+         const cls = document.getElementById('reportClassSelect').value;
+         document.getElementById('reportClassTitle').innerText = 'ห้อง: ' + cls;
+         const tbody = document.querySelector('#reportTable tbody');
+         tbody.innerHTML = '<tr><td colspan="4" class="text-center">กำลังดึงข้อมูล...</td></tr>';
+         
+         toggleLoading(true);
+         const data = await callAPI('getReportByClass', { className: cls });
+         document.getElementById('btnPrint').disabled = false;
+         toggleLoading(false);
+
+         tbody.innerHTML = data.length ? data.map((r, i) => `<tr><td>${i+1}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[11] || r[19] || 'ไม่ระบุทะเบียน'}</td></tr>`).join('') 
+                                       : '<tr><td colspan="4" class="text-center">ไม่มีข้อมูล</td></tr>';
+      }
+
+      // --- DASHBOARD ---
+      async function loadAllDataForDashboard() {
+         toggleLoading(true);
+         globalData = await callAPI('getAllResponseData');
+         renderDashboard();
+         toggleLoading(false);
+      }
+
+      function renderDashboard() {
+         const tbody = document.querySelector('#dashboardTable tbody');
+         document.getElementById('countDisplay').innerText = globalData.length + " รายการ";
+         tbody.innerHTML = globalData.map(r => `<tr><td>${r[1]}</td><td>${r[3]}</td><td>${r[11] || r[19] || '-'}</td></tr>`).join('');
+      }
+    </script>
+  </body>
+</html>
