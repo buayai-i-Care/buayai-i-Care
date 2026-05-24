@@ -271,6 +271,9 @@
            if (prompt("รหัสผ่าน (Admin):") !== '8888') { alert("รหัสผิด"); return; }
            loadAllDataForDashboard();
         }
+        if (tabName === 'warning') {
+           if (prompt("รหัสผ่าน (Admin):") !== '8888') { alert("รหัสผิด"); return; }
+        }
         document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'text-danger'));
         document.getElementById('tab-' + tabName).style.display = 'block';
