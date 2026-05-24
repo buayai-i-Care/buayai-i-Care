@@ -346,11 +346,11 @@
             const stuSelect = document.getElementById('studentSelect');
             if (!selectedRoom) { stuSelect.disabled = true; return; }
             const grade = selectedRoom.split('/')[0];
+            
             if (!dbStudentsCache[grade]) {
                 stuSelect.innerHTML = `<option value="">กำลังโหลดชั้น ${grade}...</option>`;
                 stuSelect.disabled = true;
                 try {
-                    // 🌟 แก้ไข: ใช้ getFetchOptions
                     const res = await fetch(WARNING_API_URL, getFetchOptions({ action: 'getStudentsByGrade', grade: grade }));
                     const result = await res.json();
                     if (result.status === 'success') {
@@ -364,9 +364,28 @@
                     return; 
                 }
             }
+            
             const roomStudents = dbStudentsCache[grade].filter(s => s.room === selectedRoom).sort((a,b) => a.name.localeCompare(b.name, 'th'));
-            stuSelect.innerHTML = '<option value="">-- โปรดเลือกชื่อ --</option>';
-            roomStudents.forEach(s => stuSelect.innerHTML += `<option value="${s.name}" data-id="${s.id}">${s.name}</option>`);
+            
+            // 🌟 ปรับปรุงใหม่: นำ String มาต่อกันให้เสร็จก่อนค่อยเอาลง DOM เพื่อให้เร็วกว่าเดิม 🌟
+            let optionsHtml = '<option value="" style="color: #1e293b;">-- โปรดเลือกชื่อ --</option>';
+            
+            roomStudents.forEach((s, index) => {
+                let no = index + 1; // คำนวณเลขที่
+                let textColor = "#1e293b"; // สีตั้งต้น (Slate-800)
+                
+                // กำหนดสีตามเงื่อนไขเลขที่ (ใช้โค้ดสีเพื่อให้ตรงกับ Tailwind Theme ที่คุณใช้)
+                if (no >= 1 && no <= 10) textColor = "#ef4444";        // 1-10 สีแดง (red-500)
+                else if (no >= 11 && no <= 20) textColor = "#22c55e";  // 11-20 สีเขียว (green-500)
+                else if (no >= 21 && no <= 30) textColor = "#ec4899";  // 21-30 สีชมพู (pink-500)
+                else if (no >= 31) textColor = "#a855f7";              // 31-45 สีม่วง (purple-500)
+                
+                // ใส่ตัวเลขหน้าชื่อ และ Style สีข้อความใน Option
+                // หมายเหตุ: การแสดงผลสีใน <option> ขึ้นอยู่กับเบราว์เซอร์ด้วย (Chrome, Android รองรับได้ดี)
+                optionsHtml += `<option value="${s.name}" data-id="${s.id}" style="color: ${textColor}; font-weight: bold;">${no}. ${s.name}</option>`;
+            });
+            
+            stuSelect.innerHTML = optionsHtml;
             stuSelect.disabled = false;
         }
 
@@ -375,6 +394,8 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
+            // เมื่อส่งฟอร์ม เราจะลบเลขที่ออกหรือส่งไปพร้อมเลขที่ก็ได้ ในที่นี้ "value" ของนักเรียนยังเป็นแค่ชื่อ (s.name) ตามเดิม
+            // เพื่อไม่ให้กระทบกับการบันทึกลง Database ของคุณครับ
             pendingWarningPayload = {
                 action: 'submitWarning', grade: document.getElementById('gradeSelect').value.split('/')[0],
                 room: document.getElementById('gradeSelect').value, studentId: document.getElementById('studentIdVal').value,
