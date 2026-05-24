@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตัด/คืน คะแนนพฤติกรรม E-Point ของระบบ Buayai I Care School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        .logo {
+            width: 100%;
+            height: 60px;
+            background-color: #d9d9d9;
+            text-align: center;
+        }
+        .logo img {
+            max-height: 50px;
+            margin: 5px auto;
+            display: block;
+        }
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <!-- หน้าจอโหลดข้อมูล -->
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="mt-3">กำลังประมวลผล...</h5>
+    </div>
+
+    <div class="logo">
+        <img src="https://lh3.googleusercontent.com/d/1yRTamneTYiTILAqCutvp3J2H2M1ij_MA" alt="School Logo">
+    </div>
+    
+    <div class="container">
+        <h2 class="text-center mb-4 text-primary"><i class="bi bi-clipboard-check"></i> ระบบตัด/คืน คะแนนพฤติกรรม E-Point ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</h2>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="sheet" class="form-label"><i class="bi bi-layers"></i> เลือกระดับชั้น:</label>
+                <select id="sheet" class="form-select" onchange="loadStudents()">
+                    <option value="">--กำลังโหลดข้อมูล--</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="student" class="form-label"><i class="bi bi-person"></i> เลือกนักเรียน:</label>
+                <select id="student" class="form-select" onchange="showStudentDetails()" disabled>
+                    <option value="">--กรุณาเลือกระดับชั้นก่อน--</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="infraction" class="form-label"><i class="bi bi-exclamation-triangle"></i> เลือกประเภทความผิด:</label>
+                <select id="infraction" class="form-select" onchange="setInfractionPoints()">
+                    <option value="">--กำลังโหลดข้อมูล--</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <label for="remark" class="form-label"><i class="bi bi-chat-left-text"></i> หมายเหตุ:</label>
+            <textarea id="remark" class="form-control" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+        </div>
+
+        <div id="student-details" class="mt-4"></div>
+        
+        <!-- เพิ่มพื้นที่สำหรับแสดงประวัติล่าสุด -->
+        <div id="student-history" class="mt-4"></div>
+    </div>
+
+    <marquee class="text-danger fw-bold bg-white p-2 border-top">
+        ** 1. ตัดคะแนนเมื่อทำความผิดซ้ำๆ หรือเป็นความผิดร้ายแรง พร้อมมีบันทึกตักเตือน 2. มีการสืบสอบ และได้ให้คำแนะนำตักเตือนนักเรียนแล้ว 3. **กรุณานำส่งบันทึกตัดคะแนน (ปค22) พร้อมลายมือชื่อฉบับสมบูรณ์ ที่ห้องกิจการนักเรียนทุกวันศุกร์ ***ขอบคุณครับ***
+    </marquee>
+
+    <script>
+        // กำหนด API URL ที่คุณส่งมาให้ตรงนี้เรียบร้อยแล้ว
+        const API_URL = "https://script.google.com/macros/s/AKfycbyjoJO4Yb5jlqNByZ2cOWLugJXzlY5HGa3kJF7gjc-VCB-iaBar-nz9UaWLUEyFpMR1/exec";
+
+        // ฟังก์ชันหลักสำหรับสื่อสารกับ Google Apps Script API
+        async function fetchAPI(action, payload = {}) {
+            payload.action = action;
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // ใช้ text/plain เพื่อกันติด CORS
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API Error:", error);
+                Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+                return null;
+            }
+        }
+
+        function toggleLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        async function loadInitialData() {
+            const sheetDropdown = document.getElementById('sheet');
+            const infractionDropdown = document.getElementById('infraction');
+
+            // โหลดรายการห้องและรายการความผิดพร้อมกัน
+            const [sheets, infractions] = await Promise.all([
+                fetchAPI('getSheetNames'),
+                fetchAPI('getInfractionTypes')
+            ]);
+
+            if (sheets) {
+                sheetDropdown.innerHTML = '<option value="">--กรุณาเลือกระดับชั้น--</option>';
+                sheets.forEach(sheet => sheetDropdown.add(new Option(sheet, sheet)));
+            }
+
+            if (infractions) {
+                infractionDropdown.innerHTML = '<option value="">--กรุณาเลือกประเภทความผิด--</option>';
+                infractions.forEach(inf => infractionDropdown.add(new Option(inf[0], inf[0])));
+            }
+        }
+
+        async function loadStudents() {
+            const sheetName = document.getElementById('sheet').value;
+            const studentDropdown = document.getElementById('student');
+            document.getElementById('student-details').innerHTML = ''; // ล้างข้อมูลเก่า
+            document.getElementById('student-history').innerHTML = ''; // ล้างประวัติเก่า
+            
+            if (!sheetName) {
+                studentDropdown.innerHTML = '<option value="">--กรุณาเลือกระดับชั้นก่อน--</option>';
+                studentDropdown.disabled = true;
+                return;
+            }
+
+            studentDropdown.innerHTML = '<option value="">กำลังโหลด...</option>';
+            studentDropdown.disabled = true;
+
+            const students = await fetchAPI('getStudentList', { sheetName });
+            
+            studentDropdown.innerHTML = '<option value="">--กรุณาเลือกนักเรียน--</option>';
+            if (students && students.length > 0) {
+                students.forEach(std => studentDropdown.add(new Option(std[1] + ` (${std[0]})`, std[0])));
+                studentDropdown.disabled = false;
+            } else {
+                studentDropdown.innerHTML = '<option value="">--ไม่พบข้อมูลนักเรียน--</option>';
+            }
+        }
+
+        async function showStudentDetails() {
+            const sheetName = document.getElementById('sheet').value;
+            const studentId = document.getElementById('student').value;
+            const detailsDiv = document.getElementById('student-details');
+
+            if (!studentId) {
+                detailsDiv.innerHTML = '';
+                document.getElementById('student-history').innerHTML = '';
+                return;
+            }
+
+            detailsDiv.innerHTML = '<div class="text-center text-primary"><div class="spinner-border spinner-border-sm"></div> กำลังค้นหาข้อมูล...</div>';
+            
+            const details = await fetchAPI('getStudentDetails', { sheetName, studentId });
+
+            if (details) {
+                // 🔴 ส่วนนี้ที่ขาดหายไป นำกลับมาเติมให้สมบูรณ์แล้วครับ 🔴
+                detailsDiv.innerHTML = `
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="card-text">
+                                        <strong>รหัสนักเรียน:</strong> ${details.id}<br>
+                                        <strong>ชื่อ-สกุล:</strong> <span class="fs-5 fw-bold text-dark">${details.name}</span><br>
+                                        <strong>คะแนนความประพฤติปัจจุบัน:</strong> 
+                                        <span class="badge ${details.points < 50 ? 'bg-danger' : 'bg-success'} fs-6">${details.points} คะแนน</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6 border-start border-2">
+                                    <div class="mb-3">
+                                        <label for="points" class="form-label text-danger fw-bold"><i class="bi bi-plus-slash-minus"></i> ระบุคะแนนที่จะดำเนินการ:</label>
+                                        <input type="number" class="form-control border-danger bg-light" id="points" placeholder="เช่น 5, 10, 15">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="condition" class="form-label"><i class="bi bi-arrow-up-down"></i> เงื่อนไข:</label>
+                                        <select id="condition" class="form-select border-danger">
+                                            <option value="subtract" class="text-danger fw-bold">ลบคะแนน (ตัดคะแนน)</option>
+                                            <option value="add" class="text-success fw-bold">เพิ่มคะแนน (ทำความดี)</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="submitPoints()" class="btn btn-danger w-100 fw-bold shadow"><i class="bi bi-save"></i> ยืนยันการบันทึกข้อมูล</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                setInfractionPoints(); 
+                
+                // โหลดประวัติ 5 รายการล่าสุดมาแสดงด้วย
+                loadStudentHistory(sheetName, studentId);
+            } else {
+                detailsDiv.innerHTML = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> ไม่พบข้อมูลนักเรียนคนนี้</div>';
+                document.getElementById('student-history').innerHTML = '';
+            }
+        }
+
+        // ฟังก์ชันใหม่: ดึงประวัติมาแสดง
+        async function loadStudentHistory(sheetName, studentId) {
+            const histDiv = document.getElementById('student-history');
+            histDiv.innerHTML = '<div class="text-center text-secondary mt-3"><div class="spinner-border spinner-border-sm"></div> กำลังโหลดประวัติ...</div>';
+
+            const history = await fetchAPI('getStudentHistory', { studentId });
+
+            if (history && history.length > 0) {
+                let html = `<h5 class="mt-4 text-secondary"><i class="bi bi-clock-history"></i> ประวัติรายการทั้งหมด</h5>
+                <div class="table-responsive"><table class="table table-bordered table-hover mt-2 bg-white">
+                    <thead class="table-light">
+                        <tr class="text-center"><th>วัน-เวลา</th><th>รายการ</th><th>คะแนน</th><th>จัดการ</th></tr>
+                    </thead><tbody>`;
+
+                history.forEach(h => {
+                    const badge = h.points < 0 ? 'bg-danger' : 'bg-success';
+                    const prefix = h.points < 0 ? 'ตัด' : 'เพิ่ม';
+                    const pt = Math.abs(h.points);
+                    html += `<tr>
+                        <td class="text-center">${h.date}</td>
+                        <td>${h.infraction}</td>
+                        <td class="text-center"><span class="badge ${badge}">${prefix} ${pt}</span></td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-warning" onclick="editHistory('${sheetName}', '${studentId}', ${h.row}, ${h.points}, '${h.infraction}')" title="แก้ไข">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteHistory('${sheetName}', '${studentId}', ${h.row}, ${h.points}, '${h.infraction}')" title="ลบ">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+                histDiv.innerHTML = html;
+            } else {
+                histDiv.innerHTML = '';
+            }
+        }
+
+        // ฟังก์ชันใหม่: กล่องเด้งขึ้นมาให้กรอกแก้ไขคะแนน
+        async function editHistory(sheetName, studentId, rowToEdit, oldPoints, infractionName) {
+            const isDeduct = oldPoints < 0;
+            const oldAbs = Math.abs(oldPoints);
+            const actionType = isDeduct ? 'ตัดคะแนน' : 'เพิ่มคะแนน';
+
+            const { value: newPointsAbs } = await Swal.fire({
+                title: 'แก้ไขคะแนน',
+                html: `รายการ: <b>${infractionName}</b><br>เปลี่ยนการ <b>${actionType}</b> จากเดิม <b>${oldAbs}</b> คะแนน เป็น:`,
+                input: 'number',
+                inputAttributes: { min: 1 },
+                inputValue: oldAbs,
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: '<i class="bi bi-save"></i> บันทึกการแก้ไข',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value || value <= 0) return 'กรุณาระบุคะแนนให้ถูกต้อง (มากกว่า 0)';
+                }
+            });
+
+            // หากมีการใส่ค่าใหม่เข้ามาและไม่ตรงกับค่าเดิม
+            if (newPointsAbs && Number(newPointsAbs) !== oldAbs) {
+                const newPoints = isDeduct ? -Math.abs(newPointsAbs) : Math.abs(newPointsAbs);
+
+                toggleLoading(true);
+                const res = await fetchAPI('editRecord', {
+                    sheetName, studentId, rowToEdit, oldPoints, newPoints
+                });
+                toggleLoading(false);
+
+                if (res && res.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'แก้ไขสำเร็จ',
+                        text: 'ปรับปรุงคะแนนใหม่เรียบร้อยแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    showStudentDetails(); // โหลดข้อมูล+ประวัติใหม่ ทันที
+                } else {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถแก้ไขได้ กรุณาลองใหม่', 'error');
+                }
+            }
+        }
+
+        // ฟังก์ชันใหม่: จัดการการลบประวัติและคืนคะแนน
+        async function deleteHistory(sheetName, studentId, rowToDelete, points, infractionName) {
+            const isDeduct = points < 0;
+            const ptAbs = Math.abs(points);
+            const actionText = isDeduct ? `คืนคะแนนที่โดนหักไป ${ptAbs} คะแนน` : `หักคะแนนที่เคยเพิ่มไป ${ptAbs} คะแนน`;
+
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบประวัติ?',
+                html: `คุณต้องการลบรายการ: <b>${infractionName}</b> ใช่หรือไม่?<br><span class="text-danger mt-2 d-block"><b>ระบบจะทำการ ${actionText} กลับให้ตามเดิม</b></span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash"></i> ใช่, ลบรายการนี้!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (confirm.isConfirmed) {
+                toggleLoading(true);
+                const res = await fetchAPI('deleteRecord', {
+                    sheetName, studentId, rowToDelete, pointsToRestore: points
+                });
+                toggleLoading(false);
+
+                if (res && res.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลบสำเร็จ',
+                        text: 'ลบประวัติและคืนคะแนนเรียบร้อยแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    showStudentDetails(); // รีเฟรชหน้าเว็บอัตโนมัติ
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res?.message || 'ไม่สามารถลบได้ กรุณาลองใหม่', 'error');
+                }
+            }
+        }
+
+        async function setInfractionPoints() {
+            const infraction = document.getElementById('infraction').value;
+            const pointsInput = document.getElementById('points');
+            const conditionInput = document.getElementById('condition');
+            
+            if(infraction && pointsInput) {
+                const points = await fetchAPI('getInfractionPoints', { infraction });
+                if(points > 0) {
+                    pointsInput.value = points;
+                    conditionInput.value = 'subtract';
+                }
+            }
+        }
+
+        async function submitPoints() {
+            const sheetName = document.getElementById('sheet').value;
+            const studentSelect = document.getElementById('student');
+            const studentId = studentSelect.value;
+            let points = parseInt(document.getElementById('points').value);
+            const condition = document.getElementById('condition').value;
+            const remark = document.getElementById('remark').value;
+            const infraction = document.getElementById('infraction').value;
+
+            if (!infraction) {
+                Swal.fire('แจ้งเตือน', 'กรุณาเลือกประเภทความผิด หรือเหตุผลในการดำเนินการ', 'warning');
+                return;
+            }
+            if (!points || points <= 0 || isNaN(points)) {
+                Swal.fire('แจ้งเตือน', 'กรุณากรอกคะแนนให้ถูกต้อง (มากกว่า 0)', 'warning');
+                return;
+            }
+
+            const studentName = studentSelect.options[studentSelect.selectedIndex].text.split(' (')[0];
+            const actionText = condition === 'subtract' ? 'ตัด' : 'เพิ่ม';
+            
+            const confirm = await Swal.fire({
+                title: `ยืนยันการ${actionText}คะแนน?`,
+                html: `คุณกำลังจะ ${actionText} <b>${points} คะแนน</b> <br>ของนักเรียน: <b>${studentName}</b>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: condition === 'subtract' ? '#dc3545' : '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: `ใช่, บันทึกเลย!`,
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            if (condition === 'subtract') {
+                points = -points;
+            }
+
+            toggleLoading(true); // แสดงหน้าโหลด
+            
+            const result = await fetchAPI('submitPoints', {
+                sheetName, studentId, studentName, infraction, points, remark
+            });
+
+            toggleLoading(false); // ซ่อนหน้าโหลด
+
+            if (result && result.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกสำเร็จ',
+                    text: 'อัปเดตคะแนนและส่งข้อมูลเข้าระบบเรียบร้อยแล้ว',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.getElementById('remark').value = ''; // เคลียร์ช่องหมายเหตุ
+                showStudentDetails(); // โหลดข้อมูลมาแสดงใหม่
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่', 'error');
+            }
+        }
+
+        // เริ่มโหลดข้อมูลเมื่อเปิดหน้าเว็บ
+        window.onload = loadInitialData;
+    </script>
+</body>
+</html>
