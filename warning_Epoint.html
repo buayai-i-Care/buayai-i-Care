@@ -476,41 +476,95 @@
             renderInbox();
         }
 
-        function renderInbox() {
+function renderInbox() {
             const con = document.getElementById('warningCardsContainer');
             let displayData = inboxData;
-            if (currentRole === 'head' && selectedHeadGrade) displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
             
-            if(displayData.length === 0) { con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl">ไม่มีประวัติค้าง</div>'; return; }
+            // กรองข้อมูลตามหัวหน้าระดับ (ลอกมาจากโค้ดเดิมของคุณสุ)
+            if (currentRole === 'head' && selectedHeadGrade) {
+                displayData = inboxData.filter(item => item.room.startsWith(selectedHeadGrade));
+            }
+            
+            if(displayData.length === 0) { 
+                con.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl">ไม่มีประวัติค้าง</div>'; 
+                return; 
+            }
 
+            // เรียงลำดับตามห้อง
             displayData.sort((a, b) => parseInt(a.room.split('/')[1] || 0) - parseInt(b.room.split('/')[1] || 0));
 
-            let html = "";
-            displayData.forEach(item => {
-                let btnAreaContent = "";
-                const isHandledByHead = item.status.includes("หัวหน้าระดับรับทราบ") || item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน");
-                const isHandledByTeacher = item.status.includes("ครูที่ปรึกษารับทราบ");
+            // 🌟 1. แยกข้อมูล: ชมเชย vs ตักเตือน โดยเช็คคำว่า "ชมเชย"
+            const compliments = displayData.filter(item => item.violation.includes('ชมเชย'));
+            const warnings = displayData.filter(item => !item.violation.includes('ชมเชย'));
 
-                if (currentRole === 'teacher') {
-                    if (isHandledByTeacher || isHandledByHead) {
-                        btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200">รับทราบแล้ว</div>`;
-                    } else {
-                        btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check-circle"></i> รับทราบ (เรียกพบแล้ว)</button>`;
-                    }
-                } else if (currentRole === 'head') {
-                    if (isHandledByHead) {
-                        const statusLabel = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "ส่งหักคะแนนแล้ว" : "รับทราบแล้ว";
-                        const themeClass = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200";
-                        btnAreaContent = `<div class="text-center py-2 px-4 ${themeClass} font-bold rounded-xl border">${statusLabel}</div>`;
-                    } else {
-                        btnAreaContent = `<div class="flex gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1 shadow-md"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1 shadow-md"><i class="ph ph-minus-circle"></i> ส่งหักคะแนน</button></div>`;
-                    }
-                }
+            let html = "";
+
+            // 🌟 2. วาดโซน "ชมเชย" (สีเขียว-ทอง)
+            if (compliments.length > 0) {
+                html += `<h3 class="font-bold text-[30px] text-emerald-700 mb-3 border-b-2 border-emerald-200 pb-2 flex items-center gap-2"><i class="ph ph-star text-amber-500 text-[36px]"></i> บันทึกชื่นชม (ข่าวดี)</h3>`;
                 
-                html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px]">${item.studentName}</div><div class="text-red-500 text-[22px] font-bold">${item.room} | ${item.violation}</div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4"><b>ลักษณะ:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
-            });
+                compliments.forEach(item => {
+                    let btnAreaContent = "";
+                    const isHandledByHead = item.status.includes("หัวหน้าระดับรับทราบ") || item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน");
+                    const isHandledByTeacher = item.status.includes("ครูที่ปรึกษารับทราบ");
+
+                    // ลอจิกปุ่มกดสำหรับเรื่อง "ชมเชย" (ไม่มีปุ่มหักคะแนน)
+                    if (currentRole === 'teacher') {
+                        if (isHandledByTeacher || isHandledByHead) {
+                            btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200">รับทราบแล้ว</div>`;
+                        } else {
+                            btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check-circle"></i> รับทราบเรื่องราวดีๆ</button>`;
+                        }
+                    } else if (currentRole === 'head') {
+                        if (isHandledByHead) {
+                            btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200">รับทราบแล้ว</div>`;
+                        } else {
+                            // หัวหน้าระดับ จะมีแค่ปุ่มรับทราบความดี (ไม่ให้มีปุ่มส่งหักคะแนน)
+                            btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check"></i> รับทราบความดี</button>`;
+                        }
+                    }
+                    
+                    html += `<details class="bg-white rounded-3xl shadow-sm border-2 border-emerald-200 overflow-hidden mb-3"><summary class="p-4 flex items-center justify-between cursor-pointer bg-emerald-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px] text-emerald-900">${item.studentName}</div><div class="text-emerald-600 text-[22px] font-bold">${item.room} | <i class="ph ph-medal"></i> ${item.violation}</div></div></div><i class="ph ph-caret-down text-emerald-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t border-emerald-100"><div class="mb-4"><b>ข้อความชื่นชม:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
+                });
+            }
+
+            // 🌟 3. วาดโซน "ตักเตือน" (ดึงโครงสร้างเดิมของคุณสุมาใช้เลย)
+            if (warnings.length > 0) {
+                if(compliments.length > 0) html += `<div class="h-4"></div>`; // เว้นช่องว่างตรงกลาง
+                html += `<h3 class="font-bold text-[30px] text-red-700 mb-3 border-b-2 border-red-200 pb-2 flex items-center gap-2"><i class="ph ph-warning-octagon text-red-500 text-[36px]"></i> รายการตักเตือน</h3>`;
+                
+                warnings.forEach(item => {
+                    let btnAreaContent = "";
+                    const isHandledByHead = item.status.includes("หัวหน้าระดับรับทราบ") || item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน");
+                    const isHandledByTeacher = item.status.includes("ครูที่ปรึกษารับทราบ");
+
+                    if (currentRole === 'teacher') {
+                        if (isHandledByTeacher || isHandledByHead) {
+                            btnAreaContent = `<div class="text-center py-2 px-4 bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200">รับทราบแล้ว</div>`;
+                        } else {
+                            btnAreaContent = `<button onclick="updateStatus('${item.warningId}', 'teacher_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white w-full shadow-md"><i class="ph ph-check-circle"></i> รับทราบ (เรียกพบแล้ว)</button>`;
+                        }
+                    } else if (currentRole === 'head') {
+                        if (isHandledByHead) {
+                            const statusLabel = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "ส่งหักคะแนนแล้ว" : "รับทราบแล้ว";
+                            const themeClass = (item.status.includes("หักคะแนน") || item.status.includes("ตัดคะแนน")) ? "bg-red-100 text-red-700 border-red-200" : "bg-emerald-100 text-emerald-700 border-emerald-200";
+                            btnAreaContent = `<div class="text-center py-2 px-4 ${themeClass} font-bold rounded-xl border">${statusLabel}</div>`;
+                        } else {
+                            btnAreaContent = `<div class="flex gap-2"><button onclick="updateStatus('${item.warningId}', 'head_ack', '${item.studentName}', '${item.room}')" class="btn-custom bg-emerald-500 text-white flex-1 shadow-md"><i class="ph ph-check"></i> รับทราบ</button><button onclick="openDeductModal('${item.warningId}', '${item.studentName}', '${item.room}')" class="btn-custom bg-red-600 text-white flex-1 shadow-md"><i class="ph ph-minus-circle"></i> ส่งหักคะแนน</button></div>`;
+                        }
+                    }
+                    
+                    html += `<details class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-3"><summary class="p-4 flex items-center justify-between cursor-pointer bg-red-50"><div class="flex items-center gap-3"><div><div class="font-bold text-[28px]">${item.studentName}</div><div class="text-red-500 text-[22px] font-bold">${item.room} | ${item.violation}</div></div></div><i class="ph ph-caret-down text-slate-400 text-4xl chevron-icon"></i></summary><div class="p-4 border-t"><div class="mb-4"><b>ลักษณะ:</b> ${item.notes}</div><div id="btnArea-${item.warningId}">${btnAreaContent}</div></div></details>`;
+                });
+            }
+
             con.innerHTML = html;
         }
+
+
+
+
+        
 
         async function updateStatus(id, type, name, room) {
             showLoading(true, "อัปเดต...");
