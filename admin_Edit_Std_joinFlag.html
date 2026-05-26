@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการ ของระบบเชคชื่อเข้าแถว ของนักเรียน ของโรงเรียนบัวใหญ่ Buayai I Care School</title>
+    
+    <!-- โหลด Bootstrap 5, Icons และ Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --admin-primary: #0f172a;
+            --admin-accent: #6366f1;
+            --bg-light: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-light);
+            color: #1e293b;
+        }
+
+        .navbar {
+            background-color: var(--admin-primary);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: white;
+        }
+
+        .table-custom th {
+            background-color: #e2e8f0;
+            color: #334155;
+            font-weight: 600;
+            border-bottom: 2px solid #cbd5e1;
+            white-space: nowrap;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .status-select {
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            width: 100px;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="mt-3 fw-bold text-primary" id="loading-text">กำลังประมวลผล...</h5>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark mb-4 py-3">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 fw-bold">
+                <i class="bi bi-shield-lock-fill text-warning me-2"></i> Admin Dashboard (จัดการข้อมูลเข้าแถว)
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 pb-5">
+        
+        <!-- ส่วนค้นหาข้อมูล -->
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2"></i>ค้นหาและจัดการข้อมูล</h5>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">ระดับชั้น</label>
+                    <select id="inputClass" class="form-select">
+                        <option value="">-- เลือกห้องเรียน --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">วันที่</label>
+                    <input type="date" id="inputDate" class="form-control">
+                </div>
+                <div class="col-md-6 d-flex gap-2">
+                    <button class="btn btn-primary px-4 fw-bold shadow-sm" onclick="fetchData()">
+                        <i class="bi bi-cloud-download"></i> ดึงข้อมูล
+                    </button>
+                    <button class="btn btn-warning px-4 fw-bold shadow-sm" onclick="confirmForceClean()" id="btn-force-clean" style="display: none;">
+                        <i class="bi bi-magic"></i> กวาดข้อมูลซ้ำ & ซิงค์ยอดใหม่
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ส่วนแสดงตารางข้อมูล -->
+        <div class="card card-custom p-4" id="table-container" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-table me-2"></i>รายการเช็คชื่อ <span id="display-info" class="text-primary"></span></h5>
+                <span class="badge bg-secondary" id="total-records">รวม 0 รายการ</span>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover table-custom">
+                    <thead>
+                        <tr>
+                            <th class="text-center">ที่</th>
+                            <th>เวลาเช็คชื่อ</th>
+                            <th>รหัสนักเรียน</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>ครูผู้บันทึก</th>
+                            <th class="text-center">สถานะ</th>
+                            <th class="text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Data will be rendered here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal แจ้งเตือนทั่วไป (แทน Alert) -->
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg text-center p-4 rounded-4">
+                <div id="alertIcon" class="mb-3" style="font-size: 3.5rem;"></div>
+                <h5 id="alertTitle" class="fw-bold mb-2"></h5>
+                <p id="alertMessage" class="text-muted small mb-4"></p>
+                <button class="btn btn-dark w-100 rounded-pill fw-bold" data-bs-dismiss="modal">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ยืนยันการลบ -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg text-center p-4 rounded-4">
+                <div class="text-danger mb-3" style="font-size: 3.5rem;"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                <h5 class="fw-bold mb-2">ยืนยันการลบ?</h5>
+                <p class="text-muted small mb-4">ข้อมูลการเช็คชื่อของนักเรียนคนนี้ในวันนี้จะถูกลบ และคำนวณสถิติใหม่</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light w-50 rounded-pill fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button class="btn btn-danger w-50 rounded-pill fw-bold" id="btn-confirm-delete">ลบข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ใส่ API ของ Admin Backend ที่เพิ่งได้รับมา
+        const API_URL = "https://script.google.com/macros/s/AKfycbxF8z4m0SQIMetndQkKEFk71U1b0Y7fACm2epy4ONg0quj2DEubM9-IEuyJJ9EMioBe/exec";
+
+        let currentData = [];
+        let activeClass = "";
+        let activeDate = "";
+        let studentToDelete = "";
+
+        // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้ และสร้าง Dropdown ห้องเรียน
+        window.onload = () => {
+            const today = new Date();
+            const offset = today.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
+            document.getElementById('inputDate').value = localISOTime;
+
+            // กำหนดโครงสร้างจำนวนห้อง ม.1 - ม.6
+            const classSelect = document.getElementById('inputClass');
+            const classStructure = [
+                { level: 1, rooms: 10 }, { level: 2, rooms: 10 }, { level: 3, rooms: 10 },
+                { level: 4, rooms: 12 }, { level: 5, rooms: 12 }, { level: 6, rooms: 10 }
+            ];
+            
+            // สร้างตัวเลือก (Options) อัตโนมัติลงใน Dropdown
+            classStructure.forEach(grade => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = `มัธยมศึกษาปีที่ ${grade.level}`;
+                for (let i = 1; i <= grade.rooms; i++) {
+                    const option = document.createElement('option');
+                    option.value = `ม.${grade.level}/${i}`;
+                    option.textContent = `ม.${grade.level}/${i}`;
+                    optgroup.appendChild(option);
+                }
+                classSelect.appendChild(optgroup);
+            });
+        };
+
+        // ฟังก์ชันเรียก API
+        async function callAPI(payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                return { status: 'error', message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };
+            }
+        }
+
+        // แสดง Alert Custom
+        function showAlert(title, message, type='success') {
+            const icon = document.getElementById('alertIcon');
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            
+            if(type === 'success') icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+            else if(type === 'error') icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+            else icon.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+            
+            new bootstrap.Modal(document.getElementById('alertModal')).show();
+        }
+
+        function showLoading(text) {
+            document.getElementById('loading-text').innerText = text;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // 1. ดึงข้อมูล
+        async function fetchData() {
+            const cls = document.getElementById('inputClass').value.trim();
+            const date = document.getElementById('inputDate').value;
+            
+            if(!cls || !date) return showAlert('ข้อมูลไม่ครบ', 'กรุณาระบุชื่อห้อง (เช่น ม.1/1) และวันที่', 'warning');
+
+            showLoading('กำลังดึงข้อมูล...');
+            const result = await callAPI({ action: 'adminGetData', className: cls, dateStr: date });
+            hideLoading();
+
+            if (result.status === 'success') {
+                currentData = result.data;
+                activeClass = cls;
+                activeDate = date;
+                
+                document.getElementById('display-info').innerText = `(${cls} - ${date})`;
+                document.getElementById('total-records').innerText = `รวม ${currentData.length} รายการ`;
+                document.getElementById('table-container').style.display = 'block';
+                document.getElementById('btn-force-clean').style.display = 'block';
+                
+                renderTable();
+                
+                if (currentData.length === 0) {
+                    document.getElementById('table-body').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">ไม่พบข้อมูลการเช็คชื่อในวันดังกล่าว</td></tr>';
+                }
+            } else {
+                showAlert('ผิดพลาด', result.message, 'error');
+            }
+        }
+
+        // 2. วาดตาราง
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            currentData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center text-muted">${index + 1}</td>
+                    <td>${row.time}</td>
+                    <td class="text-primary fw-bold">${row.studentId}</td>
+                    <td>${row.name}</td>
+                    <td class="small text-muted">${row.teacher}</td>
+                    <td class="text-center">
+                        <select class="status-select bg-light" id="status-${row.studentId}">
+                            <option value="มา" ${row.status === 'มา' ? 'selected' : ''}>มา</option>
+                            <option value="สาย" ${row.status === 'สาย' ? 'selected' : ''}>สาย</option>
+                            <option value="ลป" ${row.status === 'ลป' ? 'selected' : ''}>ลป</option>
+                            <option value="ลก" ${row.status === 'ลก' ? 'selected' : ''}>ลก</option>
+                            <option value="ขาด" ${row.status === 'ขาด' ? 'selected' : ''}>ขาด</option>
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3 me-1" onclick="updateRecord('${row.studentId}')" title="บันทึกการแก้ไขสถานะ">
+                            <i class="bi bi-save"></i> บันทึก
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="confirmDelete('${row.studentId}')" title="ลบข้อมูล">
+                            <i class="bi bi-trash3"></i> ลบ
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. อัปเดตข้อมูลรายบุคคล
+        async function updateRecord(studentId) {
+            const newStatus = document.getElementById(`status-${studentId}`).value;
+            
+            showLoading('กำลังบันทึกและคำนวณสถิติใหม่...');
+            const result = await callAPI({ 
+                action: 'adminUpdateRecord', 
+                className: activeClass, 
+                dateStr: activeDate, 
+                studentId: studentId, 
+                newStatus: newStatus 
+            });
+            hideLoading();
+
+            if (result.status === 'success') {
+                showAlert('สำเร็จ', 'อัปเดตสถานะและปรับปรุงสถิติใหม่เรียบร้อยแล้ว', 'success');
+                // ดึงข้อมูลใหม่เพื่ออัปเดตหน้าจอ
+                fetchData();
+            } else {
+                showAlert('ผิดพลาด', result.message, 'error');
+            }
+        }
+
+        // 4. ลบข้อมูล
+        let confirmDeleteModal;
+        function confirmDelete(studentId) {
+            studentToDelete = studentId;
+            if(!confirmDeleteModal) confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmDeleteModal.show();
+        }
+
+        document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+            confirmDeleteModal.hide();
+            if(!studentToDelete) return;
+
+            showLoading('กำลังลบข้อมูลและคำนวณสถิติใหม่...');
+            const result = await callAPI({ 
+                action: 'adminDeleteRecord', 
+                className: activeClass, 
+                dateStr: activeDate, 
+                studentId: studentToDelete 
+            });
+            hideLoading();
+
+            if (result.status === 'success') {
+                showAlert('สำเร็จ', 'ลบข้อมูลและปรับปรุงสถิติเรียบร้อยแล้ว', 'success');
+                fetchData(); // รีเฟรชตาราง
+            } else {
+                showAlert('ผิดพลาด', result.message, 'error');
+            }
+            studentToDelete = "";
+        });
+
+        // 5. บังคับล้างข้อมูลซ้ำ (Manual Action)
+        async function confirmForceClean() {
+            showLoading('กำลังกวาดข้อมูลซ้ำและซิงค์สถิติใหม่...');
+            const result = await callAPI({ 
+                action: 'forceCleanAndSync', 
+                className: activeClass, 
+                dateStr: activeDate
+            });
+            hideLoading();
+
+            if (result.status === 'success') {
+                showAlert('สำเร็จ', 'ระบบกวาดข้อมูลที่ซ้ำซ้อนและซิงค์ยอดใหม่ให้ส่วนกลางเรียบร้อยแล้ว', 'success');
+                fetchData(); // รีเฟรชตารางให้เหลือเฉพาะข้อมูลที่กวาดแล้ว
+            } else {
+                showAlert('ผิดพลาด', result.message, 'error');
+            }
+        }
+
+    </script>
+</body>
+</html>
