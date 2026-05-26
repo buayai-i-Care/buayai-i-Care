@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบคะแนนพฤติกรรม E-Point โรงเรียนบัวใหญ่</title>
+    <title>ระบบคะแนนความประพฤติ E-Point โรงเรียนบัวใหญ่ ของ Buayai I Care School</title>
     
     <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,17 +60,9 @@
         .nav-link i { font-size: 1.2rem; margin-right: 15px; width: 20px; text-align: center; }
 
         /* Dashboard UI */
-        .score-card {
-            background: white; border-radius: 25px; padding: 30px 20px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; position: relative;
-        }
-        
+        .score-card { background: white; border-radius: 25px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; position: relative; }
         .blink-border { border: 4px solid var(--orange-main); animation: blink 1.5s infinite; }
-        @keyframes blink {
-            0% { border-color: #f97316; box-shadow: 0 0 20px rgba(249,115,22,0.4); }
-            50% { border-color: transparent; box-shadow: none; }
-            100% { border-color: #f97316; box-shadow: 0 0 20px rgba(249,115,22,0.4); }
-        }
+        @keyframes blink { 0%, 100% { border-color: #f97316; box-shadow: 0 0 20px rgba(249,115,22,0.4); } 50% { border-color: transparent; box-shadow: none; } }
 
         .score-number { font-size: 4.5rem; font-weight: 800; color: var(--orange-dark); line-height: 1; margin: 10px 0; font-family: 'Prompt', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 90px;}
         
@@ -94,14 +86,14 @@
 
         /* Notification Elements */
         .ring-bell { animation: ring 1.5s infinite ease-in-out; display: inline-block; transform-origin: top center; color: #facc15; }
-        @keyframes ring { 0% { transform: rotate(0); } 10% { transform: rotate(15deg); } 20% { transform: rotate(-15deg); } 30% { transform: rotate(10deg); } 40% { transform: rotate(-10deg); } 50% { transform: rotate(0); } 100% { transform: rotate(0); } }
+        @keyframes ring { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(15deg); } 20%, 40% { transform: rotate(-15deg); } }
         .blink-badge { animation: pulseBadge 1s infinite; }
-        @keyframes pulseBadge { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        @keyframes pulseBadge { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); } }
         .noti-card { background: white; border: 1px solid #e2e8f0; border-left: 5px solid #cbd5e1; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.3s;}
         .noti-card.unread { border-left: 5px solid #ef4444; background: #fff5f5; }
         .marquee-alert { background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 15px; padding: 10px 15px; color: #b91c1c; font-size: 0.95rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; }
 
-        /* 🌟🌟 ส่วนเพิ่มใหม่: ปุ่มลอยและ Modal สำหรับประวัติตักเตือนพฤติกรรม (ธีมชมพู-แดง) 🌟🌟 */
+        /* 🌟 ปุ่มลอย Widget */
         .fab-warning {
             position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; border-radius: 50%;
             background: linear-gradient(135deg, #f43f5e, #be185d); color: white; font-size: 1.8rem;
@@ -110,66 +102,56 @@
             animation: bounceSoft 4s infinite;
         }
         .fab-warning:hover { transform: scale(1.1); animation: none; }
-        .fab-badge {
-            position: absolute; top: -5px; right: -5px; background: #1e293b; color: white; border: 2px solid white;
-            font-size: 0.8rem; font-weight: bold; width: 26px; height: 26px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
-        @keyframes bounceSoft {
-            0%, 20%, 100% { transform: translateY(0); }
-            10% { transform: translateY(-12px); }
-            15% { transform: translateY(-5px); }
-        }
+        .fab-warning.fab-good { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
+        .fab-badge { position: absolute; top: -5px; right: -5px; background: #1e293b; color: white; border: 2px solid white; font-size: 0.8rem; font-weight: bold; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        @keyframes bounceSoft { 0%, 20%, 100% { transform: translateY(0); } 10% { transform: translateY(-12px); } 15% { transform: translateY(-5px); } }
         
-        /* Modal ตักเตือนสไตล์วัยรุ่น */
-        .modal-warning-content { border-radius: 30px; border: none; background: #fdf2f8; }
-        .modal-warning-header { background: linear-gradient(135deg, #f43f5e, #be185d); color: white; border-radius: 30px 30px 0 0; padding: 20px; text-align: center; border-bottom: none; }
+        /* Modal & Timeline (เหมือนของเดิมทั้งหมด) */
+        .modal-warning-content { border-radius: 30px; border: none; background: #f8fafc; }
+        .modal-warning-header { background: linear-gradient(135deg, #475569, #1e293b); color: white; border-radius: 30px 30px 0 0; padding: 20px; text-align: center; border-bottom: none; }
         .timeline-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 15px; border-left: 6px solid #f43f5e; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lotus-msg { background: white; border: 2px dashed #fbcfe8; border-radius: 20px; padding: 15px; text-align: center; color: #be185d; margin-bottom: 20px; }
-        
-        /* 🌟 Timeline สไตล์เหมือนภาพ 🌟 */
         .tl-wrapper { padding: 15px 5px; margin-top: 15px; background: #fffcfd; border-radius: 15px; border: 1px dashed #fbcfe8; }
         .tl-header { font-size: 1.3rem; font-weight: 700; color: #334155; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: 'Prompt', sans-serif;}
         .tl-header i { color: #f472b6; font-size: 1.6rem; transform: rotate(-90deg); display: inline-block;}
-        
         .tl-item { position: relative; padding-left: 55px; padding-bottom: 30px; min-height: 45px;}
         .tl-item:last-child { padding-bottom: 0; min-height: 38px;}
-        
-        .tl-item::before {
-            content: ''; position: absolute; left: 24px; top: 40px; bottom: -5px; width: 3px;
-            background-color: #e2e8f0; border-radius: 2px; z-index: 1;
-        }
+        .tl-item::before { content: ''; position: absolute; left: 24px; top: 40px; bottom: -5px; width: 3px; background-color: #e2e8f0; border-radius: 2px; z-index: 1; }
         .tl-item:last-child::before { display: none; }
         .tl-item.completed::before { background-color: #f9a8d4; }
-        
-        .tl-icon {
-            position: absolute; left: 5px; top: 0; width: 42px; height: 42px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-            background-color: #e2e8f0; color: #94a3b8; border: 4px solid white; z-index: 10;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
+        .tl-icon { position: absolute; left: 5px; top: 0; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; background-color: #e2e8f0; color: #94a3b8; border: 4px solid white; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .tl-text { color: #64748b; font-size: 1.25rem; display: flex; align-items: center; min-height: 42px;}
-        
         .tl-item.completed .tl-icon { background-color: #f472b6; color: white; }
-        
-        .tl-item.current .tl-icon { 
-            background-color: #be185d; color: white; 
-            border: 2px solid white; box-shadow: 0 0 0 2px #be185d; 
-            animation: pulse-ring-timeline 2s infinite; 
-        }
+        .tl-item.current .tl-icon { background-color: #be185d; color: white; border: 2px solid white; box-shadow: 0 0 0 2px #be185d; animation: pulse-ring-timeline 2s infinite; }
         .tl-item.current.step-6 .tl-icon { background-color: #ef4444; box-shadow: 0 0 0 2px #ef4444;}
         .tl-item.current .tl-text { color: #831843; font-size: 1.4rem; font-weight: 700; }
+        @keyframes pulse-ring-timeline { 0%, 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(190, 24, 93, 0); } 70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(190, 24, 93, 0); } }
+
+        .timeline-card-good { background: white; border-radius: 20px; padding: 15px; margin-bottom: 15px; border-left: 6px solid #10b981; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .lotus-msg-good { background: white; border: 2px dashed #a7f3d0; border-radius: 20px; padding: 15px; text-align: center; color: #047857; margin-bottom: 20px; }
+        .tl-wrapper-good { padding: 15px 5px; margin-top: 15px; background: #f0fdf4; border-radius: 15px; border: 1px dashed #a7f3d0; }
+        .tl-header-good { font-size: 1.3rem; font-weight: 700; color: #334155; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: 'Prompt', sans-serif;}
+        .tl-header-good i { color: #34d399; font-size: 1.6rem; transform: rotate(-90deg); display: inline-block;}
+        .tl-item.completed-good::before { background-color: #6ee7b7; }
+        .tl-item.completed-good .tl-icon { background-color: #34d399; color: white; }
+        .tl-item.current-good .tl-icon { background-color: #059669; color: white; border: 2px solid white; box-shadow: 0 0 0 2px #059669; animation: pulse-ring-good 2s infinite; }
+        .tl-item.current-good .tl-text { color: #064e3b; font-size: 1.4rem; font-weight: 700; }
+        @keyframes pulse-ring-good { 0%, 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); } 70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(5, 150, 105, 0); } }
         
-        @keyframes pulse-ring-timeline {
-            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(190, 24, 93, 0.5); }
-            70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(190, 24, 93, 0); }
-            100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(190, 24, 93, 0); }
-        }
-        
-        /* 🌟 เอฟเฟกต์หมุนลูกศรสำหรับ การย่อ-ขยาย (Accordion) 🌟 */
         .warning-toggle-btn[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
         .chevron-icon { transition: transform 0.3s ease-in-out; display: inline-block; }
+
+        /* 🕒 ธีมประวัติมาสาย (สไตล์วัยรุ่น) */
+        .late-card { background: white; border-radius: 18px; border-left: 5px solid #f59e0b; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.3s; }
+        .late-card.ack { border-left-color: #10b981; opacity: 0.8; background-color: #f8fafc; }
+        .btn-teen { background: #f1f5f9; color: #475569; border-radius: 12px; font-weight: 600; padding: 8px 15px; font-size: 0.9rem; transition: 0.2s; border: none; }
+        .btn-teen:hover { background: #e2e8f0; color: #1e293b; }
+        .btn-ack { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-radius: 12px; font-weight: 600; padding: 8px 15px; font-size: 0.9rem; border: none; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); transition: 0.2s; }
+        .btn-ack:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); }
+        .btn-ack:disabled { background: #10b981; box-shadow: none; transform: none; cursor: not-allowed; }
+        
+        /* 🚨 ธีมภาคเรียนที่ผ่านมา (ไม่ผ่านเกณฑ์) */
+        .past-fail-card { background: white; border-radius: 18px; border-left: 5px solid #ef4444; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
     </style>
 </head>
 <body>
@@ -206,7 +188,7 @@
             <div class="d-flex align-items-center">
                 <button class="hamburger-btn me-3" onclick="toggleSidebar()"><i class="bi bi-list"></i><span id="nav-dot-noti" class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle blink-badge d-none" style="margin-left: -5px;"></span></button>
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" width="30" height="30" class="rounded-circle bg-white p-1 me-2">
-                <h6 class="m-0 fw-bold">คะแนนพฤติกรรม E-Point</h6>
+                <h6 class="m-0 fw-bold">คะแนนความประพฤติ E-Point </h6>
             </div>
             <div onclick="switchMenu('noti', document.getElementById('menu-noti'))" style="cursor: pointer;"><i class="bi bi-bell-fill fs-5" id="nav-bell-icon"></i></div>
         </div>
@@ -224,12 +206,11 @@
             <div class="flex-grow-1 overflow-y-auto pb-3" style="scrollbar-width: thin;">
                 <div class="nav-link active" onclick="switchMenu('dashboard', this)"><i class="bi bi-star-fill text-warning"></i> คะแนนปัจจุบัน</div>
                 <div class="nav-link" onclick="switchMenu('past', this)"><i class="bi bi-clock-history"></i> ภาคเรียนที่ผ่านมา</div>
-                <div class="nav-link" onclick="switchMenu('late', this)"><i class="bi bi-person-walking"></i> ประวัติมาสาย</div>
+                <div class="nav-link" onclick="switchMenu('late', this)"><i class="bi bi-person-walking text-info"></i> ประวัติมาสาย</div>
                 <div class="nav-link" onclick="switchMenu('noti', this)" id="menu-noti">
                     <i class="bi bi-envelope-paper-fill" id="sidebar-envelope-icon"></i> กล่องข้อความ <span id="noti-badge" class="badge bg-danger rounded-pill ms-auto d-none blink-badge shadow-sm">0</span>
                 </div>
-                <!-- 🌟 แก้ไขเมนูจาก ตั้งไว้ (5) เป็น การมาเรียน 🌟 -->
-                <div class="nav-link" onclick="openAttendancePage()"><i class="bi bi-calendar2-check-fill text-info"></i> การมาเรียน</div>
+                <div class="nav-link" onclick="openAttendancePage()"><i class="bi bi-calendar2-check-fill text-primary"></i> การมาเรียน</div>
                 <div class="nav-link text-muted"><i class="bi bi-gear"></i> ตั้งไว้ (6)</div>
             </div>
             <button class="btn btn-outline-danger w-100 rounded-pill mt-auto flex-shrink-0" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</button>
@@ -279,6 +260,36 @@
                 </div>
             </div>
 
+            <!-- 📍 เมนู: ภาคเรียนที่ผ่านมา -->
+            <div id="view-past" style="display: none;">
+                <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #fff1f2);">
+                    <h4 class="fw-bold text-dark m-0"><i class="bi bi-clock-history text-danger me-2"></i>ประวัติภาคเรียนที่ผ่านมา</h4>
+                    <p class="text-muted small mt-2 mb-0">ข้อมูลจากระบบ: รายชื่อนักเรียนที่มีผลการประเมิน <b>"ไม่ผ่านเกณฑ์"</b> (มผ) ในภาคเรียนก่อนหน้า</p>
+                </div>
+                <div id="past-list-container">
+                    <!-- ข้อมูลจะถูกดึงมาจาก Cache ตอน Login ทันที -->
+                </div>
+            </div>
+
+            <!-- 📍 เมนู: ประวัติมาสาย -->
+            <div id="view-late" style="display: none;">
+                <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #f0f9ff);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="fw-bold text-dark m-0"><i class="bi bi-person-walking text-info me-2"></i>ประวัติมาสาย</h4>
+                            <p class="text-muted small mt-1 mb-0">บันทึกจากระบบสแกนประตูโรงเรียน</p>
+                        </div>
+                        <div class="text-center bg-white p-2 rounded-3 border shadow-sm">
+                            <div class="small fw-bold text-muted">มาสายทั้งหมด</div>
+                            <h3 class="fw-bold text-info m-0" id="late-total"><div class="spinner-border spinner-border-sm text-info"></div></h3>
+                        </div>
+                    </div>
+                </div>
+                <div id="late-list-container">
+                    <div class="text-center py-5 text-muted"><span class="spinner-border text-info"></span><br>กำลังดึงข้อมูล...</div>
+                </div>
+            </div>
+
             <!-- 📍 เมนู: กล่องข้อความ -->
             <div id="view-noti" style="display: none;">
                 <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #fff7ed);">
@@ -294,30 +305,28 @@
                 <div id="noti-list-container"><div class="text-center py-5 text-muted"><span class="spinner-border text-primary"></span><br>กำลังดึงข้อความจากระบบ...</div></div>
             </div>
 
-            <div id="view-past" style="display: none;" class="text-center py-5 text-muted"><i class="bi bi-tools fs-1"></i><br>กำลังพัฒนาระบบ</div>
-            <div id="view-late" style="display: none;" class="text-center py-5 text-muted"><i class="bi bi-tools fs-1"></i><br>กำลังพัฒนาระบบ</div>
         </div>
 
         <!-- 🌟🌟 ปุ่มลอย: วิดเจ็ตเช็คประวัติตักเตือนพฤติกรรม 🌟🌟 -->
         <div id="fab-warning-widget" class="fab-warning" style="display: none;" onclick="showWarningModal()">
-            <i class="bi bi-shield-exclamation"></i>
+            <i id="fab-main-icon" class="bi bi-shield-exclamation"></i>
             <span id="fab-warning-badge" class="fab-badge d-none">0</span>
         </div>
 
     </div>
 
-    <!-- 🌟🌟 Modal: ประวัติตักเตือนพฤติกรรม (E-Point Widget Integrated) 🌟🌟 -->
+    <!-- 🌟🌟 Modal: ประวัติตักเตือนพฤติกรรม -->
     <div class="modal fade" id="warningWidgetModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content modal-warning-content">
-                <div class="modal-header modal-warning-header flex-column position-relative">
+                <div id="modal-warning-header" class="modal-header modal-warning-header flex-column position-relative">
                     <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                    <i class="bi bi-shield-exclamation display-3 mb-2"></i>
-                    <h4 class="modal-title fw-bold font-prompt">ประวัติตักเตือนพฤติกรรม</h4>
+                    <i id="modal-main-icon" class="bi bi-shield-exclamation display-3 mb-2"></i>
+                    <h4 class="modal-title fw-bold font-prompt">ประวัติบันทึกพฤติกรรม</h4>
                     <p class="mb-0 small opacity-75">ข้อมูลจากระบบ E-Point Buayai I Care School</p>
                 </div>
                 <div class="modal-body p-4" id="warning-widget-body">
-                    <div class="text-center py-5"><span class="spinner-border text-danger"></span><br><small class="text-muted">กำลังโหลดข้อมูลตักเตือน...</small></div>
+                    <div class="text-center py-5"><span class="spinner-border text-primary"></span><br><small class="text-muted">กำลังเตรียมข้อมูล...</small></div>
                 </div>
             </div>
         </div>
@@ -332,12 +341,12 @@
         // 1. ตั้งค่า API หลัก
         // =========================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbxhZC6lm7qbEB8d5elWF69noSJNpEFyeurkKHlsG934aPTPXG05VfiRpMG4WYA1vBm5lA/exec"; 
-        
-        // 🌟 2. ตั้งค่า API ของระบบตักเตือน (จาก Widget เดิม)
         const WARNING_API_URL = 'https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec';
 
         let currentUser = { room: "", id: "" };
-        let warningDataCache = null; // เก็บข้อมูลตักเตือนไว้รอเลย
+        let preRenderedModalHtml = ""; 
+        let warningDataCache = []; 
+        let cachedPastFailRecords = []; // 🌟 เก็บข้อมูล มผ. ไว้ใช้ข้ามเมนูโดยไม่ต้องโหลดใหม่
 
         window.addEventListener('DOMContentLoaded', () => {
             let optionsHtml = '<option value="">-- เลือกระดับชั้น --</option>';
@@ -392,9 +401,6 @@
             return `วัน${thaiDays[d.getDay()]}ที่ ${d.getDate()} ${thaiMonths[d.getMonth()]} ${year}`;
         }
 
-        // =========================================================
-        // เข้าสู่ระบบ และ สั่งให้ดึงข้อมูลทั้งหมด รวมถึงข้อมูลตักเตือน!
-        // =========================================================
         async function handleLogin() {
             const room = document.getElementById('login-room').value;
             const id = document.getElementById('login-id').value;
@@ -419,146 +425,15 @@
                 document.getElementById('login-view').style.display = 'none';
                 document.getElementById('app-view').style.display = 'block';
                 
-                // 1. ดึงข้อมูล Dashboard หลัก
                 loadDashboardData(); 
-                // 2. ดึงข้อความแจ้งเตือนหลัก
                 fetchStudentNotifications(); 
-                
-                // 🌟 3. แอบดึงข้อมูลประวัติตักเตือน (จาก Widget เดิม) มาเตรียมไว้เลย!
                 fetchBackgroundWarningData(id, pass);
 
-            } else {
-                alert("❌ " + res.error);
-            }
+            } else { alert("❌ " + res.error); }
         }
 
         // =========================================================
-        // 🌟 โค้ดส่วนดึงข้อมูล Widget ตักเตือน (ดึงซ่อนไว้ข้างหลัง)
-        // =========================================================
-        async function fetchBackgroundWarningData(sid, spass) {
-            try {
-                const res = await fetch(WARNING_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'studentLogin', studentId: sid, password: spass })
-                });
-                const result = await res.json();
-                
-                if(result.status === 'success') {
-                    warningDataCache = result.data.warnings;
-                    
-                    // แสดงปุ่มลอย (Widget) ขึ้นมา
-                    document.getElementById('fab-warning-widget').style.display = 'flex';
-                    
-                    // ถ้ามีประวัติตักเตือน ให้โชว์ตัวเลขสีแดงบนปุ่ม
-                    if(warningDataCache.length > 0) {
-                        const badge = document.getElementById('fab-warning-badge');
-                        badge.innerText = warningDataCache.length;
-                        badge.classList.remove('d-none');
-                    }
-                }
-            } catch(e) {
-                console.log("ไม่สามารถดึงข้อมูลประวัติตักเตือนได้", e);
-            }
-        }
-
-        // 🌟 ฟังก์ชันช่วยสร้าง HTML Timeline ให้หน้าตาเหมือนภาพเป๊ะๆ
-        function generateStepsHtml(activeStep) {
-            const labels = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"];
-            // เทียบเคียงไอคอนเป็น Bootstrap Icons ให้เหมือนของเดิมมากที่สุด
-            const icons = ["bi-file-earmark-text", "bi-bell", "bi-megaphone", "bi-check-circle", "bi-check-square", "bi-exclamation-octagon"];
-            
-            let html = '';
-            labels.forEach((label, index) => {
-                const i = index + 1;
-                let stateClass = "pending";
-                
-                if (i < activeStep) stateClass = "completed";
-                else if (i === activeStep) stateClass = "current" + (i === 6 ? " step-6" : "");
-
-                html += `
-                    <div class="tl-item ${stateClass}">
-                        <div class="tl-icon"><i class="bi ${icons[index]}"></i></div>
-                        <div class="tl-text">${label}</div>
-                    </div>
-                `;
-            });
-            return html;
-        }
-
-        // 🌟 เปิดหน้าต่าง Modal แสดงประวัติตักเตือนแบบวัยรุ่น
-        function showWarningModal() {
-            const body = document.getElementById('warning-widget-body');
-            
-            if(!warningDataCache || warningDataCache.length === 0) {
-                body.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="bi bi-flower1 display-1 text-pink-400" style="color: #f472b6;"></i>
-                        <h4 class="fw-bold mt-3" style="color: #be185d;">ยินดีด้วย! ลูกประพฤติดีเยี่ยม</h4>
-                        <p class="text-muted">ดอกบัวของลูกยังเบ่งบาน ไร้ประวัติการถูกตักเตือน<br>รักษากายใจให้ดีแบบนี้ต่อไปนะ 🌸</p>
-                    </div>`;
-            } else {
-                let html = `
-                    <div class="lotus-msg">
-                        <b>ข้อคิดจากสระบัว:</b> การถูกตักเตือนเปรียบเสมือน กระจกที่สะท้อนตัวเรา ให้เราได้เป็นไปในทางที่ดีขึ้นเสมอ!
-                    </div>
-                `;
-                
-                warningDataCache.forEach((w, idx) => {
-                    // คำนวณขั้นของ Timeline แบบอัตโนมัติจากสถานะล่าสุด
-                    let step = 3; 
-                    if(w.status.includes('ครูที่ปรึกษารับทราบ')) step = 4;
-                    else if(w.status.includes('หัวหน้าระดับรับทราบ')) step = 5;
-                    else if(w.status.includes('หักคะแนน') || w.status.includes('ตัดคะแนน')) step = 6;
-
-                    html += `
-                        <div class="timeline-card p-0 overflow-hidden">
-                            <!-- 🌟 ส่วนหัว (คลิกเพื่อกางออก) 🌟 -->
-                            <div class="p-3 d-flex justify-content-between align-items-center warning-toggle-btn" 
-                                 data-bs-toggle="collapse" data-bs-target="#warn-collapse-${idx}" aria-expanded="false"
-                                 style="cursor: pointer; background: #fffcfd; transition: background 0.2s;">
-                                <div class="pe-2">
-                                    <div class="mb-1">
-                                        <span class="badge bg-danger rounded-pill px-3 py-1 me-2 shadow-sm">ครั้งที่ ${idx + 1}</span>
-                                        <span class="small text-muted"><i class="bi bi-calendar2-event"></i> ${w.date}</span>
-                                    </div>
-                                    <h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem; line-height: 1.4;">⚠️ ${w.violation}</h6>
-                                </div>
-                                <div class="flex-shrink-0">
-                                    <button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 1px solid #fbcfe8;">
-                                        <i class="bi bi-chevron-down chevron-icon fs-5"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- 🌟 ส่วนรายละเอียด Timeline (ซ่อนไว้ก่อน) 🌟 -->
-                            <div class="collapse border-top" id="warn-collapse-${idx}" style="border-color: #fce7f3 !important;">
-                                <div class="p-3 pt-2">
-                                    <p class="small text-muted mb-2" style="background: #f8fafc; padding: 12px; border-radius: 12px; border-left: 4px solid #f43f5e;">
-                                        <b>เหตุการณ์:</b> ${w.notes}
-                                    </p>
-                                    
-                                    <!-- ส่วนของ Timeline แจ้งเตือน -->
-                                    <div class="tl-wrapper mt-3">
-                                        <div class="tl-header">
-                                            <i class="bi bi-diagram-3-fill"></i> ลำดับขั้นตอนการดำเนินการ :
-                                        </div>
-                                        ${generateStepsHtml(step)}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                body.innerHTML = html;
-            }
-            
-            // เปิด Modal ของ Bootstrap
-            new bootstrap.Modal(document.getElementById('warningWidgetModal')).show();
-        }
-
-        // =========================================================
-        // ส่วนอื่นๆ ของระบบหลัก (Dashboard, Noti) 
+        // โหลดข้อมูล Dashboard และดึงข้อมูล "ไม่ผ่านเกณฑ์" มาเก็บไว้
         // =========================================================
         async function loadDashboardData() {
             const res = await fetchAPI({ action: 'getDashboardData', room: currentUser.room, id: currentUser.id }, null);
@@ -576,10 +451,16 @@
 
                 const failSection = document.getElementById('fail-section');
                 const failContainer = document.getElementById('fail-list-container');
+                
+                // 🌟 เก็บข้อมูล มผ. ไว้ในตัวแปรทันทีที่โหลดเสร็จ จะได้ไม่ต้องไปยิง API ใหม่!
                 if (data.failRecords && data.failRecords.length > 0) {
+                    cachedPastFailRecords = data.failRecords;
                     failSection.style.display = 'block';
                     failContainer.innerHTML = data.failRecords.map(f => `<div class="fail-item"><div><div class="fw-bold text-dark font-prompt" style="font-size: 1.1rem;">ภาคเรียนที่ ${f.term}</div><div class="small text-muted mt-1">คะแนนที่ต้องซ่อม: <span class="fw-bold text-danger fs-6">${f.remainScore}</span> คะแนน</div></div><span class="badge bg-danger fs-5 px-4 py-2 shadow-sm rounded-pill">${f.status}</span></div>`).join('');
-                } else { failSection.style.display = 'none'; }
+                } else { 
+                    cachedPastFailRecords = [];
+                    failSection.style.display = 'none'; 
+                }
 
                 const goodContainer = document.getElementById('good-list-container');
                 if(data.goodList.length === 0) { goodContainer.innerHTML = '<div class="text-center py-3 text-muted small"><i class="bi bi-info-circle"></i> ยังไม่มีประวัติการทำความดี</div>'; } 
@@ -595,56 +476,197 @@
             }
         }
 
-        async function fetchStudentNotifications() {
-            try {
-                const res = await fetchAPI({ action: 'getStudentNotifications', room: currentUser.room, id: currentUser.id }, null);
-                if(res && res.success) renderNotifications(res.data);
-                else document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อความล้มเหลว</div>';
-            } catch(e) { document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">เชื่อมต่อล้มเหลว</div>'; }
-        }
-
-        function renderNotifications(data) {
-            const container = document.getElementById('noti-list-container');
-            const totalBox = document.getElementById('noti-total'); const readBox = document.getElementById('noti-read'); const unreadBox = document.getElementById('noti-unread');
-            const badge = document.getElementById('noti-badge'); const navDot = document.getElementById('nav-dot-noti');
-            const bellIcon = document.getElementById('nav-bell-icon'); const sbIcon = document.getElementById('sidebar-envelope-icon');
-            let total = data.length; let read = 0; let unread = 0;
-
-            if(total === 0) {
-                container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-envelope-check display-1"></i><br>ไม่มีข้อความใหม่ครับ</div>';
-                totalBox.innerText = '0'; readBox.innerText = '0'; unreadBox.innerText = '0';
-                badge.classList.add('d-none'); navDot.classList.add('d-none');
-                bellIcon.classList.remove('ring-bell'); sbIcon.classList.remove('ring-bell', 'text-warning');
+        // =========================================================
+        // 📍 แสดงข้อมูลภาคเรียนที่ผ่านมา (ดึงจาก Cache ทันทีโดยไม่ต้องต่อ API ใหม่!)
+        // =========================================================
+        function loadPastRecords() {
+            const container = document.getElementById('past-list-container');
+            
+            if(!cachedPastFailRecords || cachedPastFailRecords.length === 0) {
+                container.innerHTML = `<div class="text-center py-5"><i class="bi bi-emoji-sunglasses display-1 text-success mb-3 d-block"></i><h5 class="fw-bold text-success">สุดยอดมาก!</h5><p class="text-muted">ไม่มีประวัติ <b>"ไม่ผ่านเกณฑ์"</b> ในภาคเรียนที่ผ่านมา</p></div>`;
                 return;
             }
-
+            
             let html = '';
-            data.forEach(msg => {
-                let isUnread = !msg.status.includes('รับทราบ');
-                if(!isUnread) read++; else unread++;
-                let cardClass = isUnread ? 'noti-card unread' : 'noti-card';
-                let actionHtml = isUnread ? `<button class="btn btn-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" onclick="acknowledgeMessage(${msg.rowIdx}, this)"><i class="bi bi-check2-circle me-1"></i> รับทราบแล้ว</button>` : `<div class="text-success small fw-bold mt-2"><i class="bi bi-check2-all"></i> รับทราบแล้ว</div>`;
-                let detailHtml = msg.detail;
-                if(detailHtml.includes('⭐ [ชมเชย]')) detailHtml = detailHtml.replace('⭐ [ชมเชย]:', '<span class="badge bg-success mb-2 fs-6"><i class="bi bi-star-fill text-warning"></i> ข้อความชื่นชม</span><br>');
-                else if(detailHtml.includes('🚨 [ติดตามพฤติกรรม]')) detailHtml = detailHtml.replace('🚨 [ติดตามพฤติกรรม]:', '<span class="badge bg-danger mb-2 fs-6"><i class="bi bi-exclamation-triangle-fill"></i> แจ้งเตือนพฤติกรรม</span><br>');
-                else if(detailHtml.includes('💡 [ให้กำลังใจ]')) detailHtml = detailHtml.replace('💡 [ให้กำลังใจ]:', '<span class="badge bg-primary mb-2 fs-6"><i class="bi bi-heart-fill"></i> ข้อความให้กำลังใจ</span><br>');
-
-                html += `<div class="${cardClass}"><div class="d-flex justify-content-between align-items-start mb-2"><div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(msg.date)}</div>${isUnread ? '<span class="badge bg-danger">NEW</span>' : ''}</div><div class="fw-bold text-dark mt-1" style="font-size: 1rem; line-height: 1.5;">${detailHtml}</div>${actionHtml}</div>`;
+            cachedPastFailRecords.forEach(item => {
+                html += `
+                <div class="past-fail-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-dark fs-6 px-3 py-2 rounded-pill">ภาคเรียนที่ ${item.term}</span>
+                        <span class="badge bg-danger fs-6 px-3 py-2 shadow-sm">${item.status}</span>
+                    </div>
+                    <div class="mt-3 p-3 bg-light rounded-3 border text-center">
+                        <div class="small text-muted fw-bold mb-1">คะแนนคงเหลือในระบบ (ติดลบ)</div>
+                        <h2 class="fw-bold text-danger m-0 font-prompt">${item.remainScore} <span class="fs-6 text-muted font-sarabun">คะแนน</span></h2>
+                    </div>
+                </div>`;
             });
-            container.innerHTML = html; totalBox.innerText = total; readBox.innerText = read; unreadBox.innerText = unread;
-            if (unread > 0) { badge.innerText = unread; badge.classList.remove('d-none'); navDot.classList.remove('d-none'); bellIcon.classList.add('ring-bell', 'text-warning'); sbIcon.classList.add('ring-bell', 'text-warning'); } 
-            else { badge.classList.add('d-none'); navDot.classList.add('d-none'); bellIcon.classList.remove('ring-bell', 'text-warning'); sbIcon.classList.remove('ring-bell', 'text-warning'); }
+            container.innerHTML = html;
         }
 
-        async function acknowledgeMessage(rowIdx, btnElement) {
-            let originalHtml = btnElement.innerHTML; btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึก...'; btnElement.disabled = true;
+        // =========================================================
+        // 📍 ดึงข้อมูลประวัติมาสาย (ใชั API ใหม่ - getLateRecords)
+        // =========================================================
+        async function loadLateRecords() {
+            const container = document.getElementById('late-list-container');
+            document.getElementById('late-total').innerHTML = '<div class="spinner-border spinner-border-sm text-info"></div>';
+            container.innerHTML = '<div class="text-center py-5 text-muted"><span class="spinner-border text-info"></span><br>กำลังดึงข้อมูล...</div>';
+            
+            const res = await fetchAPI({ action: 'getLateRecords', id: currentUser.id }, null);
+            
+            if(res.success) {
+                const records = res.data; 
+                document.getElementById('late-total').innerText = records.length;
+                
+                if(!records || records.length === 0) {
+                    container.innerHTML = `<div class="text-center py-5"><i class="bi bi-emoji-smile display-1 text-success mb-3 d-block"></i><h5 class="fw-bold text-success">เยี่ยมมาก!</h5><p class="text-muted">ไม่มีประวัติมาสายเลย (รักษาเวลาได้ดีมาก 👍)</p></div>`;
+                    return;
+                }
+                
+                records.sort((a, b) => new Date(b.date) - new Date(a.date));
+                let html = '';
+                records.forEach((item, idx) => {
+                    const isAck = item.ackStatus && item.ackStatus.includes('รับทราบ');
+                    const cardClass = isAck ? 'late-card ack' : 'late-card';
+                    const collapseId = `late-collapse-${idx}`;
+                    
+                    html += `
+                    <div class="${cardClass}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-dark fs-5"><i class="bi bi-calendar2-x text-warning me-2"></i>${formatThaiDateFull(item.date)}</div>
+                                <div class="small text-muted mt-1">ผู้บันทึก: ${item.recorder}</div>
+                            </div>
+                            <div>
+                                ${isAck ? 
+                                `<button class="btn-ack" disabled><i class="bi bi-check2-all me-1"></i>รับทราบแล้ว</button>` : 
+                                `<button class="btn-ack" onclick="ackLateRecord(${item.rowIdx}, this)"><i class="bi bi-hand-index-thumb me-1"></i>รับทราบ</button>`
+                                }
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn-teen w-100" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                                ดูรายละเอียดเพิ่มเติม <i class="bi bi-chevron-down ms-1"></i>
+                            </button>
+                        </div>
+                        <div class="collapse mt-2" id="${collapseId}">
+                            <div class="p-3 bg-light rounded-3 small text-muted border text-start">
+                                <b>สถานะ:</b> ${isAck ? `<span class="text-success">${item.ackStatus}</span>` : '<span class="text-danger">ยังไม่กดยืนยันรับทราบ</span>'}<br>
+                                <b>หมายเหตุ:</b> การมาสายมีผลต่อคะแนนความประพฤติ โปรดรักษาเวลาและมาถึงโรงเรียนก่อนเวลาเคารพธงชาตินะครับ
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-x-circle fs-1"></i><br>โหลดข้อมูลล้มเหลว</div>';
+                document.getElementById('late-total').innerText = '-';
+            }
+        }
+
+        // =========================================================
+        // 📍 ยืนยันการรับทราบมาสาย (ใช้ API ใหม่ - acknowledgeLate)
+        // =========================================================
+        async function ackLateRecord(rowIdx, btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>...';
+            btn.disabled = true;
+            
             try {
-                const res = await fetchAPI({ action: 'acknowledgeNotification', room: currentUser.room, id: currentUser.id, rowIdx: rowIdx }, null);
-                if(res.success) { alert("✅ " + res.message); fetchStudentNotifications(); } 
-                else { alert("❌ " + res.error); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
-            } catch(e) { alert("เกิดข้อผิดพลาดในการส่งข้อมูล"); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น.`;
+                const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}`;
+                const ackText = `รับทราบ วันที่ ${dateStr} เวลา ${timeStr}`;
+                
+                const res = await fetchAPI({ action: 'acknowledgeLate', id: currentUser.id, rowIdx: rowIdx, ackText: ackText }, null);
+                
+                if(res.success) {
+                    btn.innerHTML = '<i class="bi bi-check2-all me-1"></i>รับทราบแล้ว';
+                    btn.classList.add('bg-success');
+                    setTimeout(() => loadLateRecords(), 800);
+                } else {
+                    alert("❌ " + res.error);
+                    btn.innerHTML = originalHtml; btn.disabled = false;
+                }
+            } catch(e) { alert("เกิดข้อผิดพลาด"); btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
+        // =========================================================
+        // ส่วนดึงข้อมูล Widget (โค้ดเดิม)
+        // =========================================================
+        async function fetchBackgroundWarningData(sid, spass) {
+            try {
+                const res = await fetch(WARNING_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'studentLogin', studentId: sid, password: spass }) });
+                const result = await res.json();
+                
+                if(result.status === 'success') {
+                    const allData = result.data.warnings;
+                    const praises = allData.filter(w => w.violation && w.violation.includes('ชมเชย'));
+                    const warnings = allData.filter(w => !w.violation || !w.violation.includes('ชมเชย'));
+                    
+                    const fabWidget = document.getElementById('fab-warning-widget');
+                    const badge = document.getElementById('fab-warning-badge');
+                    fabWidget.style.display = 'flex';
+                    
+                    if(allData.length > 0) {
+                        badge.innerText = allData.length; badge.classList.remove('d-none');
+                        if(praises.length > 0 && warnings.length === 0) {
+                            fabWidget.classList.add('fab-good'); document.getElementById('fab-main-icon').className = 'bi bi-award-fill';
+                            document.getElementById('modal-warning-header').style.background = 'linear-gradient(135deg, #10b981, #047857)';
+                            document.getElementById('modal-main-icon').className = 'bi bi-award-fill display-3 mb-2';
+                        }
+                    }
+                    preRenderedModalHtml = generateCombinedHtml(praises, warnings);
+                    document.getElementById('warning-widget-body').innerHTML = preRenderedModalHtml;
+                }
+            } catch(e) { document.getElementById('warning-widget-body').innerHTML = '<div class="text-center text-danger py-4">ไม่สามารถโหลดข้อมูลได้</div>'; }
+        }
+
+        function generateCombinedHtml(praises, warnings) {
+            let finalHtml = '';
+            if(praises.length === 0 && warnings.length === 0) return `<div class="text-center py-4"><i class="bi bi-flower1 display-1 text-pink-400" style="color: #f472b6;"></i><h4 class="fw-bold mt-3" style="color: #be185d;">ยินดีด้วย! ลูกประพฤติดีเยี่ยม</h4><p class="text-muted">ดอกบัวของลูกยังเบ่งบาน ไร้ประวัติการถูกตักเตือน</p></div>`;
+
+            if(praises.length > 0) {
+                finalHtml += `<div class="lotus-msg-good"><b>🌟 ข้อความชื่นชม:</b> การทำความดีของนักเรียน เป็นแบบอย่างที่น่าภูมิใจ ขอให้รักษาความดีนี้ไว้ตลอดไปครับ/ค่ะ</div>`;
+                praises.forEach((w, idx) => {
+                    let stepId = "praise-collapse-" + idx;
+                    let step = 1; 
+                    if (w.status) {
+                        if (w.status.includes('มอบคะแนน') || w.status.includes('บวกคะแนน') || w.status.includes('เพิ่มคะแนน')) step = 4;
+                        else if (w.status.includes('หัวหน้าระดับ')) step = 3; else if (w.status.includes('ครูที่ปรึกษา')) step = 2;
+                    }
+                    finalHtml += `<div class="timeline-card-good p-0 overflow-hidden"><div class="p-3 d-flex justify-content-between align-items-center warning-toggle-btn" data-bs-toggle="collapse" data-bs-target="#${stepId}" aria-expanded="false" style="cursor: pointer; background: #f0fdf4;"><div class="pe-2"><div class="mb-1"><span class="badge bg-success rounded-pill px-3 py-1 me-2 shadow-sm">ประวัติความดี</span><span class="small text-muted"><i class="bi bi-calendar2-event"></i> ${w.date}</span></div><h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem; line-height: 1.4;">✨ ${w.violation}</h6></div><div class="flex-shrink-0"><button class="btn btn-sm btn-light text-success rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 1px solid #a7f3d0;"><i class="bi bi-chevron-down chevron-icon fs-5"></i></button></div></div><div class="collapse border-top" id="${stepId}" style="border-color: #d1fae5 !important;"><div class="p-3 pt-2"><p class="small text-muted mb-2" style="background: #f8fafc; padding: 12px; border-radius: 12px; border-left: 4px solid #10b981;"><b>รายละเอียด:</b> ${w.notes || 'บันทึกการทำความดี'}</p><div class="tl-wrapper-good mt-3"><div class="tl-header-good"><i class="bi bi-diagram-3-fill"></i> ขั้นตอนบันทึกความดี :</div>${generateGoodStepsHtml(step)}</div></div></div></div>`;
+                });
+            }
+
+            if(warnings.length > 0) {
+                if(praises.length > 0) finalHtml += `<hr class="my-4" style="border-color: #cbd5e1; border-width: 2px; border-style: dashed;">`;
+                finalHtml += `<div class="lotus-msg"><b>ข้อคิดจากสระบัว:</b> การถูกตักเตือนเปรียบเสมือน กระจกที่สะท้อนตัวเรา ให้เราได้เป็นไปในทางที่ดีขึ้นเสมอ!</div>`;
+                warnings.forEach((w, idx) => {
+                    let stepId = "warn-collapse-" + idx;
+                    let step = 3; 
+                    if(w.status.includes('ครูที่ปรึกษารับทราบ')) step = 4; else if(w.status.includes('หัวหน้าระดับรับทราบ')) step = 5; else if(w.status.includes('หักคะแนน') || w.status.includes('ตัดคะแนน')) step = 6;
+                    finalHtml += `<div class="timeline-card p-0 overflow-hidden"><div class="p-3 d-flex justify-content-between align-items-center warning-toggle-btn" data-bs-toggle="collapse" data-bs-target="#${stepId}" aria-expanded="false" style="cursor: pointer; background: #fffcfd;"><div class="pe-2"><div class="mb-1"><span class="badge bg-danger rounded-pill px-3 py-1 me-2 shadow-sm">ตักเตือนครั้งที่ ${idx + 1}</span><span class="small text-muted"><i class="bi bi-calendar2-event"></i> ${w.date}</span></div><h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem; line-height: 1.4;">⚠️ ${w.violation}</h6></div><div class="flex-shrink-0"><button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 1px solid #fbcfe8;"><i class="bi bi-chevron-down chevron-icon fs-5"></i></button></div></div><div class="collapse border-top" id="${stepId}" style="border-color: #fce7f3 !important;"><div class="p-3 pt-2"><p class="small text-muted mb-2" style="background: #f8fafc; padding: 12px; border-radius: 12px; border-left: 4px solid #f43f5e;"><b>เหตุการณ์:</b> ${w.notes}</p><div class="tl-wrapper mt-3"><div class="tl-header"><i class="bi bi-diagram-3-fill"></i> ลำดับขั้นตอนการดำเนินการ :</div>${generateWarningStepsHtml(step)}</div></div></div></div>`;
+                });
+            }
+            return finalHtml;
+        }
+
+        function generateGoodStepsHtml(activeStep) {
+            const labels = ["บันทึกความดี", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับชื่นชม", "มอบคะแนนบวก"]; const icons = ["bi-pencil-square", "bi-check-circle", "bi-emoji-smile", "bi-award"];
+            let html = ''; labels.forEach((label, index) => { const i = index + 1; let stateClass = "pending"; if (i < activeStep) stateClass = "completed-good"; else if (i === activeStep) stateClass = "current-good"; html += `<div class="tl-item tl-item-good ${stateClass}"><div class="tl-icon"><i class="bi ${icons[index]}"></i></div><div class="tl-text">${label}</div></div>`; }); return html;
+        }
+
+        function generateWarningStepsHtml(activeStep) {
+            const labels = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"]; const icons = ["bi-file-earmark-text", "bi-bell", "bi-megaphone", "bi-check-circle", "bi-check-square", "bi-exclamation-octagon"];
+            let html = ''; labels.forEach((label, index) => { const i = index + 1; let stateClass = "pending"; if (i < activeStep) stateClass = "completed"; else if (i === activeStep) stateClass = "current" + (i === 6 ? " step-6" : ""); html += `<div class="tl-item ${stateClass}"><div class="tl-icon"><i class="bi ${icons[index]}"></i></div><div class="tl-text">${label}</div></div>`; }); return html;
+        }
+
+        function showWarningModal() { new bootstrap.Modal(document.getElementById('warningWidgetModal')).show(); }
+
+        // =========================================================
+        // การสลับเมนู และเรียกข้อมูล
+        // =========================================================
         function toggleSidebar() {
             const sidebar = document.getElementById('mainSidebar'); const overlay = document.getElementById('sidebar-overlay');
             if(sidebar.classList.contains('show')) { sidebar.classList.remove('show'); overlay.style.display = 'none'; } 
@@ -652,19 +674,61 @@
         }
 
         function switchMenu(menuId, el) {
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); el.classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); 
             ['dashboard', 'past', 'late', 'noti'].forEach(m => { const view = document.getElementById(`view-${m}`); if(view) view.style.display = (m === menuId) ? 'block' : 'none'; });
+
+            // 🌟 ภาคเรียนที่ผ่านมา ไม่ต้องต่อ API ใหม่แล้ว โหลดเร็วปรู๊ดปร๊าดเลย!
+            if (menuId === 'past') loadPastRecords(); 
+            // 🌟 ประวัติมาสาย (ใชั API getLateRecords)
+            if (menuId === 'late') loadLateRecords();
+
             toggleSidebar();
         }
 
-        // 🌟 เปิดหน้าการมาเรียน (ส่งพารามิเตอร์รหัสนักเรียนไปกับ URL)
-        function openAttendancePage() {
-            if(currentUser && currentUser.id) {
-                const targetUrl = `https://buayai-i-care.github.io/buayai-i-Care/ParentChkm1.html?id=${currentUser.id}`;
-                window.open(targetUrl, '_blank');
-            } else {
-                alert("กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้");
+        async function fetchStudentNotifications() {
+            try {
+                const res = await fetchAPI({ action: 'getStudentNotifications', room: currentUser.room, id: currentUser.id }, null);
+                if(res && res.success) renderNotifications(res.data); else document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อความล้มเหลว</div>';
+            } catch(e) { document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">เชื่อมต่อล้มเหลว</div>'; }
+        }
+
+        function renderNotifications(data) {
+            const container = document.getElementById('noti-list-container');
+            let read = 0; let unread = 0;
+            if(data.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-envelope-check display-1"></i><br>ไม่มีข้อความใหม่ครับ</div>';
+                document.getElementById('noti-total').innerText = '0'; document.getElementById('noti-read').innerText = '0'; document.getElementById('noti-unread').innerText = '0';
+                return;
             }
+            let html = '';
+            data.forEach(msg => {
+                let isUnread = !msg.status.includes('รับทราบ'); if(!isUnread) read++; else unread++;
+                let actionHtml = isUnread ? `<button class="btn btn-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" onclick="acknowledgeMessage(${msg.rowIdx}, this)"><i class="bi bi-check2-circle me-1"></i> รับทราบแล้ว</button>` : `<div class="text-success small fw-bold mt-2"><i class="bi bi-check2-all"></i> รับทราบแล้ว</div>`;
+                let detailHtml = msg.detail;
+                if(detailHtml.includes('⭐ [ชมเชย]')) detailHtml = detailHtml.replace('⭐ [ชมเชย]:', '<span class="badge bg-success mb-2 fs-6"><i class="bi bi-star-fill text-warning"></i> ข้อความชื่นชม</span><br>');
+                else if(detailHtml.includes('🚨 [ติดตามพฤติกรรม]')) detailHtml = detailHtml.replace('🚨 [ติดตามพฤติกรรม]:', '<span class="badge bg-danger mb-2 fs-6"><i class="bi bi-exclamation-triangle-fill"></i> แจ้งเตือนพฤติกรรม</span><br>');
+                
+                html += `<div class="${isUnread ? 'noti-card unread' : 'noti-card'}"><div class="d-flex justify-content-between align-items-start mb-2"><div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(msg.date)}</div>${isUnread ? '<span class="badge bg-danger">NEW</span>' : ''}</div><div class="fw-bold text-dark mt-1" style="font-size: 1rem; line-height: 1.5;">${detailHtml}</div>${actionHtml}</div>`;
+            });
+            container.innerHTML = html; 
+            document.getElementById('noti-total').innerText = data.length; document.getElementById('noti-read').innerText = read; document.getElementById('noti-unread').innerText = unread;
+            
+            const badge = document.getElementById('noti-badge'); const navDot = document.getElementById('nav-dot-noti');
+            if (unread > 0) { badge.innerText = unread; badge.classList.remove('d-none'); navDot.classList.remove('d-none'); } 
+            else { badge.classList.add('d-none'); navDot.classList.add('d-none'); }
+        }
+
+        async function acknowledgeMessage(rowIdx, btnElement) {
+            let originalHtml = btnElement.innerHTML; btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>...'; btnElement.disabled = true;
+            try {
+                const res = await fetchAPI({ action: 'acknowledgeNotification', room: currentUser.room, id: currentUser.id, rowIdx: rowIdx }, null);
+                if(res.success) { fetchStudentNotifications(); } else { alert("❌ " + res.error); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+            } catch(e) { alert("เกิดข้อผิดพลาด"); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+        }
+
+        function openAttendancePage() {
+            if(currentUser && currentUser.id) window.open(`https://buayai-i-care.github.io/buayai-i-Care/ParentChkm1.html?id=${currentUser.id}`, '_blank');
+            else alert("กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้");
         }
 
         function openImage(url) { document.getElementById('full-image').src = url; new bootstrap.Modal(document.getElementById('imgModal')).show(); }
@@ -672,7 +736,7 @@
         function logout() {
             document.getElementById('login-pass').value = '';
             document.getElementById('app-view').style.display = 'none';
-            document.getElementById('fab-warning-widget').style.display = 'none'; // ซ่อนปุ่มกระดิ่ง
+            document.getElementById('fab-warning-widget').style.display = 'none'; 
             document.getElementById('login-view').style.display = 'flex';
             toggleSidebar();
         }
