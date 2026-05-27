@@ -46,7 +46,7 @@
             line-height: 1.2;
         }
         
-        /* ป้าย Counter (ปรับดีไซน์ใหม่ให้เด่นสะดุดตา) */
+        /* ป้าย Counter */
         .visitor-counter {
             display: inline-flex;
             align-items: center;
@@ -67,19 +67,19 @@
             transform: scale(1.05);
         }
         .visitor-counter .count-number {
-            color: #fbbf24; /* สีเหลืองทองเด่นๆ สำหรับตัวเลข */
+            color: #fbbf24;
             font-size: 26px;
             margin: 0 8px;
             text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
         }
 
         /* --- โทนสี 6 เฉดสำหรับแต่ละระดับชั้น --- */
-        .grade-card-1 { --btn-main: #064E3B; --btn-hover: #047857; --btn-bg: #ECFDF5; } /* ม.1 เขียวป่าสน */
-        .grade-card-2 { --btn-main: #00796B; --btn-hover: #009688; --btn-bg: #E0F2F1; } /* ม.2 เขียวหัวเป็ด */
-        .grade-card-3 { --btn-main: #16A34A; --btn-hover: #22C55E; --btn-bg: #DCFCE7; } /* ม.3 เขียวใบไม้ */
-        .grade-card-4 { --btn-main: #65A30D; --btn-hover: #84CC16; --btn-bg: #ECFCCB; } /* ม.4 เขียวตองอ่อน */
-        .grade-card-5 { --btn-main: #556B2F; --btn-hover: #6B8E23; --btn-bg: #F5F5DC; } /* ม.5 เขียวขี้ม้า */
-        .grade-card-6 { --btn-main: #20B2AA; --btn-hover: #48D1CC; --btn-bg: #E0FFFF; } /* ม.6 เขียวมิ้นต์ */
+        .grade-card-1 { --btn-main: #064E3B; --btn-hover: #047857; --btn-bg: #ECFDF5; }
+        .grade-card-2 { --btn-main: #00796B; --btn-hover: #009688; --btn-bg: #E0F2F1; }
+        .grade-card-3 { --btn-main: #16A34A; --btn-hover: #22C55E; --btn-bg: #DCFCE7; }
+        .grade-card-4 { --btn-main: #65A30D; --btn-hover: #84CC16; --btn-bg: #ECFCCB; }
+        .grade-card-5 { --btn-main: #556B2F; --btn-hover: #6B8E23; --btn-bg: #F5F5DC; }
+        .grade-card-6 { --btn-main: #20B2AA; --btn-hover: #48D1CC; --btn-bg: #E0FFFF; }
 
         /* --- Accordion (ปุ่มเลือกระดับชั้น) --- */
         .accordion-button {
@@ -206,7 +206,7 @@
             border: none;
             cursor: default;
         }
-        /* เอฟเฟกต์กรอบเรืองแสงสำหรับวันที่มีข้อมูล (Glowing Border) */
+        /* เอฟเฟกต์กรอบเรืองแสงสำหรับวันที่มีข้อมูล */
         .calendar-cell.has-data {
             background-color: #ffffff;
             border: 3px solid #22C55E;
@@ -242,7 +242,7 @@
         }
         .image-viewer-container {
             width: 100%;
-            height: 350px;
+            height: 400px; /* ขยายความสูงเพิ่มขึ้นเล็กน้อยให้ดูภาพสบายขึ้น */
             background-color: #e2e8f0;
             border-radius: 10px;
             overflow: hidden;
@@ -251,12 +251,19 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 15px;
+            /* เพิ่มเพื่อให้รองรับการลากบนมือถือ */
+            touch-action: none;
+            cursor: grab;
+        }
+        .image-viewer-container:active {
+            cursor: grabbing;
         }
         #modalImage {
             max-width: 100%;
             max-height: 100%;
-            transition: transform 0.2s ease-out;
+            transition: transform 0.2s ease-out; /* จะถูกปิดเวลาลากเพื่อให้ลื่นไหล */
             transform-origin: center center;
+            pointer-events: none; /* ให้ตัวคอนเทนเนอร์รับ event การคลิก/ลาก แทนตัวรูป */
         }
         .zoom-controls {
             display: flex;
@@ -270,10 +277,10 @@
         .btn-zoom {
             background-color: #cbd5e1;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -282,6 +289,20 @@
         }
         input[type=range] {
             width: 60%;
+        }
+
+        /* Navigation Buttons */
+        .nav-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-img-nav {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 10px;
         }
 
         /* Loading Spinner */
@@ -367,7 +388,7 @@
 
     </div>
 
-    <!-- Modal แสดงรูปภาพและรายละเอียด -->
+    <!-- Modal แสดงรูปภาพ (แบบใหม่) -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -376,23 +397,22 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- พื้นที่แสดงรูปภาพ -->
-                    <div class="image-viewer-container">
+                    <!-- พื้นที่แสดงรูปภาพ พร้อมระบบสัมผัส/ลาก -->
+                    <div class="image-viewer-container" id="imgContainer">
                         <img id="modalImage" src="" alt="ภาพการเข้าเรียน" onerror="this.onerror=null; this.src='https://placehold.co/500x400/eeeeee/EF4444?text=Image+Not+Found'">
                     </div>
                     
                     <!-- แถบเครื่องมือซูม -->
                     <div class="zoom-controls">
                         <button class="btn-zoom" onclick="adjustZoom(-0.2)">-</button>
-                        <input type="range" class="form-range" id="zoomSlider" min="0.5" max="3" step="0.1" value="1" oninput="applyZoom(this.value)">
+                        <input type="range" class="form-range" id="zoomSlider" min="0.5" max="4" step="0.1" value="1" oninput="applyZoom(this.value)">
                         <button class="btn-zoom" onclick="adjustZoom(0.2)">+</button>
                     </div>
 
-                    <!-- รายละเอียดข้อมูล -->
-                    <div class="mt-4">
-                        <p class="mb-1" style="font-size: 20px;"><strong>สถานะ:</strong> <span id="modalStatus" class="badge bg-success" style="font-size: 18px;"></span></p>
-                        <p class="mb-0" style="font-size: 20px;"><strong>รายละเอียด:</strong></p>
-                        <div id="modalDetails" class="p-2 bg-light border rounded mt-1" style="font-size: 18px; word-break: break-word;"></div>
+                    <!-- ปุ่มนำทาง เดินหน้า/ถอยหลัง แทนที่สถานะและรายละเอียดเดิม -->
+                    <div class="nav-btn-group">
+                        <button id="btnPrevImg" class="btn btn-outline-success btn-img-nav" onclick="navigateImage(-1)">❮ ย้อนกลับ</button>
+                        <button id="btnNextImg" class="btn btn-outline-success btn-img-nav" onclick="navigateImage(1)">ต่อไป ❯</button>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -406,24 +426,36 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ==========================================
-        // 🔴 1. ข้อมูล API จาก Google Sheet 
+        // 🔴 ข้อมูล API จาก Google Sheet 
         // ==========================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU2Qeb_jPG4X4IY75gCi9KxLAbUjjPsNuLpk8zxx1juG75l7jsiPsSInDHVrhaV3n2/exec"; 
 
         let rawData = [];
         let currentClass = "";
         let currentDate = new Date(); 
-        let currentZoom = 1;
-
+        
         let isDataLoaded = false;
         let isFetching = false;
         let pendingClassToLoad = ""; 
 
         const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+        const thaiDays = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
+
+        // ==========================================
+        // ตัวแปรสำหรับระบบเลื่อนดูรูปและนำทาง
+        // ==========================================
+        let currentMonthData = []; // เก็บข้อมูลเฉพาะเดือนและห้องที่เลือกอยู่ปัจจุบัน
+        let currentImgIndex = -1;  // เก็บ index ลำดับของภาพที่กำลังดูอยู่
+        let currentZoom = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX, startY;
 
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 renderClassSelectionUI();
+                setupPanZoomEvents();
             } catch(e) {
                 console.error("เกิดข้อผิดพลาดในการสร้าง UI:", e);
             }
@@ -449,7 +481,8 @@
                         }
                     } else {
                         document.getElementById('syncStatus').innerText = "❌ โหลดล้มเหลว";
-                        alert("เกิดข้อผิดพลาดจากฐานข้อมูล: " + result.message);
+                        // Custom Modal แทน alert ตามหลักการ
+                        console.error("เกิดข้อผิดพลาดจากฐานข้อมูล: " + result.message);
                     }
                     isFetching = false;
                 })
@@ -546,6 +579,7 @@
                 grid.innerHTML += `<div class="calendar-cell empty"></div>`;
             }
 
+            // กรองข้อมูลเฉพาะเดือนและห้องที่เลือก
             const classData = rawData.filter(d => {
                 let cleanClassName = String(d.className).replace(/ม\.|ชั้น|\s/g, '');
                 if(cleanClassName !== currentClass || !d.date) return false;
@@ -553,12 +587,14 @@
                 return dDate.getMonth() === month && dDate.getFullYear() === year;
             });
 
+            // จัดเรียงตามวันที่ สำหรับใช้ในระบบ นำทาง (Next/Prev)
+            currentMonthData = classData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
             for (let day = 1; day <= daysInMonth; day++) {
-                const entry = classData.find(d => new Date(d.date).getDate() === day);
-                if (entry) {
-                    const entryJson = encodeURIComponent(JSON.stringify(entry));
+                const entryIndex = currentMonthData.findIndex(d => new Date(d.date).getDate() === day);
+                if (entryIndex !== -1) {
                     grid.innerHTML += `
-                        <div class="calendar-cell has-data" onclick="openImageModal('${entryJson}', ${day}, ${month}, ${year})">
+                        <div class="calendar-cell has-data" onclick="openModalByIndex(${entryIndex})">
                             ${day}
                         </div>
                     `;
@@ -568,13 +604,18 @@
             }
         }
 
-        function openImageModal(entryJsonStr, day, month, year) {
-            const entry = JSON.parse(decodeURIComponent(entryJsonStr));
+        // เปิด Modal โดยใช้ลำดับ Index ของอาร์เรย์ (แทนการส่ง JSON ทีละตัว)
+        function openModalByIndex(index) {
+            currentImgIndex = index;
+            const entry = currentMonthData[index];
+            const dDate = new Date(entry.date);
             
-            document.getElementById('modalDateTitle').innerText = `${day} ${thaiMonths[month]} ${year + 543}`;
-            document.getElementById('modalStatus').innerText = entry.status || 'มีข้อมูล';
-            document.getElementById('modalDetails').innerText = entry.details || '-';
+            // ตั้งค่าหัวข้อ (Title) ให้แสดงวันในสัปดาห์และระดับชั้น
+            const dayName = thaiDays[dDate.getDay()];
+            const dateText = `${dDate.getDate()} ${thaiMonths[dDate.getMonth()]} ${dDate.getFullYear() + 543}`;
+            document.getElementById('modalDateTitle').innerHTML = `${dayName}ที่ ${dateText} <br><span style="font-size: 18px; font-weight: normal; color: #f1f5f9;">ชั้น ม.${currentClass}</span>`;
             
+            // จัดการรูปภาพ
             const imgEl = document.getElementById('modalImage');
             let extractedFileId = entry.fileId; 
             
@@ -593,25 +634,143 @@
                 imgEl.src = 'https://placehold.co/500x400/eeeeee/EF4444?text=Image+Not+Found';
             }
 
-            currentZoom = 1;
-            document.getElementById('zoomSlider').value = 1;
-            applyZoom(1);
+            // รีเซ็ตการซูมและการลาก (Pan & Zoom)
+            resetPanZoom();
 
+            // จัดการสถานะปุ่ม Next/Prev
+            updateNavButtons();
+
+            // แสดงหน้าต่าง
             const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
             myModal.show();
+        }
+
+        // ระบบเลื่อนดูภาพถัดไปหรือย้อนกลับ
+        function navigateImage(direction) {
+            let newIndex = currentImgIndex + direction;
+            if(newIndex >= 0 && newIndex < currentMonthData.length) {
+                // ปิด Modal เดิมก่อนเพื่อความลื่นไหล (ถ้าต้องการ) 
+                // แต่ถ้าไม่อยากปิด-เปิดใหม่ ก็สั่งอัปเดตค่าเลย
+                currentImgIndex = newIndex;
+                const entry = currentMonthData[currentImgIndex];
+                const dDate = new Date(entry.date);
+                
+                const dayName = thaiDays[dDate.getDay()];
+                const dateText = `${dDate.getDate()} ${thaiMonths[dDate.getMonth()]} ${dDate.getFullYear() + 543}`;
+                document.getElementById('modalDateTitle').innerHTML = `${dayName}ที่ ${dateText} <br><span style="font-size: 18px; font-weight: normal; color: #f1f5f9;">ชั้น ม.${currentClass}</span>`;
+                
+                const imgEl = document.getElementById('modalImage');
+                let extractedFileId = entry.fileId; 
+                if (entry.imageUrl && entry.imageUrl.includes('/d/')) {
+                    const match = entry.imageUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                    if (match && match[1]) extractedFileId = match[1];
+                }
+
+                if(extractedFileId && extractedFileId.trim() !== "") {
+                    imgEl.src = `https://lh3.googleusercontent.com/d/${extractedFileId}`;
+                } else if (entry.imageUrl) {
+                    imgEl.src = entry.imageUrl; 
+                } else {
+                    imgEl.src = 'https://placehold.co/500x400/eeeeee/EF4444?text=Image+Not+Found';
+                }
+
+                resetPanZoom();
+                updateNavButtons();
+            }
+        }
+
+        function updateNavButtons() {
+            const btnPrev = document.getElementById('btnPrevImg');
+            const btnNext = document.getElementById('btnNextImg');
+            
+            // ปิดการใช้งานปุ่มถ้าถึงภาพแรกหรือภาพสุดท้าย
+            btnPrev.disabled = (currentImgIndex <= 0);
+            btnNext.disabled = (currentImgIndex >= currentMonthData.length - 1);
+        }
+
+        // ==========================================
+        // ระบบซูมและลาก (Pan & Zoom)
+        // ==========================================
+        function resetPanZoom() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            document.getElementById('zoomSlider').value = 1;
+            applyTransform();
         }
 
         function adjustZoom(step) {
             currentZoom += step;
             if(currentZoom < 0.5) currentZoom = 0.5;
-            if(currentZoom > 3) currentZoom = 3;
+            if(currentZoom > 4) currentZoom = 4;
             document.getElementById('zoomSlider').value = currentZoom;
-            applyZoom(currentZoom);
+            applyTransform();
         }
 
         function applyZoom(value) {
             currentZoom = parseFloat(value);
-            document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
+            applyTransform();
+        }
+
+        function applyTransform() {
+            const imgEl = document.getElementById('modalImage');
+            imgEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+        }
+
+        function setupPanZoomEvents() {
+            const container = document.getElementById('imgContainer');
+            const imgEl = document.getElementById('modalImage');
+
+            // --- สำหรับเมาส์ (คอมพิวเตอร์) ---
+            container.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // ป้องกันการเลือกรูปภาพเริ่มต้น
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                imgEl.style.transition = 'none'; // ปิด animation ตอนลากเพื่อความลื่น
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    imgEl.style.transition = 'transform 0.2s ease-out'; // เปิด animation คืน
+                }
+            });
+
+            // --- สำหรับระบบสัมผัส (โทรศัพท์มือถือ) ---
+            container.addEventListener('touchstart', (e) => {
+                // ถ้ามีมากกว่า 1 นิ้ว (ตัวอย่างเช่น Pinch Zoom) ปล่อยให้เบราว์เซอร์จัดการ หรือจะใส่โค้ดเพื่มทีหลัง
+                if(e.touches.length === 1) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX - translateX;
+                    startY = e.touches[0].clientY - translateY;
+                    imgEl.style.transition = 'none';
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); // ป้องกันการเลื่อนหน้าจอ (Scrolling) ของมือถือตอนที่เราต้องการลากรูป
+                if(e.touches.length === 1) {
+                    translateX = e.touches[0].clientX - startX;
+                    translateY = e.touches[0].clientY - startY;
+                    applyTransform();
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    imgEl.style.transition = 'transform 0.2s ease-out';
+                }
+            });
         }
     </script>
 
@@ -622,7 +781,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 📌 ข้อมูล Config ที่ผมดึงมาจากภาพที่คุณส่งมา (ใส่ให้ครบแล้วครับ!)
+        // 📌 ข้อมูล Config เดิมที่คุณให้มา
         const firebaseConfig = {
             apiKey: "AIzaSyDNWBCSdBEtogAyvIFkjJ7gBNbOOwAv2Bc",
             authDomain: "counter-buayai.firebaseapp.com",
@@ -635,27 +794,23 @@
         const counterUI = document.getElementById('visitorCounterUI');
 
         try {
-            // 1. เริ่มต้นเชื่อมต่อ Firebase
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             const counterRef = doc(db, "website_stats", "total_visitors");
 
-            // 2. ระบบป้องกันการนับซ้ำถ้ารีเฟรชหน้าเว็บ (เก็บ Session ไว้ในเครื่องผู้ใช้)
             const hasVisited = localStorage.getItem('hasVisited_CareSchool');
             
             if (!hasVisited) {
-                // ถ้าเพิ่งเข้าครั้งแรก ให้บวกเลขในฐานข้อมูลเพิ่ม 1
                 getDoc(counterRef).then((docSnap) => {
                     if (docSnap.exists()) {
                         updateDoc(counterRef, { count: increment(1) });
                     } else {
-                        setDoc(counterRef, { count: 1 }); // สร้างไฟล์ใหม่ถ้ายอดเป็น 0
+                        setDoc(counterRef, { count: 1 });
                     }
                     localStorage.setItem('hasVisited_CareSchool', 'true');
                 });
             }
 
-            // 3. ดึงตัวเลขมาแสดงผลบนหน้าจอแบบสดๆ (Real-time)
             onSnapshot(counterRef, (doc) => {
                 if (doc.exists()) {
                     counterUI.innerHTML = `👥 ผู้เข้าชมระบบ: <span class="count-number">${doc.data().count}</span> ครั้ง`;
