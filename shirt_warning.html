@@ -28,9 +28,6 @@
         .text-body { font-size: 1.25rem; /* ขนาดอักษรประมาณ 20px */ }
         .text-heading { font-size: 1.5rem; font-weight: 600; }
         
-        /* ซ่อน Input ไฟล์ แต่ใช้ปุ่มแทนเพื่อความสวยงาม */
-        #cameraInput { display: none; }
-        
         /* กำหนดความสูงของพื้นที่ครอปรูป */
         .img-container {
             max-height: 400px;
@@ -58,9 +55,11 @@
     <!-- พื้นที่ทำงานหลัก -->
     <main class="w-full max-w-md p-4 mt-4 bg-white rounded-xl shadow-sm">
         
-        <!-- ปุ่มถ่ายรูป -->
-        <div id="captureSection" class="text-center">
-            <p class="text-body mb-4 text-gray-600">กรุณาถ่ายภาพบริเวณ "ชื่อ-สกุล" บนเสื้อนักเรียน เพื่อให้ระบบค้นหาอัตโนมัติ</p>
+        <!-- ปุ่มถ่ายรูป และ เลือกจากคลังภาพ -->
+        <div id="captureSection" class="text-center space-y-3">
+            <p class="text-body mb-4 text-gray-600">กรุณาถ่ายภาพหรือเลือกภาพบริเวณ "ชื่อ-สกุล" บนเสื้อนักเรียน</p>
+            
+            <!-- ปุ่มเปิดกล้อง -->
             <label for="cameraInput" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-md cursor-pointer inline-flex items-center text-body w-full justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -68,8 +67,18 @@
                 </svg>
                 เปิดกล้องถ่ายภาพ
             </label>
-            <!-- input สำหรับเรียกกล้องมือถือ -->
-            <input type="file" id="cameraInput" accept="image/*" capture="environment">
+            <!-- input สำหรับเรียกกล้องมือถือ (บังคับกล้องหลัง) -->
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+
+            <!-- ปุ่มเลือกจากคลังภาพ -->
+            <label for="galleryInput" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-6 rounded-lg shadow cursor-pointer inline-flex items-center text-body w-full justify-center border border-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                เลือกจากคลังภาพ
+            </label>
+            <!-- input สำหรับเลือกจากคลังภาพ (ไม่บังคับกล้อง) -->
+            <input type="file" id="galleryInput" accept="image/*" class="hidden">
         </div>
 
         <!-- ส่วนแสดงภาพสำหรับครอป (จะซ่อนไว้ก่อนจนกว่าจะถ่ายรูป) -->
@@ -148,14 +157,15 @@
 
         // Elements
         const cameraInput = document.getElementById('cameraInput');
+        const galleryInput = document.getElementById('galleryInput'); // เพิ่ม element ใหม่
         const imageTarget = document.getElementById('imageTarget');
         const captureSection = document.getElementById('captureSection');
         const cropSection = document.getElementById('cropSection');
         const studentNameInput = document.getElementById('studentNameInput');
         const thumbnailPreview = document.getElementById('thumbnailPreview');
 
-        // 1. เมื่อผู้ใช้ถ่ายรูป หรือเลือกรูป
-        cameraInput.addEventListener('change', function(e) {
+        // ฟังก์ชันสำหรับจัดการไฟล์ภาพเมื่อมีการเลือก
+        function handleImageSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
 
@@ -183,17 +193,26 @@
                 });
             };
             reader.readAsDataURL(file);
-        });
+            // เคลียร์ value เพื่อให้เลือกไฟล์เดิมซ้ำได้ถ้าต้องการ
+            e.target.value = '';
+        }
 
-        // 2. ยกเลิกการครอป
+        // 1. เมื่อผู้ใช้ถ่ายรูป (กล้อง)
+        cameraInput.addEventListener('change', handleImageSelect);
+
+        // 2. เมื่อผู้ใช้เลือกรูป (คลังภาพ)
+        galleryInput.addEventListener('change', handleImageSelect);
+
+        // 3. ยกเลิกการครอป
         function cancelCrop() {
             if (cropper) cropper.destroy();
-            cameraInput.value = ""; // เคลียร์ไฟล์
+            cameraInput.value = ""; // เคลียร์ไฟล์กล้อง
+            galleryInput.value = ""; // เคลียร์ไฟล์คลังภาพ
             cropSection.classList.add('hidden');
             captureSection.classList.remove('hidden');
         }
 
-        // 3. ครอปภาพและใช้ Tesseract อ่านอักษรไทย
+        // 4. ครอปภาพและใช้ Tesseract อ่านอักษรไทย
         async function processImage() {
             if (!cropper) return;
 
@@ -236,7 +255,7 @@
             }
         }
 
-        // 4. ส่งข้อมูลไปบันทึกที่ Google Apps Script
+        // 5. ส่งข้อมูลไปบันทึกที่ Google Apps Script
         function saveDataToServer() {
             const name = studentNameInput.value.trim();
             const reason = document.getElementById('warningReason').value;
