@@ -1,0 +1,297 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Download, Users, Clock, AlertTriangle, Calendar, Filter } from 'lucide-react';
+
+// --- ฟังก์ชันช่วยเหลือ (Helper Functions) ---
+
+// ฟังก์ชันแปลงข้อมูลเป็น CSV และดาวน์โหลด (รองรับภาษาไทย)
+const exportToCSV = (data, filename) => {
+  if (!data || data.length === 0) return;
+  const headers = Object.keys(data[0]);
+  const csvContent = [
+    headers.join(','),
+    ...data.map(row => headers.map(fieldName => `"${row[fieldName] || ''}"`).join(','))
+  ].join('\n');
+
+  // เพิ่ม BOM เพื่อให้ Excel อ่านภาษาไทยได้ถูกต้อง
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
+
+// ฟังก์ชันสกัดระดับชั้นจากชื่อห้อง (เช่น "3/9" -> "ม.3", "ม.2/9" -> "ม.2")
+const extractGradeLevel = (roomStr) => {
+  if (!roomStr) return 'ไม่ระบุ';
+  const str = String(roomStr).trim();
+  if (str.includes('/')) {
+    const grade = str.split('/')[0].replace('ม.', '');
+    return `ม.${grade}`;
+  }
+  return str;
+};
+
+export default function App() {
+  // --- State Management ---
+  const [activeTab, setActiveTab] = useState('late'); // 'late', 'skip', 'demerit'
+  const [data, setData] = useState({ late: [], skip: [], demerit: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Filters
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('All');
+
+  // --- การดึงข้อมูล (Fetch Data) ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // หมายเหตุ: URL นี้คือ URL ของคุณ หากดึงข้อมูลจริงให้เปิดคอมเมนต์ด้านล่าง
+        // const response = await fetch('https://script.google.com/macros/s/AKfycbx8xYhO4G_ADQDpiCIXY7tdZmXUVRAK_JYdis3hfpLxzjRRD9jYt-2T_hqxp5ytQQ4i/exec');
+        // const result = await response.json();
+        
+        // ข้อมูลจำลองอ้างอิงจากรูปภาพของคุณ เพื่อให้ Dashboard แสดงผลได้ทันที
+        const mockResult = {
+          late: [
+            { "วันที่มาสาย": "2026-05-11", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
+            { "วันที่มาสาย": "2026-05-12", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
+            { "วันที่มาสาย": "2026-05-12", "ห้อง": "1/8", "เลขประจำตัว": "33539", "ชื่อ-สกุล": "ดช.กมลทรรศ พันธ์สวัสดิ์" },
+            { "วันที่มาสาย": "2026-05-12", "ห้อง": "5/5", "เลขประจำตัว": "33147", "ชื่อ-สกุล": "นส.จิราภัค งิมขุนทด" },
+          ],
+          skip: [
+            { "วันที่-เวลา": "2026-05-11", "รหัสนักเรียน": "32959", "ชื่อ-นามสกุล": "เด็กหญิงณัฐชยา พรแสน", "ชั้น": "3/7", "จำนวนครั้งที่โดด": 2 },
+            { "วันที่-เวลา": "2026-05-11", "รหัสนักเรียน": "32396", "ชื่อ-นามสกุล": "เด็กชายรัชชานนท์ การถาง", "ชั้น": "3/9", "จำนวนครั้งที่โดด": 2 },
+            { "วันที่-เวลา": "2026-05-14", "รหัสนักเรียน": "32659", "ชื่อ-นามสกุล": "นายธนภัทร จันทะดวง", "ชั้น": "4/10", "จำนวนครั้งที่โดด": 1 },
+          ],
+          demerit: [
+            { "วันที่": "2026-05-14", "ระดับชั้น": "5/7", "รหัสนักเรียน": "33829", "ชื่อ": "นายอิทธิพล มาตรวังแสง", "ประเภทความผิด": "โดดเรียน", "คะแนน": "-15" },
+            { "วันที่": "2026-05-24", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "ดื่มสุราฯ", "คะแนน": "-60" },
+            { "วันที่": "2026-05-24", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
+          ]
+        };
+
+        setData(mockResult); // เปลี่ยน mockResult เป็น result เมื่อใช้ GAS จริง
+      } catch (err) {
+        setError('ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบ URL หรือการตั้งค่า GAS');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // --- การกรองข้อมูล (Data Filtering) ---
+  const filteredData = useMemo(() => {
+    let currentData = [];
+    let dateField = '';
+    let classField = '';
+
+    // กำหนดฟิลด์อ้างอิงตาม Tab ที่เลือก
+    if (activeTab === 'late') {
+      currentData = data.late;
+      dateField = 'วันที่มาสาย';
+      classField = 'ห้อง';
+    } else if (activeTab === 'skip') {
+      currentData = data.skip;
+      dateField = 'วันที่-เวลา';
+      classField = 'ชั้น';
+    } else if (activeTab === 'demerit') {
+      currentData = data.demerit;
+      dateField = 'วันที่';
+      classField = 'ระดับชั้น';
+    }
+
+    return currentData.filter(item => {
+      // กรองวันที่
+      let dateMatch = true;
+      const itemDateStr = item[dateField];
+      if (itemDateStr) {
+        const itemDate = new Date(itemDateStr).getTime();
+        const start = startDate ? new Date(startDate).getTime() : null;
+        const end = endDate ? new Date(endDate).getTime() : null;
+
+        if (start && itemDate < start) dateMatch = false;
+        if (end && itemDate > end) dateMatch = false;
+      }
+
+      // กรองระดับชั้น
+      let gradeMatch = true;
+      if (selectedGrade !== 'All') {
+        const itemGrade = extractGradeLevel(item[classField]);
+        if (itemGrade !== selectedGrade) gradeMatch = false;
+      }
+
+      return dateMatch && gradeMatch;
+    });
+  }, [data, activeTab, startDate, endDate, selectedGrade]);
+
+  // --- คำนวณสถิติ (Statistics) ---
+  const stats = useMemo(() => {
+    const totalLate = data.late.length;
+    const totalSkip = data.skip.length;
+    const totalDemeritItems = data.demerit.length;
+    
+    // นับจำนวนตามระดับชั้นของข้อมูลที่ถูกกรองแล้ว
+    const gradeCounts = {};
+    let classField = activeTab === 'late' ? 'ห้อง' : activeTab === 'skip' ? 'ชั้น' : 'ระดับชั้น';
+    
+    filteredData.forEach(item => {
+      const grade = extractGradeLevel(item[classField]);
+      gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
+    });
+
+    return { totalLate, totalSkip, totalDemeritItems, gradeCounts };
+  }, [data, filteredData, activeTab]);
+
+  // --- การเรนเดอร์ (Render) ---
+  if (loading) return <div className="flex h-screen items-center justify-center text-blue-600 text-xl font-semibold">กำลังโหลดข้อมูล...</div>;
+  if (error) return <div className="flex h-screen items-center justify-center text-red-600 text-xl">{error}</div>;
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">ระบบสารสนเทศงานกิจการนักเรียน</h1>
+            <p className="text-gray-500 mt-1">แดชบอร์ดสรุปสถิติ มาสาย โดดเรียน และตัดคะแนนความประพฤติ</p>
+          </div>
+          <button 
+            onClick={() => exportToCSV(filteredData, `report_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`)}
+            className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+          >
+            <Download size={18} />
+            <span>ดาวน์โหลด Excel (CSV)</span>
+          </button>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="p-4 bg-orange-100 text-orange-600 rounded-full"><Clock size={24} /></div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">มาสาย (ทั้งหมด)</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalLate} <span className="text-sm font-normal text-gray-500">ครั้ง</span></p>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="p-4 bg-purple-100 text-purple-600 rounded-full"><Users size={24} /></div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">โดดเรียน (ทั้งหมด)</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalSkip} <span className="text-sm font-normal text-gray-500">รายการ</span></p>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="p-4 bg-red-100 text-red-600 rounded-full"><AlertTriangle size={24} /></div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">ตัดคะแนน (ทั้งหมด)</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalDemeritItems} <span className="text-sm font-normal text-gray-500">รายการ</span></p>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls & Filters */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b overflow-x-auto">
+            <button onClick={() => setActiveTab('late')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'late' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>มาสายชั่วคราว</button>
+            <button onClick={() => setActiveTab('skip')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'skip' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>บันทึกเข้าเรียน (โดดเรียน)</button>
+            <button onClick={() => setActiveTab('demerit')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'demerit' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>ประวัติการตัดคะแนน</button>
+          </div>
+
+          {/* Filters */}
+          <div className="p-4 bg-gray-50 border-b flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Calendar size={14}/> ตั้งแต่วันที่</label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Calendar size={14}/> ถึงวันที่</label>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Filter size={14}/> ระดับชั้น</label>
+              <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                <option value="All">รวมทุกระดับชั้น</option>
+                <option value="ม.1">มัธยมศึกษาปีที่ 1</option>
+                <option value="ม.2">มัธยมศึกษาปีที่ 2</option>
+                <option value="ม.3">มัธยมศึกษาปีที่ 3</option>
+                <option value="ม.4">มัธยมศึกษาปีที่ 4</option>
+                <option value="ม.5">มัธยมศึกษาปีที่ 5</option>
+                <option value="ม.6">มัธยมศึกษาปีที่ 6</option>
+              </select>
+            </div>
+            <div className="w-full md:w-auto">
+              <button 
+                onClick={() => { setStartDate(''); setEndDate(''); setSelectedGrade('All'); }}
+                className="w-full md:w-auto px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                ล้างตัวกรอง
+              </button>
+            </div>
+          </div>
+
+          {/* สถิติย่อย (Chart / Visuals) */}
+          <div className="p-6 border-b bg-white">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">สถิติแยกตามระดับชั้น (จากข้อมูลที่กรอง)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              {['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'].map(grade => (
+                <div key={grade} className="bg-gray-50 rounded-lg p-3 border border-gray-100 text-center">
+                  <p className="text-sm text-gray-500 font-medium">{grade}</p>
+                  <p className="text-xl font-bold text-blue-600">{stats.gradeCounts[grade] || 0}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Data Table */}
+          <div className="overflow-x-auto p-4">
+            <p className="text-sm text-gray-500 mb-2">พบข้อมูลทั้งหมด {filteredData.length} รายการ</p>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-gray-600 text-sm">
+                  {filteredData.length > 0 ? (
+                    Object.keys(filteredData[0]).map((key) => (
+                      <th key={key} className="p-3 border-b font-semibold whitespace-nowrap">{key}</th>
+                    ))
+                  ) : (
+                    <th className="p-3 border-b">ไม่มีข้อมูล</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.length > 0 ? (
+                  filteredData.map((row, index) => (
+                    <tr key={index} className="border-b hover:bg-gray-50 transition-colors text-sm">
+                      {Object.values(row).map((val, i) => (
+                        <td key={i} className="p-3 whitespace-nowrap">{val || '-'}</td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="10" className="p-8 text-center text-gray-500">
+                      ไม่พบข้อมูลที่ตรงกับเงื่อนไขการกรอง
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
