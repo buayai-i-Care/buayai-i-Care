@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบสารสนเทศ มาสาย โดดเรียน พฤติกรรมไม่พึงประสงค์</title>
     
-    <!-- นำเข้า Tailwind CSS สำหรับจัดการความสวยงาม -->
+    <!-- นำเข้า Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- นำเข้า React และ ReactDOM แบบ Standalone -->
+    <!-- นำเข้า React แบบ Standalone -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- นำเข้า Babel เพื่อแปลงโค้ด JSX (ทำงานบนเบราว์เซอร์โดยตรง) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', Tahoma, sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -25,16 +26,28 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- ไอคอนแบบ Inline SVG (แทนการนำเข้าจากภายนอกเพื่อให้เป็นไฟล์เดียว) ---
+        // --- ไอคอนแบบ Inline SVG ---
         const IconDownload = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
         const IconClock = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
         const IconUsers = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
         const IconAlert = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;
         const IconCalendar = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
         const IconFilter = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
+        const IconArrowLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
+        const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 animate-[spin_4s_linear_infinite]"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+
+        // --- ธีมสีประจำระดับชั้น ---
+        const gradeColors = {
+            'ม.1': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-300', active: 'bg-pink-600 text-white shadow-pink-200', tag: 'bg-pink-100 text-pink-700 border-pink-200' },
+            'ม.2': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-300', active: 'bg-emerald-600 text-white shadow-emerald-200', tag: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+            'ม.3': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-300', active: 'bg-purple-600 text-white shadow-purple-200', tag: 'bg-purple-100 text-purple-700 border-purple-200' },
+            'ม.4': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-300', active: 'bg-orange-500 text-white shadow-orange-200', tag: 'bg-orange-100 text-orange-700 border-orange-200' },
+            'ม.5': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-300', active: 'bg-cyan-600 text-white shadow-cyan-200', tag: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
+            'ม.6': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300', active: 'bg-amber-500 text-white shadow-amber-200', tag: 'bg-amber-100 text-amber-700 border-amber-200' },
+            'default': { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-300', active: 'bg-blue-600 text-white shadow-blue-200', tag: 'bg-gray-100 text-gray-700 border-gray-200' }
+        };
 
         // --- ฟังก์ชันช่วยเหลือ ---
-        // แปลงเป็น CSV สำหรับดาวน์โหลด
         const exportToCSV = (data, filename) => {
             if (!data || data.length === 0) return;
             const headers = Object.keys(data[0]);
@@ -56,7 +69,6 @@
             }
         };
 
-        // สกัดระดับชั้นจากสตริง (เช่น "3/9" หรือ "ม.3/9" -> "ม.3")
         const extractGradeLevel = (roomStr) => {
             if (!roomStr) return 'ไม่ระบุ';
             const str = String(roomStr).trim();
@@ -67,6 +79,17 @@
             return str;
         };
 
+        const sortRooms = (a, b) => {
+            const getNums = (str) => {
+                const match = String(str).match(/(\d+)\/(\d+)/);
+                return match ? [parseInt(match[1]), parseInt(match[2])] : [0, 0];
+            };
+            const [levelA, roomA] = getNums(a);
+            const [levelB, roomB] = getNums(b);
+            if (levelA !== levelB) return levelA - levelB;
+            return roomA - roomB;
+        };
+
         // --- Component หลัก ---
         const App = () => {
             const [activeTab, setActiveTab] = useState('late');
@@ -75,54 +98,56 @@
             const [errorMsg, setErrorMsg] = useState(null);
             const [isMockData, setIsMockData] = useState(false);
 
-            // ตัวกรอง
+            // ตัวกรองหลัก
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
             const [selectedGrade, setSelectedGrade] = useState('All');
 
-            // URL ของ Google Apps Script (ใส่ URL ของคุณที่นี่)
+            // สถานะ Drill-down
+            const [expandedGrade, setExpandedGrade] = useState(null); // 'ม.3'
+            const [expandedStudent, setExpandedStudent] = useState(null); // Object
+
+            // ตัวกรองหมวดหมู่
+            const [selectedDemeritTypes, setSelectedDemeritTypes] = useState([]);
+
             const GAS_URL = 'https://script.google.com/macros/s/AKfycbx8xYhO4G_ADQDpiCIXY7tdZmXUVRAK_JYdis3hfpLxzjRRD9jYt-2T_hqxp5ytQQ4i/exec';
 
-            // ข้อมูลสำรอง (กรณีดึงจาก GAS ไม่สำเร็จ)
+            // ข้อมูลจำลองสำหรับทดสอบ UI
             const mockResult = {
                 late: [
                     { "วันที่มาสาย": "2026-05-11", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
+                    { "วันที่มาสาย": "2026-05-15", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "1/8", "เลขประจำตัว": "33539", "ชื่อ-สกุล": "ดช.กมลทรรศ พันธ์สวัสดิ์" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "5/5", "เลขประจำตัว": "33147", "ชื่อ-สกุล": "นส.จิราภัค งิมขุนทด" },
+                    { "วันที่มาสาย": "2026-05-13", "ห้อง": "3/1", "เลขประจำตัว": "32111", "ชื่อ-สกุล": "ดช.สมชาย ใจดี" },
                 ],
-                skip: [
-                    { "วันที่-เวลา": "2026-05-11", "รหัสนักเรียน": "32959", "ชื่อ-นามสกุล": "เด็กหญิงณัฐชยา พรแสน", "ชั้น": "3/7", "จำนวนครั้งที่โดด": 2 },
-                    { "วันที่-เวลา": "2026-05-11", "รหัสนักเรียน": "32396", "ชื่อ-นามสกุล": "เด็กชายรัชชานนท์ การถาง", "ชั้น": "3/9", "จำนวนครั้งที่โดด": 2 },
-                    { "วันที่-เวลา": "2026-05-14", "รหัสนักเรียน": "32659", "ชื่อ-นามสกุล": "นายธนภัทร จันทะดวง", "ชั้น": "4/10", "จำนวนครั้งที่โดด": 1 },
-                ],
+                skip: [],
                 demerit: [
                     { "วันที่": "2026-05-14", "ระดับชั้น": "5/7", "รหัสนักเรียน": "33829", "ชื่อ": "นายอิทธิพล มาตรวังแสง", "ประเภทความผิด": "โดดเรียน", "คะแนน": "-15" },
                     { "วันที่": "2026-05-24", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "ดื่มสุราฯ", "คะแนน": "-60" },
                     { "วันที่": "2026-05-24", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
+                    { "วันที่": "2026-05-25", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "ทะเลาะวิวาท", "คะแนน": "-30" },
+                    { "วันที่": "2026-05-26", "ระดับชั้น": "ม.3/1", "รหัสนักเรียน": "32001", "ชื่อ": "ดช.ก้าวหน้า ขยัน", "ประเภทความผิด": "มาสาย", "คะแนน": "-5" },
                 ]
             };
 
-            // ดึงข้อมูลเมื่อโหลดหน้า
             useEffect(() => {
                 const fetchData = async () => {
                     try {
                         setLoading(true);
-                        // พยายามดึงข้อมูลจาก GAS
                         const response = await fetch(GAS_URL);
                         if (!response.ok) throw new Error('Network response was not ok');
                         const result = await response.json();
                         
-                        // ตรวจสอบโครงสร้างข้อมูลคร่าวๆ ว่ามี key ครบไหม
                         if(result.late && result.skip && result.demerit) {
                             setData(result);
                             setIsMockData(false);
                         } else {
-                            throw new Error('Data structure is invalid');
+                            throw new Error('Data structure invalid');
                         }
                     } catch (err) {
                         console.error('Fetch error:', err);
-                        // หากล้มเหลว (เช่น ติด CORS หรือยังเขียน GAS ไม่เสร็จ) ให้แสดงข้อมูลจำลองไปก่อน
                         setData(mockResult);
                         setIsMockData(true);
                         setErrorMsg('กำลังแสดงข้อมูลตัวอย่าง (ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ในขณะนี้)');
@@ -130,11 +155,25 @@
                         setLoading(false);
                     }
                 };
-
                 fetchData();
             }, []);
 
-            // ประมวลผลและกรองข้อมูล
+            // ดึงประเภทความผิด
+            const availableDemeritTypes = useMemo(() => {
+                if (!data.demerit) return [];
+                const types = new Set(data.demerit.map(item => item['ประเภทความผิด']).filter(Boolean));
+                return Array.from(types).sort();
+            }, [data.demerit]);
+
+            // เปลี่ยนแท็บ
+            const handleTabChange = (tab) => {
+                setActiveTab(tab);
+                setExpandedGrade(null);
+                setExpandedStudent(null);
+                setSelectedDemeritTypes([]);
+            };
+
+            // กรองข้อมูล (ตามวันที่, ระดับชั้น, หมวดหมู่)
             const filteredData = useMemo(() => {
                 let currentData = [];
                 let dateField = '';
@@ -146,8 +185,6 @@
                     classField = 'ห้อง';
                 } else if (activeTab === 'skip') {
                     currentData = data.skip || [];
-                    dateField = 'วันที่-เวลา';
-                    classField = 'ชั้น';
                 } else if (activeTab === 'demerit') {
                     currentData = data.demerit || [];
                     dateField = 'วันที่';
@@ -156,18 +193,13 @@
 
                 return currentData.filter(item => {
                     let dateMatch = true;
-                    // ทำความสะอาดข้อความวันที่ก่อนแปลงเป็น Date
                     let rawDate = item[dateField];
                     
                     if (rawDate) {
-                        // รองรับกรณีวันที่มาแบบ "24/05/2026 11:37:00" หรือ "2026-05-11"
                         let parsedDate;
                         if(String(rawDate).includes('/')) {
-                            const parts = String(rawDate).split(' ')[0].split('/'); // เอาแค่วันที่ ไม่เอาเวลา
-                            if(parts.length === 3) {
-                                // ด/ว/ป หรือ ว/ด/ป (ขึ้นอยู่กับการตั้งค่าชีต) สมมติว่าเป็น ว/ด/ป
-                                parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                            }
+                            const parts = String(rawDate).split(' ')[0].split('/');
+                            if(parts.length === 3) parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                         } else {
                             parsedDate = new Date(rawDate);
                         }
@@ -178,7 +210,6 @@
 
                         if (itemDate) {
                             if (start && itemDate < start) dateMatch = false;
-                            // สำหรับวันสิ้นสุด ให้บวกเพิ่มไปถึงเวลา 23:59:59 เพื่อให้ครอบคลุมทั้งวัน
                             if (end && itemDate > (end + 86399999)) dateMatch = false; 
                         }
                     }
@@ -189,14 +220,21 @@
                         if (itemGrade !== selectedGrade) gradeMatch = false;
                     }
 
-                    return dateMatch && gradeMatch;
-                });
-            }, [data, activeTab, startDate, endDate, selectedGrade]);
+                    let typeMatch = true;
+                    if (activeTab === 'demerit' && selectedDemeritTypes.length > 0) {
+                        if (!selectedDemeritTypes.includes(item['ประเภทความผิด'])) {
+                            typeMatch = false;
+                        }
+                    }
 
-            // คำนวณสถิติ
+                    return dateMatch && gradeMatch && typeMatch;
+                });
+            }, [data, activeTab, startDate, endDate, selectedGrade, selectedDemeritTypes]);
+
+            // คำนวณสถิติเบื้องต้น
             const stats = useMemo(() => {
                 const gradeCounts = {};
-                let classField = activeTab === 'late' ? 'ห้อง' : activeTab === 'skip' ? 'ชั้น' : 'ระดับชั้น';
+                let classField = activeTab === 'late' ? 'ห้อง' : 'ระดับชั้น';
                 
                 filteredData.forEach(item => {
                     const grade = extractGradeLevel(item[classField]);
@@ -213,20 +251,60 @@
                 };
             }, [data, filteredData, activeTab]);
 
+            // จัดกลุ่มรายชื่อนักเรียนสำหรับ Drill-down ระดับ 2
+            const getGroupedStudents = useMemo(() => {
+                if (!expandedGrade) return [];
+
+                let classField = activeTab === 'late' ? 'ห้อง' : 'ระดับชั้น';
+                let idField = activeTab === 'late' ? 'เลขประจำตัว' : 'รหัสนักเรียน';
+                let nameField = activeTab === 'late' ? 'ชื่อ-สกุล' : 'ชื่อ';
+
+                // กรองเฉพาะของชั้นที่เลือก
+                const gradeData = filteredData.filter(item => extractGradeLevel(item[classField]) === expandedGrade);
+                
+                const map = new Map();
+                gradeData.forEach(item => {
+                    const sid = item[idField] || 'ไม่มีรหัส';
+                    if (!map.has(sid)) {
+                        map.set(sid, {
+                            studentId: sid,
+                            name: item[nameField] || 'ไม่ระบุชื่อ',
+                            room: item[classField] || '-',
+                            count: 0,
+                            records: []
+                        });
+                    }
+                    const entry = map.get(sid);
+                    entry.count += 1;
+                    entry.records.push(item);
+                });
+
+                // คืนค่าพร้อมเรียงห้องจากน้อยไปมาก
+                return Array.from(map.values()).sort((a, b) => sortRooms(a.room, b.room));
+            }, [filteredData, expandedGrade, activeTab]);
+
+            // สลับ Checkbox
+            const handleDemeritTypeToggle = (type) => {
+                setSelectedDemeritTypes(prev => 
+                    prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                );
+                // ปิดหน้ารายละเอียดเมื่อตัวกรองเปลี่ยน
+                setExpandedGrade(null);
+                setExpandedStudent(null);
+            };
+
             if (loading) return <div className="flex h-screen items-center justify-center text-blue-600 text-xl font-semibold">กำลังโหลดข้อมูล...</div>;
 
             return (
                 <div className="min-h-screen bg-gray-50 p-4 md:p-8">
                     <div className="max-w-7xl mx-auto space-y-6">
                         
-                        {/* แจ้งเตือนข้อผิดพลาด */}
                         {isMockData && (
                             <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-sm text-amber-800 flex items-center gap-2">
                                 <IconAlert /> {errorMsg}
                             </div>
                         )}
 
-                        {/* ส่วนหัว */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">ระบบสารสนเทศงานกิจการนักเรียน</h1>
@@ -237,27 +315,27 @@
                                 className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                             >
                                 <IconDownload />
-                                <span>ดาวน์โหลด Excel (CSV)</span>
+                                <span>ดาวน์โหลด Excel</span>
                             </button>
                         </div>
 
-                        {/* การ์ดสถิติรวม */}
+                        {/* การ์ดภาพรวม */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
                                 <div className="p-4 bg-orange-100 text-orange-600 rounded-full"><IconClock /></div>
                                 <div>
                                     <p className="text-sm text-gray-500 font-medium">มาสาย (ทั้งหมด)</p>
                                     <p className="text-2xl font-bold text-gray-900">{stats.totalLate} <span className="text-sm font-normal text-gray-500">ครั้ง</span></p>
                                 </div>
                             </div>
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
                                 <div className="p-4 bg-purple-100 text-purple-600 rounded-full"><IconUsers /></div>
                                 <div>
                                     <p className="text-sm text-gray-500 font-medium">โดดเรียน (ทั้งหมด)</p>
                                     <p className="text-2xl font-bold text-gray-900">{stats.totalSkip} <span className="text-sm font-normal text-gray-500">รายการ</span></p>
                                 </div>
                             </div>
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
                                 <div className="p-4 bg-red-100 text-red-600 rounded-full"><IconAlert /></div>
                                 <div>
                                     <p className="text-sm text-gray-500 font-medium">ตัดคะแนน (ทั้งหมด)</p>
@@ -266,94 +344,239 @@
                             </div>
                         </div>
 
-                        {/* พื้นที่จัดการข้อมูลหลัก */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            {/* แท็บเปลี่ยนหน้า */}
-                            <div className="flex border-b overflow-x-auto">
-                                <button onClick={() => setActiveTab('late')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'late' ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50/30' : 'text-gray-500 hover:bg-gray-50'}`}>มาสายชั่วคราว</button>
-                                <button onClick={() => setActiveTab('skip')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'skip' ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50/30' : 'text-gray-500 hover:bg-gray-50'}`}>บันทึกเข้าเรียน (โดดเรียน)</button>
-                                <button onClick={() => setActiveTab('demerit')} className={`px-6 py-4 font-medium whitespace-nowrap transition-colors ${activeTab === 'demerit' ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50/30' : 'text-gray-500 hover:bg-gray-50'}`}>ประวัติการตัดคะแนน</button>
+                            {/* แท็บเมนู */}
+                            <div className="flex border-b overflow-x-auto hide-scrollbar bg-gray-50/50">
+                                <button onClick={() => handleTabChange('late')} className={`px-6 py-4 font-semibold whitespace-nowrap transition-colors ${activeTab === 'late' ? 'border-b-2 border-blue-600 text-blue-700 bg-white' : 'text-gray-500 hover:text-gray-800'}`}>สารสนเทศการมาสาย</button>
+                                <button onClick={() => handleTabChange('skip')} className={`px-6 py-4 font-semibold whitespace-nowrap transition-colors ${activeTab === 'skip' ? 'border-b-2 border-blue-600 text-blue-700 bg-white' : 'text-gray-500 hover:text-gray-800'}`}>สารสนเทศการหนีเรียน โดดเรียน</button>
+                                <button onClick={() => handleTabChange('demerit')} className={`px-6 py-4 font-semibold whitespace-nowrap transition-colors ${activeTab === 'demerit' ? 'border-b-2 border-blue-600 text-blue-700 bg-white' : 'text-gray-500 hover:text-gray-800'}`}>สารสนเทศพฤติกรรมไม่พึงประสงค์</button>
                             </div>
 
-                            {/* ตัวกรองข้อมูล */}
-                            <div className="p-4 bg-gray-50 border-b flex flex-col md:flex-row gap-4 items-end">
-                                <div className="flex-1 w-full">
-                                    <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconCalendar /> ตั้งแต่วันที่</label>
-                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none" />
+                            {/* --- แท็บโดดเรียน --- */}
+                            {activeTab === 'skip' && (
+                                <div className="p-16 flex flex-col items-center justify-center text-center bg-gray-50/50">
+                                    <IconSettings />
+                                    <h2 className="mt-6 text-2xl font-bold text-gray-700">กำลังพัฒนา</h2>
+                                    <p className="text-gray-500 mt-2">ส่วนสารสนเทศการหนีเรียนและโดดเรียน อยู่ระหว่างการปรับปรุงระบบ</p>
                                 </div>
-                                <div className="flex-1 w-full">
-                                    <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconCalendar /> ถึงวันที่</label>
-                                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none" />
-                                </div>
-                                <div className="flex-1 w-full">
-                                    <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconFilter /> ระดับชั้น</label>
-                                    <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                        <option value="All">รวมทุกระดับชั้น</option>
-                                        <option value="ม.1">มัธยมศึกษาปีที่ 1</option>
-                                        <option value="ม.2">มัธยมศึกษาปีที่ 2</option>
-                                        <option value="ม.3">มัธยมศึกษาปีที่ 3</option>
-                                        <option value="ม.4">มัธยมศึกษาปีที่ 4</option>
-                                        <option value="ม.5">มัธยมศึกษาปีที่ 5</option>
-                                        <option value="ม.6">มัธยมศึกษาปีที่ 6</option>
-                                    </select>
-                                </div>
-                                <div className="w-full md:w-auto">
-                                    <button 
-                                        onClick={() => { setStartDate(''); setEndDate(''); setSelectedGrade('All'); }}
-                                        className="w-full md:w-auto px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
-                                    >
-                                        ล้างตัวกรอง
-                                    </button>
-                                </div>
-                            </div>
+                            )}
 
-                            {/* สถิติแยกตามชั้นเรียน */}
-                            <div className="p-6 border-b bg-white">
-                                <h3 className="text-lg font-semibold mb-4 text-gray-800">สถิติแยกตามระดับชั้น (จากเงื่อนไขการกรอง)</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                                    {['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'].map(grade => (
-                                        <div key={grade} className="bg-gray-50 rounded-lg p-3 border border-gray-100 text-center shadow-sm">
-                                            <p className="text-sm text-gray-500 font-medium">{grade}</p>
-                                            <p className="text-xl font-bold text-blue-600">{stats.gradeCounts[grade] || 0}</p>
+                            {/* --- แท็บมาสาย / พฤติกรรม --- */}
+                            {activeTab !== 'skip' && (
+                                <>
+                                    {/* ส่วนตัวกรอง (Filter) */}
+                                    <div className="p-4 bg-white border-b flex flex-col md:flex-row gap-4 items-end">
+                                        <div className="flex-1 w-full">
+                                            <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconCalendar /> ตั้งแต่วันที่</label>
+                                            <input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setExpandedGrade(null); setExpandedStudent(null);}} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                        <div className="flex-1 w-full">
+                                            <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconCalendar /> ถึงวันที่</label>
+                                            <input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setExpandedGrade(null); setExpandedStudent(null);}} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                                        </div>
+                                        <div className="flex-1 w-full">
+                                            <label className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><IconFilter /> ระดับชั้น (ตัวกรองภาพรวม)</label>
+                                            <select value={selectedGrade} onChange={(e) => {setSelectedGrade(e.target.value); setExpandedGrade(null); setExpandedStudent(null);}} className="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm">
+                                                <option value="All">รวมทุกระดับชั้น</option>
+                                                <option value="ม.1">มัธยมศึกษาปีที่ 1</option>
+                                                <option value="ม.2">มัธยมศึกษาปีที่ 2</option>
+                                                <option value="ม.3">มัธยมศึกษาปีที่ 3</option>
+                                                <option value="ม.4">มัธยมศึกษาปีที่ 4</option>
+                                                <option value="ม.5">มัธยมศึกษาปีที่ 5</option>
+                                                <option value="ม.6">มัธยมศึกษาปีที่ 6</option>
+                                            </select>
+                                        </div>
+                                        <div className="w-full md:w-auto">
+                                            <button 
+                                                onClick={() => { setStartDate(''); setEndDate(''); setSelectedGrade('All'); setSelectedDemeritTypes([]); setExpandedGrade(null); setExpandedStudent(null); }}
+                                                className="w-full md:w-auto px-4 py-2 text-sm text-gray-600 bg-gray-100 border border-transparent rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                            >
+                                                ล้างตัวกรอง
+                                            </button>
+                                        </div>
+                                    </div>
 
-                            {/* ตารางข้อมูล */}
-                            <div className="overflow-x-auto p-4">
-                                <p className="text-sm text-gray-500 mb-2 font-medium">พบข้อมูลทั้งหมด {filteredData.length} รายการ</p>
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-100 text-gray-700 text-sm">
-                                            {filteredData.length > 0 ? (
-                                                Object.keys(filteredData[0]).map((key) => (
-                                                    <th key={key} className="p-3 border-b font-semibold whitespace-nowrap">{key}</th>
-                                                ))
-                                            ) : (
-                                                <th className="p-3 border-b">ข้อมูลว่างเปล่า</th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredData.length > 0 ? (
-                                            filteredData.map((row, index) => (
-                                                <tr key={index} className="border-b hover:bg-blue-50/50 transition-colors text-sm text-gray-700">
-                                                    {Object.values(row).map((val, i) => (
-                                                        <td key={i} className="p-3 whitespace-nowrap">{val || '-'}</td>
-                                                    ))}
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="10" className="p-8 text-center text-gray-500">
-                                                    ไม่พบข้อมูลที่ตรงกับเงื่อนไขการกรอง
-                                                </td>
-                                            </tr>
+                                    {/* หมวดหมู่พฤติกรรม (เฉพาะแท็บพฤติกรรม) */}
+                                    {activeTab === 'demerit' && availableDemeritTypes.length > 0 && (
+                                        <div className="p-4 bg-gray-50 border-b">
+                                            <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2"><IconFilter /> กรองตามหมวดหมู่พฤติกรรม:</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {availableDemeritTypes.map(type => {
+                                                    const isSelected = selectedDemeritTypes.includes(type);
+                                                    return (
+                                                        <label key={type} className={`inline-flex items-center cursor-pointer border rounded-full px-4 py-1.5 transition-all text-sm select-none ${isSelected ? 'bg-blue-100 border-blue-300 text-blue-800 font-medium shadow-sm' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+                                                            <input 
+                                                                type="checkbox" 
+                                                                className="hidden"
+                                                                checked={isSelected}
+                                                                onChange={() => handleDemeritTypeToggle(type)}
+                                                            />
+                                                            <span className={`w-3 h-3 rounded-full mr-2 ${isSelected ? 'bg-blue-500' : 'bg-gray-300'}`}></span>
+                                                            {type}
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* สถิติและปุ่มเจาะลึก (Drill-down ระดับ 1) */}
+                                    <div className="p-6 border-b bg-white">
+                                        <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center justify-between">
+                                            สถิติแยกตามระดับชั้น
+                                            <span className="text-xs font-normal text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 animate-pulse">
+                                                👆 คลิกที่กล่องเพื่อดูรายชื่อ
+                                            </span>
+                                        </h3>
+                                        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
+                                            {['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'].map(grade => {
+                                                const count = stats.gradeCounts[grade] || 0;
+                                                const isActive = expandedGrade === grade;
+                                                const isStudentView = expandedStudent !== null;
+                                                const theme = gradeColors[grade] || gradeColors['default'];
+                                                
+                                                return (
+                                                    <div 
+                                                        key={grade} 
+                                                        onClick={() => {
+                                                            if(count > 0) {
+                                                                setExpandedGrade(isActive && !isStudentView ? null : grade);
+                                                                setExpandedStudent(null);
+                                                            }
+                                                        }}
+                                                        className={`rounded-xl p-4 text-center transition-all border-2 ${
+                                                            count > 0 ? 'cursor-pointer hover:-translate-y-1' : 'opacity-40 cursor-not-allowed grayscale'
+                                                        } ${
+                                                            isActive ? `${theme.active} border-transparent shadow-lg` : `${theme.bg} ${theme.border} hover:shadow-md`
+                                                        }`}
+                                                    >
+                                                        <p className={`text-sm font-bold mb-1 ${isActive ? 'text-white/80' : theme.text}`}>{grade}</p>
+                                                        <p className={`text-3xl font-black ${isActive ? 'text-white' : theme.text}`}>{count}</p>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* พื้นที่แสดงข้อมูล */}
+                                    <div className="bg-gray-50 min-h-[300px]">
+                                        
+                                        {/* ระดับ 3: ประวัติรายบุคคล */}
+                                        {expandedStudent ? (
+                                            <div className="p-4 md:p-6 fade-in">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <button 
+                                                            onClick={() => setExpandedStudent(null)}
+                                                            className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+                                                        >
+                                                            <IconArrowLeft /> กลับ
+                                                        </button>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="font-bold text-xl text-gray-800">{expandedStudent.name}</h3>
+                                                                <span className={`px-2 py-0.5 rounded text-xs font-bold border ${gradeColors[expandedGrade]?.tag || gradeColors['default'].tag}`}>
+                                                                    ห้อง {expandedStudent.room}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-500 mt-1">รหัสประจำตัว: {expandedStudent.studentId} • ทำรายการทั้งหมด: <span className="font-bold text-red-600">{expandedStudent.count}</span> ครั้ง</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white shadow-sm">
+                                                    <table className="w-full text-left border-collapse">
+                                                        <thead className="bg-gray-100 text-gray-700 text-sm">
+                                                            <tr>
+                                                                {Object.keys(expandedStudent.records[0] || {}).map((key) => (
+                                                                    <th key={key} className="p-4 font-semibold whitespace-nowrap border-b">{key}</th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {expandedStudent.records.map((row, index) => (
+                                                                <tr key={index} className="border-b last:border-b-0 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                                                                    {Object.values(row).map((val, i) => (
+                                                                        <td key={i} className="p-4 whitespace-nowrap">{val || '-'}</td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        ) 
+                                        
+                                        /* ระดับ 2: รายชื่อนักเรียน */
+                                        : expandedGrade ? (
+                                            <div className="p-4 md:p-6 fade-in">
+                                                <div className="flex items-center justify-between mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                                    <div>
+                                                        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                                            <span className={`w-3 h-3 rounded-full ${gradeColors[expandedGrade]?.active.split(' ')[0] || 'bg-gray-500'}`}></span>
+                                                            รายชื่อนักเรียนระดับชั้น {expandedGrade}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-500">เรียงตามห้องจากน้อยไปมาก • คลิกที่ชื่อนักเรียนเพื่อดูประวัติ</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => setExpandedGrade(null)}
+                                                        className="text-sm text-gray-500 hover:text-gray-800 font-medium px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                                    >
+                                                        ปิด ×
+                                                    </button>
+                                                </div>
+
+                                                <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white shadow-sm">
+                                                    <table className="w-full text-left border-collapse">
+                                                        <thead className="bg-gray-50 text-gray-700 text-sm border-b">
+                                                            <tr>
+                                                                <th className="p-4 font-semibold w-24">ห้อง</th>
+                                                                <th className="p-4 font-semibold w-32">รหัส</th>
+                                                                <th className="p-4 font-semibold">ชื่อ-สกุล</th>
+                                                                <th className="p-4 font-semibold text-center w-32">จำนวนครั้ง</th>
+                                                                <th className="p-4 font-semibold text-right w-32">รายละเอียด</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {getGroupedStudents.map((student, index) => (
+                                                                <tr key={index} className="border-b last:border-b-0 hover:bg-blue-50/50 transition-colors text-sm group">
+                                                                    <td className="p-4 font-semibold text-gray-900">{student.room}</td>
+                                                                    <td className="p-4 text-gray-600">{student.studentId}</td>
+                                                                    <td className="p-4 font-medium text-gray-800">{student.name}</td>
+                                                                    <td className="p-4 text-center">
+                                                                        <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">{student.count}</span>
+                                                                    </td>
+                                                                    <td className="p-4 text-right">
+                                                                        <button 
+                                                                            onClick={() => setExpandedStudent(student)}
+                                                                            className="text-blue-600 hover:text-blue-800 font-semibold text-sm bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 opacity-80 group-hover:opacity-100"
+                                                                        >
+                                                                            ดูประวัติ <span className="text-lg leading-none">›</span>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        ) 
+
+                                        /* ระดับ 1: ตารางรวมทั้งหมด (ซ่อนไว้เมื่อไม่จำเป็น หรือแสดงเป็น fallback) */
+                                        : (
+                                            <div className="p-8 text-center bg-white border-t">
+                                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-500 mb-4">
+                                                    <IconUsers />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-gray-800 mb-2">เลือกกล่องระดับชั้นด้านบน</h3>
+                                                <p className="text-gray-500 max-w-md mx-auto">
+                                                    เพื่อดูรายชื่อนักเรียนที่มีประวัติ{activeTab === 'late' ? 'มาสาย' : 'พฤติกรรมไม่พึงประสงค์'} ในรูปแบบตารางรายบุคคล
+                                                </p>
+                                            </div>
                                         )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                     </div>
@@ -361,9 +584,13 @@
             );
         };
 
-        // Render ไปยัง DOM
+        // Render
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </body>
 </html>
