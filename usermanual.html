@@ -35,7 +35,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0, 1, 0, 1); }
-        .accordion-item.open .accordion-content { max-height: 2000px; transition: max-height 0.3s cubic-bezier(1, 0, 1, 0); }
+        .accordion-item.open .accordion-content { max-height: 3000px; transition: max-height 0.3s cubic-bezier(1, 0, 1, 0); }
         .accordion-item.open .chevron-icon { transform: rotate(180deg); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -52,7 +52,7 @@
                 <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w150" alt="Logo" class="w-16 h-16 rounded-full object-contain bg-white p-1 shadow-sm">
             </div>
             <h1 class="text-3xl font-bold text-slate-900 leading-tight">Buayai I-Care School</h1>
-            <p class="text-slate-500 mt-1 font-medium">คู่มือการใช้งานระบบดูแลช่วยเหลือผู้เรียนดิจิทัลออนไลน์</p>
+            <p class="text-slate-500 mt-1 font-medium">คู่มือการใช้งานระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</p>
             
             <!-- Live Search Bar -->
             <div class="max-w-md mx-auto mt-6 relative">
@@ -79,7 +79,7 @@
                 <i class="ph-fill ph-student text-lg"></i> 👨‍🎓 นักเรียน/ผู้ปกครอง
             </button>
             <button onclick="switchTab('board-tab')" id="btn-board-tab" class="role-tab flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap">
-                <i class="ph-fill ph-megaphone text-lg"></i> 🗣️ กก.นักเรียน
+                <i class="ph-fill ph-megaphone text-lg"></i> 🗣️ คณกรรมการสภานักเรียน
             </button>
         </div>
 
@@ -89,7 +89,7 @@
         <div id="teacher-tab" class="tab-content active space-y-4">
             <div class="p-4 bg-teacher-50 border border-teacher-500/20 rounded-2xl flex gap-3 items-center mb-2">
                 <div class="w-10 h-10 rounded-full bg-teacher-500 flex items-center justify-center text-white text-xl flex-shrink-0 shadow-sm"><i class="ph-bold ph-lock-key-open"></i></div>
-                <p class="text-sm font-medium text-teacher-700">พื้นที่นี้ได้รับการปกป้องด้วยรหัสผ่านส่วนบุคคล เข้าใช้งานโดยระบุรหัสประจำตัวครู (เช่น <code class="bg-white px-1.5 py-0.5 rounded border">t1</code> หรือ <code class="bg-white px-1.5 py-0.5 rounded border">t123</code>)</p>
+                <p class="text-sm font-medium text-teacher-700">เข้าใช้งานโดยระบุรหัสประจำตัวครู (เช่น <code class="bg-white px-1.5 py-0.5 rounded border"></code>  <code class="bg-white px-1.5 py-0.5 rounded border"></code>)</p>
             </div>
 
             <!-- Card 1: ระบบเช็คชื่อเข้าแถว -->
@@ -99,7 +99,7 @@
                         <div class="w-12 h-12 rounded-xl bg-emerald-50 text-teacher-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-flag-fill"></i></div>
                         <div>
                             <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">1. ระบบเช็คชื่อเข้าแถวประจำวัน</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">การตั้งค่าเช็คชื่อย้อนหลัง, สวิตซ์ยุบการ์ด, และการดาวน์โหลดรายงานประจำห้อง</p>
+                            <p class="text-xs text-slate-500 mt-0.5">1)เช็คชื่อย้อนหลัง, 2)สวิตซ์ยุบการ์ด, 3)ดาวน์โหลดรายงานรายชั้นได้</p>
                         </div>
                     </div>
                     <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
@@ -110,23 +110,30 @@
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base flex items-center gap-1.5 text-teacher-600"><i class="bi bi-gear-wide-connected"></i> ฟีเจอร์ตัวช่วยประหยัดเวลา</h4>
                                 <ul class="mt-2 space-y-2 text-xs md:text-sm">
-                                    <li><b class="text-slate-800">📅 เลือกวันที่ย้อนหลัง:</b> สามารถปรับวันที่ด้านบนเพื่อลงบันทึกเวลาเรียนย้อนหลังได้สบายๆ</li>
-                                    <li><b class="text-slate-800">🔄 ติ๊ก "มา" อัตโนมัติ:</b> เปิดสวิตซ์นี้แล้วระบบจะใส่สถานะมาให้เด็กทุกคนล่วงหน้า คุณครูแก้เฉพาะคน ขาด ลา สาย พอครับ</li>
-                                    <li><b class="text-slate-800">📉 ยุบการ์ดอัตโนมัติ:</b> เมื่อกดเลือกสถานะให้เด็กแล้ว รายชื่อจะย่อลงทันที เพื่อให้เลื่อนดูคนถัดไปได้ง่าย ไม่สับสน</li>
+                                    <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-emerald-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">📅 มีวันที่ย้อนหลัง:</b> สามารถปรับวันที่ด้านบนเพื่อลงบันทึกเวลาเรียนย้อนหลังได้</div></li>
+                                    <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-emerald-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">🔄 ติ๊ก "มา" อัตโนมัติ:</b> เปิดสวิตซ์นี้แล้วระบบจะใส่สถานะมาให้เด็กทุกคนล่วงหน้า คุณครูแก้เฉพาะคน ขาด ลา สาย ได้เลย</div></li>
+                                    <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-emerald-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">📉 ยุบการ์ดอัตโนมัติ:</b> เมื่อกดเลือกสถานะให้เด็กแล้ว รายชื่อจะย่อลงทันที เพื่อให้เลื่อนดูคนถัดไปได้ง่าย ไม่สับสน</div></li>
                                 </ul>
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base flex items-center gap-1.5 text-teacher-600"><i class="bi bi-file-earmark-arrow-down-fill"></i> เมนูแฮมเบอร์เกอร์ & รายงาน</h4>
                                 <ul class="mt-2 space-y-2 text-xs md:text-sm">
-                                    <li><b class="text-slate-800">📊 สถิติภาพรวมประจำห้อง:</b> มีกราฟวงกลมสรุปยอดสะสม และระบบจัดอันดับเด็กมาสายสูงสุด 10 อันดับแรก</li>
-                                    <li><b class="text-slate-800">📥 ออกรายงาน Excel:</b> เลือกดาวน์โหลดรายงานสรุปเวลาเรียนประจำวัน, รายสัปดาห์ หรือรายเดือนเพื่อพิมพ์ส่งสถานศึกษาได้ทันที</li>
+                                    <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-emerald-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">📊 สถิติภาพรวมประจำห้อง:</b> วันที่ปัจจุบันมีกราฟวงกลมสรุปยอดสะสม เมื่อคลิกที่กราฟ จะแสดงรายชื่อของนักเรียนในกลุ่ม ขาด ลา มา สายได้เลย พร้อมสถิตมาสายสูงสุด 10 อันดับแรก ที่ควรติดตามดูแลเป็นพิเศษ</div></li>
+                                    <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-emerald-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">📥 ออกรายงาน Excel:</b> เลือกดาวน์โหลดรายงานสรุปเวลาเรียนประจำวัน, รายสัปดาห์ หรือรายเดือนเพื่อใช้งาน/หรือส่งต่อ</div></li>
                                 </ul>
                             </div>
                         </div>
                         <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs md:text-sm text-emerald-800 flex items-start gap-2">
                             <i class="ph ph-info font-bold text-lg mt-0.5"></i>
-                            <div><b>💡 ขั้นตอนสรุปการบันทึก:</b> ติ๊กสถานะรายคน ➡️ กดปุ่ม "บันทึกข้อมูล" สีเขียวด้านล่าง ➡️ ตรวจเช็คยอดรวมในหน้าสรุปป๊อปอัพ ➡️ กดยืนยันบันทึกข้อมูล เพื่อส่งข้อมูลเข้าคลาวด์ส่วนกลางเรียบร้อยครับ!</div>
+                            <div><b>💡 สรุปขั้นตอน:</b> ติ๊กสถานะรายคน ➡️ กดปุ่ม "บันทึกข้อมูล" สีเขียวด้านล่าง ➡️ ตรวจสอบยอดรวม ➡️ กดยืนยันบันทึกข้อมูล ต้องการดูข้อมูลที่บันทึกไปแล้ว ไปที่เมนู"สถิติภาพรวม" หากมีแก้ไข แจ้งแอดมินของระบบระดับชั้นมัธยมศึกษาตอนต้น ครูกาญจณ์พิชชาและระดับมัธยมศึกษาตอนปลาย ครูสุภัทรวดี!</div>
                         </div>
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs md:text-sm text-emerald-800 flex items-start gap-2">
+                            <i class="ph ph-info font-bold text-lg mt-0.5"></i>
+                            <div><b>💡 ปุ่มกระดิ่งแจ้งเตือนพร้อมตัวเลข:</b> สีเขียว มีผู้ชมเชยนักเรียนของท่าน ปุ่มสีแดง มีผู้ตักเตือนนักเรียนของท่าน ➡️ กดดู ดำเนินการ เมื่อเรียบร้อยแล้ว กดปุ่ม "รับทราบเรียกพบแล้ว" สีเขียว </div>
+                        </div>
+
+
+
                     </div>
                 </div>
             </div>
@@ -145,21 +152,28 @@
                 </div>
                 <div class="accordion-content border-t border-slate-100">
                     <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        
+                        <!-- 🌟 แทรกภาพอินโฟกราฟิกโฮมรูม 🌟 -->
+                        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-4">
+                            <h4 class="font-heading font-bold text-slate-800 text-center mt-2 mb-2 text-amber-600">ภาพรวมกระบวนการทำงานโฮมรูม</h4>
+                            <img src="https://drive.google.com/thumbnail?id=1zSZiH3c-1U826PPHjlyfw3lmKvhmn6an&sz=w1000" alt="กระบวนการทำงานโฮมรูม" class="w-full rounded-xl">
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-amber-600"><i class="bi bi-pencil-square"></i> การบันทึกเรื่องโฮมรูม 5 ข้อ</h4>
-                                <p class="text-xs md:text-sm">เลือกติ๊กข้อหัวข้อที่มีการพูดคุย เช่น แจ้งประกาศ, ติดต่อผู้ปกครอง, หรือการประสานทุน โดยแต่ละข้อสามารถ<b class="text-slate-800">กดปุ่มเลือกรายชื่อนักเรียนเฉพาะคน</b>ที่เกี่ยวข้องมาผูกไว้ในรายงานได้</p>
-                                <p class="text-xs md:text-sm bg-slate-50 p-2.5 rounded border"><b class="text-amber-700">✨ ปุ่มลัดพิเศษ:</b> ในข้อ 5 (เรื่องอื่นๆ) มีปุ่ม <b class="text-primary-blue">"ดึงสรุปประวัติ"</b> ใช้สำหรับกดดึงผลประเมินระเบียบแต่งกายที่ครูบันทึกในระบบมาเทใส่กล่องข้อความโฮมรูมให้อัตโนมัติทันที!</p>
+                                <p class="text-xs md:text-sm">เลือกติ๊กข้อหัวข้อที่มีการพูดคุย เช่น แจ้งประกาศ ให้พิมพ์รายละเอียดเช่น แจ้งกำหนดการเก็บใบเสร็จค่าอุปกรณ์การเรียน, ติดต่อผู้ปกครอง, หรือการประสานทุน โดยแต่ละข้อสามารถ<b class="text-slate-800">กดปุ่มเลือกรายชื่อนักเรียนเฉพาะคน</b>ที่ได้ดำเนินการเรียบร้อยแล้วมาได้เลย</p>
+                                <p class="text-xs md:text-sm bg-slate-50 p-2.5 rounded border"><b class="text-amber-700">✨ พิเศษ:</b> ข้อ 5 (เรื่องอื่นๆ) มีปุ่ม <b class="text-primary-blue">"ดึงสรุปประวัติ"</b> ใช้สำหรับกดดึงผลประเมินระเบียบแต่งกายมาไว้ที่นี่ได้!</p>
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-amber-600"><i class="bi bi-send-check"></i> การส่งรายงานประจำสัปดาห์ & ปริ้นใบงาน</h4>
-                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"เสนอหัวหน้าระดับ"</b> ระบบจะมีตารางสรุปแบบ Timeline จันทร์-ศุกร์ ให้ครูกดส่งรายงานสัปดาห์นั้นไปให้หัวหน้าระดับตรวจสอบและเซ็นออนไลน์ได้ทันที</p>
-                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"พิมพ์รายงาน"</b> ครูสามารถเลือกเดือนเพื่อปริ้นสรุปโฮมรูมทั้งเดือนออกมาเป็นกระดาษ A4 หรือเซฟเป็น PDF ได้ โดยลายเซ็นของหัวหน้าระดับจะไปปรากฏบนเอกสารเองโดยอัตโนมัติหากกดอนุมัติในระบบแล้ว</p>
+                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"เสนอหัวหน้าระดับ"</b> ทุกวันศุกร์/รายงาน/ประสานงาน/ส่งต่อ ผลการดูแลช่วยเหลือนักเรียน ให้ครูกด "ส่งรายงาน"ให้หัวหน้าระดับรับทราบและเซ็นออนไลน์ในระบบ(online)</p>
+                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"พิมพ์รายงาน"</b>ทุกสิ้นเดือน เลือกเดือนเพื่อปริ้นสรุปโฮมรูม ด้วยกระดาษ A4 หรือเซฟเป็น PDF ได้ โดยลายเซ็นของหัวหน้าระดับจะไปปรากฏบนเอกสารเองโดยอัตโนมัติหากกดอนุมัติในระบบแล้ว/ และแนบบันทึกข้อความรายงาน(รับได้ที่ห้องกิจการนักเรียน)เสนอเซ็น ต่อหัวหน้าระดับชั้น และส่งที่คุณครูพรทิพย์เพื่อรายงานต่อผู้เกี่ยวข้องต่อไป(ไม่ส่งคืน)</p>
                             </div>
                         </div>
                         <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-rose-500 mb-1.5"><i class="bi bi-envelope-exclamation-fill"></i> กล่องข้อความแจ้งตักเตือนพฤติกรรม (Inbox ฝ่ายปกครอง)</h4>
-                            <p class="text-xs md:text-sm">หากมีนักเรียนในห้องที่ดูแลทำความผิดพฤติกรรม ระบบจะขึ้นตัวเลขแจ้งเตือนสีแดง ครูสามารถคลิกเข้าไปดูรายละเอียดข้อมูลความผิดของเด็กคนนั้นๆ และเมื่อตักเตือนเสร็จ ให้กดปุ่ม <span class="badge bg-success">รับทราบ (แจ้ง นร. แล้ว)</span> เพื่อตอบกลับงานกิจการนักเรียนแบบ Real-time</p>
+                            <p class="text-xs md:text-sm">หากมีนักเรียนในห้องที่ดูแลทำความผิดพฤติกรรม ระบบจะขึ้นตัวเลขแจ้งเตือนสีแดง ครูสามารถคลิกเข้าไปดูรายละเอียดข้อมูลความผิดของเด็กคนนั้นๆ และเมื่อตักเตือนเสร็จ ให้กดปุ่ม <span class="badge bg-success text-white px-2 py-1 rounded-full text-xs">รับทราบ (แจ้ง นร. แล้ว)</span> เพื่อตอบกลับงานกิจการนักเรียนแบบ Real-time</p>
                         </div>
                     </div>
                 </div>
@@ -204,7 +218,7 @@
         <div id="admin-tab" class="tab-content space-y-4">
             <div class="p-4 bg-admin-50 border border-admin-500/20 rounded-2xl flex gap-3 items-center mb-2">
                 <div class="w-10 h-10 rounded-full bg-admin-700 flex items-center justify-center text-white text-xl flex-shrink-0 shadow-sm"><i class="ph-bold ph-key"></i></div>
-                <p class="text-sm font-medium text-admin-700">สำหรับหัวหน้าระดับชั้น ปลดล็อกสิทธิ์ผ่านรหัสผ่านขึ้นต้นด้วยตัว <code class="bg-white px-1.5 py-0.5 rounded border">m</code> ตามด้วยระดับชั้นที่รับผิดชอบ (เช่น <code class="bg-white px-1.5 py-0.5 rounded border">m2</code> หรือ <code class="bg-white px-1.5 py-0.5 rounded border">m5</code>)</p>
+                <p class="text-sm font-medium text-admin-700">สำหรับหัวหน้าระดับชั้น ปลดล็อกสิทธิ์ผ่านรหัสผ่านพิเศษ <code class="bg-white px-1.5 py-0.5 rounded border">m</code> ตามด้วยระดับชั้นที่รับผิดชอบ (เช่น <code class="bg-white px-1.5 py-0.5 rounded border">m2</code> หรือ <code class="bg-white px-1.5 py-0.5 rounded border">m5</code>)</p>
             </div>
 
             <!-- Card 1: ศูนย์อนุมัติและติดตามงานโฮมรูม -->
@@ -213,27 +227,34 @@
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-purple-50 text-admin-700 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-inboxes-fill"></i></div>
                         <div>
-                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">1. ระบบศูนย์ตรวจโฮมรูมและกล่อง Inbox พฤติกรรมชั้นเรียน</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">การเซ็นตรวจรายงานออนไลน์, เช็คสถิติส่งงานรายห้อง และการส่งหักคะแนน ปค.16</p>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">1. ตรวจโฮมรูมและกล่อง Inbox แจ้งตักเตือน/ชมเชยพฤติกรรมในระดับชั้น</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การเซ็นรับทราบออนไลน์(ทุกสัปดาห์), เช็คสถิติการส่งงานรายห้อง พบพฤติกรรซ้ำๆ หรือรุนแรงขึ้น เรียกพบนักเรียนพิจารณาส่งหักคะแนนความประพฤติตามแบบปค.03</p>
                         </div>
                     </div>
                     <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
                 </div>
                 <div class="accordion-content border-t border-slate-100">
                     <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        
+                        <!-- 🌟 แทรกภาพอินโฟกราฟิกโฮมรูม ในส่วนหัวหน้าระดับ 🌟 -->
+                        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-4">
+                            <h4 class="font-heading font-bold text-slate-800 text-center mt-2 mb-2 text-purple-700">ภาพรวมกระบวนการทำงานโฮมรูม</h4>
+                            <img src="https://drive.google.com/thumbnail?id=1zSZiH3c-1U826PPHjlyfw3lmKvhmn6an&sz=w1000" alt="กระบวนการทำงานโฮมรูม" class="w-full rounded-xl">
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-purple-700"><i class="bi bi-pencil-fill"></i> วิธีตรวจและอนุมัติรายงานครู</h4>
-                                <p class="text-xs md:text-sm">ในหน้า "รายงานที่รอตรวจสอบ" สามารถเลือกสัปดาห์เพื่อเช็คห้องเรียนย่อย ระบบจะแสดงแถบสีบอกชัดเจน <span class="badge bg-warning text-dark">รอตรวจสอบ</span> ให้คลิกปุ่มตรวจเช็คข้อมูล พิมพ์คำสั่งการ และ <b class="text-admin-700">อัปโหลดไฟล์รูปภาพลายเซ็นประจำตัว</b> ของคุณเพื่อเซ็นอนุมัติผ่านหน้าเว็บได้เลยทันที</p>
+                                <p class="text-xs md:text-sm">ในหน้า "รายงานที่รอตรวจสอบ" สามารถเลือกสัปดาห์ได้ <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-bold">รอตรวจสอบ</span> ให้คลิกปุ่มตรวจเช็คข้อมูล พิมพ์คำสั่งการ และ <b class="text-admin-700">อัปโหลดไฟล์รูปภาพลายเซ็นประจำตัว</b> ของคุณเพื่อเซ็นอนุมัติผ่านหน้าเว็บได้เลยทันที</p>
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-purple-700"><i class="bi bi-bar-chart-line-fill"></i> ติดตามการส่งรายงานโฮมรูม</h4>
-                                <p class="text-xs md:text-sm">ในหน้า "สถิติการส่งโฮมรูม" จะมีกราฟแท่งแสดงจำนวนครั้งสะสมของครูแต่ละห้อง <b class="text-slate-800">คุณสามารถคลิกที่แท่งกราฟของห้องเรียนนั้น</b> เพื่อกางหน้าต่างดูย้อนหลังได้เลยว่าห้องดังกล่าวบันทึกข้อมูลสัปดาห์ไหนไปแล้วบ้าง</p>
+                                <p class="text-xs md:text-sm">ในหน้า "สถิติการส่งโฮมรูม" จะมีกราฟแท่งแสดงจำนวนครั้งสะสมของแต่ละห้อง <b class="text-slate-800">คุณสามารถคลิกที่แท่งกราฟของห้องเรียนนั้น</b> เพื่อกางหน้าต่างดูย้อนหลังได้เลยว่าห้องดังกล่าวบันทึกข้อมูลสัปดาห์ไหนไปแล้วบ้าง</p>
                             </div>
                         </div>
                         <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
                             <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-red-500 mb-1"><i class="bi bi-shield-fill-exclamation"></i> การตรวจสอบ Inbox พฤติกรรมและการตัดคะแนน (ปค.16)</h4>
-                            <p class="text-xs md:text-sm">หัวหน้าระดับสามารถเปิดเช็คกล่องข้อความความผิดรุนแรงของเด็กในชั้นที่ส่งมาจากฝ่ายปกครอง หากต้องการรับทราบให้กดปุ่มยืนยัน หรือกรณีความผิดร้ายแรงที่ต้องตัดคะแนนความประพฤติ ให้กดปุ่ม <span class="badge bg-danger">ส่งหักคะแนน</span> ระบบจะแจ้งเตือนให้เตรียมพิมพ์เอกสาร ปค.16 เพื่อประสานตัดคะแนนเด็กตามขั้นตอนในโรงเรียนต่อไป</p>
+                            <p class="text-xs md:text-sm">หัวหน้าระดับสามารถเปิดกล่อง ตักเตือน/ชมเชย ที่คุณครูทุกท่านในโรงเรียนช่วยกันดูแลกวดขัน หากต้องการรับทราบให้กดปุ่มยืนยัน หรือกรณีความผิดร้ายแรงที่ต้องตัดคะแนนความประพฤติ ให้กดปุ่ม <span class="bg-danger text-white px-2 py-1 rounded text-xs">ส่งหักคะแนน</span> ระบบจะแจ้งเตือนให้เตรียมพิมพ์เอกสาร ปค.03 เพื่อประสานตัดคะแนนเด็กตามขั้นตอนในโรงเรียนต่อไป</p>
                         </div>
                     </div>
                 </div>
@@ -245,7 +266,7 @@
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-pie-chart-fill"></i></div>
                         <div>
-                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">2. สารสนเทศสถิติการมาเรียนทั้งโรงเรียน & ศูนย์ข้อมูลบิ๊กดาต้า SDQ</h3>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">2. สถิติการมาเรียนทั้งโรงเรียน & บิ๊กดาต้า SDQ</h3>
                             <p class="text-xs text-slate-500 mt-0.5">การติดตามสถานะเช็คชื่อรายวันแยกสี, คัดกรองเด็กกลุ่มเสี่ยง Top 10 และดาวน์โหลด Excel แบบหลายชีต</p>
                         </div>
                     </div>
@@ -256,12 +277,12 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-fuchsia-700"><i class="bi bi-calendar-check"></i> ระบบติดตามเช็คชื่อเข้าแถวภาพรวม</h4>
-                                <p class="text-xs md:text-sm">หน้าระบบสรุปการมาเรียนหลัก สามารถระบุวันเพื่อตรวจสอบสถิติรายระดับชั้นได้ โดยระบบจะแสดงแถบรายห้องเรียนบอกชัดเจนว่าห้องไหน <span class="text-success font-bold">เช็คแล้ว (แถบเขียว)</span> หรือห้องไหน <span class="text-danger font-bold">ยังไม่เช็ค (แถบแดง)</span> และสามารถกดดาวน์โหลดสรุปยอดสะสมภาพรวมได้หลายรูปแบบ</p>
-                                <p class="text-xs md:text-sm">🔥 <b class="text-slate-800">ระบบคัดกรองกลุ่มเสี่ยงมาสาย/ขาดเรียน:</b> มีเมนูค้นหาเด็กกลุ่มเสี่ยงสะสมจัดอันดับ Top 10 รายพฤติกรรม พร้อมปุ่มดาวน์โหลดรายงานเด็กกลุ่มเสี่ยงสูงสุด 100 ลำดับแรกไปใช้งานในฝ่ายปกครอง</p>
+                                <p class="text-xs md:text-sm">สรุปการมาเรียน สามารถระบุวันได้ ระบบจะแสดงแถบรายห้องเรียนบอกชัดเจนว่าห้องไหน <span class="text-emerald-600 font-bold">เช็คแล้ว (แถบเขียว)</span> หรือห้องไหน <span class="text-rose-600 font-bold">ยังไม่เช็ค (แถบแดง)</span> และสามารถกดดาวน์โหลดสรุปยอดสะสมภาพรวมได้หลายรูปแบบ</p>
+                                <p class="text-xs md:text-sm">🔥 <b class="text-slate-800">ระบบคัดกรองกลุ่มเสี่ยงมาสาย/ขาดเรียน:</b> มีเมนูค้นหาเด็กกลุ่มเสี่ยงสะสมจัดอันดับ Top 10 รายพฤติกรรม พร้อมปุ่มดาวน์โหลดรายงานเด็กกลุ่มเสี่ยงสูงสุด 100 ลำดับแรกให้ติดตาม ดูแลช่วยเหลือ แก้ไขปรับปรุงพฤติกรรมต่อไป</p>
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
                                 <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-fuchsia-700"><i class="bi bi-database-fill-gear"></i> ศูนย์บิ๊กดาต้า SDQ (ระดับโรงเรียน)</h4>
-                                <p class="text-xs md:text-sm">รวบรวมผลการวิเคราะห์เปรียบเทียบ 3 ฝ่ายด้วยระบบ Triangulation อัจฉริยะ มีปุ่มดาวน์โหลด Excel พิเศษ 5 ตัวเลือก เช่น รายงานสรุปกลุ่มเสี่ยง/มีปัญหาแยกตามห้องเรียน, ไฟล์เจาะลึกความสอดคล้องผู้ประเมินรายคน และหน้าต่างติดตามความคืบหน้าการทำระบบคัดกรองแยกกล่องสีเขียว/แดงชัดเจน</p>
+                                <p class="text-xs md:text-sm">รวบรวมผลการวิเคราะห์เปรียบเทียบ 3 ฝ่าย มีปุ่มดาวน์โหลด Excel พิเศษ 5 ตัวเลือก เช่น รายงานสรุปกลุ่มเสี่ยง/มีปัญหาแยกตามห้องเรียน, ความสอดคล้องผู้ประเมินรายคน และหน้าต่างติดตามความคืบหน้าการทำระบบคัดกรองแยกกล่องสีเขียว/แดงชัดเจน</p>
                             </div>
                         </div>
                     </div>
@@ -312,7 +333,7 @@
                             <div class="text-2xl text-rose-500"><i class="bi bi-flag-fill"></i></div>
                             <div>
                                 <b class="text-slate-800 text-xs md:text-sm">📅 ตรวจสอบประวัติการเข้าแถวประจำวันย้อนหลัง:</b>
-                                <p class="text-xs text-slate-500">ผู้ปกครองและนักเรียนสามารถเลือกระดับชั้นเป้าหมาย เพื่อเปิดตรวจสอบบันทึกสถิติการมาโรงเรียน การเข้าแถวหน้าเสาธงรายวันย้อนหลังได้ตลอด 24 ชั่วโมง เพื่อร่วมกำกับดูแลความประพฤติเด็กๆ</p>
+                                <p class="text-xs text-slate-500">ผู้ปกครองสามารถ พิมพ์ "เลขประจำตัว" 5หลัก เพื่อตรวจสอบการมาโรงเรียน การเข้าแถวหน้าเสาธงรายวันย้อนหลังได้ตลอด 24 ชั่วโมง เพื่อร่วมกำกับดูแลความประพฤติเด็กๆ</p>
                             </div>
                         </div>
                     </div>
@@ -339,10 +360,10 @@
                 <div class="accordion-content border-t border-slate-100">
                     <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed text-slate-600">
                         <p class="mb-3">เมนูสำหรับตัวแทนคณะกรรมการสภานักเรียนโรงเรียนบัวใหญ่ ที่ได้รับมอบหมายหน้าที่ในการช่วยเหลืองานกิจการนักเรียนบริเวณจุดคัดกรองหน้างาน ประจำวัน:</p>
-                        <ul class="space-y-2 list-disc list-inside text-xs md:text-sm bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
-                            <li><b class="text-slate-800">🚗 นำเข้ายานพาหนะ / บันทึกมาสาย (รถ):</b> ใช้บันทึกข้อมูลและรหัสป้ายทะเบียนรถของนักเรียนที่ขับขี่พาหนะมาโรงเรียนรวมถึงเคสที่มาสายเป็นรายวัน</li>
-                            <li><b class="text-slate-800">🆔 บันทึกมาสายรายคน (คีย์รหัส):</b> หน้างานจุดเข้าแถวสาย สามารถป้อนเลขรหัสประจำตัวเด็กเพื่อเช็คชื่อกลุ่มที่มาไม่ทันโฮมรูมเข้าฐานข้อมูลปกครองส่วนกลางทันที</li>
-                            <li><b class="text-slate-800">📓 โดดเรียน / ขาดเรียน (บันทึกรายสมุด):</b> สำหรับบันทึกเก็บประวัติตามใบสมุดรายงานประจำห้องเรียนที่มีการแจ้งเคสหนีเรียนหรือโดดเรียนรายวิชาเพื่อประสานส่งครูที่ปรึกษา</li>
+                        <ul class="space-y-2 text-xs md:text-sm bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                            <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-purple-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">🚗 นำเข้ายานพาหนะ / บันทึกมาสาย (รถ):</b> ใช้บันทึกข้อมูลและรหัสป้ายทะเบียนรถของนักเรียนที่ขับขี่พาหนะมาโรงเรียนรวมถึงเคสที่มาสายเป็นรายวัน</div></li>
+                            <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-purple-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">🆔 บันทึกมาสายรายคน (คีย์รหัส):</b> หน้างานจุดเข้าแถวสาย สามารถป้อนเลขรหัสประจำตัวเด็กเพื่อเช็คชื่อกลุ่มที่มาไม่ทันโฮมรูมเข้าฐานข้อมูลปกครองส่วนกลางทันที</div></li>
+                            <li class="flex items-start gap-2"><i class="bi bi-circle-fill text-purple-500 text-[10px] mt-1 flex-shrink-0"></i> <div><b class="text-slate-800">📓 โดดเรียน / ขาดเรียน (บันทึกรายสมุด):</b> สำหรับบันทึกเก็บประวัติตามใบสมุดรายงานประจำห้องเรียนที่มีการแจ้งเคสหนีเรียนหรือโดดเรียนรายวิชาเพื่อประสานส่งครูที่ปรึกษา</div></li>
                         </ul>
                     </div>
                 </div>
