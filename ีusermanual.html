@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คู่มือผู้ใช้งานระบบ Buayai I-Care School Digital Manual</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        prompt: ['Prompt', 'sans-serif'],
+                        sarabun: ['Sarabun', 'sans-serif']
+                    },
+                    colors: {
+                        teacher: { 50: '#f0fdf4', 500: '#10b981', 600: '#059669', 700: '#047857' },
+                        admin: { 50: '#fdf4ff', 500: '#d946ef', 600: '#c084fc', 700: '#a21caf' },
+                        student: { 50: '#fffbeb', 500: '#f59e0b', 600: '#d97706', 700: '#b45309' },
+                        board: { 50: '#f5f3ff', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Prompt', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0, 1, 0, 1); }
+        .accordion-item.open .accordion-content { max-height: 2000px; transition: max-height 0.3s cubic-bezier(1, 0, 1, 0); }
+        .accordion-item.open .chevron-icon { transform: rotate(180deg); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 🌟 Top Decorative Bar -->
+    <div class="h-2 bg-gradient-to-r from-teacher-500 via-admin-500 to-student-500 w-full"></div>
+
+    <!-- 🌟 Header Section -->
+    <header class="bg-white border-b border-slate-200 py-8 px-4 shadow-sm">
+        <div class="max-w-5xl mx-auto text-center">
+            <div class="inline-flex items-center justify-center bg-blue-50 p-3 rounded-full mb-3 shadow-inner">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w150" alt="Logo" class="w-16 h-16 rounded-full object-contain bg-white p-1 shadow-sm">
+            </div>
+            <h1 class="text-3xl font-bold text-slate-900 leading-tight">Buayai I-Care School</h1>
+            <p class="text-slate-500 mt-1 font-medium">คู่มือการใช้งานระบบดูแลช่วยเหลือผู้เรียนดิจิทัลออนไลน์</p>
+            
+            <!-- Live Search Bar -->
+            <div class="max-w-md mx-auto mt-6 relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                    <i class="ph ph-magnifying-glass text-lg"></i>
+                </span>
+                <input type="text" id="manualSearch" onkeyup="filterSearch()" placeholder="ค้นหาหัวข้อคู่มือการใช้งาน... (เช่น เช็คชื่อ, SDQ, โฮมรูม)" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 outline-none text-sm font-medium transition-all shadow-sm">
+            </div>
+        </div>
+    </header>
+
+    <!-- 🌟 Main Content Container -->
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-6 flex-grow">
+        
+        <!-- Role Tabs Navigation -->
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 border-b border-slate-200 scrollbar-none">
+            <button onclick="switchTab('teacher-tab')" id="btn-teacher-tab" class="role-tab active flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-teacher-500 text-white shadow-sm whitespace-nowrap">
+                <i class="ph-fill ph-chalkboard-teacher text-lg"></i> 👨‍🏫 หมวดคุณครู
+            </button>
+            <button onclick="switchTab('admin-tab')" id="btn-admin-tab" class="role-tab flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+                <i class="ph-fill ph-shield-star text-lg"></i> 👑 หน.ระดับ/งาน
+            </button>
+            <button onclick="switchTab('student-tab')" id="btn-student-tab" class="role-tab flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+                <i class="ph-fill ph-student text-lg"></i> 👨‍🎓 นักเรียน/ผู้ปกครอง
+            </button>
+            <button onclick="switchTab('board-tab')" id="btn-board-tab" class="role-tab flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap">
+                <i class="ph-fill ph-megaphone text-lg"></i> 🗣️ กก.นักเรียน
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 👨‍🏫 TEACHER TAB CONTENT -->
+        <!-- ========================================== -->
+        <div id="teacher-tab" class="tab-content active space-y-4">
+            <div class="p-4 bg-teacher-50 border border-teacher-500/20 rounded-2xl flex gap-3 items-center mb-2">
+                <div class="w-10 h-10 rounded-full bg-teacher-500 flex items-center justify-center text-white text-xl flex-shrink-0 shadow-sm"><i class="ph-bold ph-lock-key-open"></i></div>
+                <p class="text-sm font-medium text-teacher-700">พื้นที่นี้ได้รับการปกป้องด้วยรหัสผ่านส่วนบุคคล เข้าใช้งานโดยระบุรหัสประจำตัวครู (เช่น <code class="bg-white px-1.5 py-0.5 rounded border">t1</code> หรือ <code class="bg-white px-1.5 py-0.5 rounded border">t123</code>)</p>
+            </div>
+
+            <!-- Card 1: ระบบเช็คชื่อเข้าแถว -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-teacher-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-flag-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">1. ระบบเช็คชื่อเข้าแถวประจำวัน</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การตั้งค่าเช็คชื่อย้อนหลัง, สวิตซ์ยุบการ์ด, และการดาวน์โหลดรายงานประจำห้อง</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base flex items-center gap-1.5 text-teacher-600"><i class="bi bi-gear-wide-connected"></i> ฟีเจอร์ตัวช่วยประหยัดเวลา</h4>
+                                <ul class="mt-2 space-y-2 text-xs md:text-sm">
+                                    <li><b class="text-slate-800">📅 เลือกวันที่ย้อนหลัง:</b> สามารถปรับวันที่ด้านบนเพื่อลงบันทึกเวลาเรียนย้อนหลังได้สบายๆ</li>
+                                    <li><b class="text-slate-800">🔄 ติ๊ก "มา" อัตโนมัติ:</b> เปิดสวิตซ์นี้แล้วระบบจะใส่สถานะมาให้เด็กทุกคนล่วงหน้า คุณครูแก้เฉพาะคน ขาด ลา สาย พอครับ</li>
+                                    <li><b class="text-slate-800">📉 ยุบการ์ดอัตโนมัติ:</b> เมื่อกดเลือกสถานะให้เด็กแล้ว รายชื่อจะย่อลงทันที เพื่อให้เลื่อนดูคนถัดไปได้ง่าย ไม่สับสน</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base flex items-center gap-1.5 text-teacher-600"><i class="bi bi-file-earmark-arrow-down-fill"></i> เมนูแฮมเบอร์เกอร์ & รายงาน</h4>
+                                <ul class="mt-2 space-y-2 text-xs md:text-sm">
+                                    <li><b class="text-slate-800">📊 สถิติภาพรวมประจำห้อง:</b> มีกราฟวงกลมสรุปยอดสะสม และระบบจัดอันดับเด็กมาสายสูงสุด 10 อันดับแรก</li>
+                                    <li><b class="text-slate-800">📥 ออกรายงาน Excel:</b> เลือกดาวน์โหลดรายงานสรุปเวลาเรียนประจำวัน, รายสัปดาห์ หรือรายเดือนเพื่อพิมพ์ส่งสถานศึกษาได้ทันที</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs md:text-sm text-emerald-800 flex items-start gap-2">
+                            <i class="ph ph-info font-bold text-lg mt-0.5"></i>
+                            <div><b>💡 ขั้นตอนสรุปการบันทึก:</b> ติ๊กสถานะรายคน ➡️ กดปุ่ม "บันทึกข้อมูล" สีเขียวด้านล่าง ➡️ ตรวจเช็คยอดรวมในหน้าสรุปป๊อปอัพ ➡️ กดยืนยันบันทึกข้อมูล เพื่อส่งข้อมูลเข้าคลาวด์ส่วนกลางเรียบร้อยครับ!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: ระบบโฮมรูมออนไลน์ -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-journal-bookmark-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">2. ระบบโฮมรูมออนไลน์ครูที่ปรึกษา</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">บันทึกกิจกรรมประจำวัน, การดึงข้อมูลอัตโนมัติ, และการเสนอรายงานให้หัวหน้าระดับเซ็นชื่อ</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-amber-600"><i class="bi bi-pencil-square"></i> การบันทึกเรื่องโฮมรูม 5 ข้อ</h4>
+                                <p class="text-xs md:text-sm">เลือกติ๊กข้อหัวข้อที่มีการพูดคุย เช่น แจ้งประกาศ, ติดต่อผู้ปกครอง, หรือการประสานทุน โดยแต่ละข้อสามารถ<b class="text-slate-800">กดปุ่มเลือกรายชื่อนักเรียนเฉพาะคน</b>ที่เกี่ยวข้องมาผูกไว้ในรายงานได้</p>
+                                <p class="text-xs md:text-sm bg-slate-50 p-2.5 rounded border"><b class="text-amber-700">✨ ปุ่มลัดพิเศษ:</b> ในข้อ 5 (เรื่องอื่นๆ) มีปุ่ม <b class="text-primary-blue">"ดึงสรุปประวัติ"</b> ใช้สำหรับกดดึงผลประเมินระเบียบแต่งกายที่ครูบันทึกในระบบมาเทใส่กล่องข้อความโฮมรูมให้อัตโนมัติทันที!</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-amber-600"><i class="bi bi-send-check"></i> การส่งรายงานประจำสัปดาห์ & ปริ้นใบงาน</h4>
+                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"เสนอหัวหน้าระดับ"</b> ระบบจะมีตารางสรุปแบบ Timeline จันทร์-ศุกร์ ให้ครูกดส่งรายงานสัปดาห์นั้นไปให้หัวหน้าระดับตรวจสอบและเซ็นออนไลน์ได้ทันที</p>
+                                <p class="text-xs md:text-sm">ที่เมนู <b class="text-slate-800">"พิมพ์รายงาน"</b> ครูสามารถเลือกเดือนเพื่อปริ้นสรุปโฮมรูมทั้งเดือนออกมาเป็นกระดาษ A4 หรือเซฟเป็น PDF ได้ โดยลายเซ็นของหัวหน้าระดับจะไปปรากฏบนเอกสารเองโดยอัตโนมัติหากกดอนุมัติในระบบแล้ว</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-rose-500 mb-1.5"><i class="bi bi-envelope-exclamation-fill"></i> กล่องข้อความแจ้งตักเตือนพฤติกรรม (Inbox ฝ่ายปกครอง)</h4>
+                            <p class="text-xs md:text-sm">หากมีนักเรียนในห้องที่ดูแลทำความผิดพฤติกรรม ระบบจะขึ้นตัวเลขแจ้งเตือนสีแดง ครูสามารถคลิกเข้าไปดูรายละเอียดข้อมูลความผิดของเด็กคนนั้นๆ และเมื่อตักเตือนเสร็จ ให้กดปุ่ม <span class="badge bg-success">รับทราบ (แจ้ง นร. แล้ว)</span> เพื่อตอบกลับงานกิจการนักเรียนแบบ Real-time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: ระบบคัดกรอง SDQ -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">3. ระบบแบบประเมินและคัดกรองนักเรียน SDQ</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">ฟีเจอร์ Auto-fill อัจฉริยะ, แผงข้อมูลเด็กลอยตามจอ และระบบประเมินคนถัดไปอัตโนมัติ</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-sky-600"><i class="bi bi-magic"></i> ระบบช่วยกรอกข้อมูลคำตอบ (Auto-fill)</h4>
+                                <p class="text-xs md:text-sm">เมื่อครูคลิกเลือกรายชื่อนักเรียน ระบบจะทำการ <b class="text-slate-800">"กรอกตัวเลือกมาตรฐานสำหรับเด็กพฤติกรรมปกติให้ครบทั้ง 25 ข้อล่วงหน้า"</b> รวมถึงตอบด้านผลกระทบให้ทันที! คุณครูเพียงแค่ตรวจสอบและคลิกแก้ไขเฉพาะข้อที่เด็กมีพฤติกรรมไม่ตรง ช่วยลดเวลาลงได้กว่า 90%</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-sky-600"><i class="bi bi-arrow-right-circle-fill"></i> ระบบรันรายชื่อคนถัดไป (Auto-next)</h4>
+                                <p class="text-xs md:text-sm">เมื่อกดยืนยันบันทึกข้อมูลเสร็จสิ้นในขั้นตอนสุดท้าย ระบบจะทำการเคลียร์แบบฟอร์มแล้วสไลด์ดึงข้อมูล <b class="text-slate-800">"นักเรียนคนต่อไปที่ยังไม่ได้ประเมิน"</b> ขึ้นมาให้เริ่มทำทันทีโดยไม่ต้องย้อนกลับไปกดเลือกห้องเรียนใหม่ให้เสียเวลา</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-sky-600 mb-1"><i class="bi bi-person-video2"></i> หน้าต่างสรุปผลวิเคราะห์ (SDQ Analytics)</h4>
+                            <p class="text-xs md:text-sm">เมื่อกดปุ่ม <b class="text-slate-800">"ประมวลผล SDQ"</b> จะพบกับแดชบอร์ดสถิติประจำห้อง สามารถส่งรายงานให้หัวหน้าผ่านคลาวด์, โหลด Excel รายด้าน, โหลดแบบฟอร์มทางการมีตราครุฑ (PDF) และระบบ <b class="text-orange-600">Triangulation</b> เปรียบเทียบผลประเมิน 3 ฝ่าย (ครู-เด็ก-ผปค.) เพื่อตรวจหาข้อมูลที่คลาดเคลื่อนเป็นไฮไลท์แถบสีเขียว/แดงให้แบบชัดเจน</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 👑 ADMIN / LEVEL HEAD TAB CONTENT -->
+        <!-- ========================================== -->
+        <div id="admin-tab" class="tab-content space-y-4">
+            <div class="p-4 bg-admin-50 border border-admin-500/20 rounded-2xl flex gap-3 items-center mb-2">
+                <div class="w-10 h-10 rounded-full bg-admin-700 flex items-center justify-center text-white text-xl flex-shrink-0 shadow-sm"><i class="ph-bold ph-key"></i></div>
+                <p class="text-sm font-medium text-admin-700">สำหรับหัวหน้าระดับชั้น ปลดล็อกสิทธิ์ผ่านรหัสผ่านขึ้นต้นด้วยตัว <code class="bg-white px-1.5 py-0.5 rounded border">m</code> ตามด้วยระดับชั้นที่รับผิดชอบ (เช่น <code class="bg-white px-1.5 py-0.5 rounded border">m2</code> หรือ <code class="bg-white px-1.5 py-0.5 rounded border">m5</code>)</p>
+            </div>
+
+            <!-- Card 1: ศูนย์อนุมัติและติดตามงานโฮมรูม -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-admin-700 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-inboxes-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">1. ระบบศูนย์ตรวจโฮมรูมและกล่อง Inbox พฤติกรรมชั้นเรียน</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การเซ็นตรวจรายงานออนไลน์, เช็คสถิติส่งงานรายห้อง และการส่งหักคะแนน ปค.16</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-purple-700"><i class="bi bi-pencil-fill"></i> วิธีตรวจและอนุมัติรายงานครู</h4>
+                                <p class="text-xs md:text-sm">ในหน้า "รายงานที่รอตรวจสอบ" สามารถเลือกสัปดาห์เพื่อเช็คห้องเรียนย่อย ระบบจะแสดงแถบสีบอกชัดเจน <span class="badge bg-warning text-dark">รอตรวจสอบ</span> ให้คลิกปุ่มตรวจเช็คข้อมูล พิมพ์คำสั่งการ และ <b class="text-admin-700">อัปโหลดไฟล์รูปภาพลายเซ็นประจำตัว</b> ของคุณเพื่อเซ็นอนุมัติผ่านหน้าเว็บได้เลยทันที</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-2">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-purple-700"><i class="bi bi-bar-chart-line-fill"></i> ติดตามการส่งรายงานโฮมรูม</h4>
+                                <p class="text-xs md:text-sm">ในหน้า "สถิติการส่งโฮมรูม" จะมีกราฟแท่งแสดงจำนวนครั้งสะสมของครูแต่ละห้อง <b class="text-slate-800">คุณสามารถคลิกที่แท่งกราฟของห้องเรียนนั้น</b> เพื่อกางหน้าต่างดูย้อนหลังได้เลยว่าห้องดังกล่าวบันทึกข้อมูลสัปดาห์ไหนไปแล้วบ้าง</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                            <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-red-500 mb-1"><i class="bi bi-shield-fill-exclamation"></i> การตรวจสอบ Inbox พฤติกรรมและการตัดคะแนน (ปค.16)</h4>
+                            <p class="text-xs md:text-sm">หัวหน้าระดับสามารถเปิดเช็คกล่องข้อความความผิดรุนแรงของเด็กในชั้นที่ส่งมาจากฝ่ายปกครอง หากต้องการรับทราบให้กดปุ่มยืนยัน หรือกรณีความผิดร้ายแรงที่ต้องตัดคะแนนความประพฤติ ให้กดปุ่ม <span class="badge bg-danger">ส่งหักคะแนน</span> ระบบจะแจ้งเตือนให้เตรียมพิมพ์เอกสาร ปค.16 เพื่อประสานตัดคะแนนเด็กตามขั้นตอนในโรงเรียนต่อไป</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: สารสนเทศสถิติมาเรียน & ศูนย์ข้อมูล SDQ ใหญ่ -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-pie-chart-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">2. สารสนเทศสถิติการมาเรียนทั้งโรงเรียน & ศูนย์ข้อมูลบิ๊กดาต้า SDQ</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การติดตามสถานะเช็คชื่อรายวันแยกสี, คัดกรองเด็กกลุ่มเสี่ยง Top 10 และดาวน์โหลด Excel แบบหลายชีต</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-4 text-slate-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-fuchsia-700"><i class="bi bi-calendar-check"></i> ระบบติดตามเช็คชื่อเข้าแถวภาพรวม</h4>
+                                <p class="text-xs md:text-sm">หน้าระบบสรุปการมาเรียนหลัก สามารถระบุวันเพื่อตรวจสอบสถิติรายระดับชั้นได้ โดยระบบจะแสดงแถบรายห้องเรียนบอกชัดเจนว่าห้องไหน <span class="text-success font-bold">เช็คแล้ว (แถบเขียว)</span> หรือห้องไหน <span class="text-danger font-bold">ยังไม่เช็ค (แถบแดง)</span> และสามารถกดดาวน์โหลดสรุปยอดสะสมภาพรวมได้หลายรูปแบบ</p>
+                                <p class="text-xs md:text-sm">🔥 <b class="text-slate-800">ระบบคัดกรองกลุ่มเสี่ยงมาสาย/ขาดเรียน:</b> มีเมนูค้นหาเด็กกลุ่มเสี่ยงสะสมจัดอันดับ Top 10 รายพฤติกรรม พร้อมปุ่มดาวน์โหลดรายงานเด็กกลุ่มเสี่ยงสูงสุด 100 ลำดับแรกไปใช้งานในฝ่ายปกครอง</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm space-y-1.5">
+                                <h4 class="font-heading font-bold text-slate-800 text-sm md:text-base text-fuchsia-700"><i class="bi bi-database-fill-gear"></i> ศูนย์บิ๊กดาต้า SDQ (ระดับโรงเรียน)</h4>
+                                <p class="text-xs md:text-sm">รวบรวมผลการวิเคราะห์เปรียบเทียบ 3 ฝ่ายด้วยระบบ Triangulation อัจฉริยะ มีปุ่มดาวน์โหลด Excel พิเศษ 5 ตัวเลือก เช่น รายงานสรุปกลุ่มเสี่ยง/มีปัญหาแยกตามห้องเรียน, ไฟล์เจาะลึกความสอดคล้องผู้ประเมินรายคน และหน้าต่างติดตามความคืบหน้าการทำระบบคัดกรองแยกกล่องสีเขียว/แดงชัดเจน</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 👨‍🎓 STUDENT / PARENT TAB CONTENT -->
+        <!-- ========================================== -->
+        <div id="student-tab" class="tab-content space-y-4">
+            <!-- Card 1: เมนูบริการและช่องทางบริการนักเรียน -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-student-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-shield-lock-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">บริการออนไลน์ระบบดูแลช่วยเหลือนักเรียนและผู้ปกครอง</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การเช็คคะแนนความประพฤติ, สมัครระบบ E-Point, ทำดีออนไลน์ และคัดกรองแบบประเมินตนเอง</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed space-y-3 text-slate-600">
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3">
+                            <div class="text-2xl text-amber-500"><i class="bi bi-laptop"></i></div>
+                            <div>
+                                <b class="text-slate-800 text-xs md:text-sm">📝 ดูผลการเรียนอ้างอิง:</b>
+                                <p class="text-xs text-slate-500">สามารถกดลิงก์ข้ามไปตรวจสอบผลการเรียนรายวิชาผ่านระบบ SGS ของโรงเรียนได้ทันที</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3">
+                            <div class="text-2xl text-blue-500"><i class="bi bi-person-plus-fill"></i></div>
+                            <div>
+                                <b class="text-slate-800 text-xs md:text-sm">🌟 สมัครระบบพฤติกรรม E-Point / ตรวจสอบคะแนนความประพฤติ:</b>
+                                <p class="text-xs text-slate-500">สมัครสมาชิกใหม่หรือกู้รหัสผ่านหากหลงลืม และลงชื่อเข้าใช้เพื่อดูแต้มบุญ คะแนนความประพฤติสะสมคงเหลือ (เริ่มตั้น 100 คะแนน) และสามารถกดแจ้งข้อมูล "ทำดีออนไลน์" เพื่อสะสมแต้มคะแนนพฤติกรรมด้านบวกเพิ่มได้</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3">
+                            <div class="text-2xl text-emerald-500"><i class="bi bi-clipboard2-heart-fill"></i></div>
+                            <div>
+                                <b class="text-slate-800 text-xs md:text-sm">🩺 ทำแบบประเมินสุขภาพจิตและคัดกรองพฤติกรรม SDQ:</b>
+                                <p class="text-xs text-slate-500">ใช้สำหรับนักเรียนล็อกอินเพื่อประเมินตนเอง หรือสำหรับผู้ปกครองเข้ากรอกข้อมูลประเมินพฤติกรรมบุตรหลานในช่วงรอบ 6 เดือน เพื่อประกอบรายงานดูแลช่วยเหลือประจำปี</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3">
+                            <div class="text-2xl text-rose-500"><i class="bi bi-flag-fill"></i></div>
+                            <div>
+                                <b class="text-slate-800 text-xs md:text-sm">📅 ตรวจสอบประวัติการเข้าแถวประจำวันย้อนหลัง:</b>
+                                <p class="text-xs text-slate-500">ผู้ปกครองและนักเรียนสามารถเลือกระดับชั้นเป้าหมาย เพื่อเปิดตรวจสอบบันทึกสถิติการมาโรงเรียน การเข้าแถวหน้าเสาธงรายวันย้อนหลังได้ตลอด 24 ชั่วโมง เพื่อร่วมกำกับดูแลความประพฤติเด็กๆ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 🗣️ STUDENT BOARD TAB CONTENT -->
+        <!-- ========================================== -->
+        <div id="board-tab" class="tab-content space-y-4">
+            <!-- Card 1: แผงงานสำหรับคณะกรรมการสภานักเรียน -->
+            <div class="accordion-item bg-white border border-slate-200 rounded-2xl shadow-sm transition-all overflow-hidden Searchable">
+                <div onclick="toggleAccordion(this)" class="p-4 md:p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-all select-none">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-board-600 flex items-center justify-center text-2xl shadow-sm"><i class="bi bi-person-vcard-fill"></i></div>
+                        <div>
+                            <h3 class="font-heading font-bold text-base md:text-lg text-slate-900 target-title">เครื่องมือบันทึกสำหรับคณะกรรมการสภานักเรียน</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">การลงบันทึกมาสายหน้างาน, ข้อมูลยานพาหนะ และการสแกนรายงานการโดดเรียนประจำวัน</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-slate-400 text-lg transition-transform duration-300 chevron-icon"></i>
+                </div>
+                <div class="accordion-content border-t border-slate-100">
+                    <div class="p-4 md:p-6 bg-slate-50/50 text-sm md:text-base leading-relaxed text-slate-600">
+                        <p class="mb-3">เมนูสำหรับตัวแทนคณะกรรมการสภานักเรียนโรงเรียนบัวใหญ่ ที่ได้รับมอบหมายหน้าที่ในการช่วยเหลืองานกิจการนักเรียนบริเวณจุดคัดกรองหน้างาน ประจำวัน:</p>
+                        <ul class="space-y-2 list-disc list-inside text-xs md:text-sm bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                            <li><b class="text-slate-800">🚗 นำเข้ายานพาหนะ / บันทึกมาสาย (รถ):</b> ใช้บันทึกข้อมูลและรหัสป้ายทะเบียนรถของนักเรียนที่ขับขี่พาหนะมาโรงเรียนรวมถึงเคสที่มาสายเป็นรายวัน</li>
+                            <li><b class="text-slate-800">🆔 บันทึกมาสายรายคน (คีย์รหัส):</b> หน้างานจุดเข้าแถวสาย สามารถป้อนเลขรหัสประจำตัวเด็กเพื่อเช็คชื่อกลุ่มที่มาไม่ทันโฮมรูมเข้าฐานข้อมูลปกครองส่วนกลางทันที</li>
+                            <li><b class="text-slate-800">📓 โดดเรียน / ขาดเรียน (บันทึกรายสมุด):</b> สำหรับบันทึกเก็บประวัติตามใบสมุดรายงานประจำห้องเรียนที่มีการแจ้งเคสหนีเรียนหรือโดดเรียนรายวิชาเพื่อประสานส่งครูที่ปรึกษา</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Notice Banner -->
+        <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex gap-3 text-slate-600 items-start shadow-sm">
+            <div class="text-2xl text-blue-600 mt-0.5"><i class="bi bi-lightbulb-fill"></i></div>
+            <div class="text-xs md:text-sm leading-relaxed">
+                <b class="text-slate-800 font-heading block mb-0.5">💡 คำแนะนำเพิ่มเติมสำหรับคุณครูและแอดมิน:</b>
+                เพื่อป้องกันปัญหาระบบจดจำเซสชันบัญชีผู้ใช้ซ้อนทับกันกรณีใช้อุปกรณ์ร่วมกัน แนะนำให้เปิดลิงก์แอปพลิเคชันระบบดูแลช่วยเหลือผู้เรียนโรงเรียนบัวใหญ่ผ่าน <b class="text-blue-700">"โหมดไม่ระบุตัวตน (Incognito Mode)"</b> บนบราวเซอร์ Google Chrome เสมอครับ เพื่อความปลอดภัยของข้อมูลสูงสุด
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 🌟 Footer Section -->
+    <footer class="bg-slate-900 text-slate-400 py-6 px-4 text-center text-xs border-t border-slate-800 mt-12 font-medium">
+        <div class="max-w-5xl mx-auto space-y-1">
+            <p>&copy; 2026 Buayai I Care School - Digital Hub & User Manual Guidelines</p>
+            <p class="text-slate-600 text-[10px]">ระบบสารสนเทศดูแลช่วยเหลือโรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript For Interaction and Live Search -->
+    <script>
+        // Switch between role-based tabs
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Remove active classes from all tab buttons
+            document.querySelectorAll('.role-tab').forEach(btn => {
+                btn.className = "role-tab flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap";
+            });
+
+            // Activate target tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Apply corresponding active styles to the clicked button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(tabId === 'teacher-tab') activeBtn.className = "role-tab active flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-teacher-500 text-white shadow-sm whitespace-nowrap";
+            if(tabId === 'admin-tab') activeBtn.className = "role-tab active flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-admin-700 text-white shadow-sm whitespace-nowrap";
+            if(tabId === 'student-tab') activeBtn.className = "role-tab active flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-student-600 text-white shadow-sm whitespace-nowrap";
+            if(tabId === 'board-tab') activeBtn.className = "role-tab active flex items-center gap-2 px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all bg-board-600 text-white shadow-sm whitespace-nowrap";
+        }
+
+        // Toggle Expand/Collapse (Accordion)
+        function toggleAccordion(element) {
+            const item = element.parentElement;
+            item.classList.toggle('open');
+        }
+
+        // Live Filtering Search Function
+        function filterSearch() {
+            const input = document.getElementById('manualSearch');
+            const filter = input.value.trim().toLowerCase();
+            const items = document.querySelectorAll('.Searchable');
+
+            items.forEach(item => {
+                const titleText = item.querySelector('.target-title').innerText.toLowerCase();
+                const contentText = item.querySelector('.accordion-content').innerText.toLowerCase();
+                
+                if(titleText.includes(filter) || contentText.includes(filter)) {
+                    item.style.display = "";
+                    // Auto open accordion if user is actively searching for specific phrases
+                    if(filter.length > 1) {
+                        item.classList.add('open');
+                    } else {
+                        item.classList.remove('open');
+                    }
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
