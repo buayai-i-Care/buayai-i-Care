@@ -296,7 +296,12 @@
               <i class="bi bi-journal-bookmark-fill"></i>
               <p class="card-title">โฮมรูมออนไลน์</p>
             </a>
-       
+
+   <a href="usermanual.html" class="menu-card" onclick="usermanaul(event)">
+              <i class="bi bi-journal-bookmark-fill"></i>
+              <p class="card-title">คู่มือการใช้งานระบบ Buayai I Care School</p>
+            </a>
+            
           </div>
 
         </div> 
@@ -624,6 +629,19 @@ admin_Edit_Std_joinFlag.html" class="menu-card" onclick="return checkSuperAdminP
         }
     }
 
+    function usermanual(event) {
+        event.preventDefault();
+        let pw = sessionStorage.getItem('teacher_pw_auto');
+        if (pw) {
+            window.open('homeroom.html?user=' + pw, '_blank');
+        } else {
+            unlockTeacher();
+        }
+    }
+
+
+
+    
     
     let isTeacherUnlocked = false;
     let isAdminUnlocked = false; 
