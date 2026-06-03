@@ -206,11 +206,24 @@
         const inputField = document.getElementById('studentIdInput');
         inputField.addEventListener('input', function() {
             if (this.value.length === 5) {
+                this.blur(); // ยุบแป้นพิมพ์ลงทันที เพื่อไม่ให้บังปุ่มบันทึก
                 searchStudent(this.value);
             } else {
                 hideStudentInfo();
             }
         });
+
+        // สกัด ID รูปภาพจาก Google Drive เพื่อทำ Thumbnail
+        function getThumbnailUrl(driveUrl) {
+            if (!driveUrl) return 'https://via.placeholder.com/300?text=ไม่มีรูปภาพ';
+            // หา ID ของไฟล์จากลิงก์
+            const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                // ใช้ API ของ Google แปลงเป็นภาพ Thumbnail โดยตรง (ความกว้าง 500px ให้ภาพชัดพอดีกับการซูม)
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w500`; 
+            }
+            return driveUrl; // กรณีลิงก์ไม่ได้มาจาก Drive ให้คืนค่าเดิม
+        }
 
         // ค้นหานักเรียนผ่าน API
         async function searchStudent(id) {
@@ -232,6 +245,7 @@
                     triggerFeedback('error');
                     alert(result.message);
                     inputField.value = '';
+                    inputField.focus(); // ให้พิมพ์ใหม่ได้ทันที
                 }
             } catch (error) {
                 triggerFeedback('error');
@@ -247,8 +261,8 @@
             document.getElementById('studentName').innerText = data.name;
             document.getElementById('studentRoom').innerText = "ชั้น " + data.room;
             
-            // ใช้รูป Default หากไม่มีรูป
-            const imgUrl = data.image ? data.image : 'https://via.placeholder.com/300?text=No+Image';
+            // เรียกใช้ฟังก์ชันแปลงลิงก์ก่อนนำไปแสดงผล
+            const imgUrl = getThumbnailUrl(data.image); 
             document.getElementById('studentImage').src = imgUrl;
             document.getElementById('modalImg').src = imgUrl;
 
@@ -289,7 +303,7 @@
                 hideStudentInfo();
                 saveBtn.style.backgroundColor = 'var(--accent)';
                 saveBtn.style.boxShadow = '0 10px 0 #CC0066';
-                inputField.focus();
+                inputField.focus(); // เด้งคีย์บอร์ดขึ้นมาพร้อมรับคนต่อไป
             }, 1500);
         }
 
@@ -302,26 +316,30 @@
             }
 
             // ระบบเสียง (Web Audio API) สร้างเสียงบี๊บโดยไม่ต้องพึ่งพาไฟล์ mp3
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
 
-            if (type === 'success') {
-                osc.frequency.value = 1000; // เสียงสูง
-                osc.type = 'sine';
-                gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.3);
-            } else {
-                osc.frequency.value = 300; // เสียงต่ำ (เตือน)
-                osc.type = 'sawtooth';
-                gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.5);
+                if (type === 'success') {
+                    osc.frequency.value = 1000; // เสียงสูง
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.3);
+                } else {
+                    osc.frequency.value = 300; // เสียงต่ำ (เตือน)
+                    osc.type = 'sawtooth';
+                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.5);
+                }
+            } catch (e) {
+                console.log("Audio not supported or disabled");
             }
         }
 
