@@ -3,185 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>ระบบมาสาย ประตู 1</title>
+    <title>ระบบบันทึกผู้มาสาย โรงเรียนบัวใหญ่</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+
     <style>
-        /* ================= CSS: โทนสี High Contrast & Bento Grid ================= */
+        /* ================= CSS: TH Sarabun & Modern Bento Grid ================= */
         :root {
-            --bg-color: #F4F4F8;
-            --primary: #FFE600; /* เหลืองสว่างจัด */
-            --secondary: #0047FF; /* น้ำเงินเข้ม */
-            --accent: #FF007F; /* ชมพูสะท้อนแสง */
-            --text-dark: #1A1A1A;
+            --bg-color: #ECEFF4;
+            --primary: #FFD600;    /* เหลืองสดสะท้อนแสง */
+            --secondary: #0046FF;  /* น้ำเงินหลวงคมชัด */
+            --accent: #FF0066;     /* ชมพูสะท้อนแสงเด่นชัด */
+            --success: #00E676;    /* เขียวสว่าง */
+            --text-dark: #1A1D24;
             --white: #FFFFFF;
-            --radius: 24px;
+            --radius: 28px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Sarabun', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-dark);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* หัวข้อด้านบนสุดและโลโก้ */
+        .app-header {
+            text-align: center;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 500px;
+        }
+        .school-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.15));
+        }
+        .app-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 0;
+            text-shadow: 1px 1px 0px var(--white);
         }
 
         /* หน้าจอล็อกรหัสผ่าน */
         #loginScreen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--secondary);
+            background: linear-gradient(135deg, var(--secondary), #0022AA);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 3000;
             color: var(--white);
         }
-
+        .login-box { text-align: center; width: 85%; max-width: 350px; }
+        .login-box h1 { font-size: 36px; font-weight: 700; margin-bottom: 25px; }
         .login-box input {
-            font-size: 24px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 26px;
+            font-weight: bold;
             padding: 15px;
             border-radius: var(--radius);
-            border: none;
+            border: 4px solid var(--text-dark);
             text-align: center;
-            width: 250px;
+            width: 100%;
+            box-sizing: border-box;
             margin-bottom: 20px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
         }
-
         .login-box button {
+            font-family: 'Sarabun', sans-serif;
             background-color: var(--primary);
             color: var(--text-dark);
-            font-size: 24px;
-            font-weight: bold;
-            padding: 15px 40px;
-            border: none;
+            font-size: 26px;
+            font-weight: 800;
+            padding: 15px 50px;
+            border: 4px solid var(--text-dark);
             border-radius: var(--radius);
             cursor: pointer;
-            box-shadow: 0 8px 0 #D4C000;
+            box-shadow: 0 8px 0 var(--text-dark);
+            width: 100%;
         }
         .login-box button:active { transform: translateY(8px); box-shadow: none; }
 
         /* Bento Grid Container */
         #mainApp {
-            display: none; /* ซ่อนไว้จนกว่าจะปลดล็อก */
+            display: none; 
             width: 100%;
             max-width: 500px;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 15px;
         }
 
         .bento-card {
             background-color: var(--white);
             border-radius: var(--radius);
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 24px rgba(0,47,255,0.06);
+            border: 3px solid rgba(0,0,0,0.05);
             text-align: center;
+            box-sizing: border-box;
         }
 
-        .bento-card.yellow { background-color: var(--primary); }
-        .bento-card.blue { background-color: var(--secondary); color: var(--white); }
-
+        .bento-card.yellow { background-color: var(--primary); border: 4px solid var(--text-dark); box-shadow: 0 8px 0 var(--text-dark); }
+        
         /* ส่วนค้นหา */
-        .search-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .search-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark); }
         #studentIdInput {
-            width: 90%;
-            font-size: 40px;
-            font-weight: bold;
+            font-family: 'Sarabun', sans-serif;
+            width: 100%;
+            font-size: 44px;
+            font-weight: 800;
             text-align: center;
-            padding: 15px;
-            border-radius: 16px;
+            padding: 10px;
+            border-radius: 20px;
             border: 4px solid var(--text-dark);
             outline: none;
+            box-sizing: border-box;
+            background-color: var(--white);
         }
 
         /* ส่วนแสดงผลนักเรียน */
         #studentInfo { display: none; }
         .student-image-container {
             width: 100%;
-            height: 250px;
-            border-radius: 16px;
+            height: 280px;
+            border-radius: 20px;
             overflow: hidden;
             margin-bottom: 15px;
-            background-color: #EEE;
+            background-color: #E5E9F0;
+            border: 3px solid var(--text-dark);
             position: relative;
         }
-        #studentImage {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* ตัดภาพให้พอดีกรอบแบบสวยงาม */
-            cursor: zoom-in;
-        }
-        .student-name { font-size: 28px; font-weight: bold; margin: 10px 0; }
-        .student-room { font-size: 22px; background-color: var(--accent); color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+        #studentImage { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+        .student-name { font-size: 32px; font-weight: 800; margin: 10px 0; color: var(--text-dark); }
+        .student-room { font-size: 24px; font-weight: 700; background-color: var(--secondary); color: white; padding: 6px 20px; border-radius: 50px; display: inline-block; }
 
         /* ปุ่มบันทึก */
         #saveBtn {
+            font-family: 'Sarabun', sans-serif;
             width: 100%;
             background-color: var(--accent);
             color: var(--white);
-            font-size: 32px;
-            font-weight: bold;
-            padding: 25px;
-            border: none;
+            font-size: 36px;
+            font-weight: 800;
+            padding: 20px;
+            border: 4px solid var(--text-dark);
             border-radius: var(--radius);
             cursor: pointer;
-            box-shadow: 0 10px 0 #CC0066;
-            transition: all 0.1s;
+            box-shadow: 0 10px 0 var(--text-dark);
+            transition: all 0.05s;
         }
         #saveBtn:active { transform: translateY(10px); box-shadow: none; }
-        #saveBtn:disabled { background-color: #CCC; box-shadow: 0 10px 0 #999; cursor: not-allowed; }
+        #saveBtn:disabled { background-color: #A3AEC4; box-shadow: 0 10px 0 #606F8A; cursor: not-allowed; }
 
-        /* สถานะ Loading */
-        #loading { font-size: 18px; color: var(--secondary); font-weight: bold; display: none; }
+        #loading { font-size: 22px; color: var(--secondary); font-weight: 800; display: none; margin-top: 5px; }
 
-        /* Modal สำหรับซูมภาพ */
-        #imageModal {
+        /* Popups Modals (ดูภาพใหญ่ / แจ้งเตือนสำเร็จ) */
+        .modal {
             display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center;
+            background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center;
         }
-        #imageModal img { max-width: 95%; max-height: 95%; border-radius: 16px; }
-        #closeModal {
-            position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;
+        #imageModal img { max-width: 95%; max-height: 85%; border-radius: 20px; border: 4px solid white; }
+        
+        /* Custom Alert Modal แจ้งบันทึกสำเร็จ */
+        .custom-alert {
+            background-color: var(--white);
+            width: 85%;
+            max-width: 400px;
+            border-radius: var(--radius);
+            padding: 30px 20px;
+            text-align: center;
+            border: 5px solid var(--text-dark);
+            box-shadow: 0 20px 0 rgba(0,0,0,0.15);
+            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .alert-icon { font-size: 60px; margin-bottom: 10px; color: var(--success); }
+        .alert-text { font-size: 26px; font-weight: 700; color: var(--text-dark); line-height: 1.5; margin-bottom: 25px; }
+        .alert-btn {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--success);
+            color: var(--text-dark);
+            font-size: 24px;
+            font-weight: 800;
+            padding: 12px 40px;
+            border: 3px solid var(--text-dark);
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--text-dark);
+        }
+        .alert-btn:active { transform: translateY(6px); box-shadow: none; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
         <div class="login-box">
-            <h1 style="margin-bottom: 30px;">รหัสผ่านผู้ดูแล<br>ประตู 1</h1>
-            <input type="password" id="passwordInput" placeholder="ใส่รหัสผ่าน">
+            <img class="school-logo" src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="ตราโรงเรียน">
+            <h1>ระบบบันทึกผู้มาสาย<br>โรงเรียนบัวใหญ่</h1>
+            <input type="password" id="passwordInput" placeholder="กรอกรหัสผ่านเพื่อใช้งาน">
             <br>
             <button onclick="checkPassword()">เข้าสู่ระบบ</button>
         </div>
     </div>
 
+    <div class="app-header" id="appHeader" style="display:none;">
+        <img class="school-logo" src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="ตราโรงเรียน">
+        <h1 class="app-title">ระบบบันทึกผู้มาสาย โรงเรียนบัวใหญ่</h1>
+    </div>
+
     <div id="mainApp">
         <div class="bento-card yellow">
-            <div class="search-title">รหัสนักเรียน (5 หลัก)</div>
-            <input type="number" id="studentIdInput" placeholder="ระบุรหัส" maxlength="5" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
-            <div id="loading" style="margin-top: 10px;">กำลังค้นหา...</div>
+            <div class="search-title">พิมพ์รหัสนักเรียน 5 หลัก</div>
+            <input type="number" id="studentIdInput" placeholder="00000" maxlength="5" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
+            <div id="loading">กำลังค้นหาข้อมูล...</div>
         </div>
 
         <div class="bento-card" id="studentInfo">
             <div class="student-image-container">
-                <img id="studentImage" src="" alt="ภาพนักเรียน" onclick="openModal()">
+                <img id="studentImage" src="" alt="ภาพนักเรียน" onclick="openImageModal()">
             </div>
             <div class="student-name" id="studentName">-</div>
             <div class="student-room" id="studentRoom">-</div>
         </div>
 
-        <div class="bento-card" style="background: transparent; box-shadow: none; padding: 0;">
+        <div class="bento-card" style="background: transparent; box-shadow: none; padding: 0; border: none;">
             <button id="saveBtn" style="display: none;" onclick="saveData()">บันทึกมาสาย</button>
         </div>
     </div>
 
-    <div id="imageModal" onclick="closeModal()">
-        <span id="closeModal">&times;</span>
+    <div id="imageModal" class="modal" onclick="closeImageModal()">
         <img id="modalImg" src="">
+    </div>
+
+    <div id="alertModal" class="modal">
+        <div class="custom-alert">
+            <div class="alert-icon">🎉</div>
+            <div class="alert-text" id="alertText">ได้บันทึกข้อมูลมาสายเรียบร้อยแล้ว</div>
+            <button class="alert-btn" onclick="closeAlertModal()">ตกลง (OK)</button>
+        </div>
     </div>
 
     <script>
@@ -194,38 +270,37 @@
             const pwd = document.getElementById('passwordInput').value;
             if (pwd === 'sapa') {
                 document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appHeader').style.display = 'block';
                 document.getElementById('mainApp').style.display = 'grid';
                 document.getElementById('studentIdInput').focus();
             } else {
                 triggerFeedback('error');
-                alert('รหัสผ่านไม่ถูกต้อง!');
+                alert('รหัสผ่านไม่ถูกต้องครับ!');
             }
         }
 
-        // 2. ระบบค้นหาอัตโนมัติเมื่อครบ 5 หลัก
+        // 2. ระบบค้นหาอัตโนมัติเมื่อพิมพ์ครบ 5 หลักและยุบแป้นพิมพ์
         const inputField = document.getElementById('studentIdInput');
         inputField.addEventListener('input', function() {
             if (this.value.length === 5) {
-                this.blur(); // ยุบแป้นพิมพ์ลงทันที เพื่อไม่ให้บังปุ่มบันทึก
+                this.blur(); // ยุบแป้นพิมพ์มือถือลงทันที
                 searchStudent(this.value);
             } else {
                 hideStudentInfo();
             }
         });
 
-        // สกัด ID รูปภาพจาก Google Drive เพื่อทำ Thumbnail
+        // ฟังก์ชันแปลงลิงก์ Google Drive เป็น Thumbnail ขนาด 500px เพื่อความคมชัดเวลาซูม
         function getThumbnailUrl(driveUrl) {
-            if (!driveUrl) return 'https://via.placeholder.com/300?text=ไม่มีรูปภาพ';
-            // หา ID ของไฟล์จากลิงก์
+            if (!driveUrl) return 'https://via.placeholder.com/300?text=No+Image';
             const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
-                // ใช้ API ของ Google แปลงเป็นภาพ Thumbnail โดยตรง (ความกว้าง 500px ให้ภาพชัดพอดีกับการซูม)
                 return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w500`; 
             }
-            return driveUrl; // กรณีลิงก์ไม่ได้มาจาก Drive ให้คืนค่าเดิม
+            return driveUrl;
         }
 
-        // ค้นหานักเรียนผ่าน API
+        // เรียกค้นหาจาก API หลังบ้าน
         async function searchStudent(id) {
             document.getElementById('loading').style.display = 'block';
             hideStudentInfo();
@@ -245,23 +320,22 @@
                     triggerFeedback('error');
                     alert(result.message);
                     inputField.value = '';
-                    inputField.focus(); // ให้พิมพ์ใหม่ได้ทันที
+                    inputField.focus();
                 }
             } catch (error) {
                 triggerFeedback('error');
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่ออินเทอร์เน็ต");
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        // 3. แสดงข้อมูลนักเรียน
+        // 3. แสดงข้อมูลนักเรียนการ์ด Bento
         function showStudentInfo(data) {
             document.getElementById('studentInfo').style.display = 'block';
             document.getElementById('studentName').innerText = data.name;
-            document.getElementById('studentRoom').innerText = "ชั้น " + data.room;
+            document.getElementById('studentRoom').innerText = "ห้อง " + data.room;
             
-            // เรียกใช้ฟังก์ชันแปลงลิงก์ก่อนนำไปแสดงผล
             const imgUrl = getThumbnailUrl(data.image); 
             document.getElementById('studentImage').src = imgUrl;
             document.getElementById('modalImg').src = imgUrl;
@@ -269,7 +343,6 @@
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.style.display = 'block';
             saveBtn.disabled = false;
-            saveBtn.innerText = 'บันทึกมาสาย';
         }
 
         function hideStudentInfo() {
@@ -278,44 +351,53 @@
             currentStudent = null;
         }
 
-        // 4. ระบบบันทึกแบบความเร็วสูง (Optimistic Update)
+        // 4. บันทึกข้อมูลและความเร็วสูง (Optimistic Update) ร่วมกับ Custom Modal
         function saveData() {
             if (!currentStudent) return;
 
             const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true; // ป้องกันกดซ้ำ
+            saveBtn.disabled = true; 
             
-            // 4.1 ทำให้ผู้ใช้รู้สึกว่าเสร็จแล้วทันที (เร็ว)
-            triggerFeedback('success');
-            saveBtn.innerText = 'บันทึกสำเร็จ!';
-            saveBtn.style.backgroundColor = '#00CC66'; // เปลี่ยนเป็นสีเขียว
-            saveBtn.style.boxShadow = '0 10px 0 #00994C';
+            // ดึงวันที่ปัจจุบันแบบไทยสไตล์มาแสดงใน Modal
+            const now = new Date();
+            const thaiDateStr = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
 
-            // 4.2 ส่งข้อมูลไปหลังบ้านแบบ Background
+            // สั่งสั่นและส่งเสียงตอบรับความเร็วสูงทันที
+            triggerFeedback('success');
+
+            // 🌟 แสดงผลลัพธ์ผ่าน Custom Modal ตามที่คุณสั่งเป๊ะๆ
+            const alertText = `ได้บันทึก ${currentStudent.name} มาสาย เมื่อวันที่ ${thaiDateStr} และหักคะแนนแล้ว 5 คะแนน ...ขอบคุณค่ะ`;
+            document.getElementById('alertText').innerText = alertText;
+            document.getElementById('alertModal').style.display = 'flex';
+
+            // แอบส่งข้อมูลไปหลังบ้านเงียบๆ (Background Sync)
             fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'save', studentData: currentStudent })
-            }).catch(e => console.error("Sync Error:", e)); // ถ้าพังก็แค่ log ไว้ เพราะเราเน้นเร็วหน้าบ้าน
+            }).catch(e => console.error("Sync Error:", e));
 
-            // 4.3 รีเซ็ตหน้าจอเพื่อเตรียมรับคนต่อไปใน 1.5 วินาที
-            setTimeout(() => {
-                inputField.value = '';
-                hideStudentInfo();
-                saveBtn.style.backgroundColor = 'var(--accent)';
-                saveBtn.style.boxShadow = '0 10px 0 #CC0066';
-                inputField.focus(); // เด้งคีย์บอร์ดขึ้นมาพร้อมรับคนต่อไป
-            }, 1500);
+            // ตั้งเวลาให้ปิดหน้าจอเตือนและพร้อมรับสแกนคนถัดไปโดยอัตโนมัติภายใน 3.5 วินาที (หากไม่ได้กดปุ่มตกลง)
+            autoCloseTimeout = setTimeout(() => {
+                closeAlertModal();
+            }, 3500);
         }
 
-        // 5. ระบบ Feedback (เสียงและสั่น)
+        let autoCloseTimeout;
+        function closeAlertModal() {
+            clearTimeout(autoCloseTimeout);
+            document.getElementById('alertModal').style.display = 'none';
+            inputField.value = '';
+            hideStudentInfo();
+            inputField.focus(); // ดีดแผงคีย์บอร์ดกลับมาพร้อมบันทึกคนต่อไปทันที
+        }
+
+        // 5. เสียงและสั่นเตือนผู้ใช้
         function triggerFeedback(type) {
-            // ระบบสั่น (Vibration)
             if (navigator.vibrate) {
-                if (type === 'success') navigator.vibrate(200); // สั่นยาว 1 ครั้ง
-                else navigator.vibrate([100, 50, 100]); // สั่นสั้น 2 ครั้ง
+                if (type === 'success') navigator.vibrate(200);
+                else navigator.vibrate([100, 50, 100]);
             }
 
-            // ระบบเสียง (Web Audio API) สร้างเสียงบี๊บโดยไม่ต้องพึ่งพาไฟล์ mp3
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -324,27 +406,25 @@
                 gain.connect(ctx.destination);
 
                 if (type === 'success') {
-                    osc.frequency.value = 1000; // เสียงสูง
+                    osc.frequency.value = 1000;
                     osc.type = 'sine';
-                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                     osc.start(ctx.currentTime);
                     osc.stop(ctx.currentTime + 0.3);
                 } else {
-                    osc.frequency.value = 300; // เสียงต่ำ (เตือน)
+                    osc.frequency.value = 280;
                     osc.type = 'sawtooth';
-                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
                     osc.start(ctx.currentTime);
-                    osc.stop(ctx.currentTime + 0.5);
+                    osc.stop(ctx.currentTime + 0.4);
                 }
-            } catch (e) {
-                console.log("Audio not supported or disabled");
-            }
+            } catch (e) { console.log("Audio feedback error"); }
         }
 
-        // 6. ระบบ Modal ซูมภาพ
-        function openModal() { document.getElementById('imageModal').style.display = 'flex'; }
+        // 6. ระบบเปิด/ปิดภาพใหญ่ (กางนิ้วซูมด้วยเบราว์เซอร์ได้)
+        function openImageModal() { document.getElementById('imageModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('imageModal').style.display = 'none'; }
     </script>
 </body>
