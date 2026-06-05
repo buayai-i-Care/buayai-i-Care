@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบสารสนเทศ มาสาย โดดเรียน พฤติกรรมไม่พึงประสงค์</title>
+    <title>ระบบสารสนเทศ คะแนนความประพฤติ E-Point ของระบบ Buayai I Care School</title>
     
     <!-- นำเข้า Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,7 +52,6 @@
             'default': { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-300', active: 'bg-blue-600 text-white shadow-blue-200', tag: 'bg-gray-100 text-gray-700 border-gray-200' }
         };
 
-        // --- ฟังก์ชันช่วยเหลือ ---
         const extractGradeLevel = (roomStr) => {
             if (!roomStr) return 'ไม่ระบุ';
             const str = String(roomStr).trim();
@@ -74,28 +73,45 @@
             return roomA - roomB;
         };
 
-        // แปลงวันที่เป็นรูปแบบภาษาไทย เช่น วันพุธที่ 9 มิ.ย. 2569
+        // แปลงวันที่เป็นรูปแบบภาษาไทย เช่น วันพุธที่ 9 มิ.ย. 2569 (แก้ไขให้รองรับหลาย Format อย่างแข็งแกร่ง)
         const formatThaiDateFullText = (dateInput) => {
             if (!dateInput) return '';
             let d;
             const rawStr = String(dateInput).trim();
             
-            // ตรวจสอบกรณีที่เป็นรูปแบบ 22/05/2026
-            if (rawStr.includes('/')) {
+            // 1. ตรวจสอบรูปแบบ DD/MM/YYYY หรือ D/M/YYYY
+            const thDatePattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+            const match = rawStr.match(thDatePattern);
+            
+            if (match) {
+                let day = parseInt(match[1], 10);
+                let month = parseInt(match[2], 10);
+                let year = parseInt(match[3], 10);
+                
+                // หากเป็น พ.ศ. ให้แปลงกลับเป็น ค.ศ. สำหรับสร้าง Date Object
+                if (year > 2500) year -= 543;
+                
+                d = new Date(year, month - 1, day);
+            } 
+            // 2. ตรวจสอบรูปแบบที่มีเวลาต่อท้าย เช่น DD/MM/YYYY HH:MM:SS
+            else if (rawStr.includes('/')) {
                 const parts = rawStr.split(' ')[0].split('/');
                 if (parts.length === 3) {
+                    let day = parseInt(parts[0], 10);
+                    let month = parseInt(parts[1], 10);
                     let year = parseInt(parts[2], 10);
-                    // เปลี่ยน พ.ศ. เป็น ค.ศ. สำหรับการแปลง
                     if (year > 2500) year -= 543;
-                    d = new Date(`${year}-${parts[1]}-${parts[0]}`);
+                    d = new Date(year, month - 1, day);
                 } else {
                     d = new Date(rawStr);
                 }
-            } else {
+            } 
+            // 3. รูปแบบอื่นๆ ปล่อยให้ Date ของ JS จัดการ
+            else {
                 d = new Date(rawStr);
             }
 
-            // ถ้าแปลงแล้วเป็น Invalid Date ให้แสดงค่าเดิม (เช่น "วันจันทร์ที่ 6 เม.ย. 2569" ที่พิมพ์มาตรงๆ)
+            // ถ้าแปลงแล้วเป็น Invalid Date ให้แสดงค่าเดิมที่พิมพ์มาตรงๆ
             if (isNaN(d.getTime())) return rawStr; 
             
             const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
@@ -103,7 +119,6 @@
             return `วัน${days[d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
         };
 
-        // --- Component หลัก ---
         const App = () => {
             const [activeTab, setActiveTab] = useState('late');
             const [data, setData] = useState({ late: [], skip: [], demerit: [] });
@@ -124,9 +139,9 @@
 
             const mockResult = {
                 late: [
-                    { "วันที่มาสาย": "2026-05-11", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
-                    { "วันที่มาสาย": "2026-05-12", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
-                    { "วันที่มาสาย": "2026-05-15", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
+                    { "วันที่มาสาย": "22/05/2026", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
+                    { "วันที่มาสาย": "25/05/2026", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
+                    { "วันที่มาสาย": "วันจันทร์ที่ 6 เม.ย. 2569", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "1/8", "เลขประจำตัว": "33539", "ชื่อ-สกุล": "ดช.กมลทรรศ พันธ์สวัสดิ์" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "5/5", "เลขประจำตัว": "33147", "ชื่อ-สกุล": "นส.จิราภัค งิมขุนทด" },
                     { "วันที่มาสาย": "2026-05-13", "ห้อง": "3/1", "เลขประจำตัว": "32111", "ชื่อ-สกุล": "ดช.สมชาย ใจดี" },
@@ -134,10 +149,10 @@
                 skip: [],
                 demerit: [
                     { "วันที่": "2026-05-14", "ระดับชั้น": "5/7", "รหัสนักเรียน": "33829", "ชื่อ": "นายอิทธิพล มาตรวังแสง", "ประเภทความผิด": "โดดเรียน", "คะแนน": "-15" },
-                    { "วันที่": "2026-05-24", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "ดื่มสุราฯ", "คะแนน": "-60" },
-                    { "วันที่": "2026-05-24", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
+                    { "วันที่": "22/05/2026", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "1.1 มาสายหรือไม่มาเข้าแถว" },
+                    { "วันที่": "วันพุธที่ 6 พ.ค. 2569", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
                     { "วันที่": "2026-05-25", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "ทะเลาะวิวาท", "คะแนน": "-30" },
-                    { "วันที่": "2026-05-26", "ระดับชั้น": "ม.3/1", "รหัสนักเรียน": "32001", "ชื่อ": "ดช.ก้าวหน้า ขยัน", "ประเภทความผิด": "มาสาย", "คะแนน": "-5" },
+                    { "วันที่": "2026-05-26", "ระดับชั้น": "ม.3/1", "รหัสนักเรียน": "32001", "ชื่อ": "ดช.ก้าวหน้า ขยัน", "ประเภทความผิด": "มาสาย" },
                 ]
             };
 
@@ -157,7 +172,7 @@
                         }
                     } catch (err) {
                         console.error('Fetch error:', err);
-                        setData(mockResult);
+                        setData(mockResult); // Use mock data as fallback
                         setIsMockData(true);
                         setErrorMsg('กำลังแสดงข้อมูลตัวอย่าง (ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ในขณะนี้)');
                     } finally {
@@ -203,8 +218,14 @@
                     
                     if (rawDate) {
                         let parsedDate;
-                        if(String(rawDate).includes('/')) {
-                            const parts = String(rawDate).split(' ')[0].split('/');
+                        const strDate = String(rawDate).trim();
+                        if(strDate.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                            const parts = strDate.split('/');
+                            let year = parseInt(parts[2], 10);
+                            if (year > 2500) year -= 543;
+                            parsedDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                        } else if(strDate.includes('/')) {
+                            const parts = strDate.split(' ')[0].split('/');
                             if(parts.length === 3) parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                         } else {
                             parsedDate = new Date(rawDate);
@@ -344,23 +365,23 @@
                 // 2. ชีต "รายละเอียด"
                 // ----------------------------------------------------
                 const sheet2 = workbook.addWorksheet('รายละเอียด');
-                sheet2.getColumn(1).width = 15; // รหัส
-                sheet2.getColumn(2).width = 30; // วันที่ / ชื่อ
-                sheet2.getColumn(3).width = 40; // รายละเอียดประเภท
+                sheet2.getColumn(1).width = 15; // ว่างไว้เพื่อจัด Indent
+                sheet2.getColumn(2).width = 25; // วันที่ 
+                sheet2.getColumn(3).width = 45; // รายละเอียดประเภท
                 sheet2.getColumn(4).width = 25; // หมายเหตุ
 
                 const currentYear = new Date().getFullYear() + 543;
 
-                // เพิ่มหัวข้อของหน้า "รายละเอียด" จัดกึ่งกลาง ตัวใหญ่ สวยงาม
+                // เพิ่มหัวข้อของหน้า "รายละเอียด" จัดกึ่งกลาง ผสานเซลล์ ตัวใหญ่ สวยงาม
                 const s2Title1 = sheet2.addRow([`บันทึกการติดตาม${topicName} ระบบ Buayai I Care School`]);
                 s2Title1.font = { name: 'TH SarabunPSK', size: 22, bold: true };
                 s2Title1.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet2.mergeCells('A1:D1'); // ผสานเซลล์ 4 คอลัมน์แรก
+                sheet2.mergeCells('A1:D1'); // ผสานเซลล์คอลัมน์ A ถึง D
 
                 const s2Title2 = sheet2.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่[  ] ปีการศึกษา[ ${currentYear} ]`]);
                 s2Title2.font = { name: 'TH SarabunPSK', size: 18, bold: true };
                 s2Title2.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet2.mergeCells('A2:D2');
+                sheet2.mergeCells('A2:D2'); // ผสานเซลล์คอลัมน์ A ถึง D
 
                 sheet2.addRow(['']); // เว้นบรรทัด
 
@@ -368,7 +389,7 @@
                     const roomData = filteredData.filter(item => item[classField] === room);
                     
                     const headerRow = sheet2.addRow([`รายชื่อนักเรียน ห้อง ${room}`]);
-                    headerRow.font = { name: 'TH SarabunPSK', size: 18, bold: true, color: { argb: 'FF0000FF' } }; // ตัวหนา สีน้ำเงิน
+                    headerRow.font = { name: 'TH SarabunPSK', size: 18, bold: true, color: { argb: 'FF0000FF' } }; 
                     
                     // จัดกลุ่มรายคนในห้อง
                     const studentMap = new Map();
@@ -394,8 +415,8 @@
                             if (activeTab === 'demerit') {
                                 const typeStr = rec['ประเภทความผิด'] || '-';
                                 const score = String(rec['คะแนน']);
-                                // ซ่อนคำว่า undefined หากข้อมูลคะแนนว่างเปล่า
-                                if (rec['คะแนน'] !== undefined && score !== 'undefined' && score !== 'null' && score.trim() !== '') {
+                                // ซ่อนคำว่า undefined หากไม่มีข้อมูลคะแนน (เป็น undefined, null, หรือข้อความว่าง)
+                                if (rec['คะแนน'] !== undefined && rec['คะแนน'] !== null && score !== 'undefined' && score.trim() !== '') {
                                     extraInfo = `ประเภท: ${typeStr} (${score} คะแนน)`;
                                 } else {
                                     extraInfo = `ประเภท: ${typeStr}`;
@@ -404,9 +425,10 @@
                                 extraInfo = activeTab === 'late' ? 'มาสาย' : 'โดดเรียน/หนีเรียน';
                             }
                             
-                            // ดึงข้อมูลหมายเหตุ หากในระบบยังไม่มี จะเป็นช่องว่างเพื่อให้ผู้ใช้พิมพ์เพิ่มได้
-                            const remarkStr = rec['หมายเหตุ'] || '';
+                            // ดึงข้อมูลหมายเหตุ 
+                            const remarkStr = rec[''] || '';
                             
+                            // คอลัมน์ที่ 1 ว่าง, คอลัมน์ 2 วันที่, คอลัมน์ 3 ประเภท, คอลัมน์ 4 หมายเหตุ
                             sheet2.addRow(['', dateStr, extraInfo, remarkStr]).font = fontTH;
                         });
                         sheet2.addRow(['']); // เว้นบรรทัดรายบุคคล
@@ -426,10 +448,9 @@
                 });
 
                 const gradeDisplay = selectedGrade === 'All' ? 'ทั้งหมด' : selectedGrade;
-                const currentYear = new Date().getFullYear() + 543;
 
                 sheet3.addRow([`แบบบันทึกการติดตาม ${topicName} ระดับชั้น ${gradeDisplay} ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล`]).font = fontTitle;
-                sheet3.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่[  ] ปีการศึกษา[ ${currentYear} ]`]).font = fontTitle;
+                sheet3.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่1 ปีการศึกษา[ ${currentYear} ]`]).font = fontTitle;
                 sheet3.addRow([`ข้อมูล ณ ${formatThaiDateFullText(new Date())}`]).font = fontTH;
                 sheet3.addRow(['']);
 
@@ -447,7 +468,7 @@
                 sheet3.addRow(['']);
 
                 // หัวตารางรายชื่อ
-                sheet3.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'ห้อง', 'จำนวนครั้ง', 'ผลการดำเนินการ/หมายเหตุ']).font = fontTHBold;
+                sheet3.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'ห้อง', 'จำนวนครั้ง', 'การดำเนินการ/หมายเหตุ']).font = fontTHBold;
                 sheet3.getColumn(1).width = 8;
                 sheet3.getColumn(2).width = 12;
                 sheet3.getColumn(3).width = 25;
@@ -512,7 +533,7 @@
                                 <p className="text-gray-500 mt-1">แดชบอร์ดสรุปสถิติ มาสาย โดดเรียน และตัดคะแนนความประพฤติ</p>
                             </div>
                             
-                            {/* เปลี่ยนปุ่มเรียกฟังก์ชัน Export เป็น handleExportExcel */}
+                            {/* ปุ่มเรียกฟังก์ชัน Export Excel */}
                             <button 
                                 onClick={handleExportExcel}
                                 className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
