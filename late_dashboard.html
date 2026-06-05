@@ -13,11 +13,16 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- นำเข้า ExcelJS สำหรับสร้างไฟล์ Excel แบบมีหลายชีตและจัดฟอร์แมต -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', Tahoma, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -48,27 +53,6 @@
         };
 
         // --- ฟังก์ชันช่วยเหลือ ---
-        const exportToCSV = (data, filename) => {
-            if (!data || data.length === 0) return;
-            const headers = Object.keys(data[0]);
-            const csvContent = [
-                headers.join(','),
-                ...data.map(row => headers.map(fieldName => `"${(row[fieldName] || '').toString().replace(/"/g, '""')}"`).join(','))
-            ].join('\n');
-
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        };
-
         const extractGradeLevel = (roomStr) => {
             if (!roomStr) return 'ไม่ระบุ';
             const str = String(roomStr).trim();
@@ -90,6 +74,35 @@
             return roomA - roomB;
         };
 
+        // แปลงวันที่เป็นรูปแบบภาษาไทย เช่น วันพุธที่ 9 มิ.ย. 2569
+        const formatThaiDateFullText = (dateInput) => {
+            if (!dateInput) return '';
+            let d;
+            const rawStr = String(dateInput).trim();
+            
+            // ตรวจสอบกรณีที่เป็นรูปแบบ 22/05/2026
+            if (rawStr.includes('/')) {
+                const parts = rawStr.split(' ')[0].split('/');
+                if (parts.length === 3) {
+                    let year = parseInt(parts[2], 10);
+                    // เปลี่ยน พ.ศ. เป็น ค.ศ. สำหรับการแปลง
+                    if (year > 2500) year -= 543;
+                    d = new Date(`${year}-${parts[1]}-${parts[0]}`);
+                } else {
+                    d = new Date(rawStr);
+                }
+            } else {
+                d = new Date(rawStr);
+            }
+
+            // ถ้าแปลงแล้วเป็น Invalid Date ให้แสดงค่าเดิม (เช่น "วันจันทร์ที่ 6 เม.ย. 2569" ที่พิมพ์มาตรงๆ)
+            if (isNaN(d.getTime())) return rawStr; 
+            
+            const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            return `วัน${days[d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+        };
+
         // --- Component หลัก ---
         const App = () => {
             const [activeTab, setActiveTab] = useState('late');
@@ -98,21 +111,17 @@
             const [errorMsg, setErrorMsg] = useState(null);
             const [isMockData, setIsMockData] = useState(false);
 
-            // ตัวกรองหลัก
             const [startDate, setStartDate] = useState('');
             const [endDate, setEndDate] = useState('');
             const [selectedGrade, setSelectedGrade] = useState('All');
 
-            // สถานะ Drill-down
-            const [expandedGrade, setExpandedGrade] = useState(null); // 'ม.3'
-            const [expandedStudent, setExpandedStudent] = useState(null); // Object
+            const [expandedGrade, setExpandedGrade] = useState(null); 
+            const [expandedStudent, setExpandedStudent] = useState(null); 
 
-            // ตัวกรองหมวดหมู่
             const [selectedDemeritTypes, setSelectedDemeritTypes] = useState([]);
 
             const GAS_URL = 'https://script.google.com/macros/s/AKfycbx8xYhO4G_ADQDpiCIXY7tdZmXUVRAK_JYdis3hfpLxzjRRD9jYt-2T_hqxp5ytQQ4i/exec';
 
-            // ข้อมูลจำลองสำหรับทดสอบ UI
             const mockResult = {
                 late: [
                     { "วันที่มาสาย": "2026-05-11", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
@@ -158,14 +167,12 @@
                 fetchData();
             }, []);
 
-            // ดึงประเภทความผิด
             const availableDemeritTypes = useMemo(() => {
                 if (!data.demerit) return [];
                 const types = new Set(data.demerit.map(item => item['ประเภทความผิด']).filter(Boolean));
                 return Array.from(types).sort();
             }, [data.demerit]);
 
-            // เปลี่ยนแท็บ
             const handleTabChange = (tab) => {
                 setActiveTab(tab);
                 setExpandedGrade(null);
@@ -173,7 +180,6 @@
                 setSelectedDemeritTypes([]);
             };
 
-            // กรองข้อมูล (ตามวันที่, ระดับชั้น, หมวดหมู่)
             const filteredData = useMemo(() => {
                 let currentData = [];
                 let dateField = '';
@@ -231,7 +237,6 @@
                 });
             }, [data, activeTab, startDate, endDate, selectedGrade, selectedDemeritTypes]);
 
-            // คำนวณสถิติเบื้องต้น
             const stats = useMemo(() => {
                 const gradeCounts = {};
                 let classField = activeTab === 'late' ? 'ห้อง' : 'ระดับชั้น';
@@ -251,7 +256,6 @@
                 };
             }, [data, filteredData, activeTab]);
 
-            // จัดกลุ่มรายชื่อนักเรียนสำหรับ Drill-down ระดับ 2
             const getGroupedStudents = useMemo(() => {
                 if (!expandedGrade) return [];
 
@@ -259,7 +263,6 @@
                 let idField = activeTab === 'late' ? 'เลขประจำตัว' : 'รหัสนักเรียน';
                 let nameField = activeTab === 'late' ? 'ชื่อ-สกุล' : 'ชื่อ';
 
-                // กรองเฉพาะของชั้นที่เลือก
                 const gradeData = filteredData.filter(item => extractGradeLevel(item[classField]) === expandedGrade);
                 
                 const map = new Map();
@@ -279,18 +282,216 @@
                     entry.records.push(item);
                 });
 
-                // คืนค่าพร้อมเรียงห้องจากน้อยไปมาก
                 return Array.from(map.values()).sort((a, b) => sortRooms(a.room, b.room));
             }, [filteredData, expandedGrade, activeTab]);
 
-            // สลับ Checkbox
             const handleDemeritTypeToggle = (type) => {
                 setSelectedDemeritTypes(prev => 
                     prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
                 );
-                // ปิดหน้ารายละเอียดเมื่อตัวกรองเปลี่ยน
                 setExpandedGrade(null);
                 setExpandedStudent(null);
+            };
+
+            // ==========================================
+            // ฟังก์ชันดาวน์โหลดเป็นไฟล์ Excel (.xlsx) อย่างเต็มรูปแบบ
+            // ==========================================
+            const handleExportExcel = async () => {
+                if (!filteredData || filteredData.length === 0) {
+                    alert("ไม่มีข้อมูลสำหรับดาวน์โหลด");
+                    return;
+                }
+
+                const workbook = new ExcelJS.Workbook();
+                const fontTH = { name: 'TH SarabunPSK', size: 16 };
+                const fontTHBold = { name: 'TH SarabunPSK', size: 16, bold: true };
+                const fontTitle = { name: 'TH SarabunPSK', size: 18, bold: true };
+
+                const topicName = activeTab === 'late' ? 'การมาสาย' : (activeTab === 'skip' ? 'การหนีเรียน/โดดเรียน' : 'พฤติกรรมไม่พึงประสงค์');
+                const classField = activeTab === 'late' ? 'ห้อง' : 'ระดับชั้น';
+                const idField = activeTab === 'late' ? 'เลขประจำตัว' : 'รหัสนักเรียน';
+                const nameField = activeTab === 'late' ? 'ชื่อ-สกุล' : 'ชื่อ';
+                const dateField = activeTab === 'late' ? 'วันที่มาสาย' : 'วันที่';
+
+                // สรุปข้อมูลยอดรวมรายห้อง
+                const roomStats = {};
+                filteredData.forEach(item => {
+                    const room = item[classField] || 'ไม่ระบุ';
+                    if (!roomStats[room]) roomStats[room] = 0;
+                    roomStats[room]++;
+                });
+                const sortedRooms = Object.keys(roomStats).sort(sortRooms);
+
+                // ----------------------------------------------------
+                // 1. ชีต "สารสนเทศ"
+                // ----------------------------------------------------
+                const sheet1 = workbook.addWorksheet('สารสนเทศ');
+                sheet1.getColumn(1).width = 30;
+                sheet1.getColumn(2).width = 20;
+
+                sheet1.addRow(['สรุปสารสนเทศระบบดูแลช่วยเหลือผู้เรียน']).font = fontTitle;
+                sheet1.addRow([`เรื่อง: ${topicName}`]).font = fontTHBold;
+                sheet1.addRow(['']);
+                sheet1.addRow(['ยอดรวมทั้งหมด:', `${filteredData.length} รายการ`]).font = fontTHBold;
+                sheet1.addRow(['']);
+                
+                sheet1.addRow(['รายละเอียดรายห้อง']).font = fontTHBold;
+                sortedRooms.forEach(room => {
+                    sheet1.addRow([`ห้อง ${room}`, `${roomStats[room]} รายการ`]).font = fontTH;
+                });
+
+                // ----------------------------------------------------
+                // 2. ชีต "รายละเอียด"
+                // ----------------------------------------------------
+                const sheet2 = workbook.addWorksheet('รายละเอียด');
+                sheet2.getColumn(1).width = 15; // รหัส
+                sheet2.getColumn(2).width = 30; // วันที่ / ชื่อ
+                sheet2.getColumn(3).width = 40; // รายละเอียดประเภท
+                sheet2.getColumn(4).width = 25; // หมายเหตุ
+
+                const currentYear = new Date().getFullYear() + 543;
+
+                // เพิ่มหัวข้อของหน้า "รายละเอียด" จัดกึ่งกลาง ตัวใหญ่ สวยงาม
+                const s2Title1 = sheet2.addRow([`บันทึกการติดตาม${topicName} ระบบ Buayai I Care School`]);
+                s2Title1.font = { name: 'TH SarabunPSK', size: 22, bold: true };
+                s2Title1.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet2.mergeCells('A1:D1'); // ผสานเซลล์ 4 คอลัมน์แรก
+
+                const s2Title2 = sheet2.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่[  ] ปีการศึกษา[ ${currentYear} ]`]);
+                s2Title2.font = { name: 'TH SarabunPSK', size: 18, bold: true };
+                s2Title2.alignment = { horizontal: 'center', vertical: 'middle' };
+                sheet2.mergeCells('A2:D2');
+
+                sheet2.addRow(['']); // เว้นบรรทัด
+
+                sortedRooms.forEach(room => {
+                    const roomData = filteredData.filter(item => item[classField] === room);
+                    
+                    const headerRow = sheet2.addRow([`รายชื่อนักเรียน ห้อง ${room}`]);
+                    headerRow.font = { name: 'TH SarabunPSK', size: 18, bold: true, color: { argb: 'FF0000FF' } }; // ตัวหนา สีน้ำเงิน
+                    
+                    // จัดกลุ่มรายคนในห้อง
+                    const studentMap = new Map();
+                    roomData.forEach(item => {
+                        const sid = item[idField];
+                        if (!studentMap.has(sid)) {
+                            studentMap.set(sid, { name: item[nameField], count: 0, records: [] });
+                        }
+                        const s = studentMap.get(sid);
+                        s.count++;
+                        s.records.push(item);
+                    });
+
+                    studentMap.forEach((sData, sid) => {
+                        // สรุปยอดรายคน (เพิ่มหัวข้อ 'หมายเหตุ' ไว้ตรงคอลัมน์ที่ 4)
+                        sheet2.addRow([`รหัส: ${sid}`, `ชื่อ: ${sData.name}`, `ยอดรวม: ${sData.count} ครั้ง`, 'หมายเหตุ']).font = fontTHBold;
+                        
+                        // แสดงรายละเอียดแต่ละครั้ง
+                        sData.records.forEach(rec => {
+                            const dateStr = rec[dateField] ? formatThaiDateFullText(rec[dateField]) : '-';
+                            
+                            let extraInfo = '';
+                            if (activeTab === 'demerit') {
+                                const typeStr = rec['ประเภทความผิด'] || '-';
+                                const score = String(rec['คะแนน']);
+                                // ซ่อนคำว่า undefined หากข้อมูลคะแนนว่างเปล่า
+                                if (rec['คะแนน'] !== undefined && score !== 'undefined' && score !== 'null' && score.trim() !== '') {
+                                    extraInfo = `ประเภท: ${typeStr} (${score} คะแนน)`;
+                                } else {
+                                    extraInfo = `ประเภท: ${typeStr}`;
+                                }
+                            } else {
+                                extraInfo = activeTab === 'late' ? 'มาสาย' : 'โดดเรียน/หนีเรียน';
+                            }
+                            
+                            // ดึงข้อมูลหมายเหตุ หากในระบบยังไม่มี จะเป็นช่องว่างเพื่อให้ผู้ใช้พิมพ์เพิ่มได้
+                            const remarkStr = rec['หมายเหตุ'] || '';
+                            
+                            sheet2.addRow(['', dateStr, extraInfo, remarkStr]).font = fontTH;
+                        });
+                        sheet2.addRow(['']); // เว้นบรรทัดรายบุคคล
+                    });
+                    sheet2.addRow(['']); // เว้นบรรทัดระหว่างห้อง
+                });
+
+                // ----------------------------------------------------
+                // 3. ชีต "ดำเนินการ"
+                // ----------------------------------------------------
+                const sheet3 = workbook.addWorksheet('ดำเนินการ', {
+                    pageSetup: { 
+                        paperSize: 9, // A4
+                        orientation: 'portrait', 
+                        margins: { left: 0.25, right: 0.25, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 } 
+                    }
+                });
+
+                const gradeDisplay = selectedGrade === 'All' ? 'ทั้งหมด' : selectedGrade;
+                const currentYear = new Date().getFullYear() + 543;
+
+                sheet3.addRow([`แบบบันทึกการติดตาม ${topicName} ระดับชั้น ${gradeDisplay} ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล`]).font = fontTitle;
+                sheet3.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่[  ] ปีการศึกษา[ ${currentYear} ]`]).font = fontTitle;
+                sheet3.addRow([`ข้อมูล ณ ${formatThaiDateFullText(new Date())}`]).font = fontTH;
+                sheet3.addRow(['']);
+
+                // สร้างข้อความสรุปด้านบน
+                let summaryText = `${topicName}รวม ${filteredData.length} คน `;
+                sortedRooms.forEach(room => {
+                    summaryText += `ห้อง ${room} ${roomStats[room]} คน, `;
+                });
+                summaryText = summaryText.replace(/, $/, ''); // ลบลูกน้ำตัวสุดท้าย
+                
+                const sumRow = sheet3.addRow([summaryText]);
+                sumRow.font = fontTHBold;
+                sumRow.alignment = { wrapText: true }; 
+
+                sheet3.addRow(['']);
+
+                // หัวตารางรายชื่อ
+                sheet3.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'ห้อง', 'จำนวนครั้ง', 'ผลการดำเนินการ/หมายเหตุ']).font = fontTHBold;
+                sheet3.getColumn(1).width = 8;
+                sheet3.getColumn(2).width = 12;
+                sheet3.getColumn(3).width = 25;
+                sheet3.getColumn(4).width = 10;
+                sheet3.getColumn(5).width = 12;
+                sheet3.getColumn(6).width = 25;
+
+                // ใส่รายชื่อทุกคน
+                let rowCount = 1;
+                sortedRooms.forEach(room => {
+                    const roomData = filteredData.filter(item => item[classField] === room);
+                    
+                    const tempMap = new Map();
+                    roomData.forEach(item => {
+                        const sid = item[idField];
+                        if (!tempMap.has(sid)) tempMap.set(sid, { name: item[nameField], count: 0 });
+                        tempMap.get(sid).count++;
+                    });
+
+                    tempMap.forEach((val, sid) => {
+                        sheet3.addRow([rowCount++, sid, val.name, room, val.count, '']).font = fontTH;
+                    });
+                });
+
+                // ตีเส้นตารางให้ชีตดำเนินการ (เริ่มบรรทัดที่ 7)
+                sheet3.eachRow((row, rowNumber) => {
+                    if(rowNumber >= 7) { 
+                        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                            if(colNumber <= 6) {
+                                cell.border = {
+                                    top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'}
+                                };
+                            }
+                        });
+                    }
+                });
+
+                // สร้างและดาวน์โหลดไฟล์
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `สารสนเทศ_${topicName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                link.click();
             };
 
             if (loading) return <div className="flex h-screen items-center justify-center text-blue-600 text-xl font-semibold">กำลังโหลดข้อมูล...</div>;
@@ -310,8 +511,10 @@
                                 <h1 className="text-2xl font-bold text-gray-900">ระบบสารสนเทศงานกิจการนักเรียน</h1>
                                 <p className="text-gray-500 mt-1">แดชบอร์ดสรุปสถิติ มาสาย โดดเรียน และตัดคะแนนความประพฤติ</p>
                             </div>
+                            
+                            {/* เปลี่ยนปุ่มเรียกฟังก์ชัน Export เป็น handleExportExcel */}
                             <button 
-                                onClick={() => exportToCSV(filteredData, `report_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`)}
+                                onClick={handleExportExcel}
                                 className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
                             >
                                 <IconDownload />
@@ -562,7 +765,7 @@
                                             </div>
                                         ) 
 
-                                        /* ระดับ 1: ตารางรวมทั้งหมด (ซ่อนไว้เมื่อไม่จำเป็น หรือแสดงเป็น fallback) */
+                                        /* ระดับ 1: ตารางรวมทั้งหมด */
                                         : (
                                             <div className="p-8 text-center bg-white border-t">
                                                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-500 mb-4">
@@ -588,9 +791,5 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-    <style>
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 </body>
 </html>
