@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบสารสนเทศ คะแนนความประพฤติ E-Point ของระบบ Buayai I Care School</title>
+    <title>ระบบสารสนเทศ ระบบคะแนนพฤติกรรม E-Point ของระบบ Buayai I Care School</title>
     
     <!-- นำเข้า Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,8 +21,6 @@
         body { font-family: 'Sarabun', Tahoma, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -52,6 +50,7 @@
             'default': { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-300', active: 'bg-blue-600 text-white shadow-blue-200', tag: 'bg-gray-100 text-gray-700 border-gray-200' }
         };
 
+        // --- ฟังก์ชันช่วยเหลือ ---
         const extractGradeLevel = (roomStr) => {
             if (!roomStr) return 'ไม่ระบุ';
             const str = String(roomStr).trim();
@@ -73,52 +72,50 @@
             return roomA - roomB;
         };
 
-        // แปลงวันที่เป็นรูปแบบภาษาไทย เช่น วันพุธที่ 9 มิ.ย. 2569 (แก้ไขให้รองรับหลาย Format อย่างแข็งแกร่ง)
+        // แปลงวันที่เป็นรูปแบบภาษาไทย รองรับวันที่แบบ DD/MM/YYYY ด้วย
         const formatThaiDateFullText = (dateInput) => {
-            if (!dateInput) return '';
+            if (!dateInput) return '-';
             let d;
-            const rawStr = String(dateInput).trim();
             
-            // 1. ตรวจสอบรูปแบบ DD/MM/YYYY หรือ D/M/YYYY
-            const thDatePattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-            const match = rawStr.match(thDatePattern);
-            
-            if (match) {
-                let day = parseInt(match[1], 10);
-                let month = parseInt(match[2], 10);
-                let year = parseInt(match[3], 10);
-                
-                // หากเป็น พ.ศ. ให้แปลงกลับเป็น ค.ศ. สำหรับสร้าง Date Object
-                if (year > 2500) year -= 543;
-                
-                d = new Date(year, month - 1, day);
-            } 
-            // 2. ตรวจสอบรูปแบบที่มีเวลาต่อท้าย เช่น DD/MM/YYYY HH:MM:SS
-            else if (rawStr.includes('/')) {
-                const parts = rawStr.split(' ')[0].split('/');
+            // ตรวจสอบหารูปแบบ DD/MM/YYYY หรือคล้ายกัน
+            if (String(dateInput).includes('/')) {
+                const parts = String(dateInput).split(' ')[0].split('/');
                 if (parts.length === 3) {
-                    let day = parseInt(parts[0], 10);
-                    let month = parseInt(parts[1], 10);
-                    let year = parseInt(parts[2], 10);
-                    if (year > 2500) year -= 543;
-                    d = new Date(year, month - 1, day);
+                    // รูปแบบไทยมักจะเป็น วัน/เดือน/ปี
+                    d = new Date(parts[2], parts[1] - 1, parts[0]);
                 } else {
-                    d = new Date(rawStr);
+                    d = new Date(dateInput);
                 }
-            } 
-            // 3. รูปแบบอื่นๆ ปล่อยให้ Date ของ JS จัดการ
-            else {
-                d = new Date(rawStr);
+            } else {
+                d = new Date(dateInput);
             }
 
-            // ถ้าแปลงแล้วเป็น Invalid Date ให้แสดงค่าเดิมที่พิมพ์มาตรงๆ
-            if (isNaN(d.getTime())) return rawStr; 
-            
+            if(isNaN(d.getTime())) return dateInput; // หากแปลงไม่ได้ คืนค่าเดิม
+
             const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
             const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
             return `วัน${days[d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
         };
 
+        // ฟังก์ชันจัดรูปแบบชื่อเพื่อแก้ปัญหาฟอนต์ TH SarabunPSK ใน Excel ไม่เว้นวรรค
+        const formatNameForExcel = (nameStr) => {
+            if (!nameStr) return '-';
+            let str = String(nameStr).trim();
+            
+            // 1. ตรวจสอบคำนำหน้า หากติดกัน ให้เติมช่องว่าง
+            const prefixes = ['เด็กชาย', 'เด็กหญิง', 'นางสาว', 'นาย', 'นาง', 'ด.ช.', 'ด.ญ.', 'ดช.', 'ดญ.'];
+            for (let prefix of prefixes) {
+                if (str.startsWith(prefix) && str.charAt(prefix.length) !== ' ') {
+                    str = prefix + ' ' + str.substring(prefix.length).trim();
+                    break; // หยุดเมื่อเจอคำนำหน้าที่ตรงกัน
+                }
+            }
+
+            // 2. ขยายช่องว่าง 1 เคาะ เป็น 2 เคาะ เพื่อให้อ่านออกใน Excel
+            return str.replace(/\s+/g, '  ');
+        };
+
+        // --- Component หลัก ---
         const App = () => {
             const [activeTab, setActiveTab] = useState('late');
             const [data, setData] = useState({ late: [], skip: [], demerit: [] });
@@ -139,20 +136,20 @@
 
             const mockResult = {
                 late: [
-                    { "วันที่มาสาย": "22/05/2026", "ห้อง": "3/9", "เลขประจำตัว": "32695", "ชื่อ-สกุล": "ดช.ธนพล ธรรมสุณา" },
-                    { "วันที่มาสาย": "25/05/2026", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
-                    { "วันที่มาสาย": "วันจันทร์ที่ 6 เม.ย. 2569", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
+                    { "วันที่มาสาย": "22/05/2026", "ห้อง": "1/9", "เลขประจำตัว": "33544", "ชื่อ-สกุล": "ดช.ณฐนนท์ ใจดี" },
+                    { "วันที่มาสาย": "25/05/2026", "ห้อง": "1/9", "เลขประจำตัว": "33544", "ชื่อ-สกุล": "ดช.ณฐนนท์ ใจดี" },
+                    { "วันที่มาสาย": "2026-05-15", "ห้อง": "3/2", "เลขประจำตัว": "32157", "ชื่อ-สกุล": "ดช.ธนาวัฒน์ บุญสิน" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "1/8", "เลขประจำตัว": "33539", "ชื่อ-สกุล": "ดช.กมลทรรศ พันธ์สวัสดิ์" },
                     { "วันที่มาสาย": "2026-05-12", "ห้อง": "5/5", "เลขประจำตัว": "33147", "ชื่อ-สกุล": "นส.จิราภัค งิมขุนทด" },
                     { "วันที่มาสาย": "2026-05-13", "ห้อง": "3/1", "เลขประจำตัว": "32111", "ชื่อ-สกุล": "ดช.สมชาย ใจดี" },
                 ],
                 skip: [],
                 demerit: [
-                    { "วันที่": "2026-05-14", "ระดับชั้น": "5/7", "รหัสนักเรียน": "33829", "ชื่อ": "นายอิทธิพล มาตรวังแสง", "ประเภทความผิด": "โดดเรียน", "คะแนน": "-15" },
-                    { "วันที่": "22/05/2026", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "1.1 มาสายหรือไม่มาเข้าแถว" },
-                    { "วันที่": "วันพุธที่ 6 พ.ค. 2569", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
+                    { "วันที่": "2026-05-14", "ระดับชั้น": "5/7", "รหัสนักเรียน": "33829", "ชื่อ": "นายอิทธิพล มาตรวังแสง", "ประเภทความผิด": "โดดเรียน", "คะแนน": "" },
+                    { "วันที่": "2026-05-24", "ระดับชั้น": "ม.2/9", "รหัสนักเรียน": "33579", "ชื่อ": "เด็กชายวัชรศักดิ์ จันทร์คำ", "ประเภทความผิด": "ดื่มสุราฯ", "คะแนน": "-60" },
+                    { "วันที่": "2026-05-24", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "สูบบุหรี่", "คะแนน": "-20" },
                     { "วันที่": "2026-05-25", "ระดับชั้น": "ม.3/10", "รหัสนักเรียน": "33063", "ชื่อ": "เด็กชายธวัชชัย ดีสวน", "ประเภทความผิด": "ทะเลาะวิวาท", "คะแนน": "-30" },
-                    { "วันที่": "2026-05-26", "ระดับชั้น": "ม.3/1", "รหัสนักเรียน": "32001", "ชื่อ": "ดช.ก้าวหน้า ขยัน", "ประเภทความผิด": "มาสาย" },
+                    { "วันที่": "2026-05-26", "ระดับชั้น": "ม.3/1", "รหัสนักเรียน": "32001", "ชื่อ": "ดช.ก้าวหน้า ขยัน", "ประเภทความผิด": "มาสาย", "คะแนน": "" },
                 ]
             };
 
@@ -172,7 +169,7 @@
                         }
                     } catch (err) {
                         console.error('Fetch error:', err);
-                        setData(mockResult); // Use mock data as fallback
+                        setData(mockResult);
                         setIsMockData(true);
                         setErrorMsg('กำลังแสดงข้อมูลตัวอย่าง (ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ในขณะนี้)');
                     } finally {
@@ -218,14 +215,8 @@
                     
                     if (rawDate) {
                         let parsedDate;
-                        const strDate = String(rawDate).trim();
-                        if(strDate.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-                            const parts = strDate.split('/');
-                            let year = parseInt(parts[2], 10);
-                            if (year > 2500) year -= 543;
-                            parsedDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-                        } else if(strDate.includes('/')) {
-                            const parts = strDate.split(' ')[0].split('/');
+                        if(String(rawDate).includes('/')) {
+                            const parts = String(rawDate).split(' ')[0].split('/');
                             if(parts.length === 3) parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                         } else {
                             parsedDate = new Date(rawDate);
@@ -306,6 +297,7 @@
                 return Array.from(map.values()).sort((a, b) => sortRooms(a.room, b.room));
             }, [filteredData, expandedGrade, activeTab]);
 
+            // --- เพิ่มฟังก์ชันที่หายไปสำหรับการกด Checkbox เลือกประเภทความผิด ---
             const handleDemeritTypeToggle = (type) => {
                 setSelectedDemeritTypes(prev => 
                     prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
@@ -333,6 +325,7 @@
                 const idField = activeTab === 'late' ? 'เลขประจำตัว' : 'รหัสนักเรียน';
                 const nameField = activeTab === 'late' ? 'ชื่อ-สกุล' : 'ชื่อ';
                 const dateField = activeTab === 'late' ? 'วันที่มาสาย' : 'วันที่';
+                const currentYear = new Date().getFullYear() + 543;
 
                 // สรุปข้อมูลยอดรวมรายห้อง
                 const roomStats = {};
@@ -365,38 +358,42 @@
                 // 2. ชีต "รายละเอียด"
                 // ----------------------------------------------------
                 const sheet2 = workbook.addWorksheet('รายละเอียด');
-                sheet2.getColumn(1).width = 15; // ว่างไว้เพื่อจัด Indent
-                sheet2.getColumn(2).width = 25; // วันที่ 
-                sheet2.getColumn(3).width = 45; // รายละเอียดประเภท
-                sheet2.getColumn(4).width = 25; // หมายเหตุ
+                sheet2.getColumn(1).width = 20; // วันที่
+                sheet2.getColumn(2).width = 15; // รหัส
+                sheet2.getColumn(3).width = 40; // ชื่อ (ขยายกว้างขึ้นเพื่อรองรับฟอนต์ Sarabun)
+                sheet2.getColumn(4).width = 35; // รายละเอียด/ประเภท
+                sheet2.getColumn(5).width = 25; // หมายเหตุ
 
-                const currentYear = new Date().getFullYear() + 543;
+                // --- สร้าง Header ส่วนบนของชีต 2 ---
+                const headerText1 = `บันทึกการติดตาม ${topicName} ระบบ Buayai I Care School`;
+                const headerText2 = `โรงเรียนบัวใหญ่ ภาคเรียนที่1 ปีการศึกษา[ ${currentYear} ]`;
+                
+                sheet2.mergeCells('A1:E1');
+                const h1 = sheet2.getCell('A1');
+                h1.value = headerText1;
+                h1.font = { name: 'TH SarabunPSK', size: 22, bold: true };
+                h1.alignment = { horizontal: 'center', vertical: 'middle' };
 
-                // เพิ่มหัวข้อของหน้า "รายละเอียด" จัดกึ่งกลาง ผสานเซลล์ ตัวใหญ่ สวยงาม
-                const s2Title1 = sheet2.addRow([`บันทึกการติดตาม${topicName} ระบบ Buayai I Care School`]);
-                s2Title1.font = { name: 'TH SarabunPSK', size: 22, bold: true };
-                s2Title1.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet2.mergeCells('A1:D1'); // ผสานเซลล์คอลัมน์ A ถึง D
+                sheet2.mergeCells('A2:E2');
+                const h2 = sheet2.getCell('A2');
+                h2.value = headerText2;
+                h2.font = { name: 'TH SarabunPSK', size: 18, bold: true };
+                h2.alignment = { horizontal: 'center', vertical: 'middle' };
 
-                const s2Title2 = sheet2.addRow([`โรงเรียนบัวใหญ่ ภาคเรียนที่[  ] ปีการศึกษา[ ${currentYear} ]`]);
-                s2Title2.font = { name: 'TH SarabunPSK', size: 18, bold: true };
-                s2Title2.alignment = { horizontal: 'center', vertical: 'middle' };
-                sheet2.mergeCells('A2:D2'); // ผสานเซลล์คอลัมน์ A ถึง D
-
-                sheet2.addRow(['']); // เว้นบรรทัด
+                sheet2.addRow(['']); // เว้นบรรทัดที่ 3
 
                 sortedRooms.forEach(room => {
                     const roomData = filteredData.filter(item => item[classField] === room);
                     
-                    const headerRow = sheet2.addRow([`รายชื่อนักเรียน ห้อง ${room}`]);
-                    headerRow.font = { name: 'TH SarabunPSK', size: 18, bold: true, color: { argb: 'FF0000FF' } }; 
+                    const roomHeaderRow = sheet2.addRow([ม. ${room}`]);
+                    roomHeaderRow.font = { name: 'TH SarabunPSK', size: 18, bold: true, color: { argb: 'FF0000FF' } }; // สีน้ำเงิน
                     
-                    // จัดกลุ่มรายคนในห้อง
                     const studentMap = new Map();
                     roomData.forEach(item => {
                         const sid = item[idField];
                         if (!studentMap.has(sid)) {
-                            studentMap.set(sid, { name: item[nameField], count: 0, records: [] });
+                            // ใช้ตัวช่วย formatNameForExcel ที่เราเขียนขึ้นใหม่
+                            studentMap.set(sid, { name: formatNameForExcel(item[nameField]), count: 0, records: [] });
                         }
                         const s = studentMap.get(sid);
                         s.count++;
@@ -404,36 +401,27 @@
                     });
 
                     studentMap.forEach((sData, sid) => {
-                        // สรุปยอดรายคน (เพิ่มหัวข้อ 'หมายเหตุ' ไว้ตรงคอลัมน์ที่ 4)
-                        sheet2.addRow([`รหัส: ${sid}`, `ชื่อ: ${sData.name}`, `ยอดรวม: ${sData.count} ครั้ง`, 'หมายเหตุ']).font = fontTHBold;
+                        const sumRow = sheet2.addRow([`รหัส: ${sid}`, `ชื่อ: ${sData.name}`, `ยอดรวม: ${sData.count} ครั้ง`]);
+                        sumRow.font = fontTHBold;
                         
-                        // แสดงรายละเอียดแต่ละครั้ง
                         sData.records.forEach(rec => {
                             const dateStr = rec[dateField] ? formatThaiDateFullText(rec[dateField]) : '-';
                             
+                            // จัดการข้อความประเภทและคะแนน (ซ่อน undefined หรือค่าว่าง)
                             let extraInfo = '';
-                            if (activeTab === 'demerit') {
-                                const typeStr = rec['ประเภทความผิด'] || '-';
-                                const score = String(rec['คะแนน']);
-                                // ซ่อนคำว่า undefined หากไม่มีข้อมูลคะแนน (เป็น undefined, null, หรือข้อความว่าง)
-                                if (rec['คะแนน'] !== undefined && rec['คะแนน'] !== null && score !== 'undefined' && score.trim() !== '') {
-                                    extraInfo = `ประเภท: ${typeStr} (${score} คะแนน)`;
-                                } else {
-                                    extraInfo = `ประเภท: ${typeStr}`;
-                                }
-                            } else {
-                                extraInfo = activeTab === 'late' ? 'มาสาย' : 'โดดเรียน/หนีเรียน';
+                            if (activeTab === 'demerit' && rec['ประเภทความผิด']) {
+                                let score = rec['คะแนน'];
+                                let scoreText = (score !== undefined && score !== null && String(score).trim() !== '' && String(score) !== 'undefined') ? ` (${score} คะแนน)` : '';
+                                extraInfo = `ประเภท: ${rec['ประเภทความผิด']}${scoreText}`;
+                            } else if (activeTab === 'late') {
+                                extraInfo = `ประเภท: การมาสาย`;
                             }
-                            
-                            // ดึงข้อมูลหมายเหตุ 
-                            const remarkStr = rec[''] || '';
-                            
-                            // คอลัมน์ที่ 1 ว่าง, คอลัมน์ 2 วันที่, คอลัมน์ 3 ประเภท, คอลัมน์ 4 หมายเหตุ
-                            sheet2.addRow(['', dateStr, extraInfo, remarkStr]).font = fontTH;
+
+                            sheet2.addRow(['', dateStr, extraInfo, '', '']).font = fontTH;
                         });
-                        sheet2.addRow(['']); // เว้นบรรทัดรายบุคคล
+                        sheet2.addRow(['']); 
                     });
-                    sheet2.addRow(['']); // เว้นบรรทัดระหว่างห้อง
+                    sheet2.addRow(['']); 
                 });
 
                 // ----------------------------------------------------
@@ -454,12 +442,11 @@
                 sheet3.addRow([`ข้อมูล ณ ${formatThaiDateFullText(new Date())}`]).font = fontTH;
                 sheet3.addRow(['']);
 
-                // สร้างข้อความสรุปด้านบน
                 let summaryText = `${topicName}รวม ${filteredData.length} คน `;
                 sortedRooms.forEach(room => {
                     summaryText += `ห้อง ${room} ${roomStats[room]} คน, `;
                 });
-                summaryText = summaryText.replace(/, $/, ''); // ลบลูกน้ำตัวสุดท้าย
+                summaryText = summaryText.replace(/, $/, ''); 
                 
                 const sumRow = sheet3.addRow([summaryText]);
                 sumRow.font = fontTHBold;
@@ -467,16 +454,14 @@
 
                 sheet3.addRow(['']);
 
-                // หัวตารางรายชื่อ
-                sheet3.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'ห้อง', 'จำนวนครั้ง', 'การดำเนินการ/หมายเหตุ']).font = fontTHBold;
+                sheet3.addRow(['ลำดับ', 'รหัส', 'ชื่อ-สกุล', 'ห้อง', 'จำนวนครั้ง', 'ผลการดำเนินการ/หมายเหตุ']).font = fontTHBold;
                 sheet3.getColumn(1).width = 8;
                 sheet3.getColumn(2).width = 12;
-                sheet3.getColumn(3).width = 25;
+                sheet3.getColumn(3).width = 35; // ขยายความกว้างชื่อรองรับการเว้นระยะ
                 sheet3.getColumn(4).width = 10;
                 sheet3.getColumn(5).width = 12;
                 sheet3.getColumn(6).width = 25;
 
-                // ใส่รายชื่อทุกคน
                 let rowCount = 1;
                 sortedRooms.forEach(room => {
                     const roomData = filteredData.filter(item => item[classField] === room);
@@ -484,7 +469,7 @@
                     const tempMap = new Map();
                     roomData.forEach(item => {
                         const sid = item[idField];
-                        if (!tempMap.has(sid)) tempMap.set(sid, { name: item[nameField], count: 0 });
+                        if (!tempMap.has(sid)) tempMap.set(sid, { name: formatNameForExcel(item[nameField]), count: 0 });
                         tempMap.get(sid).count++;
                     });
 
@@ -501,6 +486,7 @@
                                 cell.border = {
                                     top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'}
                                 };
+                                cell.alignment = { vertical: 'middle' };
                             }
                         });
                     }
@@ -533,7 +519,6 @@
                                 <p className="text-gray-500 mt-1">แดชบอร์ดสรุปสถิติ มาสาย โดดเรียน และตัดคะแนนความประพฤติ</p>
                             </div>
                             
-                            {/* ปุ่มเรียกฟังก์ชัน Export Excel */}
                             <button 
                                 onClick={handleExportExcel}
                                 className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
@@ -812,5 +797,9 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </body>
 </html>
