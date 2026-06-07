@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบข้อมูลและแผนที่นักเรียน</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Prompt', sans-serif; }
+        
+        /* Custom Scrollbar for a clean look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f3e8ff; }
+        ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+
+        /* Marker Cluster Purple Theme */
+        .marker-cluster-small { background-color: rgba(233, 213, 255, 0.6); }
+        .marker-cluster-small div { background-color: rgba(168, 85, 247, 0.8); color: white; font-weight: bold; }
+        .marker-cluster-medium { background-color: rgba(216, 180, 254, 0.6); }
+        .marker-cluster-medium div { background-color: rgba(147, 51, 234, 0.8); color: white; font-weight: bold;}
+        .marker-cluster-large { background-color: rgba(192, 132, 252, 0.6); }
+        .marker-cluster-large div { background-color: rgba(126, 34, 206, 0.8); color: white; font-weight: bold;}
+
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #9333ea;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-purple-50 text-slate-700 h-screen flex flex-col overflow-hidden">
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center">
+        <div class="loader mb-4"></div>
+        <h2 class="text-xl font-semibold text-purple-800">กำลังโหลดข้อมูลนักเรียน...</h2>
+        <p class="text-purple-500 mt-2 text-sm">อาจใช้เวลาสักครู่ในการดึงข้อมูลกว่า 2,200 รายการ</p>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-800 to-purple-600 text-white p-4 shadow-md flex justify-between items-center shrink-0 z-20">
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2 rounded-lg"><i class="fa-solid fa-graduation-cap text-xl"></i></div>
+            <h1 class="text-xl font-bold tracking-wide">ระบบข้อมูลนักเรียน</h1>
+        </div>
+        <div class="text-sm bg-purple-900/50 px-4 py-1.5 rounded-full border border-purple-400/30 font-medium" id="totalCount">
+            <i class="fa-solid fa-users mr-2"></i> กำลังโหลด...
+        </div>
+    </header>
+
+    <!-- Main Content Split Screen -->
+    <main class="flex flex-1 overflow-hidden">
+        
+        <!-- ฝั่งซ้าย: ค้นหาและรายชื่อ -->
+        <section class="w-full md:w-[35%] lg:w-[30%] bg-white border-r border-purple-200 flex flex-col h-full shrink-0 shadow-[4px_0_15px_-3px_rgba(0,0,0,0.05)] z-10">
+            <!-- Search Box -->
+            <div class="p-4 bg-purple-50/50 border-b border-purple-100 shadow-sm z-10">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-purple-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" oninput="handleSearch()" 
+                           placeholder="ค้นหา ชื่อ, รหัส, หรือ ชั้น (ม.1/1)..." 
+                           class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-inner text-sm transition-all">
+                </div>
+                <div class="flex justify-between items-center mt-3 px-1">
+                    <div class="text-xs text-purple-600 font-medium" id="searchResultCount"></div>
+                    <button onclick="clearSearch()" class="text-xs text-slate-400 hover:text-purple-600 transition"><i class="fa-solid fa-eraser mr-1"></i>ล้าง</button>
+                </div>
+            </div>
+            
+            <!-- Student List -->
+            <div id="studentList" class="flex-1 overflow-y-auto divide-y divide-purple-50 bg-white p-2 space-y-1">
+                <!-- รายการถูกสร้างด้วย JS -->
+            </div>
+        </section>
+
+        <!-- ฝั่งขวา: แผนที่ -->
+        <section class="hidden md:block flex-1 h-full bg-slate-200 relative" id="mainMap">
+            <!-- Leaflet Map renders here -->
+        </section>
+    </main>
+
+    <!-- Modal ป๊อปอัปรายละเอียดนักเรียน -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-purple-900/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-[60]">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-purple-200 fade-in">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-purple-700 to-purple-600 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-inner" id="m-initial">?</div>
+                    <div>
+                        <h3 class="text-lg font-bold" id="m-name">ชื่อ-นามสกุล</h3>
+                        <p class="text-xs text-purple-200" id="m-subtitle">ID: - | ชั้น -</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-white hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-purple-100 bg-purple-50/50 text-sm overflow-x-auto shrink-0 hide-scrollbar">
+                <button onclick="switchTab('info')" id="tab-btn-info" class="flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-purple-600 text-purple-800 bg-white transition"><i class="fa-solid fa-user text-purple-500 mr-2"></i>ข้อมูลส่วนตัว</button>
+                <button onclick="switchTab('family')" id="tab-btn-family" class="flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-transparent text-slate-500 hover:text-purple-600 hover:bg-white/50 transition"><i class="fa-solid fa-people-roof text-purple-400 mr-2"></i>ครอบครัว</button>
+                <button onclick="switchTab('home')" id="tab-btn-home" class="flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-transparent text-slate-500 hover:text-purple-600 hover:bg-white/50 transition"><i class="fa-solid fa-house-chimney text-purple-400 mr-2"></i>ที่อยู่ & ภาพบ้าน</button>
+                <button onclick="switchTab('map')" id="tab-btn-map" class="flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-transparent text-slate-500 hover:text-purple-600 hover:bg-white/50 transition"><i class="fa-solid fa-map-location-dot text-purple-400 mr-2"></i>พิกัดแผนที่</button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto flex-1 bg-white text-sm" id="modalContent">
+                
+                <!-- Tab 1: ข้อมูลส่วนตัว -->
+                <div id="tab-info" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row gap-6">
+                        <!-- รูปโปรไฟล์ใหญ่ -->
+                        <div class="w-32 h-40 bg-purple-100 rounded-xl overflow-hidden shrink-0 border-4 border-white shadow-lg mx-auto sm:mx-0 relative group">
+                            <img id="m-photo" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                            <div id="m-photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-purple-300">
+                                <i class="fa-solid fa-image text-3xl mb-1"></i><span class="text-xs">ไม่มีรูปภาพ</span>
+                            </div>
+                        </div>
+                        
+                        <!-- ข้อมูลหลัก -->
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/50">
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">เลขประจำตัวนักเรียน (ID)</span> <p class="font-medium text-slate-800" id="md-id">-</p></div>
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">เลขบัตรประชาชน</span> <p class="font-medium text-slate-800" id="md-cid">-</p></div>
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">ชั้น / ห้อง</span> <p class="font-medium text-slate-800" id="md-class">-</p></div>
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">เลขที่</span> <p class="font-medium text-slate-800" id="md-no">-</p></div>
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">วัน/เดือน/ปีเกิด</span> <p class="font-medium text-slate-800" id="md-dob">-</p></div>
+                            <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">ศาสนา</span> <p class="font-medium text-slate-800" id="md-religion">-</p></div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="font-bold text-purple-800 border-b border-purple-100 pb-2 mt-6"><i class="fa-solid fa-address-card mr-2 text-purple-500"></i>ข้อมูลพื้นฐานอื่นๆ</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">น้ำหนัก / ส่วนสูง</span> <p class="font-medium"><span id="md-weight">-</span> กก. / <span id="md-height">-</span> ซม.</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">โรคประจำตัว</span> <p class="font-medium text-rose-600" id="md-disease">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิธีการมาโรงเรียน</span> <p class="font-medium" id="md-transport">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิชาที่ชอบ</span> <p class="font-medium" id="md-subject">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-2"><span class="text-xs text-slate-400 block mb-1">เพื่อนสนิท</span> <p class="font-medium" id="md-friend">-</p></div>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: ครอบครัว -->
+                <div id="tab-family" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- บิดา -->
+                        <div class="border border-purple-100 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-start">
+                            <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-purple-100 overflow-hidden shrink-0 flex items-center justify-center relative">
+                                <img id="md-pic-father" src="" class="w-full h-full object-cover hidden">
+                                <i class="fa-solid fa-user-tie text-slate-300 text-xl absolute"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-purple-500 uppercase">ข้อมูลบิดา</h5>
+                                <p class="font-semibold text-slate-800 text-base" id="md-father">-</p>
+                            </div>
+                        </div>
+                        <!-- มารดา -->
+                        <div class="border border-purple-100 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-start">
+                            <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-purple-100 overflow-hidden shrink-0 flex items-center justify-center relative">
+                                <img id="md-pic-mother" src="" class="w-full h-full object-cover hidden">
+                                <i class="fa-solid fa-user-large text-slate-300 text-xl absolute"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-purple-500 uppercase">ข้อมูลมารดา</h5>
+                                <p class="font-semibold text-slate-800 text-base" id="md-mother">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-50 rounded-xl p-5 border border-purple-100">
+                        <h4 class="font-bold text-purple-800 mb-4"><i class="fa-solid fa-phone-volume mr-2 text-purple-500"></i>การติดต่อ & ผู้ปกครอง</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+                            <div><span class="text-xs text-slate-500 block mb-1">ชื่อ-สกุล ผู้ปกครอง</span> <p class="font-semibold text-base text-slate-800" id="md-parent">-</p></div>
+                            <div><span class="text-xs text-slate-500 block mb-1">อาศัยอยู่กับ</span> <p class="font-medium text-slate-700" id="md-livewith">-</p></div>
+                            <div>
+                                <span class="text-xs text-slate-500 block mb-1">เบอร์โทรผู้ปกครอง</span> 
+                                <p class="font-semibold text-purple-700 bg-purple-100 inline-block px-3 py-1 rounded-md" id="md-tel-parent">-</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 block mb-1">เบอร์โทรนักเรียน</span> 
+                                <p class="font-medium text-slate-700" id="md-tel-student">-</p>
+                            </div>
+                            <div class="md:col-span-2 border-t border-purple-200 pt-4 mt-2">
+                                <span class="text-xs text-slate-500 block mb-2">ลายมือชื่อผู้ปกครอง</span> 
+                                <img id="md-sign" src="" class="max-h-20 hidden border border-slate-200 rounded p-1 bg-white" alt="ลายเซ็น">
+                                <p id="md-sign-none" class="text-slate-400 text-xs italic">ไม่มีข้อมูลลายมือชื่อ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: ที่อยู่และภาพบ้าน -->
+                <div id="tab-home" class="hidden space-y-6">
+                    <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                        <h4 class="font-bold text-purple-800 mb-2"><i class="fa-solid fa-map-pin mr-2 text-purple-500"></i>ที่อยู่ปัจจุบัน</h4>
+                        <p class="text-slate-700 leading-relaxed" id="md-address">-</p>
+                    </div>
+
+                    <h4 class="font-bold text-purple-800 border-b border-purple-100 pb-2"><i class="fa-solid fa-images mr-2 text-purple-500"></i>แกลเลอรีภาพสภาพแวดล้อมบ้าน</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- ภาพบ้าน 1 -->
+                        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
+                            <span class="text-xs font-medium text-slate-500 mb-2 text-center">ภาพบ้าน 1</span>
+                            <div class="bg-slate-200 h-48 rounded flex items-center justify-center overflow-hidden">
+                                <img id="md-home1" src="" class="w-full h-full object-cover hidden">
+                                <i id="md-home1-icon" class="fa-solid fa-image text-4xl text-slate-300"></i>
+                            </div>
+                        </div>
+                        <!-- ภาพบ้าน 2 -->
+                        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
+                            <span class="text-xs font-medium text-slate-500 mb-2 text-center">ภาพบ้าน 2</span>
+                            <div class="bg-slate-200 h-48 rounded flex items-center justify-center overflow-hidden">
+                                <img id="md-home2" src="" class="w-full h-full object-cover hidden">
+                                <i id="md-home2-icon" class="fa-solid fa-image text-4xl text-slate-300"></i>
+                            </div>
+                        </div>
+                        <!-- รูปนอกบ้าน -->
+                        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
+                            <span class="text-xs font-medium text-slate-500 mb-2 text-center">รูปบรรยากาศนอกบ้าน</span>
+                            <div class="bg-slate-200 h-48 rounded flex items-center justify-center overflow-hidden">
+                                <img id="md-home-out" src="" class="w-full h-full object-cover hidden">
+                                <i id="md-home-out-icon" class="fa-solid fa-image text-4xl text-slate-300"></i>
+                            </div>
+                        </div>
+                        <!-- รูปในบ้าน -->
+                        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
+                            <span class="text-xs font-medium text-slate-500 mb-2 text-center">รูปบรรยากาศในบ้าน</span>
+                            <div class="bg-slate-200 h-48 rounded flex items-center justify-center overflow-hidden">
+                                <img id="md-home-in" src="" class="w-full h-full object-cover hidden">
+                                <i id="md-home-in-icon" class="fa-solid fa-image text-4xl text-slate-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: พิกัดแผนที่ (เจาะจงคน) -->
+                <div id="tab-map" class="hidden flex-col h-[400px]">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-purple-800"><i class="fa-solid fa-location-dot mr-2 text-purple-500"></i>ตำแหน่งพิกัดบ้าน</h4>
+                        <div class="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full" id="md-coords-text">Lat: -, Lng: -</div>
+                    </div>
+                    <div id="studentMap" class="flex-1 rounded-xl border-2 border-purple-200 bg-slate-100 relative z-10 overflow-hidden">
+                        <!-- Map specific to student loads here -->
+                        <div id="noMapData" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 z-[20] hidden">
+                            <i class="fa-solid fa-map-location-dot text-5xl text-slate-300 mb-3"></i>
+                            <p class="text-slate-500 font-medium">ยังไม่มีข้อมูลพิกัด (ละติจูด/ลองจิจูด) ของนักเรียนคนนี้</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyheBKbyrI_pqDVYZVY8b5gUz8rncQQMyJ_R_imBCZ_KOVP3NwkzLPG8Gen_pDqvULI/exec";
+        
+        let allStudents = [];
+        let mainMapInstance = null;
+        let markersCluster = null;
+        let studentMapInstance = null;
+        let studentMarker = null;
+
+        // 1. ฟังก์ชันแปลงลิงก์ Google Drive
+        function getDriveDirectLink(url) {
+            if (!url || typeof url !== 'string') return '';
+            const match = url.match(/[-\w]{25,}/);
+            if (match) {
+                return 'https://docs.google.com/uc?export=view&id=' + match[0];
+            }
+            return url;
+        }
+
+        // 2. ดึงข้อมูลตอนเปิดแอป
+        async function fetchStudentData() {
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    allStudents = result.data;
+                    document.getElementById('totalCount').innerHTML = `<i class="fa-solid fa-users mr-2"></i>นักเรียน ${allStudents.length} คน`;
+                    renderStudentList(allStudents);
+                    initMainMap(allStudents);
+                } else {
+                    alert("ดึงข้อมูลล้มเหลว: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้ กรุณาตรวจสอบ API หรือการเชื่อมต่ออินเทอร์เน็ต");
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 3. วาดรายการนักเรียนฝั่งซ้าย
+        function renderStudentList(studentsData) {
+            const listContainer = document.getElementById('studentList');
+            const countDiv = document.getElementById('searchResultCount');
+            
+            listContainer.innerHTML = '';
+            countDiv.innerText = `พบข้อมูล ${studentsData.length} รายการ`;
+
+            if (studentsData.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="p-10 flex flex-col items-center text-center text-slate-400">
+                        <div class="bg-purple-50 w-16 h-16 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-magnifying-glass text-2xl text-purple-200"></i>
+                        </div>
+                        <p class="font-medium">ไม่พบข้อมูลที่ค้นหา</p>
+                        <p class="text-xs mt-1">ลองใช้คำค้นหาอื่น เช่น รหัส หรือ ชั้นเรียน</p>
+                    </div>`;
+                return;
+            }
+
+            // เพื่อไม่ให้จอค้างกรณีหาเจอเยอะๆ เราจะแสดงผลแค่ 100 คนแรกตอนพิมพ์ค้นหา
+            const displayLimit = Math.min(studentsData.length, 100);
+            
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < displayLimit; i++) {
+                const student = studentsData[i];
+                const name = student['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ';
+                const initial = name.replace(/^(ด\.ช\.|ด\.ญ\.|นาย|นางสาว|นาง)/, '').charAt(0).toUpperCase();
+                const idStr = student['ID'] || '-';
+                const roomStr = student['ชั้น'] || '-';
+                const noStr = student['เลขที่'] || '-';
+                
+                // รูปโปรไฟล์ย่อ (ถ้ามีดึงมาโชว์เลย ถ้าไม่มีใช้อักษรย่อ)
+                const imgLink = getDriveDirectLink(student['ภาพ']);
+                let avatarHtml = imgLink 
+                    ? `<img src="${imgLink}" class="w-10 h-10 rounded-full object-cover border border-purple-200" loading="lazy" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 border border-purple-200\\'>${initial}</div>'">`
+                    : `<div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 border border-purple-200 shrink-0 shadow-sm">${initial}</div>`;
+
+                const div = document.createElement('div');
+                div.className = "p-3 flex items-center gap-3 hover:bg-purple-50 cursor-pointer transition rounded-lg border border-transparent hover:border-purple-100 mx-1";
+                div.onclick = () => openStudentDetail(student);
+                
+                div.innerHTML = `
+                    ${avatarHtml}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-800 truncate">${name}</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">ID: <span class="text-purple-600 font-medium">${idStr}</span> • ชั้น ${roomStr} (เลขที่ ${noStr})</p>
+                    </div>
+                    <button class="text-xs bg-white border border-purple-200 text-purple-600 hover:bg-purple-600 hover:text-white px-2.5 py-1.5 rounded-md font-medium shrink-0 transition shadow-sm">
+                        ดูข้อมูล
+                    </button>
+                `;
+                fragment.appendChild(div);
+            }
+            
+            listContainer.appendChild(fragment);
+            
+            if (studentsData.length > 100) {
+                const moreDiv = document.createElement('div');
+                moreDiv.className = "p-3 text-center text-xs text-purple-500 font-medium bg-purple-50/50";
+                moreDiv.innerText = `... แสดงผล 100 รายการแรกจากทั้งหมด ${studentsData.length} รายการ (พิมพ์เพื่อกรองเพิ่มเติม) ...`;
+                listContainer.appendChild(moreDiv);
+            }
+        }
+
+        // 4. ระบบค้นหา (Live Search)
+        function handleSearch() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!keyword) {
+                renderStudentList(allStudents);
+                return;
+            }
+            
+            const filtered = allStudents.filter(student => {
+                const id = String(student['ID'] || '').toLowerCase();
+                const name = String(student['ชื่อ-สกุล'] || '').toLowerCase();
+                const room = String(student['ชั้น'] || '').toLowerCase();
+                
+                return id.includes(keyword) || name.includes(keyword) || room.includes(keyword);
+            });
+            
+            renderStudentList(filtered);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            handleSearch();
+        }
+
+        // 5. จัดการป๊อปอัปและแท็บ
+        function switchTab(tabId) {
+            // ซ่อนเนื้อหาทั้งหมด
+            ['info', 'family', 'home', 'map'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('flex'); // สำหรับแท็บ map
+                
+                // รีเซ็ตปุ่ม
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.className = "flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-transparent text-slate-500 hover:text-purple-600 hover:bg-white/50 transition";
+            });
+            
+            // แสดงแท็บที่เลือก
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if(tabId === 'map') {
+                targetTab.classList.remove('hidden');
+                targetTab.classList.add('flex');
+                // ต้อง invalidateSize แผนที่เวลาเปิดแท็บที่ซ่อนอยู่ ไม่งั้นแผนที่จะแสดงผลเพี้ยน
+                setTimeout(() => { if(studentMapInstance) studentMapInstance.invalidateSize(); }, 100);
+            } else {
+                targetTab.classList.remove('hidden');
+            }
+            
+            // ไฮไลต์ปุ่ม
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.className = "flex-1 min-w-[120px] py-3.5 text-center font-medium border-b-2 border-purple-600 text-purple-800 bg-white transition";
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        // 6. เติมข้อมูลลงใน Modal 37 ข้อ
+        function openStudentDetail(student) {
+            // รีเซ็ตไปที่แท็บแรกก่อนเสมอ
+            switchTab('info');
+            
+            // --- Helper ใช้อ่านข้อมูลกัน Error (ถ้าไม่มีให้แสดง "-") ---
+            const val = (key) => student[key] ? student[key] : "-";
+            const setTxt = (id, key) => document.getElementById(id).innerText = val(key);
+            
+            // --- Header ของ Modal ---
+            const name = val('ชื่อ-สกุล');
+            document.getElementById('m-name').innerText = name;
+            document.getElementById('m-subtitle').innerText = `ID: ${val('ID')} | ชั้น: ${val('ชั้น')}`;
+            document.getElementById('m-initial').innerText = name !== "-" ? name.replace(/^(ด\.ช\.|ด\.ญ\.|นาย|นางสาว|นาง)/, '').charAt(0).toUpperCase() : "?";
+
+            // --- แท็บ 1: ข้อมูลส่วนตัว ---
+            setTxt('md-id', 'ID');
+            setTxt('md-cid', 'เลขประชาชน');
+            setTxt('md-class', 'ชั้น');
+            setTxt('md-no', 'เลขที่');
+            
+            // จัดการวันที่
+            let dobStr = val('วันเดือนปีเกิด');
+            if(dobStr !== "-") {
+                try {
+                    const d = new Date(dobStr);
+                    if(!isNaN(d)) dobStr = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+                } catch(e){}
+            }
+            document.getElementById('md-dob').innerText = dobStr;
+
+            setTxt('md-religion', 'ศาสนา');
+            setTxt('md-weight', 'น้ำหนัก');
+            setTxt('md-height', 'ส่วนสูง');
+            setTxt('md-disease', 'โรคประจำตัว');
+            setTxt('md-transport', 'วิธีการมาโรงเรียน');
+            setTxt('md-subject', 'วิชาที่ชอบ');
+            setTxt('md-friend', 'เพื่อน');
+
+            // รูปโปรไฟล์
+            setupImage('m-photo', 'm-photo-placeholder', getDriveDirectLink(student['ภาพ']));
+
+            // --- แท็บ 2: ครอบครัว ---
+            setTxt('md-father', 'ชื่อ-สกุลบิดา');
+            setTxt('md-mother', 'ชื่อ-สกุลมารดา');
+            setTxt('md-parent', 'ชื่อ-สกุลผู้ปกครอง');
+            setTxt('md-livewith', 'อาศัยอยู่กับ');
+            setTxt('md-tel-parent', 'เบอร์โทรผู้ปกครอง');
+            setTxt('md-tel-student', 'เบอร์โทรนักเรียน');
+
+            // รูปครอบครัวและลายเซ็น (ใช้วิธี Lazy Load ทันทีที่เปิด Modal)
+            setupImage('md-pic-father', null, getDriveDirectLink(student['รูปบิดา']));
+            setupImage('md-pic-mother', null, getDriveDirectLink(student['รูปมารดา']));
+            
+            const signImg = document.getElementById('md-sign');
+            const signNone = document.getElementById('md-sign-none');
+            const signUrl = getDriveDirectLink(student['ลายมือชื่อผู้ปกครอง']);
+            if(signUrl) { signImg.src = signUrl; signImg.classList.remove('hidden'); signNone.classList.add('hidden'); }
+            else { signImg.classList.add('hidden'); signNone.classList.remove('hidden'); }
+
+            // --- แท็บ 3: บ้าน ---
+            setTxt('md-address', 'ที่อยู่');
+            setupImage('md-home1', 'md-home1-icon', getDriveDirectLink(student['ภาพบ้าน1']));
+            setupImage('md-home2', 'md-home2-icon', getDriveDirectLink(student['ภาพบ้าน2']));
+            setupImage('md-home-out', 'md-home-out-icon', getDriveDirectLink(student['รูปนอกบ้าน']));
+            setupImage('md-home-in', 'md-home-in-icon', getDriveDirectLink(student['รูปในบ้าน']));
+
+            // --- แท็บ 4: พิกัดแผนที่เจาะจงคน ---
+            updateStudentMap(student['พิกัด']);
+
+            // เปิด Modal
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        // Helper จัดการรูปภาพซ่อน/แสดง
+        function setupImage(imgId, iconId, url) {
+            const img = document.getElementById(imgId);
+            const icon = iconId ? document.getElementById(iconId) : null;
+            if (url) {
+                img.src = url;
+                img.classList.remove('hidden');
+                if(icon) icon.classList.add('hidden');
+            } else {
+                img.classList.add('hidden');
+                if(icon) icon.classList.remove('hidden');
+            }
+        }
+
+        // 7. จัดการแผนที่รวมฝั่งขวา (Main Map)
+        function initMainMap(studentsData) {
+            // ตั้งค่าพิกัดเริ่มต้น (ศูนย์กลางประเทศไทย)
+            mainMapInstance = L.map('mainMap').setView([14.9799, 102.0978], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mainMapInstance);
+
+            markersCluster = L.markerClusterGroup({
+                chunkedLoading: true, // ทำให้แผนที่ไม่ค้างเวลาข้อมูลเยอะ
+                maxClusterRadius: 50
+            });
+
+            let validCoordsCount = 0;
+
+            studentsData.forEach(student => {
+                const coordsStr = student['พิกัด'];
+                if (coordsStr && typeof coordsStr === 'string' && coordsStr.includes(',')) {
+                    const parts = coordsStr.split(',');
+                    const lat = parseFloat(parts[0].trim());
+                    const lng = parseFloat(parts[1].trim());
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        validCoordsCount++;
+                        
+                        // สร้างหมุดแบบเรียบง่าย
+                        const marker = L.marker([lat, lng]);
+                        
+                        // ใส่ Popup เล็กๆ
+                        const name = student['ชื่อ-สกุล'] || '-';
+                        const room = student['ชั้น'] || '-';
+                        marker.bindPopup(`
+                            <div class="text-center font-sans">
+                                <strong class="text-purple-700 block mb-1">${name}</strong>
+                                <span class="text-xs text-slate-500">ชั้น ${room}</span><br>
+                                <button onclick="findAndOpenModal('${student['ID']}')" class="mt-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-600 hover:text-white transition">ดูข้อมูล</button>
+                            </div>
+                        `);
+                        
+                        markersCluster.addLayer(marker);
+                    }
+                }
+            });
+
+            mainMapInstance.addLayer(markersCluster);
+
+            // ถ้ามีข้อมูลพิกัด ให้ซูมแผนที่ไปคลุมพิกัดทั้งหมด
+            if (validCoordsCount > 0) {
+                mainMapInstance.fitBounds(markersCluster.getBounds(), { padding: [50, 50] });
+            }
+        }
+
+        // ฟังก์ชันช่วยตอนกดปุ่มใน Popup แผนที่หลัก
+        window.findAndOpenModal = function(id) {
+            const student = allStudents.find(s => String(s['ID']) === String(id));
+            if(student) openStudentDetail(student);
+        }
+
+        // 8. แผนที่รายบุคคลใน Modal
+        function updateStudentMap(coordsStr) {
+            const mapDiv = document.getElementById('studentMap');
+            const noDataDiv = document.getElementById('noMapData');
+            const coordsText = document.getElementById('md-coords-text');
+
+            let hasValidCoords = false;
+            let lat = 0, lng = 0;
+
+            if (coordsStr && typeof coordsStr === 'string' && coordsStr.includes(',')) {
+                const parts = coordsStr.split(',');
+                lat = parseFloat(parts[0].trim());
+                lng = parseFloat(parts[1].trim());
+                if (!isNaN(lat) && !isNaN(lng)) hasValidCoords = true;
+            }
+
+            if (!hasValidCoords) {
+                // ไม่มีพิกัด
+                noDataDiv.classList.remove('hidden');
+                coordsText.innerText = "ไม่พบพิกัด";
+                coordsText.className = "text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full";
+            } else {
+                // มีพิกัด
+                noDataDiv.classList.add('hidden');
+                coordsText.innerText = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+                coordsText.className = "text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full";
+
+                // ถ้ายังไม่เคยสร้างแผนที่ส่วนตัว ให้สร้างใหม่
+                if (!studentMapInstance) {
+                    studentMapInstance = L.map('studentMap').setView([lat, lng], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(studentMapInstance);
+                    
+                    // เพิ่มหมุดสีแดง (ใช้ Icon เริ่มต้นของ Leaflet ไปก่อน)
+                    studentMarker = L.marker([lat, lng]).addTo(studentMapInstance);
+                } else {
+                    // ถ้ามีแผนที่อยู่แล้ว แค่ย้ายพิกัด
+                    studentMapInstance.setView([lat, lng], 16);
+                    studentMarker.setLatLng([lat, lng]);
+                }
+            }
+        }
+
+        // ป้องกันแผนที่บัคเวลาปรับขนาดหน้าต่าง
+        window.addEventListener('resize', () => {
+            if(mainMapInstance) mainMapInstance.invalidateSize();
+        });
+
+        // เริ่มโหลดข้อมูลทันทีที่เปิดเว็บ
+        window.onload = fetchStudentData;
+
+    </script>
+</body>
+</html>
