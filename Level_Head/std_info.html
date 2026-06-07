@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School เพื่อการดูแลอย่างเข้าใจ พัฒนาตามศักยภาพ</title>
+    <title>ระบบข้อมูลและแผนที่นักเรียน</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -563,7 +563,22 @@
                     
                     // จัดการการเดินทาง (travel) ดึงจากข้อมูลท้ายสุด
                     if(parsedObj.travel) {
-                        transportDisplay = parsedObj.travel;
+                        let t = parsedObj.travel;
+                        const travelMap = { "A": "ขับ/ขี่/มาเอง", "B": "รถรับส่ง", "C": "ผู้ปกครองมาส่ง" };
+                        // ใช้ Regex แยกข้อความหลัก กับ ข้อความในวงเล็บ (...) ออกจากกัน
+                        let match = t.match(/^(.*?)\s*\((.*?)\)$/);
+                        if(match) {
+                            let mode = match[1].trim(); // เช่น "B"
+                            mode = travelMap[mode] || mode; // แปลง A, B, C เป็นข้อความ
+                            // แยกรายละเอียดด้วยลูกน้ำ แล้วสร้างเป็นป้ายกำกับ (Badges) สีขาวกรอบเทา
+                            let details = match[2].split(',').map(s => `<span class="inline-block bg-white border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded text-[10.5px] mr-1 mt-1 shadow-sm"><i class="fa-solid fa-circle-info text-slate-300 mr-1"></i>${s.trim()}</span>`).join('');
+                            transportDisplay = `<strong class="text-purple-600 block text-sm">${mode}</strong><div class="flex flex-wrap">${details}</div>`;
+                        } else {
+                            // ถ้าไม่มีวงเล็บ ก็แสดงข้อความปกติ
+                            let mode = t.trim();
+                            mode = travelMap[mode] || mode;
+                            transportDisplay = `<span class="text-purple-600 font-medium">${mode}</span>`;
+                        }
                     }
                     
                 } catch(e) {
@@ -574,7 +589,7 @@
                 subjectDisplay = subjectData;
             }
             document.getElementById('md-subject').innerHTML = subjectDisplay;
-            document.getElementById('md-transport').innerText = transportDisplay;
+            document.getElementById('md-transport').innerHTML = transportDisplay; // เปลี่ยนจาก innerText เป็น innerHTML เพื่อให้แสดง Tag ได้
 
             // 4. จัดการเพื่อนสนิท (แปลงจาก JSON และจับคู่ชื่อ)
             let friendData = val('เพื่อน');
