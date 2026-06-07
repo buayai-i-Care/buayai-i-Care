@@ -48,6 +48,9 @@
         
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ป้องกันแผนที่ล้นหรือทะลุป๊อปอัป */
+        .leaflet-container { z-index: 10 !important; }
     </style>
 </head>
 <body class="bg-purple-50 text-slate-700 h-screen flex flex-col overflow-hidden">
@@ -134,17 +137,17 @@
                 
                 <!-- Tab 1: ข้อมูลส่วนตัว -->
                 <div id="tab-info" class="space-y-6">
-                    <div class="flex flex-col sm:flex-row gap-6">
-                        <!-- รูปโปรไฟล์ใหญ่ -->
-                        <div class="w-32 h-40 bg-purple-100 rounded-xl overflow-hidden shrink-0 border-4 border-white shadow-lg mx-auto sm:mx-0 relative group">
+                    <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                        <!-- รูปโปรไฟล์แบบ Thumbnail -->
+                        <div class="w-32 h-32 bg-purple-100 rounded-full overflow-hidden shrink-0 border-4 border-purple-200 shadow-md relative group">
                             <img id="m-photo" src="" alt="Profile" class="w-full h-full object-cover hidden">
-                            <div id="m-photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-purple-300">
-                                <i class="fa-solid fa-image text-3xl mb-1"></i><span class="text-xs">ไม่มีรูปภาพ</span>
+                            <div id="m-photo-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-purple-400 bg-purple-50">
+                                <i class="fa-solid fa-user text-4xl mb-1"></i>
                             </div>
                         </div>
                         
                         <!-- ข้อมูลหลัก -->
-                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/50">
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/50 w-full">
                             <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">เลขประจำตัวนักเรียน (ID)</span> <p class="font-medium text-slate-800" id="md-id">-</p></div>
                             <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">เลขบัตรประชาชน</span> <p class="font-medium text-slate-800" id="md-cid">-</p></div>
                             <div><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block mb-1">ชั้น / ห้อง</span> <p class="font-medium text-slate-800" id="md-class">-</p></div>
@@ -157,9 +160,9 @@
                     <h4 class="font-bold text-purple-800 border-b border-purple-100 pb-2 mt-6"><i class="fa-solid fa-address-card mr-2 text-purple-500"></i>ข้อมูลพื้นฐานอื่นๆ</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">น้ำหนัก / ส่วนสูง</span> <p class="font-medium"><span id="md-weight">-</span> กก. / <span id="md-height">-</span> ซม.</p></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">โรคประจำตัว</span> <p class="font-medium text-rose-600" id="md-disease">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">โรคประจำตัว</span> <p class="font-medium" id="md-disease">-</p></div>
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิธีการมาโรงเรียน</span> <p class="font-medium" id="md-transport">-</p></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิชาที่ชอบ</span> <p class="font-medium" id="md-subject">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิชาที่ชอบ</span> <div id="md-subject" class="mt-1"></div></div>
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-2"><span class="text-xs text-slate-400 block mb-1">เพื่อนสนิท</span> <p class="font-medium" id="md-friend">-</p></div>
                     </div>
                 </div>
@@ -286,6 +289,7 @@
         let markersCluster = null;
         let studentMapInstance = null;
         let studentMarker = null;
+        let currentStudentCoordsStr = null; // ตัวแปรใหม่สำหรับเก็บพิกัดชั่วคราว
 
         // 1. ฟังก์ชันแปลงลิงก์ Google Drive
         function getDriveDirectLink(url) {
@@ -426,8 +430,12 @@
             if(tabId === 'map') {
                 targetTab.classList.remove('hidden');
                 targetTab.classList.add('flex');
-                // ต้อง invalidateSize แผนที่เวลาเปิดแท็บที่ซ่อนอยู่ ไม่งั้นแผนที่จะแสดงผลเพี้ยน
-                setTimeout(() => { if(studentMapInstance) studentMapInstance.invalidateSize(); }, 100);
+                
+                // ให้วาดแผนที่หลังจากแท็บปรากฏขึ้นแล้วเท่านั้น เพื่อป้องกันแผนที่ล้นจอ
+                setTimeout(() => { 
+                    updateStudentMap(currentStudentCoordsStr);
+                    if(studentMapInstance) studentMapInstance.invalidateSize(); 
+                }, 50);
             } else {
                 targetTab.classList.remove('hidden');
             }
@@ -462,22 +470,113 @@
             setTxt('md-class', 'ชั้น');
             setTxt('md-no', 'เลขที่');
             
-            // จัดการวันที่
+            // 1. จัดการวันที่ (แสดงแบบ จันทร์ที่ 1 ก.ค. 2556)
             let dobStr = val('วันเดือนปีเกิด');
-            if(dobStr !== "-") {
+            if (dobStr !== "-" && dobStr !== "") {
                 try {
                     const d = new Date(dobStr);
-                    if(!isNaN(d)) dobStr = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-                } catch(e){}
+                    if (!isNaN(d)) {
+                        const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+                        const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                        
+                        const dayName = days[d.getDay()];
+                        const dateNum = d.getDate();
+                        const monthName = months[d.getMonth()];
+                        const yearThai = d.getFullYear() + 543; // แปลงเป็น พ.ศ.
+
+                        dobStr = `${dayName}ที่ ${dateNum} ${monthName} ${yearThai}`;
+                    } else {
+                        dobStr = val('วันเดือนปีเกิด'); // ถอดรหัสไม่ได้ คืนค่าเดิม
+                    }
+                } catch(e) {
+                    console.error("Error parsing date:", e);
+                }
             }
             document.getElementById('md-dob').innerText = dobStr;
 
             setTxt('md-religion', 'ศาสนา');
             setTxt('md-weight', 'น้ำหนัก');
             setTxt('md-height', 'ส่วนสูง');
-            setTxt('md-disease', 'โรคประจำตัว');
+            
+            // 2. จัดการโรคประจำตัว (แปลงจาก JSON)
+            let diseaseData = val('โรคประจำตัว');
+            let diseaseDisplay = "-";
+            if (diseaseData !== "-" && diseaseData.startsWith("{")) {
+                try {
+                    const parsedObj = JSON.parse(diseaseData);
+                    if (parsedObj.status === "normal") {
+                        diseaseDisplay = "ปกติ (ไม่มีโรคประจำตัว)";
+                        document.getElementById('md-disease').className = "font-medium text-emerald-600";
+                    } else if (parsedObj.status === "abnormal" || parsedObj.ill) {
+                        diseaseDisplay = `มีโรคประจำตัว: ${parsedObj.ill || 'ไม่ระบุ'}`;
+                        document.getElementById('md-disease').className = "font-medium text-rose-600";
+                    }
+                } catch(e) {
+                    console.error("Error parsing disease JSON:", e);
+                    diseaseDisplay = diseaseData; // ถ้า parse ไม่ได้ โชว์ดิบไปก่อน
+                }
+            } else {
+                document.getElementById('md-disease').className = "font-medium text-slate-800";
+                diseaseDisplay = diseaseData;
+            }
+            document.getElementById('md-disease').innerText = diseaseDisplay;
+
             setTxt('md-transport', 'วิธีการมาโรงเรียน');
-            setTxt('md-subject', 'วิชาที่ชอบ');
+            
+            // 3. จัดการวิชาที่ชอบ (แปลงจาก JSON และเพิ่ม Icons)
+            let subjectData = val('วิชาที่ชอบ');
+            let subjectDisplay = "-";
+            const subjectIcons = {
+                "คณิต": "🧮 คณิต",
+                "คณิตศาสตร์": "🧮 คณิตศาสตร์",
+                "อังกฤษ": "🇬🇧 อังกฤษ",
+                "ภาษาอังกฤษ": "🇬🇧 ภาษาอังกฤษ",
+                "ไทย": "🇹🇭 ไทย",
+                "ภาษาไทย": "🇹🇭 ภาษาไทย",
+                "วิทย์": "🔬 วิทย์",
+                "วิทยาศาสตร์": "🔬 วิทยาศาสตร์",
+                "พละ": "⚽ พละ",
+                "สุขศึกษา": "🏃 สุขศึกษา",
+                "ศิลปะ": "🎨 ศิลปะ",
+                "ดนตรี": "🎵 ดนตรี",
+                "คอม": "💻 คอม",
+                "คอมพิวเตอร์": "💻 คอมพิวเตอร์",
+                "สังคม": "🌍 สังคม",
+                "ประวัติศาสตร์": "⏳ ประวัติศาสตร์",
+                "การงาน": "🛠️ การงาน"
+            };
+
+            if (subjectData !== "-" && subjectData.startsWith("{")) {
+                try {
+                    const parsedObj = JSON.parse(subjectData);
+                    if (parsedObj.subs && Array.isArray(parsedObj.subs)) {
+                        // แมปชื่อวิชาเข้ากับไอคอน ถ้าไม่มีในรายการให้ใช้วิชาเดิม
+                        const formattedSubs = parsedObj.subs.map(sub => {
+                            const cleanSub = sub.trim();
+                            // ลองหา key ที่ตรง หรือใกล้เคียง
+                            const iconKey = Object.keys(subjectIcons).find(k => cleanSub.includes(k) || k.includes(cleanSub));
+                            return iconKey ? subjectIcons[iconKey] : `📚 ${cleanSub}`;
+                        });
+                        
+                        // สร้าง HTML แสดงผลแบบมีพื้นหลังน่ารักๆ
+                        if(formattedSubs.length > 0) {
+                            subjectDisplay = formattedSubs.map(s => 
+                                `<span class="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-xs mr-1 mb-1 shadow-sm">${s}</span>`
+                            ).join('');
+                        } else {
+                            subjectDisplay = "ไม่ระบุ";
+                        }
+                    }
+                } catch(e) {
+                     console.error("Error parsing subject JSON:", e);
+                     subjectDisplay = subjectData;
+                }
+            } else {
+                subjectDisplay = subjectData;
+            }
+            // ใช้ innerHTML เพราะเราใส่ tag <span> ลงไป
+            document.getElementById('md-subject').innerHTML = subjectDisplay;
+
             setTxt('md-friend', 'เพื่อน');
 
             // รูปโปรไฟล์
@@ -509,7 +608,8 @@
             setupImage('md-home-in', 'md-home-in-icon', getDriveDirectLink(student['รูปในบ้าน']));
 
             // --- แท็บ 4: พิกัดแผนที่เจาะจงคน ---
-            updateStudentMap(student['พิกัด']);
+            // เก็บพิกัดไว้ก่อน แต่ยังไม่สั่งวาดแผนที่จนกว่าผู้ใช้จะกดแท็บแผนที่
+            currentStudentCoordsStr = student['พิกัด'];
 
             // เปิด Modal
             document.getElementById('detailModal').classList.remove('hidden');
