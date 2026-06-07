@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบข้อมูลและแผนที่นักเรียน</title>
+    <title>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล โรงเรียนบัวใหญ่ ดูแลอย่างเข้าใจ</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -55,8 +55,43 @@
 </head>
 <body class="bg-purple-50 text-slate-700 h-screen flex flex-col overflow-hidden">
 
-    <!-- Loading Overlay -->
-    <div id="loading" class="fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center">
+    <!-- Overlay Security / Login -->
+    <div id="securityOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fade-in">
+            <div class="bg-purple-700 p-6 text-center text-white">
+                <i class="fa-solid fa-shield-halved text-5xl mb-3 text-purple-200"></i>
+                <h2 class="text-xl font-bold">ระบบรักษาความปลอดภัยข้อมูล</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-3 text-sm text-amber-800 rounded-r">
+                    <strong><i class="fa-solid fa-triangle-exclamation mr-1"></i> คำเตือน:</strong> ข้อมูลนักเรียนมีความละเอียดอ่อนและเป็นความลับ ใช้สำหรับการดูแลนักเรียนเท่านั้น โปรดใช้งานอย่างระมัดระวัง
+                </div>
+                <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> เพื่อความปลอดภัย ระบบจะขออนุญาตเก็บประวัติการเข้าถึง (Log) เช่น ชื่อผู้ใช้งาน, อุปกรณ์, ระยะเวลา และข้อมูลที่ค้นหา หากท่านตกลง กรุณาลงชื่อเข้าใช้
+                </p>
+                
+                <div class="space-y-3 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">ชื่อผู้ใช้งาน (เพื่อบันทึกลง Log)</label>
+                        <input type="text" id="loginName" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all text-sm" placeholder="เช่น ครูสมชาย, Admin">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">รหัสผ่านสำหรับเข้าถึงข้อมูล</label>
+                        <input type="password" id="loginPassword" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all text-sm" placeholder="กรอกรหัสผ่าน">
+                    </div>
+                </div>
+                
+                <p id="loginError" class="text-xs text-rose-500 font-medium hidden mt-1"><i class="fa-solid fa-circle-xmark mr-1"></i> ชื่อผู้ใช้ว่างเปล่า หรือ รหัสผ่านไม่ถูกต้อง!</p>
+                
+                <button onclick="verifyLogin()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-all shadow-md hover:shadow-lg mt-4">
+                    ตกลงและเข้าสู่ระบบ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay (ซ่อนไว้ก่อนจนกว่าจะล็อกอินผ่าน) -->
+    <div id="loading" class="fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center" style="display: none;">
         <div class="loader mb-4"></div>
         <h2 class="text-xl font-semibold text-purple-800">กำลังโหลดข้อมูลนักเรียน...</h2>
         <p class="text-purple-500 mt-2 text-sm">อาจใช้เวลาสักครู่ในการดึงข้อมูลกว่า 2,200 รายการ</p>
@@ -68,8 +103,13 @@
             <div class="bg-white/20 p-2 rounded-lg"><i class="fa-solid fa-graduation-cap text-xl"></i></div>
             <h1 class="text-xl font-bold tracking-wide">ระบบข้อมูลนักเรียน</h1>
         </div>
-        <div class="text-sm bg-purple-900/50 px-4 py-1.5 rounded-full border border-purple-400/30 font-medium" id="totalCount">
-            <i class="fa-solid fa-users mr-2"></i> กำลังโหลด...
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center text-xs text-purple-200 bg-purple-900/40 px-3 py-1 rounded-full border border-purple-500/30">
+                <i class="fa-solid fa-user-shield mr-1.5"></i> ผู้ใช้: <span id="displayUser" class="font-bold text-white ml-1">...</span>
+            </div>
+            <div class="text-sm bg-purple-900/50 px-4 py-1.5 rounded-full border border-purple-400/30 font-medium" id="totalCount">
+                <i class="fa-solid fa-users mr-2"></i> กำลังโหลด...
+            </div>
         </div>
     </header>
 
@@ -284,12 +324,82 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyheBKbyrI_pqDVYZVY8b5gUz8rncQQMyJ_R_imBCZ_KOVP3NwkzLPG8Gen_pDqvULI/exec";
         
+        // --- Security & Logging Variables ---
+        let sessionUser = "";
+        let sessionStart = null;
+        let searchTimeout = null;
+
         let allStudents = [];
         let mainMapInstance = null;
         let markersCluster = null;
         let studentMapInstance = null;
         let studentMarker = null;
         let currentStudentCoordsStr = null; // ตัวแปรใหม่สำหรับเก็บพิกัดชั่วคราว
+
+        // --- ระบบรักษาความปลอดภัย ---
+        function verifyLogin() {
+            const name = document.getElementById('loginName').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            
+            if (!name || pass !== 'by2569') {
+                document.getElementById('loginError').classList.remove('hidden');
+                return;
+            }
+            
+            // Login Success
+            sessionUser = name;
+            sessionStart = new Date();
+            document.getElementById('displayUser').innerText = name;
+            
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('loading').style.display = 'flex'; // แสดงโหลดข้อมูล
+            
+            sendLog('LOGIN', 'เข้าสู่ระบบสำเร็จ');
+            
+            // เริ่มดึงข้อมูล
+            fetchStudentData();
+        }
+
+        // --- ระบบส่ง Log ไปยัง Backend ---
+        function sendLog(actionType, detail) {
+            if (!sessionUser) return;
+            
+            const duration = Math.floor((new Date() - sessionStart) / 1000); // วินาที
+            
+            const payload = {
+                method: 'LOG',
+                user: sessionUser,
+                action: actionType,
+                detail: detail,
+                device: navigator.userAgent,
+                duration: duration
+            };
+            
+            // ใช้ text/plain เพื่อหลีกเลี่ยงปัญหา CORS Preflight ใน GAS
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            }).catch(e => console.log('Log error:', e));
+        }
+
+        // ดักจับการปิดหน้าต่างเพื่อส่งเวลาที่ออนไลน์รวม (Log out)
+        window.addEventListener('beforeunload', () => {
+            if (sessionUser && sessionStart) {
+                const duration = Math.floor((new Date() - sessionStart) / 1000);
+                const payload = {
+                    method: 'LOG',
+                    user: sessionUser,
+                    action: 'LOGOUT/CLOSE',
+                    detail: `ปิดแอป - ใช้งานไปทั้งหมด ${duration} วินาที`,
+                    device: navigator.userAgent,
+                    duration: duration
+                };
+                // ใช้ sendBeacon จะการันตีการส่งข้อมูลได้ดีกว่า fetch ตอนปิดเว็บ
+                navigator.sendBeacon(API_URL, JSON.stringify(payload));
+            }
+        });
+
 
         // 1. ฟังก์ชันแปลงลิงก์ Google Drive
         function getDriveDirectLink(url) {
@@ -394,6 +504,14 @@
         function handleSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
             
+            // ส่ง Log การค้นหา (Debounce เพื่อไม่ให้ส่งรัวเกินไปตอนกำลังพิมพ์)
+            clearTimeout(searchTimeout);
+            if (keyword.length > 1) {
+                searchTimeout = setTimeout(() => {
+                    sendLog('SEARCH', `ค้นหาคำว่า: "${keyword}"`);
+                }, 1500); // ส่ง Log หลังพิมพ์หยุดไป 1.5 วินาที
+            }
+            
             if (!keyword) {
                 renderStudentList(allStudents);
                 return;
@@ -453,6 +571,9 @@
 
         // 6. เติมข้อมูลลงใน Modal 37 ข้อ
         function openStudentDetail(student) {
+            // ส่ง Log ว่ากำลังดูข้อมูลใครอยู่
+            sendLog('VIEW_STUDENT', `เข้าดูข้อมูลนักเรียน ID: ${student['ID']} ชื่อ: ${student['ชื่อ-สกุล']}`);
+
             // รีเซ็ตไปที่แท็บแรกก่อนเสมอ
             switchTab('info');
             
@@ -817,9 +938,6 @@
         window.addEventListener('resize', () => {
             if(mainMapInstance) mainMapInstance.invalidateSize();
         });
-
-        // เริ่มโหลดข้อมูลทันทีที่เปิดเว็บ
-        window.onload = fetchStudentData;
 
     </script>
 </body>
