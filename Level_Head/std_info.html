@@ -296,7 +296,8 @@
             if (!url || typeof url !== 'string') return '';
             const match = url.match(/[-\w]{25,}/);
             if (match) {
-                return 'https://docs.google.com/uc?export=view&id=' + match[0];
+                // แก้ไขใช้ลิงก์โหลดแบบ Thumbnail ของ Google Drive แทน (เร็วกว่าและแสดงผลชัวร์กว่า)
+                return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w500'; 
             }
             return url;
         }
@@ -358,7 +359,8 @@
                 // รูปโปรไฟล์ย่อ (ถ้ามีดึงมาโชว์เลย ถ้าไม่มีใช้อักษรย่อ)
                 const imgLink = getDriveDirectLink(student['ภาพ']);
                 let avatarHtml = imgLink 
-                    ? `<img src="${imgLink}" class="w-10 h-10 rounded-full object-cover border border-purple-200" loading="lazy" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 border border-purple-200\\'>${initial}</div>'">`
+                    // แก้ไขแท็ก img สำหรับ List ใส่ onError fallback 
+                    ? `<img src="${imgLink}" class="w-10 h-10 rounded-full object-cover border border-purple-200" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 border border-purple-200 shrink-0 shadow-sm\\'>${initial}</div>'">`
                     : `<div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 border border-purple-200 shrink-0 shadow-sm">${initial}</div>`;
 
                 const div = document.createElement('div');
@@ -621,6 +623,15 @@
             const icon = iconId ? document.getElementById(iconId) : null;
             if (url) {
                 img.src = url;
+                // สำคัญ: ใส่ referrerpolicy เพื่อแก้ปัญหา 403 Forbidden จาก Google Drive
+                img.referrerPolicy = "no-referrer";
+                
+                // เพิ่ม onError เผื่อกรณีรูปเสีย ให้กลับไปโชว์ Icon แทน
+                img.onerror = function() {
+                    this.classList.add('hidden');
+                    if(icon) icon.classList.remove('hidden');
+                };
+
                 img.classList.remove('hidden');
                 if(icon) icon.classList.add('hidden');
             } else {
