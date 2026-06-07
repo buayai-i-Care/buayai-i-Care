@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบข้อมูลและแผนที่นักเรียน</title>
+    <title>ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School เพื่อการดูแลอย่างเข้าใจ พัฒนาตามศักยภาพ</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -161,9 +161,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">น้ำหนัก / ส่วนสูง</span> <p class="font-medium"><span id="md-weight">-</span> กก. / <span id="md-height">-</span> ซม.</p></div>
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">โรคประจำตัว</span> <p class="font-medium" id="md-disease">-</p></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิธีการมาโรงเรียน</span> <p class="font-medium" id="md-transport">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-1"><span class="text-xs text-slate-400 block mb-1">วิธีการมาโรงเรียน</span> <p class="font-medium text-xs leading-relaxed" id="md-transport">-</p></div>
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><span class="text-xs text-slate-400 block mb-1">วิชาที่ชอบ</span> <div id="md-subject" class="mt-1"></div></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-2"><span class="text-xs text-slate-400 block mb-1">เพื่อนสนิท</span> <p class="font-medium" id="md-friend">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-2"><span class="text-xs text-slate-400 block mb-1">เพื่อนสนิท (คะแนนความสนิท)</span> <div id="md-friend" class="text-xs text-slate-700 leading-relaxed mt-1">-</div></div>
                     </div>
                 </div>
                 
@@ -522,45 +522,36 @@
                 diseaseDisplay = diseaseData;
             }
             document.getElementById('md-disease').innerText = diseaseDisplay;
-
-            setTxt('md-transport', 'วิธีการมาโรงเรียน');
             
-            // 3. จัดการวิชาที่ชอบ (แปลงจาก JSON และเพิ่ม Icons)
+            // 3. จัดการวิชาที่ชอบ และ วิธีการมาโรงเรียน (แยกจาก JSON ก้อนเดียวกัน)
             let subjectData = val('วิชาที่ชอบ');
             let subjectDisplay = "-";
+            let transportDisplay = val('วิธีการมาโรงเรียน'); // ใช้ค่าเดิมถ้าไม่มีใน JSON
+            
             const subjectIcons = {
-                "คณิต": "🧮 คณิต",
-                "คณิตศาสตร์": "🧮 คณิตศาสตร์",
-                "อังกฤษ": "🇬🇧 อังกฤษ",
-                "ภาษาอังกฤษ": "🇬🇧 ภาษาอังกฤษ",
-                "ไทย": "🇹🇭 ไทย",
-                "ภาษาไทย": "🇹🇭 ภาษาไทย",
-                "วิทย์": "🔬 วิทย์",
-                "วิทยาศาสตร์": "🔬 วิทยาศาสตร์",
-                "พละ": "⚽ พละ",
-                "สุขศึกษา": "🏃 สุขศึกษา",
-                "ศิลปะ": "🎨 ศิลปะ",
-                "ดนตรี": "🎵 ดนตรี",
-                "คอม": "💻 คอม",
-                "คอมพิวเตอร์": "💻 คอมพิวเตอร์",
-                "สังคม": "🌍 สังคม",
-                "ประวัติศาสตร์": "⏳ ประวัติศาสตร์",
+                "คณิต": "🧮 คณิต", "คณิตศาสตร์": "🧮 คณิตศาสตร์",
+                "อังกฤษ": "🇬🇧 อังกฤษ", "ภาษาอังกฤษ": "🇬🇧 ภาษาอังกฤษ",
+                "ไทย": "🇹🇭 ไทย", "ภาษาไทย": "🇹🇭 ภาษาไทย",
+                "วิทย์": "🔬 วิทย์", "วิทยาศาสตร์": "🔬 วิทยาศาสตร์",
+                "พละ": "⚽ พละ", "สุขศึกษา": "🏃 สุขศึกษา",
+                "ศิลปะ": "🎨 ศิลปะ", "ดนตรี": "🎵 ดนตรี",
+                "คอม": "💻 คอม", "คอมพิวเตอร์": "💻 คอมพิวเตอร์",
+                "สังคม": "🌍 สังคม", "ประวัติศาสตร์": "⏳ ประวัติศาสตร์",
                 "การงาน": "🛠️ การงาน"
             };
 
             if (subjectData !== "-" && subjectData.startsWith("{")) {
                 try {
                     const parsedObj = JSON.parse(subjectData);
+                    
+                    // จัดการวิชา (subs)
                     if (parsedObj.subs && Array.isArray(parsedObj.subs)) {
-                        // แมปชื่อวิชาเข้ากับไอคอน ถ้าไม่มีในรายการให้ใช้วิชาเดิม
                         const formattedSubs = parsedObj.subs.map(sub => {
                             const cleanSub = sub.trim();
-                            // ลองหา key ที่ตรง หรือใกล้เคียง
                             const iconKey = Object.keys(subjectIcons).find(k => cleanSub.includes(k) || k.includes(cleanSub));
                             return iconKey ? subjectIcons[iconKey] : `📚 ${cleanSub}`;
                         });
                         
-                        // สร้าง HTML แสดงผลแบบมีพื้นหลังน่ารักๆ
                         if(formattedSubs.length > 0) {
                             subjectDisplay = formattedSubs.map(s => 
                                 `<span class="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-xs mr-1 mb-1 shadow-sm">${s}</span>`
@@ -569,17 +560,71 @@
                             subjectDisplay = "ไม่ระบุ";
                         }
                     }
+                    
+                    // จัดการการเดินทาง (travel) ดึงจากข้อมูลท้ายสุด
+                    if(parsedObj.travel) {
+                        transportDisplay = parsedObj.travel;
+                    }
+                    
                 } catch(e) {
-                     console.error("Error parsing subject JSON:", e);
+                     console.error("Error parsing subject/travel JSON:", e);
                      subjectDisplay = subjectData;
                 }
             } else {
                 subjectDisplay = subjectData;
             }
-            // ใช้ innerHTML เพราะเราใส่ tag <span> ลงไป
             document.getElementById('md-subject').innerHTML = subjectDisplay;
+            document.getElementById('md-transport').innerText = transportDisplay;
 
-            setTxt('md-friend', 'เพื่อน');
+            // 4. จัดการเพื่อนสนิท (แปลงจาก JSON และจับคู่ชื่อ)
+            let friendData = val('เพื่อน');
+            let friendDisplay = "-";
+            if(friendData !== "-" && friendData.startsWith("{")) {
+                try {
+                    const parsedFriends = JSON.parse(friendData);
+                    let likedFriends = [];
+                    let teasedFriends = [];
+                    
+                    // วนลูป ID เพื่อนที่ได้มา
+                    for(const [friendId, scores] of Object.entries(parsedFriends)) {
+                        // ค้นหาชื่อเพื่อนจาก allStudents
+                        const friendInfo = allStudents.find(s => String(s['ID']) === String(friendId));
+                        let friendName = friendInfo ? friendInfo['ชื่อ-สกุล'] : `ID: ${friendId}`;
+                        
+                        // เอาชื่อย่อเพื่อไม่ให้ยาวไป
+                        if(friendInfo) friendName = friendName.replace(/^(ด\.ช\.|ด\.ญ\.|นาย|นางสาว|นาง)/, '');
+                        
+                        // แยกกลุ่ม s(ชอบ) กับ c(ชอบแกล้ง)
+                        if(scores.s && scores.s > 0) likedFriends.push({name: friendName, score: scores.s});
+                        if(scores.c && scores.c > 0) teasedFriends.push({name: friendName, score: scores.c});
+                    }
+                    
+                    // เรียงคะแนนจากมากไปน้อย
+                    likedFriends.sort((a,b) => b.score - a.score);
+                    teasedFriends.sort((a,b) => b.score - a.score);
+                    
+                    // สร้าง HTML
+                    let htmlBuilder = "";
+                    if(likedFriends.length > 0) {
+                        htmlBuilder += `<div class="mb-2"><strong class="text-purple-600"><i class="fa-solid fa-heart mr-1"></i>ชอบ:</strong> `;
+                        htmlBuilder += likedFriends.map(f => `<span class="bg-white border border-purple-100 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">${f.name} <span class="text-purple-400">(${f.score})</span></span>`).join(" ");
+                        htmlBuilder += `</div>`;
+                    }
+                    if(teasedFriends.length > 0) {
+                        htmlBuilder += `<div><strong class="text-orange-500"><i class="fa-solid fa-face-laugh-squint mr-1"></i>แกล้ง:</strong> `;
+                        htmlBuilder += teasedFriends.map(f => `<span class="bg-white border border-orange-100 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">${f.name} <span class="text-orange-400">(${f.score})</span></span>`).join(" ");
+                        htmlBuilder += `</div>`;
+                    }
+                    
+                    friendDisplay = htmlBuilder !== "" ? htmlBuilder : "ไม่มีข้อมูลการให้คะแนน";
+                } catch(e) {
+                     console.error("Error parsing friend JSON:", e);
+                     friendDisplay = friendData;
+                }
+            } else {
+                friendDisplay = friendData;
+            }
+            document.getElementById('md-friend').innerHTML = friendDisplay;
 
             // รูปโปรไฟล์
             setupImage('m-photo', 'm-photo-placeholder', getDriveDirectLink(student['ภาพ']));
@@ -718,13 +763,23 @@
             if (!hasValidCoords) {
                 // ไม่มีพิกัด
                 noDataDiv.classList.remove('hidden');
+                
+                // เพิ่ม Animation ให้หน้าตาไม่มีพิกัดดูน่าสนใจ
+                noDataDiv.innerHTML = `
+                    <div class="animate-bounce mb-4 bg-slate-200 p-4 rounded-full">
+                        <i class="fa-solid fa-map-location-dot text-5xl text-slate-400"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-lg">ยังไม่มีข้อมูลพิกัดแผนที่</p>
+                    <p class="text-slate-400 text-sm mt-1">กรุณาเพิ่ม Latitude, Longitude ในฐานข้อมูล</p>
+                `;
+                
                 coordsText.innerText = "ไม่พบพิกัด";
-                coordsText.className = "text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full";
+                coordsText.className = "text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200";
             } else {
                 // มีพิกัด
                 noDataDiv.classList.add('hidden');
                 coordsText.innerText = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-                coordsText.className = "text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full";
+                coordsText.className = "text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full border border-purple-200";
 
                 // ถ้ายังไม่เคยสร้างแผนที่ส่วนตัว ให้สร้างใหม่
                 if (!studentMapInstance) {
