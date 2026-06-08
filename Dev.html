@@ -144,6 +144,24 @@
             <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
                 <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" autocomplete="off" required></div>
                 <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" autocomplete="new-password" required></div>
+
+
+                <div style="background: rgba(0,0,0,0.4); border: 1px dashed #78350f; border-radius: 10px; padding: 15px; margin-bottom: 15px; text-align: left;">
+    <div style="max-height: 100px; overflow-y: auto; font-size: 0.85rem; color: #d4d4d8; margin-bottom: 10px; padding-right: 5px; line-height: 1.5;">
+        <strong style="color: var(--accent);">📜 ข้อตกลง PDPA:</strong><br>
+        โรงเรียนบัวใหญ่ขออนุญาตเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล (เช่น ชื่อ, เลขบัตรประชาชน, รูปถ่าย, พิกัดที่อยู่, ข้อมูลสุขภาพ) เพื่อใช้เป็นฐานข้อมูลในการดูแลช่วยเหลือนักเรียน ดูแลส่งเสริมพฤติกรรมนักเรียน และพิจารณาทุนการศึกษา ข้อมูลจะถูกเก็บรักษาอย่างปลอดภัยตามกฎหมาย 
+        <a href="termofuse.html" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: bold; margin-left: 5px;">คลิกเพื่ออ่านต่อ...</a>
+    </div>
+    
+    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: var(--text-main); font-size: 0.9rem; font-weight: 400;">
+        <input type="checkbox" required style="width: 20px; height: 20px; margin-top: 2px; accent-color: var(--primary);">
+        <span>ข้าพเจ้าได้อ่านและ <b>ยินยอม</b> ให้โรงเรียนจัดเก็บข้อมูลตามข้อตกลง</span>
+    </label>
+</div>
+                
+                
+                
+                
                 <button type="submit" id="loginBtn" class="btn-submit">เริ่มสะสมกลีบดอกบัว 🌸</button>
                 <div id="error-msg" style="color:var(--danger); margin-top:10px;"></div>
             </form>
