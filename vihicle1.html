@@ -43,7 +43,7 @@
         #tab-report { display: block !important; }
         #reportCard { box-shadow: none; border: none; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { border: 1px solid #000 !important; padding: 8px; vertical-align: top; }
+        th, td { border: 1px solid #000 !important; padding: 8px; vertical-align: middle; }
         .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
       }
       .print-header { display: none; }
@@ -189,7 +189,7 @@
             <div class="table-responsive">
                <table class="table table-bordered table-striped" id="reportTable">
                   <thead class="table-light text-center">
-                     <tr><th>#</th><th>รหัส</th><th>ชื่อ-สกุล</th><th>การเดินทาง</th></tr>
+                     <tr><th style="width: 5%;">#</th><th style="width: 15%;">รหัส</th><th style="width: 30%;">ชื่อ-สกุล</th><th style="width: 50%;">การเดินทาง</th></tr>
                   </thead>
                   <tbody><tr><td colspan="4" class="text-center">เลือกห้องเพื่อแสดงข้อมูล</td></tr></tbody>
                </table>
@@ -586,8 +586,34 @@
          document.getElementById('btnPrint').disabled = false;
          toggleLoading(false);
 
-         tbody.innerHTML = data.length ? data.map((r, i) => `<tr><td>${i+1}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[11] || r[19] || 'ไม่ระบุทะเบียน'}</td></tr>`).join('') 
-                                       : '<tr><td colspan="4" class="text-center">ไม่มีข้อมูล</td></tr>';
+         if (data.length) {
+            let html = '';
+            data.forEach((r, i) => {
+               let travelInfo = [];
+               
+               // คอลัมน์ G (index 6) คือ Bus_Rank - ถ้ารถรับส่ง ให้แสดงข้อมูลคอลัมน์ H (index 7)
+               if (r[6]) { 
+                  travelInfo.push(`<span class="badge bg-bus text-dark">รถรับส่ง</span> คนขับ: ${r[7] || '-'}`);
+               }
+               // คอลัมน์ O (index 14) คือ Parent_Rank - ถ้าผู้ปกครองมาส่ง ให้แสดงข้อมูลคอลัมน์ P (index 15)
+               if (r[14]) { 
+                  travelInfo.push(`<span class="badge bg-parent text-dark">ผู้ปกครอง</span> คนขับ: ${r[15] || '-'}`);
+               }
+               // คอลัมน์ Q (index 16) คือ Self_Rank - ถ้าขับขี่มาเอง ให้แสดงข้อมูลคอลัมน์ R, S, T (index 17, 18, 19)
+               if (r[16]) { 
+                  // ถ้ายี่ห้อเป็น "อื่นๆ" ให้ดึงคอลัมน์ S (Other Brand) มาแสดงแทน
+                  let brand = r[17] === 'อื่นๆ' && r[18] ? r[18] : r[17];
+                  travelInfo.push(`<span class="badge bg-self text-dark">ขับมาเอง</span> ${brand || '-'} ทะเบียน: ${r[19] || '-'}`);
+               }
+               
+               let travelText = travelInfo.length > 0 ? travelInfo.join('<br>') : '<span class="text-muted">ไม่ระบุข้อมูล</span>';
+               
+               html += `<tr><td class="text-center">${i+1}</td><td class="text-center">${r[2]}</td><td>${r[3]}</td><td>${travelText}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+         } else {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">ไม่มีข้อมูล</td></tr>';
+         }
       }
 
       // --- DASHBOARD ---
