@@ -200,7 +200,26 @@
       <!-- Tab: Data Dashboard -->
       <div id="tab-data" class="tab-content" style="display:none;">
          <div class="card p-3 mb-3 no-print">
-            <h5 class="text-primary"><i class="bi bi-bar-chart-fill"></i> แสดงข้อมูลทั้งหมด</h5>
+            <h5 class="text-primary"><i class="bi bi-bar-chart-fill"></i> ระบบแสดงการเดินทาง</h5>
+            
+            <div class="mb-3">
+               <label class="fw-bold mb-2"><i class="bi bi-funnel"></i> 1. เลือกวิธีการเดินทาง (เลือกได้หลายข้อ)</label>
+               <div class="d-flex flex-wrap gap-3 p-2 bg-light rounded border">
+                  <div class="form-check">
+                     <input class="form-check-input filter-cb" type="checkbox" value="bus" id="filterBus" checked onchange="renderDashboard()">
+                     <label class="form-check-label" for="filterBus">รถรับส่งประจำ</label>
+                  </div>
+                  <div class="form-check">
+                     <input class="form-check-input filter-cb" type="checkbox" value="parent" id="filterParent" checked onchange="renderDashboard()">
+                     <label class="form-check-label" for="filterParent">ผู้ปกครองมาส่ง</label>
+                  </div>
+                  <div class="form-check">
+                     <input class="form-check-input filter-cb" type="checkbox" value="self" id="filterSelf" checked onchange="renderDashboard()">
+                     <label class="form-check-label" for="filterSelf">เดินทางมาเอง</label>
+                  </div>
+               </div>
+            </div>
+
             <div class="mb-3">
                <label class="fw-bold small">จัดเรียงตาม:</label>
                <select id="sortOption" class="form-select form-select-sm" onchange="renderDashboard()">
@@ -209,14 +228,26 @@
                   <option value="village">หมู่บ้าน</option>
                </select>
             </div>
-            <button class="btn btn-sm btn-success w-100" onclick="loadAllDataForDashboard()">โหลดข้อมูล</button>
+            
+            <button class="btn btn-sm btn-success w-100" onclick="loadAllDataForDashboard()"><i class="bi bi-arrow-clockwise"></i> โหลดข้อมูลใหม่</button>
          </div>
+         
          <div class="card p-3">
             <span class="badge bg-secondary mb-2" id="countDisplay">0 รายการ</span>
             <div class="table-responsive">
                <table class="table table-hover table-bordered" id="dashboardTable" style="font-size: 0.9rem;">
-                  <thead class="table-primary"><tr><th>ห้อง</th><th>ชื่อ</th><th>รายละเอียด</th></tr></thead>
-                  <tbody><tr><td colspan="3" class="text-center">กำลังโหลด...</td></tr></tbody>
+                  <thead class="table-primary text-center">
+                     <tr>
+                        <th>ที่</th>
+                        <th>ห้อง/รหัส</th>
+                        <th>ชื่อ-สกุล</th>
+                        <th>ข้อมูลการเดินทาง</th>
+                        <th>การติดต่อ</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>
+                  </tbody>
                </table>
             </div>
          </div>
@@ -644,8 +675,78 @@
 
       function renderDashboard() {
          const tbody = document.querySelector('#dashboardTable tbody');
-         document.getElementById('countDisplay').innerText = globalData.length + " รายการ";
-         tbody.innerHTML = globalData.map(r => `<tr><td>${r[1]}</td><td>${r[3]}</td><td>${r[11] || r[19] || '-'}</td></tr>`).join('');
+         const sortBy = document.getElementById('sortOption').value;
+
+         // 1. รับค่าสถานะ Checkbox ตัวกรอง โดยอ้างอิง ID ให้ตรงกับใน HTML
+         const showBus = document.getElementById('filterBus').checked;
+         const showParent = document.getElementById('filterParent').checked;
+         const showSelf = document.getElementById('filterSelf').checked;
+
+         // 2. กรองข้อมูลตาม Checkbox
+         let filteredData = globalData.filter(r => {
+            const hasBus = !!r[6];      // Col G (index 6) = รถรับส่ง
+            const hasParent = !!r[14];  // Col O (index 14) = ผู้ปกครองมาส่ง
+            const hasSelf = !!r[16];    // Col Q (index 16) = ขับมาเอง
+
+            // ถ้ามีข้อมูลตรงกับ Checkbox ที่ติ๊กไว้ ให้แสดงผล
+            if (showBus && hasBus) return true;
+            if (showParent && hasParent) return true;
+            if (showSelf && hasSelf) return true;
+            return false; // ไม่เข้าเงื่อนไขเลยให้ซ่อน
+         });
+
+         // 3. จัดเรียงข้อมูล (Sort)
+         filteredData.sort((a, b) => {
+            if (sortBy === 'class') return String(a[1]).localeCompare(String(b[1]), undefined, {numeric: true});
+            if (sortBy === 'driver') return String(a[7] || a[15] || '').localeCompare(String(b[7] || b[15] || ''));
+            if (sortBy === 'village') return String(a[13] || '').localeCompare(String(b[13] || ''));
+            return 0;
+         });
+
+         document.getElementById('countDisplay').innerText = filteredData.length + " รายการ";
+
+         if (filteredData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูลตามเงื่อนไขที่กรอง</td></tr>';
+            return;
+         }
+
+         // 4. สร้างแถวตาราง (Render HTML)
+         let html = '';
+         filteredData.forEach((r, i) => {
+            
+            // --- โลจิกดึงข้อมูลการเดินทาง (เหมือนหน้ารายงาน) ---
+            let travelInfo = [];
+            if (r[6]) travelInfo.push(`<span class="badge bg-bus text-dark">รถรับส่ง</span> คนขับ: ${r[7] || '-'} ทะเบียน: ${r[11] || '-'}`);
+            if (r[14]) travelInfo.push(`<span class="badge bg-parent text-dark">ผู้ปกครอง</span> คนขับ: ${r[15] || '-'}`);
+            if (r[16]) { 
+               let brand = r[17] === 'อื่นๆ' && r[18] ? r[18] : r[17];
+               travelInfo.push(`<span class="badge bg-self text-dark">ขับมาเอง</span> ${brand || '-'} ทะเบียน: ${r[19] || '-'}`);
+            }
+            let travelText = travelInfo.length > 0 ? travelInfo.join('<br>') : '<span class="text-muted">ไม่ระบุข้อมูล</span>';
+
+            // --- โลจิกปุ่มกดโทรศัพท์ (ลบเครื่องหมายขีดคั่นออกเพื่อกัน error ตอนโทร) ---
+            let stPhoneRaw = String(r[4] || '').replace(/['\s-]/g, ''); // รหัสนักเรียน Col E
+            let paPhoneRaw = String(r[5] || '').replace(/['\s-]/g, ''); // รหัสผู้ปกครอง Col F
+            
+            let phoneHtml = '';
+            if(stPhoneRaw.length >= 9) {
+               phoneHtml += `<a href="tel:${stPhoneRaw}" class="btn btn-sm btn-outline-primary mb-1 w-100 text-start" style="font-size:0.75rem;"><i class="bi bi-telephone-fill"></i> นร. ${stPhoneRaw}</a>`;
+            }
+            if(paPhoneRaw.length >= 9) {
+               phoneHtml += `<a href="tel:${paPhoneRaw}" class="btn btn-sm btn-outline-success w-100 text-start" style="font-size:0.75rem;"><i class="bi bi-telephone-fill"></i> ผปค. ${paPhoneRaw}</a>`;
+            }
+
+            // แสดงผลแต่ละแถว
+            html += `<tr>
+               <td class="text-center">${i+1}</td>
+               <td class="text-center"><strong>${r[1]}</strong><br><span class="text-muted small">${r[2].replace(/'/g, '')}</span></td>
+               <td>${r[3]}</td>
+               <td>${travelText}</td>
+               <td>${phoneHtml || '<span class="text-muted small">ไม่มีเบอร์</span>'}</td>
+            </tr>`;
+         });
+         
+         tbody.innerHTML = html;
       }
     </script>
   </body>
