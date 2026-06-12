@@ -2,7 +2,7 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบยานพาหนะ - โรงเรียนบัวใหญ่</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
@@ -25,6 +25,17 @@
       .nav-pills { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; }
       .nav-pills .nav-item { white-space: nowrap; }
 
+      /* Custom Dialog Overlay */
+      .custom-dialog-overlay {
+         position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1050;
+         display: none; justify-content: center; align-items: center; padding: 20px;
+      }
+      .custom-dialog-box {
+         background: white; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px;
+         box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease;
+      }
+      @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
       @media print {
         @page { size: A4; margin: 1cm; }
         body { background-color: white; font-family: 'Sarabun', sans-serif; }
@@ -43,7 +54,7 @@
     <nav class="navbar navbar-light bg-white sticky-top shadow-sm no-print">
       <div class="container-fluid justify-content-center">
         <a href="javascript:location.reload()" class="navbar-brand mb-0 h1 text-primary fw-bold">
-          <i class="bi bi-car-front-fill"></i> โรงเรียนบัวใหญ่
+          <i class="bi bi-car-front-fill"></i> ระบบยานพาหนะ ของระบบ  Buayai I Care School ระบบดูแลช่วยเหลือนักเรียนดิจิทัล
         </a>
       </div>
     </nav>
@@ -52,14 +63,13 @@
       
       <!-- เมนู นำทาง -->
       <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm mb-3 no-print">
-        <li class="nav-item"><a class="nav-link active rounded-pill" onclick="switchTab('survey', this)">แบบสอบถาม</a></li>
+        <li class="nav-item"><a class="nav-link active rounded-pill" onclick="switchTab('survey', this)">แบบลงทะเบียนยานพาหนะในสถานศึกษา</a></li>
         <li class="nav-item"><a class="nav-link rounded-pill text-danger" onclick="switchTab('warning', this)"><i class="bi bi-exclamation-triangle-fill"></i> ตักเตือน</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('missing', this)">ติดตามผล</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('missing', this)">ติดตามผู้ยังไม่กรอกข้อมูล</a></li>
         <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('report', this)">รายงาน</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('data', this)">ข้อมูล</a></li>
+        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('data', this)">ดูข้อมูล</a></li>
       </ul>
 
-      <!-- Tab: Survey -->
       <div id="tab-survey" class="tab-content">
         <div class="card p-3">
           <h5 class="text-primary"><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</h5>
@@ -84,7 +94,7 @@
                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkBus" onchange="toggleDetail('bus')"></div>
               </div>
               <div id="detail-bus" class="detail-section">
-                <select class="form-select form-select-sm mb-2" id="rankBus"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                <select class="form-select form-select-sm mb-2" id="rankBus"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
                 <input type="text" class="form-control mb-2" id="busDriver" placeholder="ชื่อคนขับ *">
                 <input type="tel" class="form-control mb-2" id="busDriverPhone" placeholder="เบอร์โทรคนขับรถ *" maxlength="10">
                 <input type="text" class="form-control mb-2" id="busVillage" placeholder="ชื่อหมู่บ้าน (ที่ลงรถ) *">
@@ -108,7 +118,7 @@
                  <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkParent" onchange="toggleDetail('parent')"></div>
               </div>
               <div id="detail-parent" class="detail-section">
-                 <select class="form-select form-select-sm mb-2" id="rankParent"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                 <select class="form-select form-select-sm mb-2" id="rankParent"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
                 <input type="text" class="form-control" id="parentDriver" placeholder="ชื่อผู้ปกครอง (คนขับ) *">
               </div>
             </div>
@@ -121,7 +131,7 @@
                  <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkSelf" onchange="toggleDetail('self')"></div>
               </div>
               <div id="detail-self" class="detail-section">
-                <select class="form-select form-select-sm mb-2" id="rankSelf"><option value="1">อันดับ 1</option><option value="2">อันดับ 2</option></select>
+                <select class="form-select form-select-sm mb-2" id="rankSelf"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
                 <div class="row g-2 mb-2">
                    <div class="col-6"><select class="form-select" id="selfBrand" onchange="checkOther('selfBrand','selfBrandOther')"></select></div>
                    <div class="col-6"><input type="text" id="selfBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
@@ -141,14 +151,13 @@
         </form>
       </div>
 
-      <!-- Tab: Warning System -->
       <div id="tab-warning" class="tab-content" style="display:none;">
         <div class="card p-3 border-danger" style="border-width: 2px;">
           <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ระบบตักเตือนยานพาหนะ</h5>
           <p class="small text-muted mb-2">ค้นหาจากป้ายทะเบียนเพื่อออกใบเตือน</p>
           
           <div class="input-group mb-3">
-            <input type="text" id="searchPlateText" class="form-control form-control-lg" placeholder="ระบุทะเบียน เช่น กข1234">
+            <input type="text" id="searchPlateText" class="form-control form-control-lg" placeholder="ระบุทะเบียน เช่น 55 หรือ กข">
             <button class="btn btn-danger" type="button" onclick="executeSearchPlate()"><i class="bi bi-search"></i> ค้นหา</button>
           </div>
 
@@ -219,6 +228,20 @@
        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
     </div>
 
+    <div id="customDialog" class="custom-dialog-overlay">
+       <div class="custom-dialog-box text-center">
+          <h5 id="dialogTitle" class="mb-3 fw-bold">ข้อความ</h5>
+          <p id="dialogMessage" class="text-muted mb-3"></p>
+          <div id="dialogInputArea" style="display:none;" class="mb-3">
+             <input type="password" id="dialogInput" class="form-control text-center" placeholder="ใส่รหัสผ่าน...">
+          </div>
+          <div class="d-flex justify-content-center gap-2">
+             <button id="dialogBtnCancel" class="btn btn-light w-50" style="display:none;">ยกเลิก</button>
+             <button id="dialogBtnOk" class="btn btn-primary w-50">ตกลง</button>
+          </div>
+       </div>
+    </div>
+
     <script>
       // ==========================================
       // ตั้งค่าเชื่อมต่อ Google Script Web App API
@@ -228,10 +251,67 @@
       const carBrands = ["Toyota", "Honda", "Isuzu", "Mitsubishi", "Yamaha", "GPX", "Vespa", "Suzuki", "อื่นๆ"];
       let globalData = []; 
 
+      // --- Custom Dialog System (แทนที่ alert, prompt, confirm) ---
+      function showCustomDialog(options) {
+         const overlay = document.getElementById('customDialog');
+         document.getElementById('dialogTitle').innerText = options.title || 'แจ้งเตือน';
+         document.getElementById('dialogTitle').className = `mb-3 fw-bold text-${options.type || 'primary'}`;
+         document.getElementById('dialogMessage').innerHTML = options.message || '';
+         
+         const inputArea = document.getElementById('dialogInputArea');
+         const input = document.getElementById('dialogInput');
+         if(options.isPrompt) {
+            inputArea.style.display = 'block';
+            input.value = '';
+            input.focus();
+         } else {
+            inputArea.style.display = 'none';
+         }
+
+         const btnOk = document.getElementById('dialogBtnOk');
+         const btnCancel = document.getElementById('dialogBtnCancel');
+         
+         btnOk.className = `btn btn-${options.type || 'primary'} w-50`;
+         
+         if(options.isConfirm || options.isPrompt) {
+            btnCancel.style.display = 'block';
+         } else {
+            btnCancel.style.display = 'none';
+            btnOk.className = `btn btn-${options.type || 'primary'} w-100`;
+         }
+
+         overlay.style.display = 'flex';
+
+         // Remove old event listeners
+         const newBtnOk = btnOk.cloneNode(true);
+         const newBtnCancel = btnCancel.cloneNode(true);
+         btnOk.parentNode.replaceChild(newBtnOk, btnOk);
+         btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+         newBtnOk.onclick = function() {
+            overlay.style.display = 'none';
+            if(options.callback) options.callback(options.isPrompt ? input.value : true);
+         };
+         newBtnCancel.onclick = function() {
+            overlay.style.display = 'none';
+            if(options.callback) options.callback(options.isPrompt ? null : false);
+         };
+      }
+
+      function showAlert(msg, type = 'primary', callback = null) {
+         showCustomDialog({ title: 'แจ้งเตือน', message: msg, type: type, callback: callback });
+      }
+      function showConfirm(msg, callback) {
+         showCustomDialog({ title: 'ยืนยัน', message: msg, isConfirm: true, callback: callback });
+      }
+      function showPrompt(msg, callback) {
+         showCustomDialog({ title: 'ต้องการรหัสผ่าน', message: msg, isPrompt: true, type: 'danger', callback: callback });
+      }
+
       // --- ระบบ API Call (เชื่อมโยงฐานข้อมูล) ---
       async function callAPI(action, payload = {}) {
         if (!API_URL) {
-           alert("เกิดข้อผิดพลาด: ไม่พบ API_URL");
+           showAlert("เกิดข้อผิดพลาด: ไม่พบ API_URL", 'danger');
            return null;
         }
         try {
@@ -245,7 +325,7 @@
           return result.data;
         } catch (error) {
           console.error("API Error:", error);
-          alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
+          showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message, 'danger');
           throw error;
         }
       }
@@ -267,15 +347,24 @@
 
       // --- Navigation ---
       function switchTab(tabName, link) {
-        if (tabName === 'data') {
-           if (prompt("รหัสผ่าน (Admin):") !== '8888') { alert("รหัสผิด"); return; }
-           loadAllDataForDashboard();
+        // หากเข้าเมนูที่ต้องใช้รหัสผ่าน (ตักเตือน หรือ ข้อมูล)
+        if (tabName === 'data' || tabName === 'warning') {
+           showPrompt("กรุณากรอกรหัสผ่าน Admin", function(val) {
+               if(val === '8888') {
+                   executeSwitchTab(tabName, link);
+                   if(tabName === 'data') loadAllDataForDashboard();
+               } else if (val !== null) {
+                   showAlert("รหัสผ่านไม่ถูกต้อง!", 'danger');
+               }
+           });
+        } else {
+           executeSwitchTab(tabName, link);
         }
-        if (tabName === 'warning') {
-           if (prompt("รหัสผ่าน (Admin):") !== '8888') { alert("รหัสผิด"); return; }
-        }
+      }
+
+      function executeSwitchTab(tabName, link) {
         document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'text-danger'));
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'text-danger', 'bg-danger', 'text-white'));
         document.getElementById('tab-' + tabName).style.display = 'block';
         if(link) {
            link.classList.add('active');
@@ -307,15 +396,17 @@
         selSt.disabled = false;
       }
 
-      async function submitData(e) {
+      function submitData(e) {
          e.preventDefault();
-         if(!document.getElementById('checkConsent').checked) { alert('กรุณายินยอมให้จัดเก็บข้อมูล'); return; }
+         if(!document.getElementById('checkConsent').checked) { showAlert('กรุณายินยอมให้จัดเก็บข้อมูล', 'warning'); return; }
          const stId = document.getElementById('selStudent').value;
-         if(!stId) return alert('กรุณาเลือกชื่อ');
+         if(!stId) return showAlert('กรุณาเลือกชื่อ', 'warning');
          
          const isBus = document.getElementById('checkBus').checked;
          const isParent = document.getElementById('checkParent').checked;
          const isSelf = document.getElementById('checkSelf').checked;
+
+         if(!isBus && !isParent && !isSelf) return showAlert('กรุณาเลือกวิธีการเดินทางอย่างน้อย 1 วิธี', 'warning');
 
          const data = {
            className: document.getElementById('selClass').value,
@@ -342,20 +433,25 @@
            selfPlate: isSelf ? document.getElementById('selfPlate').value.trim() : ''
          };
 
-         toggleLoading(true);
-         try {
-           await callAPI('submitSurvey', { data: data });
-           alert('บันทึกสำเร็จ!'); location.reload();
-         } catch(e) {}
-         toggleLoading(false);
+         showConfirm('ยืนยันส่งข้อมูลใช่หรือไม่?', async function(yes) {
+            if(!yes) return;
+            toggleLoading(true);
+            try {
+              await callAPI('submitSurvey', { data: data });
+              showAlert('บันทึกสำเร็จ!', 'success', function() { location.reload(); });
+            } catch(e) {
+               toggleLoading(false);
+            }
+         });
       }
 
-      // --- WARNING SYSTEM LOGIC ---
-      let currentWarningStudent = null;
+      // --- WARNING SYSTEM LOGIC (แก้ไขให้รองรับ Array เรียบร้อย) ---
+      let currentSearchResults = [];
+      let selectedStudentIndex = -1;
 
       async function executeSearchPlate() {
          const plate = document.getElementById('searchPlateText').value;
-         if(!plate) return alert('กรุณากรอกทะเบียนรถ');
+         if(!plate) return showAlert('กรุณาระบุคำที่ต้องการค้นหา', 'warning');
          
          toggleLoading(true);
          const res = await callAPI('searchPlate', { plate: plate });
@@ -364,37 +460,63 @@
          const area = document.getElementById('warningResultArea');
          area.style.display = 'block';
 
-         if (res.found) {
-            currentWarningStudent = res;
-            area.innerHTML = `
-               <div class="alert alert-warning mt-3">
-                  <h6 class="fw-bold mb-1"><i class="bi bi-person-check"></i> พบข้อมูลนักเรียน!</h6>
-                  <p class="mb-2 small">
-                     ชื่อ: <strong>${res.name}</strong><br>
-                     ห้อง: <strong>${res.className}</strong> (รหัส: ${res.studentId})<br>
-                     ป้ายทะเบียน: <strong>${res.plate}</strong> (${res.type})
-                  </p>
-                  <hr>
-                  <div class="mb-2">
-                     <label class="form-label small fw-bold text-danger">ระบุข้อหา/ความผิด</label>
-                     <select id="warningTopic" class="form-select form-select-sm mb-2">
-                        <option value="ไม่สวมหมวกกันน็อก">ไม่สวมหมวกกันน็อก</option>
-                        <option value="ท่อเสียงดัง/ดัดแปลงสภาพ">ท่อเสียงดัง/ดัดแปลงสภาพ</option>
-                        <option value="ขับขี่หวาดเสียว">ขับขี่หวาดเสียว</option>
-                        <option value="จอดผิดที่">จอดผิดที่</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                     </select>
-                     <textarea id="warningDetail" class="form-control form-control-sm" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
-                  </div>
-                  <button class="btn btn-danger w-100" onclick="saveWarning()">บันทึกการตักเตือน</button>
-               </div>
-            `;
+         // ตรวจสอบว่าพบข้อมูล และดึงผลลัพธ์ที่เป็น Array มาใช้
+         if (res.found && res.results && res.results.length > 0) {
+            currentSearchResults = res.results;
+            
+            // สร้าง HTML แสดงรายการนักเรียนที่ค้นเจอทั้งหมด
+            let html = `<div class="mt-3">
+                           <div class="alert alert-warning mb-2 py-2">
+                              <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check"></i> พบข้อมูล ${currentSearchResults.length} รายการ:</h6>
+                           </div>
+                           <div class="list-group">`;
+            
+            // วนลูปสร้างรายชื่อจาก Array
+            currentSearchResults.forEach((student, index) => {
+               html += `<div class="list-group-item list-group-item-action flex-column align-items-start border-warning mb-2 rounded">
+                           <div class="d-flex w-100 justify-content-between align-items-center">
+                             <h6 class="mb-1 fw-bold text-dark">${student.plate || 'ไม่ระบุ'} <span class="badge bg-secondary ms-1">${student.type}</span></h6>
+                             <small class="text-muted">ห้อง ${student.className}</small>
+                           </div>
+                           <p class="mb-1 small text-dark">ชื่อ: <strong>${student.name}</strong> (รหัส: ${student.studentId})</p>
+                           <button class="btn btn-sm btn-outline-danger mt-2 w-100 fw-bold" onclick="openWarningForm(${index})">
+                              <i class="bi bi-exclamation-triangle-fill"></i> ตักเตือนคนนี้
+                           </button>
+                        </div>`;
+            });
+            
+            html += `   </div>
+                        <!-- พื้นที่สำหรับฟอร์มกรอกข้อหา จะถูกนำมาแสดงตรงนี้เมื่อคลิกปุ่ม -->
+                        <div id="warningFormArea" class="mt-3 p-3 bg-light rounded border border-danger" style="display:none;">
+                           <h6 class="fw-bold text-danger text-center border-bottom border-danger pb-2">ใบสั่งตักเตือน</h6>
+                           <p class="small text-center fw-bold mb-3">ชื่อ: <span id="warnTargetName" class="text-primary"></span></p>
+                           
+                           <div class="mb-2">
+                              <label class="form-label small fw-bold text-dark">ระบุข้อหา/ความผิด</label>
+                              <select id="warningTopic" class="form-select form-select-sm mb-2">
+                                 <option value="ไม่สวมหมวกกันน็อก">ไม่สวมหมวกกันน็อก</option>
+                                 <option value="ท่อเสียงดัง/ดัดแปลงสภาพ">ท่อเสียงดัง/ดัดแปลงสภาพ</option>
+                                 <option value="ขับขี่หวาดเสียว">ขับขี่หวาดเสียว</option>
+                                 <option value="จอดผิดที่">จอดผิดที่</option>
+                                 <option value="อื่นๆ">อื่นๆ</option>
+                              </select>
+                              <textarea id="warningDetail" class="form-control form-control-sm" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+                           </div>
+                           <div class="d-flex gap-2 mt-3">
+                              <button class="btn btn-secondary w-50" onclick="document.getElementById('warningFormArea').style.display='none'">ยกเลิก</button>
+                              <button class="btn btn-danger w-50" onclick="saveWarning()"><i class="bi bi-save"></i> บันทึก</button>
+                           </div>
+                        </div>
+                     </div>`;
+            
+            area.innerHTML = html;
          } else {
+            // ไม่พบข้อมูล
             area.innerHTML = `
                <div class="alert alert-secondary mt-3 text-center">
                   <i class="bi bi-search fs-3 text-muted d-block mb-2"></i>
                   <h6 class="fw-bold">ไม่พบข้อมูลทะเบียนในระบบ</h6>
-                  <p class="small text-muted">ยานพาหนะนี้อาจยังไม่ได้ลงทะเบียนในระบบ หรือกรอกข้อมูลผิดพลาด</p>
+                  <p class="small text-muted">ไม่พบคำว่า "${plate}" ในฐานข้อมูลยานพาหนะ</p>
                   <button class="btn btn-outline-primary btn-sm rounded-pill mt-2" onclick="switchTab('survey', document.querySelector('.nav-link'))">
                      แนะนำให้ลงทะเบียนทันที
                   </button>
@@ -403,29 +525,45 @@
          }
       }
 
-      async function saveWarning() {
-         if(!currentWarningStudent) return;
+      // ฟังก์ชันเปิดฟอร์มตักเตือนเฉพาะคน
+      function openWarningForm(index) {
+         selectedStudentIndex = index;
+         const student = currentSearchResults[index];
+         document.getElementById('warnTargetName').innerText = `${student.name} (${student.plate})`;
+         
+         // เลื่อนหน้าจอลงมาที่ฟอร์ม
+         const formArea = document.getElementById('warningFormArea');
+         formArea.style.display = 'block';
+         formArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+
+      function saveWarning() {
+         if(selectedStudentIndex === -1) return;
+         const student = currentSearchResults[selectedStudentIndex];
          
          const payload = {
-            className: currentWarningStudent.className,
-            studentId: currentWarningStudent.studentId,
-            name: currentWarningStudent.name,
-            plate: currentWarningStudent.plate,
-            type: currentWarningStudent.type,
+            className: student.className,
+            studentId: student.studentId,
+            name: student.name,
+            plate: student.plate,
+            type: student.type,
             topic: document.getElementById('warningTopic').value,
             detail: document.getElementById('warningDetail').value
          };
 
-         if(confirm(`ยืนยันการตักเตือน: ${payload.name} ?`)) {
+         showConfirm(`ยืนยันการตักเตือน:\n${payload.name} ใช่หรือไม่?`, async function(yes) {
+            if(!yes) return;
             toggleLoading(true);
             try {
                const res = await callAPI('submitWarning', { data: payload });
-               alert(`บันทึกการตักเตือนเรียบร้อย!\nรหัสอ้างอิง: ${res.warningId}`);
+               showAlert(`บันทึกการตักเตือนเรียบร้อย!\nรหัสอ้างอิง: ${res.warningId}`, 'success');
                document.getElementById('searchPlateText').value = '';
                document.getElementById('warningResultArea').style.display = 'none';
-            } catch(e) {}
+            } catch(e) {
+               toggleLoading(false);
+            }
             toggleLoading(false);
-         }
+         });
       }
 
       // --- MISSING & REPORT ---
