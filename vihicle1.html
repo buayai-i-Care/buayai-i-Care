@@ -10,20 +10,55 @@
     
     <style>
       :root { --primary: #0d6efd; --bg: #f4f6f8; }
-      body { font-family: 'Prompt', sans-serif; background-color: var(--bg); padding-bottom: 80px; }
+      body { 
+         font-family: 'Prompt', sans-serif; 
+         background-color: var(--bg); 
+         padding-bottom: 80px; 
+         font-size: 16px; /* ป้องกัน iOS ซูมหน้าจอเวลาพิมพ์ และให้อ่านง่ายขึ้น */
+      }
       .container { max-width: 600px; margin-top: 15px; }
       
-      .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
+      /* UX/UI Mobile Enhancements */
+      .form-control, .form-select { 
+         font-size: 16px; 
+         padding: 12px 15px; 
+         border-radius: 8px; 
+      }
+      .btn { 
+         padding: 10px 15px; 
+         border-radius: 8px; 
+         font-size: 16px; 
+      }
+      .btn-lg { 
+         padding: 14px 20px; 
+         font-size: 18px; 
+         font-weight: 600;
+      }
+      
+      .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
       .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
-      .detail-section { display: none; padding-top: 15px; border-top: 1px dashed #ddd; margin-top: 10px; }
+      .form-check-label { font-size: 16px; margin-top: 4px; }
+      .detail-section { display: none; padding-top: 15px; border-top: 1px dashed #ddd; margin-top: 12px; }
 
-      .badge-mode { font-weight: normal; font-size: 0.85em; padding: 5px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
+      .badge-mode { font-weight: normal; font-size: 0.95em; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; display: inline-block; }
       .bg-bus { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
       .bg-parent { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
       .bg-self { background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
 
-      .nav-pills { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; }
+      /* Scrollable Nav Pills */
+      .nav-pills { 
+         overflow-x: auto; 
+         flex-wrap: nowrap; 
+         padding-bottom: 5px; 
+         -webkit-overflow-scrolling: touch; /* เลื่อนลื่นบนมือถือ */
+         scrollbar-width: none; /* Firefox */
+      }
+      .nav-pills::-webkit-scrollbar { display: none; } /* Chrome, Safari */
       .nav-pills .nav-item { white-space: nowrap; }
+      .nav-pills .nav-link { padding: 12px 20px; font-size: 16px; margin-right: 5px; border-radius: 25px; }
+
+      .table-responsive { -webkit-overflow-scrolling: touch; }
+      table { font-size: 16px !important; }
 
       /* Custom Dialog Overlay */
       .custom-dialog-overlay {
@@ -31,18 +66,18 @@
          display: none; justify-content: center; align-items: center; padding: 20px;
       }
       .custom-dialog-box {
-         background: white; border-radius: 12px; padding: 20px; width: 100%; max-width: 400px;
+         background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 400px;
          box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease;
       }
       @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
       @media print {
         @page { size: A4; margin: 1cm; }
-        body { background-color: white; font-family: 'Sarabun', sans-serif; }
+        body { background-color: white; font-family: 'Sarabun', sans-serif; font-size: 14pt; }
         .no-print, nav, .nav-pills { display: none !important; }
         #tab-report { display: block !important; }
-        #reportCard { box-shadow: none; border: none; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        #reportCard { box-shadow: none; border: none; padding: 0; margin: 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 14pt !important; }
         th, td { border: 1px solid #000 !important; padding: 8px; vertical-align: middle; }
         .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
       }
@@ -51,10 +86,10 @@
   </head>
   <body>
 
-    <nav class="navbar navbar-light bg-white sticky-top shadow-sm no-print">
+    <nav class="navbar navbar-light bg-white sticky-top shadow-sm no-print py-3">
       <div class="container-fluid justify-content-center">
-        <a href="javascript:location.reload()" class="navbar-brand mb-0 h1 text-primary fw-bold">
-          <i class="bi bi-car-front-fill"></i> ระบบยานพาหนะ ของระบบ  Buayai I Care School ระบบดูแลช่วยเหลือนักเรียนดิจิทัล
+        <a href="javascript:location.reload()" class="navbar-brand mb-0 h5 text-primary fw-bold text-wrap text-center lh-base">
+          <i class="bi bi-car-front-fill"></i> ระบบยานพาหนะ<br><span class="fs-6 text-muted">Buayai I Care School</span>
         </a>
       </div>
     </nav>
@@ -62,103 +97,103 @@
     <div class="container">
       
       <!-- เมนู นำทาง -->
-      <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm mb-3 no-print">
-        <li class="nav-item"><a class="nav-link active rounded-pill" onclick="switchTab('survey', this)">แบบลงทะเบียนยานพาหนะในสถานศึกษา</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill text-danger" onclick="switchTab('warning', this)"><i class="bi bi-exclamation-triangle-fill"></i> ตักเตือน</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('missing', this)">ติดตามผู้ยังไม่กรอกข้อมูล</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('report', this)">รายงาน</a></li>
-        <li class="nav-item"><a class="nav-link rounded-pill" onclick="switchTab('data', this)">ดูข้อมูล</a></li>
+      <ul class="nav nav-pills bg-white p-2 rounded shadow-sm mb-4 no-print">
+        <li class="nav-item"><a class="nav-link active" onclick="switchTab('survey', this)">ลงทะเบียนยานพาหนะ</a></li>
+        <li class="nav-item"><a class="nav-link text-danger fw-bold" onclick="switchTab('warning', this)"><i class="bi bi-exclamation-triangle-fill"></i> ตักเตือน</a></li>
+        <li class="nav-item"><a class="nav-link" onclick="switchTab('missing', this)">ติดตามข้อมูล</a></li>
+        <li class="nav-item"><a class="nav-link" onclick="switchTab('report', this)">รายงาน</a></li>
+        <li class="nav-item"><a class="nav-link" onclick="switchTab('data', this)">ดูข้อมูล</a></li>
       </ul>
 
       <div id="tab-survey" class="tab-content">
-        <div class="card p-3">
-          <h5 class="text-primary"><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</h5>
-          <select class="form-select mb-3 mt-2" id="selClass" onchange="loadStudentList()">
+        <div class="card p-4">
+          <h5 class="text-primary fw-bold mb-3"><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</h5>
+          <select class="form-select mb-3" id="selClass" onchange="loadStudentList()">
             <option value="" disabled selected>เลือกห้องเรียน...</option>
           </select>
-          <select class="form-select mb-3" id="selStudent" disabled>
+          <select class="form-select mb-4" id="selStudent" disabled>
             <option value="" selected>รอเลือกห้อง...</option>
           </select>
-          <div class="row g-2">
-             <div class="col-6"><input type="tel" id="telStudent" class="form-control" placeholder="เบอร์นักเรียน *" maxlength="10"></div>
-             <div class="col-6"><input type="tel" id="telParent" class="form-control" placeholder="เบอร์ผู้ปกครอง *" maxlength="10"></div>
+          <div class="row g-3">
+             <div class="col-sm-6"><input type="tel" id="telStudent" class="form-control" placeholder="เบอร์โทรนักเรียน *" maxlength="10"></div>
+             <div class="col-sm-6"><input type="tel" id="telParent" class="form-control" placeholder="เบอร์โทรผู้ปกครอง *" maxlength="10"></div>
           </div>
         </div>
 
         <form onsubmit="submitData(event)">
           <!-- Sections รถรับส่ง, ผู้ปกครอง, ขับมาเอง -->
           <div class="card" id="card-bus">
-            <div class="card-body py-2">
+            <div class="card-body p-4">
               <div class="d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold text-warning mb-0">รถรับส่งนักเรียน</h6>
+                <h5 class="fw-bold text-warning mb-0"><i class="bi bi-bus-front"></i> รถรับส่งนักเรียน</h5>
                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkBus" onchange="toggleDetail('bus')"></div>
               </div>
-              <div id="detail-bus" class="detail-section">
-                <select class="form-select form-select-sm mb-2" id="rankBus"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
-                <input type="text" class="form-control mb-2" id="busDriver" placeholder="ชื่อคนขับ *">
-                <input type="tel" class="form-control mb-2" id="busDriverPhone" placeholder="เบอร์โทรคนขับรถ *" maxlength="10">
-                <input type="text" class="form-control mb-2" id="busVillage" placeholder="ชื่อหมู่บ้าน (ที่ลงรถ) *">
-                <div class="row g-2 mb-2">
-                  <div class="col-6"><select class="form-select" id="busType" onchange="checkOther('busType','busTypeOther')"><option value="">ประเภทรถ *</option><option value="รถตู้">รถตู้</option><option value="สองแถว">สองแถว</option><option value="อื่นๆ">อื่นๆ</option></select></div>
-                  <div class="col-6"><input type="text" id="busTypeOther" class="form-control d-none" placeholder="โปรดระบุ *"></div>
+              <div id="detail-bus" class="detail-section mt-3">
+                <select class="form-select mb-3" id="rankBus"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
+                <input type="text" class="form-control mb-3" id="busDriver" placeholder="ชื่อคนขับ *">
+                <input type="tel" class="form-control mb-3" id="busDriverPhone" placeholder="เบอร์โทรคนขับรถ *" maxlength="10">
+                <input type="text" class="form-control mb-3" id="busVillage" placeholder="ชื่อหมู่บ้าน (ที่ลงรถ) *">
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-6"><select class="form-select" id="busType" onchange="checkOther('busType','busTypeOther')"><option value="">ประเภทรถ *</option><option value="รถตู้">รถตู้</option><option value="สองแถว">สองแถว</option><option value="อื่นๆ">อื่นๆ</option></select></div>
+                  <div class="col-sm-6"><input type="text" id="busTypeOther" class="form-control d-none" placeholder="โปรดระบุ *"></div>
                 </div>
-                <div class="row g-2 mb-2">
-                   <div class="col-6"><select class="form-select" id="busBrand" onchange="checkOther('busBrand','busBrandOther')"></select></div>
-                   <div class="col-6"><input type="text" id="busBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
+                <div class="row g-3 mb-3">
+                   <div class="col-sm-6"><select class="form-select" id="busBrand" onchange="checkOther('busBrand','busBrandOther')"></select></div>
+                   <div class="col-sm-6"><input type="text" id="busBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
                 </div>
-                <input type="text" class="form-control" id="busPlate" placeholder="ทะเบียน (กข 1234) *">
+                <input type="text" class="form-control mb-2" id="busPlate" placeholder="ทะเบียน (กข 1234) *">
               </div>
             </div>
           </div>
 
           <div class="card" id="card-parent">
-            <div class="card-body py-2">
+            <div class="card-body p-4">
               <div class="d-flex justify-content-between align-items-center">
-                 <h6 class="fw-bold text-success mb-0">ผู้ปกครองมาส่ง</h6>
+                 <h5 class="fw-bold text-success mb-0"><i class="bi bi-car-front"></i> ผู้ปกครองมาส่ง</h5>
                  <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkParent" onchange="toggleDetail('parent')"></div>
               </div>
-              <div id="detail-parent" class="detail-section">
-                 <select class="form-select form-select-sm mb-2" id="rankParent"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
-                <input type="text" class="form-control" id="parentDriver" placeholder="ชื่อผู้ปกครอง (คนขับ) *">
+              <div id="detail-parent" class="detail-section mt-3">
+                 <select class="form-select mb-3" id="rankParent"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
+                <input type="text" class="form-control mb-2" id="parentDriver" placeholder="ชื่อผู้ปกครอง (คนขับ) *">
               </div>
             </div>
           </div>
 
           <div class="card" id="card-self">
-            <div class="card-body py-2">
+            <div class="card-body p-4">
               <div class="d-flex justify-content-between align-items-center">
-                 <h6 class="fw-bold text-primary mb-0">ขับขี่มาเอง</h6>
+                 <h5 class="fw-bold text-primary mb-0"><i class="bi bi-bicycle"></i> ขับขี่มาเอง</h5>
                  <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkSelf" onchange="toggleDetail('self')"></div>
               </div>
-              <div id="detail-self" class="detail-section">
-                <select class="form-select form-select-sm mb-2" id="rankSelf"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
-                <div class="row g-2 mb-2">
-                   <div class="col-6"><select class="form-select" id="selfBrand" onchange="checkOther('selfBrand','selfBrandOther')"></select></div>
-                   <div class="col-6"><input type="text" id="selfBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
+              <div id="detail-self" class="detail-section mt-3">
+                <select class="form-select mb-3" id="rankSelf"><option value="1">อันดับ 1 (ประจำ)</option><option value="2">อันดับ 2</option></select>
+                <div class="row g-3 mb-3">
+                   <div class="col-sm-6"><select class="form-select" id="selfBrand" onchange="checkOther('selfBrand','selfBrandOther')"></select></div>
+                   <div class="col-sm-6"><input type="text" id="selfBrandOther" class="form-control d-none" placeholder="โปรดระบุยี่ห้อ *"></div>
                 </div>
-                <input type="text" class="form-control" id="selfPlate" placeholder="ทะเบียน (1กข 1234) *">
+                <input type="text" class="form-control mb-2" id="selfPlate" placeholder="ทะเบียน (1กข 1234) *">
               </div>
             </div>
           </div>
 
-          <div class="card bg-light border-0 mb-3">
-             <div class="card-body py-2 form-check">
-                   <input class="form-check-input" type="checkbox" id="checkConsent">
-                   <label class="form-check-label small" for="checkConsent">ข้าพเจ้ายินยอมให้จัดเก็บข้อมูลเพื่อความปลอดภัย</label>
+          <div class="card bg-light border-0 mb-4">
+             <div class="card-body p-4 form-check d-flex align-items-center">
+                   <input class="form-check-input me-3" type="checkbox" id="checkConsent">
+                   <label class="form-check-label text-dark" for="checkConsent">ข้าพเจ้ายินยอมให้จัดเก็บข้อมูลเพื่อความปลอดภัยและการติดต่อ</label>
              </div>
           </div>
-          <button type="submit" class="btn btn-primary w-100 rounded-pill mb-5">บันทึกข้อมูล</button>
+          <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill mb-5 shadow">บันทึกข้อมูลยานพาหนะ</button>
         </form>
       </div>
 
       <div id="tab-warning" class="tab-content" style="display:none;">
-        <div class="card p-3 border-danger" style="border-width: 2px;">
-          <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ระบบตักเตือนยานพาหนะ</h5>
-          <p class="small text-muted mb-2">ค้นหาจากป้ายทะเบียนเพื่อออกใบเตือน</p>
+        <div class="card p-4 border-danger" style="border-width: 2px;">
+          <h4 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ระบบตักเตือนยานพาหนะ</h4>
+          <p class="text-muted mb-3">ค้นหาจากป้ายทะเบียนเพื่อออกใบเตือน</p>
           
-          <div class="input-group mb-3">
-            <input type="text" id="searchPlateText" class="form-control form-control-lg" placeholder="ระบุทะเบียน เช่น 55 หรือ กข">
-            <button class="btn btn-danger" type="button" onclick="executeSearchPlate()"><i class="bi bi-search"></i> ค้นหา</button>
+          <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden">
+            <input type="text" id="searchPlateText" class="form-control form-control-lg border-danger" placeholder="ระบุทะเบียน เช่น 55 หรือ กข">
+            <button class="btn btn-danger px-4 fw-bold" type="button" onclick="executeSearchPlate()"><i class="bi bi-search"></i> ค้นหา</button>
           </div>
 
           <div id="warningResultArea" style="display:none;"></div>
@@ -167,31 +202,31 @@
 
       <!-- Tab: Missing -->
       <div id="tab-missing" class="tab-content" style="display:none;">
-        <div class="card p-3">
-          <h5><i class="bi bi-search"></i> ตรวจสอบคนยังไม่ส่ง</h5>
-          <select id="missingClass" class="form-select mb-3 mt-2" onchange="checkMissing()"><option value="" disabled selected>เลือกห้อง...</option></select>
-          <ul id="missingList" class="list-group list-group-flush"></ul>
+        <div class="card p-4">
+          <h4 class="fw-bold text-primary mb-3"><i class="bi bi-search"></i> ตรวจสอบคนยังไม่ส่ง</h4>
+          <select id="missingClass" class="form-select form-select-lg mb-4" onchange="checkMissing()"><option value="" disabled selected>เลือกห้องเรียน...</option></select>
+          <ul id="missingList" class="list-group list-group-flush fs-5"></ul>
         </div>
       </div>
       
       <!-- Tab: Report -->
        <div id="tab-report" class="tab-content" style="display:none;">
-         <div class="card p-3 mb-3 no-print">
-            <h5 class="text-primary"><i class="bi bi-printer"></i> พิมพ์รายงาน</h5>
-            <select id="reportClassSelect" class="form-select mb-3" onchange="loadClassReport()"><option value="" selected disabled>-- เลือกห้องที่จะพิมพ์ --</option></select>
-            <button class="btn btn-secondary w-100" onclick="window.print()" id="btnPrint" disabled><i class="bi bi-file-earmark-pdf"></i> พิมพ์ PDF</button>
+         <div class="card p-4 mb-4 no-print">
+            <h4 class="text-primary fw-bold mb-3"><i class="bi bi-printer"></i> พิมพ์รายงาน</h4>
+            <select id="reportClassSelect" class="form-select form-select-lg mb-4" onchange="loadClassReport()"><option value="" selected disabled>-- เลือกห้องที่จะพิมพ์ --</option></select>
+            <button class="btn btn-secondary btn-lg w-100 fw-bold shadow-sm" onclick="window.print()" id="btnPrint" disabled><i class="bi bi-file-earmark-pdf"></i> พิมพ์เป็น PDF</button>
          </div>
 
-         <div id="reportCard" class="card p-3">
+         <div id="reportCard" class="card p-4">
             <div class="print-header">
                <h2>รายงานข้อมูลยานพาหนะนักเรียน</h2><h4 id="reportClassTitle">ห้อง: -</h4>
             </div>
             <div class="table-responsive">
-               <table class="table table-bordered table-striped" id="reportTable">
+               <table class="table table-bordered table-striped align-middle" id="reportTable">
                   <thead class="table-light text-center">
                      <tr><th style="width: 5%;">#</th><th style="width: 15%;">รหัส</th><th style="width: 30%;">ชื่อ-สกุล</th><th style="width: 50%;">การเดินทาง</th></tr>
                   </thead>
-                  <tbody><tr><td colspan="4" class="text-center">เลือกห้องเพื่อแสดงข้อมูล</td></tr></tbody>
+                  <tbody><tr><td colspan="4" class="text-center py-4 text-muted">กรุณาเลือกห้องเพื่อแสดงข้อมูล</td></tr></tbody>
                </table>
             </div>
          </div>
@@ -199,43 +234,46 @@
 
       <!-- Tab: Data Dashboard -->
       <div id="tab-data" class="tab-content" style="display:none;">
-         <div class="card p-3 mb-3 no-print">
-            <h5 class="text-primary"><i class="bi bi-bar-chart-fill"></i> ระบบแสดงการเดินทาง</h5>
+         <div class="card p-4 mb-4 no-print">
+            <h4 class="text-primary fw-bold mb-4"><i class="bi bi-bar-chart-fill"></i> ระบบแสดงการเดินทาง</h4>
             
-            <div class="mb-3">
-               <label class="fw-bold mb-2"><i class="bi bi-funnel"></i> 1. เลือกวิธีการเดินทาง (เลือกได้หลายข้อ)</label>
-               <div class="d-flex flex-wrap gap-3 p-2 bg-light rounded border">
-                  <div class="form-check">
+            <div class="mb-4">
+               <label class="fw-bold mb-2 text-dark"><i class="bi bi-funnel"></i> 1. เลือกวิธีการเดินทาง (เลือกได้หลายข้อ)</label>
+               <div class="d-flex flex-column gap-2 p-3 bg-light rounded border">
+                  <div class="form-check form-switch">
                      <input class="form-check-input filter-cb" type="checkbox" value="bus" id="filterBus" checked onchange="renderDashboard()">
-                     <label class="form-check-label" for="filterBus">รถรับส่งประจำ</label>
+                     <label class="form-check-label ms-2" for="filterBus">รถรับส่งประจำ</label>
                   </div>
-                  <div class="form-check">
+                  <div class="form-check form-switch">
                      <input class="form-check-input filter-cb" type="checkbox" value="parent" id="filterParent" checked onchange="renderDashboard()">
-                     <label class="form-check-label" for="filterParent">ผู้ปกครองมาส่ง</label>
+                     <label class="form-check-label ms-2" for="filterParent">ผู้ปกครองมาส่ง</label>
                   </div>
-                  <div class="form-check">
+                  <div class="form-check form-switch">
                      <input class="form-check-input filter-cb" type="checkbox" value="self" id="filterSelf" checked onchange="renderDashboard()">
-                     <label class="form-check-label" for="filterSelf">เดินทางมาเอง</label>
+                     <label class="form-check-label ms-2" for="filterSelf">เดินทางมาเอง</label>
                   </div>
                </div>
             </div>
 
-            <div class="mb-3">
-               <label class="fw-bold small">จัดเรียงตาม:</label>
-               <select id="sortOption" class="form-select form-select-sm" onchange="renderDashboard()">
+            <div class="mb-4">
+               <label class="fw-bold mb-2 text-dark"><i class="bi bi-sort-alpha-down"></i> 2. จัดเรียงตาม:</label>
+               <select id="sortOption" class="form-select form-select-lg" onchange="renderDashboard()">
                   <option value="class">ห้องเรียน</option>
                   <option value="driver">ชื่อคนขับ</option>
                   <option value="village">หมู่บ้าน</option>
                </select>
             </div>
             
-            <button class="btn btn-sm btn-success w-100" onclick="loadAllDataForDashboard()"><i class="bi bi-arrow-clockwise"></i> โหลดข้อมูลใหม่</button>
+            <button class="btn btn-success btn-lg w-100 fw-bold shadow-sm" onclick="loadAllDataForDashboard()"><i class="bi bi-arrow-clockwise"></i> โหลดข้อมูลใหม่</button>
          </div>
          
-         <div class="card p-3">
-            <span class="badge bg-secondary mb-2" id="countDisplay">0 รายการ</span>
+         <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+               <h5 class="fw-bold mb-0">รายการข้อมูล</h5>
+               <span class="badge bg-secondary fs-6 px-3 py-2" id="countDisplay">0 รายการ</span>
+            </div>
             <div class="table-responsive">
-               <table class="table table-hover table-bordered" id="dashboardTable" style="font-size: 0.9rem;">
+               <table class="table table-hover table-bordered align-middle" id="dashboardTable">
                   <thead class="table-primary text-center">
                      <tr>
                         <th>ที่</th>
@@ -246,7 +284,7 @@
                      </tr>
                   </thead>
                   <tbody>
-                     <tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>
+                     <tr><td colspan="5" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
                   </tbody>
                </table>
             </div>
@@ -261,14 +299,14 @@
 
     <div id="customDialog" class="custom-dialog-overlay">
        <div class="custom-dialog-box text-center">
-          <h5 id="dialogTitle" class="mb-3 fw-bold">ข้อความ</h5>
-          <p id="dialogMessage" class="text-muted mb-3"></p>
-          <div id="dialogInputArea" style="display:none;" class="mb-3">
-             <input type="password" id="dialogInput" class="form-control text-center" placeholder="ใส่รหัสผ่าน...">
+          <h4 id="dialogTitle" class="mb-3 fw-bold">ข้อความ</h4>
+          <p id="dialogMessage" class="text-muted mb-4 fs-5"></p>
+          <div id="dialogInputArea" style="display:none;" class="mb-4">
+             <input type="password" id="dialogInput" class="form-control form-control-lg text-center" placeholder="ใส่รหัสผ่าน...">
           </div>
-          <div class="d-flex justify-content-center gap-2">
-             <button id="dialogBtnCancel" class="btn btn-light w-50" style="display:none;">ยกเลิก</button>
-             <button id="dialogBtnOk" class="btn btn-primary w-50">ตกลง</button>
+          <div class="d-flex justify-content-center gap-3">
+             <button id="dialogBtnCancel" class="btn btn-light btn-lg w-50 fw-bold" style="display:none;">ยกเลิก</button>
+             <button id="dialogBtnOk" class="btn btn-primary btn-lg w-50 fw-bold shadow-sm">ตกลง</button>
           </div>
        </div>
     </div>
@@ -302,13 +340,13 @@
          const btnOk = document.getElementById('dialogBtnOk');
          const btnCancel = document.getElementById('dialogBtnCancel');
          
-         btnOk.className = `btn btn-${options.type || 'primary'} w-50`;
+         btnOk.className = `btn btn-${options.type || 'primary'} btn-lg w-50 fw-bold shadow-sm`;
          
          if(options.isConfirm || options.isPrompt) {
             btnCancel.style.display = 'block';
          } else {
             btnCancel.style.display = 'none';
-            btnOk.className = `btn btn-${options.type || 'primary'} w-100`;
+            btnOk.className = `btn btn-${options.type || 'primary'} btn-lg w-100 fw-bold shadow-sm`;
          }
 
          overlay.style.display = 'flex';
@@ -514,21 +552,21 @@
             currentSearchResults = res.results;
             
             // สร้าง HTML แสดงรายการนักเรียนที่ค้นเจอทั้งหมด
-            let html = `<div class="mt-3">
-                           <div class="alert alert-warning mb-2 py-2">
-                              <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check"></i> พบข้อมูล ${currentSearchResults.length} รายการ:</h6>
+            let html = `<div class="mt-4">
+                           <div class="alert alert-warning mb-3 py-3">
+                              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check"></i> พบข้อมูล ${currentSearchResults.length} รายการ:</h5>
                            </div>
                            <div class="list-group">`;
             
             // วนลูปสร้างรายชื่อจาก Array
             currentSearchResults.forEach((student, index) => {
-               html += `<div class="list-group-item list-group-item-action flex-column align-items-start border-warning mb-2 rounded">
-                           <div class="d-flex w-100 justify-content-between align-items-center">
-                             <h6 class="mb-1 fw-bold text-dark">${student.plate || 'ไม่ระบุ'} <span class="badge bg-secondary ms-1">${student.type}</span></h6>
-                             <small class="text-muted">ห้อง ${student.className}</small>
+               html += `<div class="list-group-item list-group-item-action flex-column align-items-start border-warning mb-3 p-3 rounded-3 shadow-sm">
+                           <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                             <h5 class="mb-0 fw-bold text-dark">${student.plate || 'ไม่ระบุ'} <span class="badge bg-secondary ms-2 align-text-top">${student.type}</span></h5>
+                             <span class="badge bg-light text-dark border fs-6">ห้อง ${student.className}</span>
                            </div>
-                           <p class="mb-1 small text-dark">ชื่อ: <strong>${student.name}</strong> (รหัส: ${student.studentId})</p>
-                           <button class="btn btn-sm btn-outline-danger mt-2 w-100 fw-bold" onclick="openWarningForm(${index})">
+                           <p class="mb-3 fs-5 text-dark">ชื่อ: <strong>${student.name}</strong> <br><span class="text-muted fs-6">(รหัส: ${student.studentId})</span></p>
+                           <button class="btn btn-outline-danger btn-lg mt-1 w-100 fw-bold" onclick="openWarningForm(${index})">
                               <i class="bi bi-exclamation-triangle-fill"></i> ตักเตือนคนนี้
                            </button>
                         </div>`;
@@ -536,24 +574,24 @@
             
             html += `   </div>
                         <!-- พื้นที่สำหรับฟอร์มกรอกข้อหา จะถูกนำมาแสดงตรงนี้เมื่อคลิกปุ่ม -->
-                        <div id="warningFormArea" class="mt-3 p-3 bg-light rounded border border-danger" style="display:none;">
-                           <h6 class="fw-bold text-danger text-center border-bottom border-danger pb-2">ใบสั่งตักเตือน</h6>
-                           <p class="small text-center fw-bold mb-3">ชื่อ: <span id="warnTargetName" class="text-primary"></span></p>
+                        <div id="warningFormArea" class="mt-4 p-4 bg-light rounded-3 border border-danger shadow-sm" style="display:none;">
+                           <h5 class="fw-bold text-danger text-center border-bottom border-danger pb-3 mb-3">ใบสั่งตักเตือน</h5>
+                           <p class="text-center fw-bold mb-4 fs-5">ผู้กระทำผิด: <br><span id="warnTargetName" class="text-primary"></span></p>
                            
-                           <div class="mb-2">
-                              <label class="form-label small fw-bold text-dark">ระบุข้อหา/ความผิด</label>
-                              <select id="warningTopic" class="form-select form-select-sm mb-2">
+                           <div class="mb-4">
+                              <label class="form-label fw-bold text-dark fs-5">ระบุข้อหา/ความผิด</label>
+                              <select id="warningTopic" class="form-select form-select-lg mb-3">
                                  <option value="ไม่สวมหมวกกันน็อก">ไม่สวมหมวกกันน็อก</option>
                                  <option value="ท่อเสียงดัง/ดัดแปลงสภาพ">ท่อเสียงดัง/ดัดแปลงสภาพ</option>
                                  <option value="ขับขี่หวาดเสียว">ขับขี่หวาดเสียว</option>
                                  <option value="จอดผิดที่">จอดผิดที่</option>
                                  <option value="อื่นๆ">อื่นๆ</option>
                               </select>
-                              <textarea id="warningDetail" class="form-control form-control-sm" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+                              <textarea id="warningDetail" class="form-control form-control-lg" rows="3" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
                            </div>
-                           <div class="d-flex gap-2 mt-3">
-                              <button class="btn btn-secondary w-50" onclick="document.getElementById('warningFormArea').style.display='none'">ยกเลิก</button>
-                              <button class="btn btn-danger w-50" onclick="saveWarning()"><i class="bi bi-save"></i> บันทึก</button>
+                           <div class="d-flex gap-3 mt-4">
+                              <button class="btn btn-secondary btn-lg w-50 fw-bold" onclick="document.getElementById('warningFormArea').style.display='none'">ยกเลิก</button>
+                              <button class="btn btn-danger btn-lg w-50 fw-bold shadow-sm" onclick="saveWarning()"><i class="bi bi-save"></i> บันทึก</button>
                            </div>
                         </div>
                      </div>`;
@@ -562,11 +600,11 @@
          } else {
             // ไม่พบข้อมูล
             area.innerHTML = `
-               <div class="alert alert-secondary mt-3 text-center">
-                  <i class="bi bi-search fs-3 text-muted d-block mb-2"></i>
-                  <h6 class="fw-bold">ไม่พบข้อมูลทะเบียนในระบบ</h6>
-                  <p class="small text-muted">ไม่พบคำว่า "${plate}" ในฐานข้อมูลยานพาหนะ</p>
-                  <button class="btn btn-outline-primary btn-sm rounded-pill mt-2" onclick="switchTab('survey', document.querySelector('.nav-link'))">
+               <div class="alert alert-secondary mt-4 p-4 text-center rounded-3 shadow-sm">
+                  <i class="bi bi-search display-4 text-muted d-block mb-3"></i>
+                  <h4 class="fw-bold">ไม่พบข้อมูลทะเบียนในระบบ</h4>
+                  <p class="text-muted fs-5">ไม่พบคำว่า "${plate}" ในฐานข้อมูลยานพาหนะ</p>
+                  <button class="btn btn-outline-primary btn-lg rounded-pill mt-3 px-4 fw-bold" onclick="switchTab('survey', document.querySelector('.nav-link'))">
                      แนะนำให้ลงทะเบียนทันที
                   </button>
                </div>
@@ -619,16 +657,16 @@
       async function checkMissing() {
          const cls = document.getElementById('missingClass').value;
          const ul = document.getElementById('missingList');
-         ul.innerHTML = '<li>กำลังโหลด...</li>';
+         ul.innerHTML = '<li class="list-group-item py-3">กำลังโหลด...</li>';
          const list = await callAPI('getUnansweredByClass', { className: cls });
-         ul.innerHTML = list.length === 0 ? '<li>ครบถ้วน!</li>' : list.map(s => `<li class="list-group-item">${s.name}</li>`).join('');
+         ul.innerHTML = list.length === 0 ? '<li class="list-group-item text-success fw-bold py-3">ครบถ้วน!</li>' : list.map(s => `<li class="list-group-item py-3">${s.name}</li>`).join('');
       }
 
       async function loadClassReport() {
          const cls = document.getElementById('reportClassSelect').value;
          document.getElementById('reportClassTitle').innerText = 'ห้อง: ' + cls;
          const tbody = document.querySelector('#reportTable tbody');
-         tbody.innerHTML = '<tr><td colspan="4" class="text-center">กำลังดึงข้อมูล...</td></tr>';
+         tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 fs-5">กำลังดึงข้อมูล...</td></tr>';
          
          toggleLoading(true);
          const data = await callAPI('getReportByClass', { className: cls });
@@ -661,7 +699,7 @@
             });
             tbody.innerHTML = html;
          } else {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">ไม่มีข้อมูล</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-5 fs-5">ไม่มีข้อมูล</td></tr>';
          }
       }
 
@@ -706,7 +744,7 @@
          document.getElementById('countDisplay').innerText = filteredData.length + " รายการ";
 
          if (filteredData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูลตามเงื่อนไขที่กรอง</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5 fs-5">ไม่พบข้อมูลตามเงื่อนไขที่กรอง</td></tr>';
             return;
          }
 
@@ -730,19 +768,19 @@
             
             let phoneHtml = '';
             if(stPhoneRaw.length >= 9) {
-               phoneHtml += `<a href="tel:${stPhoneRaw}" class="btn btn-sm btn-outline-primary mb-1 w-100 text-start" style="font-size:0.75rem;"><i class="bi bi-telephone-fill"></i> นร. ${stPhoneRaw}</a>`;
+               phoneHtml += `<a href="tel:${stPhoneRaw}" class="btn btn-outline-primary mb-2 w-100 text-start py-2 rounded-3"><i class="bi bi-telephone-fill"></i> นร. ${stPhoneRaw}</a>`;
             }
             if(paPhoneRaw.length >= 9) {
-               phoneHtml += `<a href="tel:${paPhoneRaw}" class="btn btn-sm btn-outline-success w-100 text-start" style="font-size:0.75rem;"><i class="bi bi-telephone-fill"></i> ผปค. ${paPhoneRaw}</a>`;
+               phoneHtml += `<a href="tel:${paPhoneRaw}" class="btn btn-outline-success w-100 text-start py-2 rounded-3"><i class="bi bi-telephone-fill"></i> ผปค. ${paPhoneRaw}</a>`;
             }
 
             // แสดงผลแต่ละแถว
             html += `<tr>
                <td class="text-center">${i+1}</td>
-               <td class="text-center"><strong>${r[1]}</strong><br><span class="text-muted small">${r[2].replace(/'/g, '')}</span></td>
-               <td>${r[3]}</td>
-               <td>${travelText}</td>
-               <td>${phoneHtml || '<span class="text-muted small">ไม่มีเบอร์</span>'}</td>
+               <td class="text-center"><strong class="fs-5">${r[1]}</strong><br><span class="text-muted">${r[2].replace(/'/g, '')}</span></td>
+               <td><span class="fs-6 fw-bold">${r[3]}</span></td>
+               <td class="lh-lg">${travelText}</td>
+               <td>${phoneHtml || '<span class="text-muted">ไม่มีเบอร์</span>'}</td>
             </tr>`;
          });
          
