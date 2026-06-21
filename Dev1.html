@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buayai I Care School - สระบัวแห่งความห่วงใย</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           🌸 ธีมสีชมพูพาสเทล สบายตา (Soft Pink Theme)
+           ========================================= */
+        :root {
+            --bg-main: #fff0f5;       /* Lavender Blush (พื้นหลังหลัก) */
+            --bg-card: #ffffff;       /* สีพื้นหลังการ์ด */
+            --primary: #db2777;       /* Pink-600 (สีหลัก) */
+            --primary-glow: rgba(219, 39, 119, 0.3);
+            --accent: #f43f5e;        /* Rose-500 */
+            --success: #10b981;
+            --danger: #ef4444;
+            --locked: #d1d5db;        /* เทาอ่อนสำหรับปุ่มที่กดไม่ได้ */
+            --text-main: #374151;     /* Gray-700 (ตัวหนังสือหลัก) */
+            --text-heading: #1f2937;  /* Gray-800 */
+            --text-muted: #6b7280;    /* Gray-500 */
+            --card-inner: #fdf2f8;    /* ชมพูอ่อนมากสำหรับกล่องด้านใน */
+            --border-color: #fce7f3;  /* Pink-100 */
+        }
+
+        body { font-family: 'Prompt', sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        
+        #login-view { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-card { background: var(--bg-card); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(219, 39, 119, 0.1); padding: 40px 30px; text-align: center; border: 1px solid var(--border-color); }
+        .login-logo { width: 90px; height: 90px; object-fit: contain; border-radius: 50%; background: #fff; padding: 5px; box-shadow: 0 0 20px var(--primary-glow); margin: 0 auto 15px auto; border: 3px solid var(--primary); }
+        .login-card h1 { margin: 0 0 5px; color: var(--primary); font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
+        .login-card p { color: var(--text-muted); margin-bottom: 30px; }
+        
+        .form-group { text-align: left; margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--text-heading); }
+        input[type="text"], input[type="password"], input[type="date"], input[type="number"], input[type="tel"], select, textarea {
+            width: 100%; padding: 14px; background: #fff; border: 1px solid #d1d5db; border-radius: 10px; color: var(--text-main); box-sizing: border-box; font-family: 'Prompt', sans-serif; transition: 0.3s;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        input:disabled, select:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+        
+        .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #be185d); color: white; border: none; border-radius: 10px; font-family: 'Prompt', sans-serif; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px var(--primary-glow); margin-top: 20px; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
+        .btn-submit:disabled { background: var(--locked); cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .btn-draft { background: transparent; border: 2px solid var(--primary); color: var(--primary); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; font-family: 'Prompt'; margin-top: 10px; transition: 0.3s; font-weight: 600;}
+        .btn-draft:hover:not(:disabled) { background: var(--card-inner); }
+        
+        #dashboard-view { display: none; min-height: 100vh; }
+        
+        /* Sidebar (เมนูซ้าย) */
+        .sidebar { width: 300px; background: var(--bg-card); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); box-shadow: 2px 0 15px rgba(0,0,0,0.03); z-index: 10;}
+        .player-profile { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color); margin-bottom: 15px; }
+        .player-avatar { font-size: 3.5rem; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
+        .score-box { background: var(--card-inner); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); margin-top: 10px; }
+        .score-box span { display: block; font-size: 1.5rem; color: var(--primary); font-weight: bold; }
+        
+        .sidebar-nav { display: flex; flex-direction: column; flex: 1; }
+        .sidebar-btn { background: #fff; border: 1px solid var(--border-color); color: var(--text-main); text-align: left; padding: 12px 15px; font-family: 'Prompt', sans-serif; font-size: 1rem; cursor: pointer; transition: 0.3s; width: 100%; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-btn:hover:not(.locked):not(.completed) { background: var(--card-inner); border-color: var(--primary); }
+        .sidebar-btn.active { background: var(--primary); color: #fff; border: 1px solid var(--primary); box-shadow: 0 4px 10px var(--primary-glow); }
+        .sidebar-btn.completed { border-color: var(--success); background: #ecfdf5; cursor: not-allowed; color: var(--success); font-weight: 600;}
+        
+        .btn-text { flex: 1; text-align: left; }
+        .icon-text { margin-left: 5px; }
+        .divider-btn { margin-top: auto; padding-top: 15px; border-top: 1px dashed var(--border-color); margin-bottom: 10px; }
+        .logout-btn { background: #fee2e2 !important; color: var(--danger) !important; justify-content: center; border-color: #fca5a5 !important; font-weight: 600; }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 30px; position: relative; background: var(--bg-main); }
+        .content-card { background: var(--bg-card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border-color); max-width: 900px; margin: 0 auto; position: relative; animation: fadeIn 0.4s ease-out; }
+        
+        /* Overview Grid สำหรับหน้า Dashboard */
+        .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 25px; }
+        .overview-card { background: #fff; border: 2px solid var(--border-color); border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; }
+        .overview-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px var(--primary-glow); }
+        .overview-card h3 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.2rem; }
+        .overview-card p { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 15px 0; line-height: 1.5; }
+        .overview-card .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; align-self: flex-start; }
+        .status-unlocked { background: var(--card-inner); color: var(--primary); }
+        .status-completed { background: #d1fae5; color: var(--success); }
+
+        .section-box { border: 1px solid #e5e7eb; background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .section-title { color: var(--primary); border-bottom: 2px dashed var(--border-color); padding-bottom: 10px; margin-top: 0; font-size: 1.3rem;}
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        
+        .pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .pill-label { display: inline-block; padding: 8px 16px; background: #fff; border: 1px solid #d1d5db; border-radius: 20px; cursor: pointer; transition: 0.2s; color: var(--text-main); font-size: 0.9rem; user-select: none; }
+        .pill-label input[type="checkbox"] { display: none; }
+        .pill-label:has(input:checked) { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 4px 10px var(--primary-glow); }
+
+        .file-upload-box { border: 2px dashed #d1d5db; background: #f9fafb; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; color: var(--text-muted); position: relative; transition: 0.3s; margin-top: 5px; }
+        .file-upload-box:hover { border-color: var(--primary); background: var(--card-inner); color: var(--primary); }
+        .file-upload-box.has-file { border-color: var(--success); background: #ecfdf5; color: var(--success); }
+        .file-upload-box input[type="file"] { opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+        
+        .btn-gps { background: #3b82f6; color: white; border: none; padding: 15px; border-radius: 10px; font-family: 'Prompt'; font-weight: bold; width: 100%; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-gps:hover { background: #2563eb; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+
+        .classmate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 10px; }
+        .classmate-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 15px; text-align: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .classmate-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--border-color); background: #f3f4f6; }
+        .rating-group { display: flex; justify-content: center; gap: 5px; margin-top: 8px; }
+        .star-icon, .chili-icon { font-size: 1.2rem; cursor: pointer; filter: grayscale(100%) opacity(0.3); transition: 0.2s; }
+        .star-icon.active { filter: grayscale(0%) drop-shadow(0 0 5px gold); }
+        .chili-icon.active { filter: grayscale(0%) drop-shadow(0 0 5px red); }
+        .btn-hide-card { position: absolute; top: 5px; right: 5px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; }
+        .scholarship-item { background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 10px; position: relative; border: 1px solid #e5e7eb; }
+
+        #custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #fff; padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--primary); box-shadow: 0 10px 40px rgba(219, 39, 119, 0.3); max-width: 500px; width: 90%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: var(--text-heading); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* 📱 Responsive สำหรับมือถือ */
+        @media (max-width: 768px) { 
+            #dashboard-view { flex-direction: column; height: auto; } 
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding: 15px; box-sizing: border-box; } 
+            
+            /* ซ่อนเมนูย่อยบนมือถือ ให้ผู้ใช้กดจากการ์ดตรง Dashboard แทน */
+            .sidebar-nav { display: none; }
+            .sidebar-nav.show-mobile { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
+            
+            /* แสดงเฉพาะปุ่มหน้าแรก และ ออกจากระบบ บนมือถือ */
+            .mobile-top-nav { display: flex; justify-content: space-between; gap: 10px; width: 100%; }
+            .mobile-top-nav button { flex: 1; padding: 10px; border-radius: 10px; font-family: 'Prompt'; font-weight: bold; cursor: pointer; border: none; }
+            .btn-home-mobile { background: var(--primary); color: white; }
+            .btn-logout-mobile { background: #fee2e2; color: var(--danger); }
+
+            .main-content { padding: 15px; width: 100%; box-sizing: border-box; } 
+            .form-grid { grid-template-columns: 1fr; } 
+            .content-card { padding: 25px 15px; margin-top: 10px; }
+        }
+        
+        /* ซ่อนเมนูพิเศษมือถือในหน้าจอคอม */
+        @media (min-width: 769px) { .mobile-top-nav { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div id="login-view">
+        <div class="login-card">
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="โลโก้โรงเรียนบัวใหญ่" class="login-logo">
+            <h1>เข้าสู่ระบบฐานข้อมูล</h1>
+            <p>สระบัวแห่งความห่วงใย (Buayai I Care)</p>
+            <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+                <div class="form-group"><label>รหัสประจำตัวนักเรียน</label><input type="text" id="studentId" autocomplete="off" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="password" autocomplete="new-password" required></div>
+
+                <div style="background: var(--card-inner); border: 1px dashed var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; text-align: left;">
+                    <div style="max-height: 100px; overflow-y: auto; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; padding-right: 5px; line-height: 1.5;">
+                        <strong style="color: var(--primary);">📜 ข้อตกลง PDPA:</strong><br>
+                        โรงเรียนบัวใหญ่ขออนุญาตเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล (เช่น ชื่อ, รูปถ่าย, พิกัดที่อยู่) เพื่อใช้เป็นฐานข้อมูลในการดูแลช่วยเหลือนักเรียน
+                    </div>
+                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: var(--text-main); font-size: 0.9rem;">
+                        <input type="checkbox" required style="width: 20px; height: 20px; margin-top: 2px; accent-color: var(--primary);">
+                        <span>ข้าพเจ้าได้อ่านและ <b>ยินยอม</b></span>
+                    </label>
+                </div>
+                
+                <button type="submit" id="loginBtn" class="btn-submit">เริ่มสะสมกลีบดอกบัว 🌸</button>
+                <div id="error-msg" style="color:var(--danger); margin-top:10px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-view">
+        <div class="sidebar">
+            <div class="player-profile">
+                <div class="player-avatar" id="sidebar-avatar">🪷</div>
+                <h3 style="margin: 0; color: var(--text-heading);">ลูกบัวใหญ่: <br><span id="display-studentId" style="color: var(--primary);">-</span></h3>
+                <div class="score-box"><small style="color: var(--text-muted);">คะแนนสะสม 💧</small><span id="display-score">0</span></div>
+            </div>
+            
+            <div class="mobile-top-nav">
+                <button class="btn-home-mobile" onclick="loadContent('dashboard')">🏠 หน้าแรก</button>
+                <button class="btn-logout-mobile" onclick="handleLogout()">🚪 ออกระบบ</button>
+            </div>
+
+            <div class="sidebar-nav">
+                <button class="sidebar-btn active" onclick="loadContent('dashboard', this)" id="btn-dash"><span>🌸 หน้าแรก (ภาพรวม)</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission1', this)" id="btn-m1"><div class="btn-text">1. รากฐานตัวตน</div><span class="icon-text" id="icon-m1">🔓</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission2', this)" id="btn-m2"><div class="btn-text">2. สายใยครอบครัว</div><span class="icon-text" id="icon-m2">🔓</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission3', this)" id="btn-m3"><div class="btn-text">3. พลังกายสุขภาพ</div><span class="icon-text" id="icon-m3">🔓</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission4', this)" id="btn-m4"><div class="btn-text">4. สายลมมิตรภาพ</div><span class="icon-text" id="icon-m4">🔓</span></button>
+                <button class="sidebar-btn" onclick="loadContent('mission5', this)" id="btn-m5"><div class="btn-text">5. แหล่งพักพิง</div><span class="icon-text" id="icon-m5">🔓</span></button>
+                
+                <div class="divider-btn"></div>
+                <button class="sidebar-btn logout-btn" onclick="handleLogout()">🚪 ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-card" id="dynamic-content-area"></div>
+        </div>
+    </div>
+
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div style="font-size: 4rem; margin-bottom: 10px;" id="modal-icon">🌸</div>
+            <h2 id="modal-heading">-- ได้รับกลีบดอกบัว --</h2>
+            <div id="modal-text" style="font-size: 1rem; margin-bottom: 20px; line-height: 1.6;"></div>
+            <button class="btn-submit" onclick="closeModalAndGoNext()">ชื่นชมกลีบดอกบัวต่อไป ➔</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ การตั้งค่าระบบ
+        // ==========================================
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnlY8cUvwYw_J6QiBhuP5Cm0ens7fSBq8GBVl7AVjU-07gyK_NiRauF8kFK1ymcb-y8w/exec';
+        
+        let playerState = {
+            score: 0,
+            missions: { 
+                m1: { status: 'unlocked' }, m2: { status: 'unlocked' },
+                m3: { status: 'unlocked' }, m4: { status: 'unlocked' },
+                m5: { status: 'unlocked' }
+            }
+        };
+
+        let m4State = { scholarships: [], friendsRatings: {} };
+        let cachedStudentData = null, cachedClassmates = [];
+
+        window.onload = () => {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('studentId');
+            document.getElementById('studentId').value = '';
+            document.getElementById('password').value = '';
+        };
+
+        function savePlayerState() { 
+            const sid = localStorage.getItem('studentId');
+            if (sid) { localStorage.setItem('playerState_' + sid, JSON.stringify(playerState)); }
+            updateSidebarUI(); 
+        }
+
+        document.addEventListener('change', function(e) {
+            if(e.target.type === 'file' && e.target.parentElement.classList.contains('file-upload-box')) {
+                const box = e.target.parentElement;
+                const span = box.querySelector('span');
+                if(e.target.files.length > 0) {
+                    span.innerHTML = `✅ เลือกไฟล์สำเร็จ<br><small style="color: var(--text-main);">${e.target.files[0].name}</small>`;
+                    box.classList.add('has-file');
+                } else {
+                    span.innerHTML = `คลิกเลือกรูปถ่าย 📂`;
+                    box.classList.remove('has-file');
+                }
+            }
+        });
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn'), msg = document.getElementById('error-msg');
+            const stuId = document.getElementById('studentId').value.trim(), pass = document.getElementById('password').value.trim();
+            btn.disabled = true; btn.textContent = 'กำลังเชื่อมต่อ... ⏳'; msg.textContent = '';
+            try {
+                const data = await fetchAPI('login', { studentId: stuId, password: pass });
+                if (data.status === 'success') {
+                    localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('studentId', data.data.studentId);
+                    showDashboardView();
+                } else throw new Error(data.message || 'รหัสไม่ถูกต้อง');
+            } catch (error) { msg.textContent = `❌ ${error.message}`; btn.disabled = false; btn.textContent = 'เริ่มสะสมกลีบดอกบัว 🌸'; }
+        }
+
+        async function showDashboardView() {
+            document.getElementById('login-view').style.display = 'none'; 
+            document.getElementById('dashboard-view').style.display = 'flex';
+            
+            const sid = localStorage.getItem('studentId');
+            document.getElementById('display-studentId').textContent = sid;
+            
+            const savedState = localStorage.getItem('playerState_' + sid);
+            if(savedState) { playerState = JSON.parse(savedState); } 
+            else { playerState = { score: 0, missions: { m1: {status:'unlocked'}, m2: {status:'unlocked'}, m3: {status:'unlocked'}, m4: {status:'unlocked'}, m5: {status:'unlocked'} } }; }
+
+            const area = document.getElementById('dynamic-content-area');
+            area.innerHTML = `<div style="text-align:center; padding:50px; font-size:1.2rem; color:var(--primary);">📡 กำลังดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์...</div>`;
+
+            try {
+                const res = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
+                if(res.status === 'success' && res.studentData) { 
+                    cachedStudentData = res.studentData; 
+                    cachedClassmates = res.classmates || [];
+                    
+                    syncProgress(res.studentData);
+                    updateSidebarUI(); 
+                    
+                    if (cachedStudentData.profileImageUrl) {
+                        const avatarDiv = document.getElementById('sidebar-avatar');
+                        avatarDiv.innerHTML = `<img src="${getDriveThumb(cachedStudentData.profileImageUrl)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); box-shadow: 0 0 15px var(--primary-glow);">`;
+                    }
+                    
+                    loadContent('dashboard');
+                } else { throw new Error("ไม่สามารถดึงข้อมูลได้"); }
+            } catch (err) { 
+                area.innerHTML = `<div style="text-align:center; padding:50px; color:var(--danger);">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณารีเฟรชหน้าเว็บ</div>`;
+            }
+        }
+
+        function handleLogout() { localStorage.clear(); location.reload(); }
+
+        function syncProgress(sd) {
+            // เช็คว่าเคยทำหรือยัง ถ้าทำแล้วให้สถานะเป็น completed ถ้ายังเป็น unlocked (เปิดอิสระ)
+            playerState.missions.m1.status = (sd.citizenId && String(sd.citizenId).trim() !== "") ? 'completed' : 'unlocked';
+            playerState.missions.m2.status = (sd.guardianName && String(sd.guardianName).trim() !== "") ? 'completed' : 'unlocked';
+            playerState.missions.m3.status = (sd.weight && sd.height) ? 'completed' : 'unlocked';
+            playerState.missions.m4.status = (sd.preferencesJson && String(sd.preferencesJson).trim() !== "{}" && String(sd.preferencesJson).trim() !== "") ? 'completed' : 'unlocked';
+            playerState.missions.m5.status = (sd.housingStatus && String(sd.housingStatus).trim() !== "") ? 'completed' : 'unlocked';
+
+            savePlayerState(); 
+        }
+
+        function updateSidebarUI() {
+            document.getElementById('display-score').textContent = playerState.score.toLocaleString();
+            for (let i = 1; i <= 5; i++) {
+                let mId = 'm'+i, status = playerState.missions[mId].status, btn = document.getElementById('btn-'+mId), icon = document.getElementById('icon-'+mId);
+                if (!btn || !icon) continue;
+                btn.className = 'sidebar-btn';
+                if (status === 'completed') { btn.classList.add('completed'); icon.textContent = '✅'; }
+                else { icon.textContent = '🔓'; }
+            }
+        }
+
+        function renderOverviewDashboard() {
+            const sd = cachedStudentData || {};
+            const getStatusHtml = (mId) => {
+                if (playerState.missions[mId].status === 'completed') return `<span class="status-badge status-completed">✅ ทำแล้ว</span>`;
+                return `<span class="status-badge status-unlocked">📝 รอการบันทึก</span>`;
+            };
+
+            return `
+                <div style="text-align:center; margin-bottom: 30px;">
+                    <h2 style="color:var(--primary); margin-bottom: 5px;">🌸 ภาพรวมข้อมูลนักเรียน</h2>
+                    <p style="color:var(--text-muted);">เลือกกรอกข้อมูลด้านใดก่อนก็ได้ เพื่อประกอบดอกบัวให้สมบูรณ์</p>
+                </div>
+                
+                <div class="overview-grid">
+                    <div class="overview-card" onclick="loadContent('mission1', document.getElementById('btn-m1'))">
+                        <div>
+                            <h3>1. รากฐานตัวตน</h3>
+                            <p>เลข ปชช., วันเกิด, ศาสนา และอัปโหลดรูปถ่ายประจำตัวนักเรียน</p>
+                        </div>
+                        ${getStatusHtml('m1')}
+                    </div>
+                    
+                    <div class="overview-card" onclick="loadContent('mission2', document.getElementById('btn-m2'))">
+                        <div>
+                            <h3>2. สายใยครอบครัว</h3>
+                            <p>ข้อมูลบิดา มารดา ผู้ปกครอง, เบอร์ติดต่อ, รูปและลายเซ็นผู้ปกครอง</p>
+                        </div>
+                        ${getStatusHtml('m2')}
+                    </div>
+                    
+                    <div class="overview-card" onclick="loadContent('mission3', document.getElementById('btn-m3'))">
+                        <div>
+                            <h3>3. พลังกายสุขภาพ</h3>
+                            <p>น้ำหนัก, ส่วนสูง (คำนวณ BMI อัตโนมัติ), ประวัติสุขภาพและการเจ็บป่วย</p>
+                        </div>
+                        ${getStatusHtml('m3')}
+                    </div>
+                    
+                    <div class="overview-card" onclick="loadContent('mission4', document.getElementById('btn-m4'))">
+                        <div>
+                            <h3>4. สายลมมิตรภาพ</h3>
+                            <p>ความสนใจ, งานอดิเรก, ประเมินเพื่อนร่วมชั้น, ทุนการศึกษา และการเดินทาง</p>
+                        </div>
+                        ${getStatusHtml('m4')}
+                    </div>
+                    
+                    <div class="overview-card" onclick="loadContent('mission5', document.getElementById('btn-m5'))">
+                        <div>
+                            <h3>5. แหล่งพักพิง</h3>
+                            <p>พิกัด GPS บ้าน, ที่อยู่, ลักษณะการอยู่อาศัย และภาพถ่ายสภาพบ้าน</p>
+                        </div>
+                        ${getStatusHtml('m5')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.getLocation = () => {
+            const btn = document.getElementById('btn-gps');
+            const latInput = document.getElementById('m5-lat');
+            const lngInput = document.getElementById('m5-lng');
+            btn.textContent = 'กำลังค้นหาสัญญาณดาวเทียม... 🛰️';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude; const lng = position.coords.longitude;
+                        latInput.value = lat; lngInput.value = lng;
+                        btn.textContent = '✅ สแกนพิกัดสำเร็จ (กำลังดึงที่อยู่...)'; btn.style.background = 'var(--success)';
+
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=th`);
+                            const data = await res.json();
+                            if(data && data.address) {
+                                const ad = data.address;
+                                document.getElementById('m5-subdistrict').value = ad.suburb || ad.village || ad.hamlet || ad.quarter || '';
+                                document.getElementById('m5-district').value = ad.county || ad.city || ad.town || '';
+                                document.getElementById('m5-province').value = ad.state || ad.province || '';
+                                btn.textContent = '✅ สแกนพิกัดและที่อยู่สำเร็จ';
+                            }
+                        } catch(err) { btn.textContent = '✅ ได้พิกัดแล้ว (โปรดกรอกที่อยู่เพิ่มเติมเอง)'; }
+                    },
+                    (error) => { alert('ไม่สามารถดึงตำแหน่งได้ โปรดเปิด GPS (Location)'); btn.textContent = '📍 สแกนพิกัด GPS อีกครั้ง'; },
+                    { enableHighAccuracy: true }
+                );
+            } else { alert("เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง"); }
+        };
+
+        async function loadContent(pageName, btnElement) {
+            // ป้องกันการโหลดก่อนข้อมูลมา
+            if (pageName !== 'dashboard' && !cachedStudentData) {
+                alert('📡 ระบบกำลังดาวน์โหลดข้อมูล กรุณารอสักครู่'); return;
+            }
+
+            // ถ้าทำแล้ว แจ้งเตือนแต่ยังให้ดูข้อมูลได้ (ถ้าต้องการให้แก้ไม่ได้ ให้ใส่ return; แบบเดิม)
+            if (pageName.startsWith('mission')) {
+                let mId = 'm' + pageName.replace('mission', '');
+                if (playerState.missions[mId].status === 'completed') { 
+                    alert('🌸 คุณได้กรอกข้อมูลด่านนี้เรียบร้อยแล้ว (สามารถกรอกใหม่เพื่ออัปเดตข้อมูลได้)'); 
+                }
+            }
+
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+            else if(pageName === 'dashboard') document.getElementById('btn-dash').classList.add('active');
+
+            const contentArea = document.getElementById('dynamic-content-area');
+            let sd = cachedStudentData || {};
+            const isSel = (v, t) => v === t ? 'selected' : '';
+
+            if (pageName === 'dashboard') {
+                contentArea.innerHTML = renderOverviewDashboard();
+            }
+            else if (pageName === 'mission1') {
+                contentArea.innerHTML = `
+                    <h2 class="section-title">🌸 1. รากฐานตัวตน</h2>
+                    <form onsubmit="submitMission(event, 1)">
+                        <div class="form-grid">
+                            <div class="form-group full-width"><label>🆔 เลขบัตรประชาชน</label><input type="text" id="m1-citizenId" value="${sd.citizenId || ''}" maxlength="13" required></div>
+                            <div class="form-group full-width"><label>👤 ชื่อ-สกุล (ล็อกข้อมูลโรงเรียน 🔒)</label><input type="text" id="m1-fullName" value="${sd.fullName || ''}" disabled></div>
+                            <div class="form-group"><label>🏫 ชั้นเรียน (ล็อกข้อมูลโรงเรียน 🔒)</label><input type="text" value="${sd.level || ''}" disabled placeholder="-"></div>
+                            <div class="form-group"><label>📅 วันเกิด</label><input type="date" id="m1-birth" value="${sd.birthDate || ''}" required></div>
+                            <div class="form-group full-width"><label>🕊️ ศาสนา</label>
+                                <select id="m1-religion" required>
+                                    <option value="">-- เลือกศาสนา --</option>
+                                    <option value="พุทธ" ${isSel(sd.religion,'พุทธ')}>พุทธ</option>
+                                    <option value="คริสต์" ${isSel(sd.religion,'คริสต์')}>คริสต์</option>
+                                    <option value="อิสลาม" ${isSel(sd.religion,'อิสลาม')}>อิสลาม</option>
+                                    <option value="อื่นๆ" ${isSel(sd.religion,'อื่นๆ')}>อื่นๆ</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>📸 ภาพถ่ายนักเรียน (ชุดนักเรียนหน้าตรง) ${sd.profileImageUrl ? '<span style="color:var(--success)">(มีรูปเก่าในระบบ)</span>' : ''}</label>
+                                <div class="file-upload-box"><input type="file" id="m1-img" accept="image/*" ${!sd.profileImageUrl ? 'required' : ''}><span>คลิกเลือกรูปถ่าย 📂</span></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">บันทึกข้อมูลส่วนที่ 1</button>
+                    </form>`;
+            }
+            else if (pageName === 'mission2') {
+                contentArea.innerHTML = `
+                    <h2 class="section-title">🌸 2. สายใยครอบครัว</h2>
+                    <form onsubmit="submitMission(event, 2)">
+                        <div class="section-box">
+                            <h3 style="margin-top:0; color:var(--text-heading);">👨‍👩‍👧 ข้อมูลครอบครัว</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>👨 ชื่อบิดา</label><input type="text" id="m2-fatherName" value="${sd.fatherName || ''}" required></div>
+                                <div class="form-group"><label>👩 ชื่อมารดา</label><input type="text" id="m2-motherName" value="${sd.motherName || ''}" required></div>
+                                <div class="form-group full-width"><label>🛡️ ชื่อผู้ปกครอง</label><input type="text" id="m2-guardianName" value="${sd.guardianName || ''}" required></div>
+                            </div>
+                        </div>
+                        <div class="section-box">
+                            <h3 style="margin-top:0; color:var(--text-heading);">📞 ข้อมูลติดต่อ</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>📱 เบอร์นักเรียน</label><input type="tel" id="m2-stuPhone" value="${sd.studentPhone || ''}" pattern="[0-9]{10}" maxlength="10" required></div>
+                                <div class="form-group"><label>📞 เบอร์ผู้ปกครอง</label><input type="tel" id="m2-guardPhone" value="${sd.guardianPhone || ''}" pattern="[0-9]{10}" maxlength="10" required></div>
+                            </div>
+                        </div>
+                        <div class="section-box">
+                            <h3 style="margin-top:0; color:var(--text-heading);">📸 หลักฐานผู้ปกครอง</h3>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>📷 ภาพถ่ายผู้ปกครอง ${sd.guardianImageUrl ? '<span style="color:var(--success)">(มีรูปเดิม)</span>' : ''}</label>
+                                    <div class="file-upload-box"><input type="file" id="m2-img-guard" accept="image/*" ${!sd.guardianImageUrl ? 'required' : ''}><span>คลิกอัปโหลดภาพผู้ปกครอง 📂</span></div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>✍️ ลายมือชื่อผู้ปกครอง ${sd.guardianSignatureUrl ? '<span style="color:var(--success)">(มีรูปลายเซ็นเดิม)</span>' : ''}</label>
+                                    <div class="file-upload-box"><input type="file" id="m2-sign" accept="image/*" ${!sd.guardianSignatureUrl ? 'required' : ''}><span>คลิกอัปโหลดรูปลายเซ็น 📂</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">บันทึกข้อมูลส่วนที่ 2</button>
+                    </form>`;
+            }
+            else if (pageName === 'mission3') {
+                let h = {}; try { h = JSON.parse(sd.medicalCondition || '{}'); } catch(e){}
+                contentArea.innerHTML = `
+                    <h2 class="section-title">🌸 3. พลังกายสุขภาพ</h2>
+                    <form onsubmit="submitMission(event, 3)">
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">⚖️ คำนวณความสมดุลร่างกาย (BMI)</h3>
+                            <div class="form-grid">
+                                <div class="form-group"><label>น้ำหนัก (กก.)</label><input type="number" step="0.1" id="m3-weight" value="${sd.weight || ''}" oninput="calcBMI()" required></div>
+                                <div class="form-group"><label>ส่วนสูง (ซม.)</label><input type="number" id="m3-height" value="${sd.height || ''}" oninput="calcBMI()" required></div>
+                            </div>
+                            <div id="bmi-result" style="text-align:center; padding:15px; background:var(--card-inner); border-radius:10px; margin-top:15px; display:none; border:1px solid var(--border-color);">
+                                <div id="bmi-val" style="font-size:2rem; font-weight:bold; color:var(--text-heading);"></div>
+                                <div id="bmi-label" style="font-size:1.1rem; margin:5px 0;"></div>
+                            </div>
+                        </div>
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">🏥 ข้อมูลสุขภาพเชิงลึก</h3>
+                            <label style="display:block; margin-bottom:5px;">สถานะทั่วไป</label>
+                            <select id="m3-status" onchange="document.getElementById('m3-detail').style.display = this.value==='issue'?'block':'none'">
+                                <option value="normal">✅ สุขภาพปกติ แข็งแรงดี</option>
+                                <option value="issue" ${h.status==='issue'?'selected':''}>⚠️ มีประวัติเจ็บป่วย/อุบัติเหตุ</option>
+                            </select>
+                            <div id="m3-detail" style="display:${h.status==='issue'?'block':'none'}; margin-top:15px;">
+                                <div style="background:#fef2f2; padding:15px; border-radius:10px; margin-bottom:15px;">
+                                    <label>🩹 อุบัติเหตุ (ระบุเหตุและวันที่)</label>
+                                    <input type="text" id="m3-acc" value="${h.acc || ''}" placeholder="เช่น รถล้ม...">
+                                    <input type="date" id="m3-acc-date" value="${h.accDate || ''}" style="margin-top:5px;">
+                                </div>
+                                <div style="background:#eff6ff; padding:15px; border-radius:10px;">
+                                    <label>🩺 โรค/อาการเจ็บป่วย</label>
+                                    <input type="text" id="m3-ill" value="${h.ill || ''}" placeholder="เช่น กระเพาะ...">
+                                    <input type="date" id="m3-ill-date" value="${h.illDate || ''}" style="margin-top:5px;">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">บันทึกข้อมูลส่วนที่ 3</button>
+                    </form>`;
+                calcBMI();
+            }
+            else if (pageName === 'mission4') {
+                let pref = {}; try { pref = JSON.parse(sd.preferencesJson || '{}'); } catch(e){}
+                m4State.friendsRatings = JSON.parse(sd.friendsJson || '{}');
+                m4State.scholarships = pref.scholarships || [];
+
+                contentArea.innerHTML = `
+                    <h2 class="section-title">🌸 4. สายลมมิตรภาพ</h2>
+                    <form onsubmit="submitMission(event, 4)">
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">💖 1. ความสนใจ</h3>
+                            <label>📚 วิชาที่ชอบ</label>
+                            <div class="pill-group" id="m4-subs">
+                                <label class="pill-label"><input type="checkbox" value="คณิต"> 🧮 คณิต</label>
+                                <label class="pill-label"><input type="checkbox" value="ไทย"> 🇹🇭 ไทย</label>
+                                <label class="pill-label"><input type="checkbox" value="อังกฤษ"> 🇬🇧 อังกฤษ</label>
+                                <label class="pill-label"><input type="checkbox" value="วิทยาศาสตร์"> 🔬 วิทย์</label>
+                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-s-o').style.display=this.checked?'block':'none'"> ✨ อื่นๆ</label>
+                            </div>
+                            <input type="text" id="m4-s-o" style="display:none; margin-bottom:15px;" placeholder="ระบุวิชา...">
+
+                            <label>🎮 กิจกรรมยามว่าง</label>
+                            <div class="pill-group" id="m4-acts">
+                                <label class="pill-label"><input type="checkbox" value="กีฬา"> ⚽ กีฬา</label>
+                                <label class="pill-label"><input type="checkbox" value="เพลง"> 🎵 ฟังเพลง</label>
+                                <label class="pill-label"><input type="checkbox" value="เกม"> 🎮 เล่นเกม</label>
+                                <label class="pill-label"><input type="checkbox" value="อื่นๆ" onchange="document.getElementById('m4-a-o').style.display=this.checked?'block':'none'"> ✨ อื่นๆ</label>
+                            </div>
+                            <input type="text" id="m4-a-o" style="display:none; margin-bottom:15px;" placeholder="ระบุกิจกรรม...">
+                            
+                            <div class="form-grid">
+                                <div class="form-group"><label>🎨 สีที่ชอบ</label><input type="color" id="m4-color" value="${pref.color || '#db2777'}" style="height:50px; cursor:pointer;"></div>
+                                <div class="form-group"><label>🎯 อาชีพในฝัน</label>
+                                    <select id="m4-career" onchange="document.getElementById('m4-c-o').style.display=this.value==='อื่นๆ'?'block':'none'">
+                                        <option value="ตำรวจ">👮 ตำรวจ</option><option value="หมอ">👨‍⚕️ แพทย์</option><option value="ครู">👨‍🏫 ครู</option><option value="อื่นๆ">✨ อื่นๆ</option>
+                                    </select>
+                                    <input type="text" id="m4-c-o" style="display:none; margin-top:5px;" placeholder="ระบุอาชีพ...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">🤝 2. เพื่อนร่วมชั้น</h3>
+                            <div id="classmates-container" class="classmate-grid"></div>
+                        </div>
+
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">💰 3. ทุนการศึกษา</h3>
+                            <div id="scholarships-container"></div>
+                            <button type="button" class="btn-draft" onclick="addSch()">➕ เพิ่มทุนการศึกษา</button>
+                        </div>
+
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">🛵 4. การเดินทาง</h3>
+                            <div class="form-group"><label>📍 ระยะทาง (กม.)</label><input type="number" step="0.1" id="m4-dist" value="${pref.dist || ''}" required></div>
+                            <select id="m4-travel" required>
+                                <option value="">-- เลือกวิธีการเดินทาง --</option>
+                                <option value="A" ${isSel(pref.travel?.[0],'A')}>รถส่วนตัว / มอเตอร์ไซค์</option>
+                                <option value="B" ${isSel(pref.travel?.[0],'B')}>รถรับส่งนักเรียน</option>
+                                <option value="C" ${isSel(pref.travel?.[0],'C')}>ผู้ปกครองมาส่ง</option>
+                                <option value="D" ${isSel(pref.travel?.[0],'D')}>เดิน / จักรยาน</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit">บันทึกข้อมูลส่วนที่ 4</button>
+                    </form>`;
+                renderClassmates(); renderScholarships();
+            }
+            else if (pageName === 'mission5') {
+                let oldAddr = sd.fullAddress || '';
+                contentArea.innerHTML = `
+                    <h2 class="section-title">🌸 5. แหล่งพักพิง</h2>
+                    <form onsubmit="submitMission(event, 5)">
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">📍 พิกัด (GPS)</h3>
+                            <button type="button" id="btn-gps" class="btn-gps" onclick="getLocation()">📍 กดสแกนพิกัดบ้าน</button>
+                            <div class="form-grid" style="margin-top: 15px;">
+                                <div class="form-group"><label>Latitude</label><input type="text" id="m5-lat" value="${sd.lat || ''}" required></div>
+                                <div class="form-group"><label>Longitude</label><input type="text" id="m5-lng" value="${sd.lng || ''}" required></div>
+                            </div>
+                            <div class="form-grid" style="margin-top:15px;">
+                                <div class="form-group"><label>บ้านเลขที่/หมู่</label><input type="text" id="m5-houseno" value="${oldAddr.split(' ต.')[0] || ''}" required></div>
+                                <div class="form-group"><label>ตำบล</label><input type="text" id="m5-subdistrict" required></div>
+                                <div class="form-group"><label>อำเภอ</label><input type="text" id="m5-district" required></div>
+                                <div class="form-group"><label>จังหวัด</label><input type="text" id="m5-province" required></div>
+                            </div>
+                        </div>
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">🏠 การอยู่อาศัย</h3>
+                            <select id="m5-housing" required>
+                                <option value="">-- เลือก --</option>
+                                <option value="บิดามารดา" ${sd.housingStatus === 'บิดามารดา' ? 'selected':''}>บิดาและมารดา</option>
+                                <option value="บิดา" ${sd.housingStatus === 'บิดา' ? 'selected':''}>บิดา</option>
+                                <option value="มารดา" ${sd.housingStatus === 'มารดา' ? 'selected':''}>มารดา</option>
+                                <option value="ญาติ" ${sd.housingStatus === 'ญาติ' ? 'selected':''}>ญาติ</option>
+                                <option value="หอพัก" ${sd.housingStatus === 'หอพัก' ? 'selected':''}>หอพัก/บ้านเช่า</option>
+                            </select>
+                        </div>
+                        <div class="section-box">
+                            <h3 style="margin-top:0;">📸 ภาพถ่าย</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>ภาพหน้าบ้าน ${sd.homeImgUrl1 ? '<span style="color:var(--success)">(มีรูปเก่า)</span>':''}</label>
+                                    <div class="file-upload-box"><input type="file" id="m5-img1" accept="image/*" ${!sd.homeImgUrl1?'required':''}><span>เลือกรูป 📂</span></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>สภาพภายในบ้าน ${sd.homeImgUrl2 ? '<span style="color:var(--success)">(มีรูปเก่า)</span>':''}</label>
+                                    <div class="file-upload-box"><input type="file" id="m5-img2" accept="image/*" ${!sd.homeImgUrl2?'required':''}><span>เลือกรูป 📂</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">บันทึกข้อมูลส่วนที่ 5</button>
+                    </form>`;
+            }
+
+            if (window.innerWidth <= 768 && pageName !== 'dashboard') {
+                setTimeout(() => document.getElementById('dynamic-content-area').scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+            }
+        }
+
+        // ==========================================
+        // 🧩 Helper Functions 
+        // ==========================================
+        function calcBMI() {
+            const w = parseFloat(document.getElementById('m3-weight')?.value), h = parseFloat(document.getElementById('m3-height')?.value)/100;
+            const res = document.getElementById('bmi-result');
+            if(w>0 && h>0) {
+                const bmi = (w/(h*h)).toFixed(1); res.style.display='block';
+                const valEl = document.getElementById('bmi-val'), labEl = document.getElementById('bmi-label');
+                valEl.textContent = `BMI: ${bmi}`;
+                if(bmi < 18.5) { labEl.textContent = "ผอม"; labEl.style.color="#3b82f6"; }
+                else if(bmi < 23) { labEl.textContent = "ปกติ"; labEl.style.color="#10b981"; }
+                else if(bmi < 25) { labEl.textContent = "อวบ"; labEl.style.color="#f59e0b"; }
+                else { labEl.textContent = "อ้วน"; labEl.style.color="#ef4444"; }
+            }
+        }
+
+        function getDriveThumb(url) {
+            const match = url?.match(/[-\w]{25,}/);
+            return match ? `https://drive.google.com/thumbnail?id=${match[0]}&sz=w200` : 'https://via.placeholder.com/80?text=No+Img';
+        }
+
+        function renderClassmates() {
+            const con = document.getElementById('classmates-container'); if(!con) return;
+            if(cachedClassmates.length === 0) { con.innerHTML = "<p style='color:var(--text-muted);'>ไม่พบรายชื่อเพื่อน</p>"; return; }
+            con.innerHTML = cachedClassmates.map(m => {
+                const r = m4State.friendsRatings[m.studentId] || { s:0, c:0 };
+                return `
+                <div class="classmate-card" id="c-${m.studentId}">
+                    <button type="button" class="btn-hide-card" onclick="this.parentElement.style.display='none'">✖</button>
+                    <img src="${getDriveThumb(m.profileImageUrl)}" class="classmate-img" onerror="this.src='https://via.placeholder.com/80'">
+                    <div style="font-size:0.85rem; font-weight:600;">${m.fullName}</div>
+                    <div class="rating-group">${[1,2,3,4,5].map(i => `<span class="star-icon ${i<=r.s?'active':''}" onclick="rate('${m.studentId}','s',${i})">⭐</span>`).join('')}</div>
+                </div>`;
+            }).join('');
+        }
+
+        window.rate = (id, t, v) => {
+            if(!m4State.friendsRatings[id]) m4State.friendsRatings[id] = {s:0, c:0};
+            m4State.friendsRatings[id][t] = (m4State.friendsRatings[id][t] === v) ? 0 : v;
+            renderClassmates();
+        };
+
+        window.addSch = () => { m4State.scholarships.push({ n:'', a:'', d:'' }); renderScholarships(); };
+        window.remSch = (i) => { m4State.scholarships.splice(i,1); renderScholarships(); };
+        function renderScholarships() {
+            const con = document.getElementById('scholarships-container'); if(!con) return;
+            con.innerHTML = m4State.scholarships.map((s,i) => `
+                <div class="scholarship-item">
+                    <button type="button" class="btn-hide-card" onclick="remSch(${i})">✖</button>
+                    <input type="text" placeholder="ชื่อทุน" value="${s.n}" onchange="m4State.scholarships[${i}].n=this.value" style="margin-bottom:8px; width:100%; padding:10px; border-radius:5px; border:1px solid #d1d5db;">
+                    <div class="form-grid">
+                        <input type="number" placeholder="จำนวนเงิน" value="${s.a}" onchange="m4State.scholarships[${i}].a=this.value" style="padding:10px; border-radius:5px; border:1px solid #d1d5db;">
+                        <input type="date" value="${s.d}" onchange="m4State.scholarships[${i}].d=this.value" style="padding:10px; border-radius:5px; border:1px solid #d1d5db;">
+                    </div>
+                </div>`).join('');
+        }
+
+        async function fetchAPI(a, p={}) { p.action = a; const r = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(p) }); return await r.json(); }
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) { resolve(null); return; }
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image(); img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width; let height = img.height;
+                        if (width > height) { if (width > 600) { height *= 600 / width; width = 600; } } 
+                        else { if (height > 600) { width *= 600 / height; height = 600; } }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        }
+
+        // ==========================================
+        // 💾 Submit Logic
+        // ==========================================
+        async function submitMission(e, num) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled=true; btn.textContent='กำลังบันทึกข้อมูล... ⏳';
+            let p = { studentId: localStorage.getItem('studentId'), mission: String(num) };
+            let sd = cachedStudentData || {};
+            
+            try {
+                if (num === 1) {
+                    p.citizenId = document.getElementById('m1-citizenId').value;
+                    p.fullName = sd.fullName; p.birthDate = document.getElementById('m1-birth').value;
+                    p.religion = document.getElementById('m1-religion').value; p.level = sd.level;
+                    if(document.getElementById('m1-img').files.length > 0) p.profileImageBase64 = await getBase64(document.getElementById('m1-img').files[0]);
+                } else if (num === 2) {
+                    p.fatherName = document.getElementById('m2-fatherName').value; p.motherName = document.getElementById('m2-motherName').value;
+                    p.guardianName = document.getElementById('m2-guardianName').value; p.studentPhone = document.getElementById('m2-stuPhone').value;
+                    p.guardianPhone = document.getElementById('m2-guardPhone').value;
+                    if(document.getElementById('m2-img-guard').files.length > 0) p.guardianImageBase64 = await getBase64(document.getElementById('m2-img-guard').files[0]);
+                    if(document.getElementById('m2-sign').files.length > 0) p.guardianSignatureBase64 = await getBase64(document.getElementById('m2-sign').files[0]);
+                } else if (num === 3) {
+                    p.weight = document.getElementById('m3-weight').value; p.height = document.getElementById('m3-height').value;
+                    p.medicalCondition = JSON.stringify({ status: document.getElementById('m3-status').value, acc: document.getElementById('m3-acc').value, accDate: document.getElementById('m3-acc-date').value, ill: document.getElementById('m3-ill').value, illDate: document.getElementById('m3-ill-date').value });
+                } else if (num === 4) {
+                    p.preferencesJson = JSON.stringify({
+                        subs: Array.from(document.querySelectorAll('#m4-subs input:checked')).map(x=>x.value==='อื่นๆ'?document.getElementById('m4-s-o').value:x.value),
+                        acts: Array.from(document.querySelectorAll('#m4-acts input:checked')).map(x=>x.value==='อื่นๆ'?document.getElementById('m4-a-o').value:x.value),
+                        color: document.getElementById('m4-color').value, career: document.getElementById('m4-career').value === 'อื่นๆ' ? document.getElementById('m4-c-o').value : document.getElementById('m4-career').value,
+                        scholarships: m4State.scholarships, dist: document.getElementById('m4-dist').value, travel: document.getElementById('m4-travel').value
+                    });
+                    p.friendsJson = JSON.stringify(m4State.friendsRatings);
+                } else if (num === 5) {
+                    p.lat = document.getElementById('m5-lat').value; p.lng = document.getElementById('m5-lng').value;
+                    p.fullAddress = `${document.getElementById('m5-houseno').value.trim()} ต.${document.getElementById('m5-subdistrict').value.trim()} อ.${document.getElementById('m5-district').value.trim()} จ.${document.getElementById('m5-province').value.trim()}`;
+                    p.housingStatus = document.getElementById('m5-housing').value;
+                    if(document.getElementById('m5-img1').files.length > 0) p.homeImg1Base64 = await getBase64(document.getElementById('m5-img1').files[0]);
+                    if(document.getElementById('m5-img2').files.length > 0) p.homeImg2Base64 = await getBase64(document.getElementById('m5-img2').files[0]);
+                }
+
+                const res = await fetchAPI('saveData', p);
+                if(res.status !== 'success') throw new Error(res.message);
+
+                playerState.score += 1500; 
+                playerState.missions['m'+num].status = 'completed';
+                savePlayerState();
+
+                // 🛠️ อัปเดตข้อมูล Cache แบบไม่ต้องรีเฟรชหน้า
+                const fetchNewData = await fetchAPI('getData', { studentId: localStorage.getItem('studentId') });
+                if(fetchNewData.status === 'success') { cachedStudentData = fetchNewData.studentData; }
+
+                document.getElementById('modal-heading').textContent = `บันทึกส่วนที่ ${num} สำเร็จ!`;
+                document.getElementById('modal-text').innerHTML = `ขอบคุณที่ให้ข้อมูล ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว 🌸`;
+                document.getElementById('custom-modal').style.display='flex';
+
+            } catch(err) { alert("Error: " + err.message); btn.disabled=false; btn.textContent='บันทึกข้อมูลอีกครั้ง'; }
+        }
+        function closeModalAndGoNext() { document.getElementById('custom-modal').style.display='none'; loadContent('dashboard'); }
+    </script>
+</body>
+</html>
