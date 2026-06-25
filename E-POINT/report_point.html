@@ -63,7 +63,7 @@
             .form-row { flex-direction: column; align-items: stretch; }
             .form-group { min-width: auto; width: 100%; }
             .export-buttons { text-align: center; }
-            .btn-success, .btn-info, .btn-warning { margin: 5px 0; margin-left: 0; }
+            .btn-success, .btn-warning { margin: 5px 0; margin-left: 0; }
             th, td { padding: 8px 5px; font-size: 0.85em; }
         }
     </style>
@@ -93,9 +93,8 @@
             </div>
             
             <div class="export-buttons" id="exportButtons" style="display:none;">
-                <button class="btn btn-success" id="exportSheetsBtn" onclick="exportToSheets()">📗 ส่งออกหน้าปัจจุบัน (Sheets)</button>
-                <button class="btn btn-info" id="exportPdfBtn" onclick="exportToPdf()">📕 ส่งออกหน้าปัจจุบัน (PDF)</button>
-                <button class="btn btn-warning" id="exportClassReportBtn" onclick="exportClassReport()">⚠️ สร้างรายงานตามเกณฑ์</button>
+                <button class="btn btn-success" id="exportSheetsBtn" onclick="exportToSheets()">📗 ส่งออกข้อมูลหน้าปัจจุบัน (Sheets)</button>
+                <button class="btn btn-warning" id="exportClassReportBtn" onclick="exportClassReport()">⚠️ สร้างรายงานรายห้องตามเกณฑ์ (Sheets)</button>
             </div>
             
             <div class="grade-reports" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.3);">
@@ -181,23 +180,19 @@
             } catch (error) { showError(error.message); }
         }
 
-        // ฟังก์ชันใหม่ที่มีตัวเลือกสายชั้น
         function populateClassroomSelect(data) {
             const classSelect = document.getElementById('classSelect');
             classSelect.innerHTML = '<option value="">-- เลือกห้อง/สายชั้น --</option>';
             
-            // เพิ่มตัวเลือกสำหรับสายชั้น ม.1 - ม.6
             for (let i = 1; i <= 6; i++) {
                 classSelect.add(new Option(`📊 สายชั้น ม.${i}`, `grade_${i}`));
             }
             
-            // ขีดคั่นแบ่งหมวดหมู่ให้ดูง่ายขึ้น
             const separator = document.createElement('option');
             separator.disabled = true;
             separator.textContent = '──────────';
             classSelect.appendChild(separator);
             
-            // เพิ่มตัวเลือกรายห้องเหมือนเดิม
             data.classrooms.forEach(c => classSelect.add(new Option(`ม.${c}`, c)));
         }
 
@@ -249,7 +244,6 @@
             });
         }
 
-        // --- ระบบส่งออกข้อมูล ---
         function getThreshold() { return document.getElementById('scoreThreshold').value || 60; }
 
         async function exportToSheets() {
@@ -261,17 +255,6 @@
                 else showExportStatus('❌ ' + result.error, false);
             } catch (error) { showExportStatus('❌ ' + error.message, false); }
             finally { setButtonLoading('exportSheetsBtn', false); }
-        }
-
-        async function exportToPdf() {
-            if (!currentData) return alert('กรุณาเลือกข้อมูลก่อน');
-            hideExportStatus(); setButtonLoading('exportPdfBtn', true);
-            try {
-                const result = await fetchAPI('exportToPDF', { className: currentData.className });
-                if (result.success) showExportStatus('✅ ส่งออก PDF สำเร็จ!', true, result.url);
-                else showExportStatus('❌ ' + result.error, false);
-            } catch (error) { showExportStatus('❌ ' + error.message, false); }
-            finally { setButtonLoading('exportPdfBtn', false); }
         }
 
         async function exportClassReport() {
@@ -297,7 +280,6 @@
             } catch (error) { showExportStatus('❌ ' + error.message, false); }
         }
 
-        // ⭐ ระบบแก้ปัญหา Limit 6 นาที สำหรับสร้างรายงานรวม ม.1-6
         async function exportAllGradesReport() {
             const threshold = getThreshold();
             hideExportStatus();
@@ -305,7 +287,6 @@
             showExportStatus(`⏳ (1/8) กำลังเตรียมไฟล์รายงานรวมทุกระดับชั้น...`, true);
             
             try {
-                // Step 1: สร้างไฟล์ตั้งต้น
                 const initRes = await fetchAPI('initAllGradesReport', { threshold });
                 if (!initRes.success) throw new Error(initRes.error);
                 const spreadsheetId = initRes.spreadsheetId;
@@ -313,7 +294,6 @@
                 let allStats = {};
                 let totalStudents = 0;
 
-                // Step 2: ให้ Frontend สั่งดึงข้อมูลทีละระดับชั้น
                 for (let grade = 1; grade <= 6; grade++) {
                     showExportStatus(`⏳ (${grade+1}/8) กำลังรวบรวมข้อมูลชั้น ม.${grade}...`, true);
                     const gradeRes = await fetchAPI('processGradeForReport', { spreadsheetId, gradeLevel: grade, threshold });
@@ -323,7 +303,6 @@
                     totalStudents += gradeRes.stats.studentsBelowThreshold;
                 }
 
-                // Step 3: ให้ Backend สร้างหน้าสรุปผลและนำไปเก็บในโฟลเดอร์
                 showExportStatus(`⏳ (8/8) กำลังสร้างหน้าสรุปผลและบันทึกไฟล์...`, true);
                 const finalRes = await fetchAPI('finalizeAllGradesReport', { 
                     spreadsheetId, 
