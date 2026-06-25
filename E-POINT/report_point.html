@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบคะแนนพฤติกรรม E-Point</title>
+    <style>
+        /* คง CSS เดิมของคุณไว้ทั้งหมดครับ */
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Sarabun', 'Kanit', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); backdrop-filter: blur(10px); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #2ECC71 0%, #3498DB 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-family: 'Kanit', sans-serif; font-size: 2.5em; font-weight: 500; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-family: 'Sarabun', sans-serif; opacity: 0.9; font-size: 1.2em; font-weight: 400; }
+        .controls { background: linear-gradient(135deg, #ECF0F1 0%, #BDC3C7 100%); padding: 25px; border-bottom: 3px solid #E91E63; }
+        .form-row { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; min-width: 200px; }
+        .form-group label { font-family: 'Kanit', sans-serif; font-weight: 500; color: #2C3E50; margin-bottom: 5px; font-size: 1em; }
+        .controls input, .controls select { font-family: 'Sarabun', sans-serif; padding: 12px 15px; border: 2px solid #BDC3C7; border-radius: 10px; font-size: 15px; background: white; transition: all 0.3s ease; outline: none; font-weight: 400; }
+        .controls input:focus, .controls select:focus { border-color: #3498DB; box-shadow: 0 0 0 3px rgba(52,152,219,0.2); }
+        .btn { font-family: 'Kanit', sans-serif; padding: 12px 25px; border: none; border-radius: 25px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-transform: none; letter-spacing: 0.3px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        .btn-primary { background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(233,30,99,0.4); }
+        .btn-success { background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%); color: white; margin-left: 10px; }
+        .btn-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,204,113,0.4); }
+        .btn-info { background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%); color: white; margin-left: 10px; }
+        .btn-info:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52,152,219,0.4); }
+        .btn-warning { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; margin-left: 10px; }
+        .btn-warning:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,152,0,0.4); }
+        .btn-secondary { background: linear-gradient(135deg, #6C757D 0%, #495057 100%); color: white; margin: 5px 0; }
+        .btn-secondary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,117,125,0.4); }
+        .export-buttons { margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.3); }
+        .export-status { margin-top: 10px; padding: 15px; border-radius: 10px; display: none; font-family: 'Sarabun', sans-serif; font-weight: 500; }
+        .export-success { background: rgba(46,204,113,0.1); color: #27AE60; border: 2px solid rgba(46,204,113,0.3); }
+        .export-error { background: rgba(231,76,60,0.1); color: #E74C3C; border: 2px solid rgba(231,76,60,0.3); }
+        .export-link { color: #2980B9; text-decoration: none; font-weight: 600; margin-left: 10px; }
+        .export-link:hover { text-decoration: underline; }
+        .content-area { padding: 30px; }
+        .stats { background: linear-gradient(135deg, rgba(46,204,113,0.1) 0%, rgba(52,152,219,0.1) 100%); border: 2px solid rgba(46,204,113,0.3); padding: 25px; border-radius: 15px; margin-bottom: 30px; position: relative; overflow: hidden; }
+        .stats::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #2ECC71, #3498DB, #E91E63); }
+        .stats h3 { font-family: 'Kanit', sans-serif; color: #2C3E50; margin-bottom: 15px; font-size: 1.6em; font-weight: 500; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-item { text-align: center; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-value { font-family: 'Kanit', sans-serif; font-size: 2.2em; font-weight: 600; color: #2ECC71; display: block; }
+        .stat-label { font-family: 'Sarabun', sans-serif; color: #7F8C8D; font-size: 1em; margin-top: 5px; font-weight: 400; }
+        .table-container { overflow-x: auto; max-width: 100%; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); background: white; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 900px; }
+        th, td { font-family: 'Sarabun', sans-serif; padding: 12px 10px; text-align: left; border-bottom: 1px solid #ECF0F1; vertical-align: top; }
+        th { background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%); color: white; font-family: 'Kanit', sans-serif; font-weight: 500; text-transform: none; font-size: 0.9em; letter-spacing: 0.3px; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: rgba(52,152,219,0.05); }
+        .penalty { font-family: 'Sarabun', sans-serif; font-size: 0.85em; margin: 4px 0; border-left: 4px solid #E74C3C; padding: 8px; background: rgba(231,76,60,0.1); border-radius: 5px; line-height: 1.4; }
+        .bonus-record { font-family: 'Sarabun', sans-serif; font-size: 0.85em; margin: 4px 0; border-left: 4px solid #2ECC71; padding: 8px; background: rgba(46,204,113,0.1); border-radius: 5px; line-height: 1.4; }
+        .bonus-points { color: #2ECC71; font-weight: bold; }
+        .penalty-points { color: #E74C3C; font-weight: bold; }
+        .loading, .error { font-family: 'Sarabun', sans-serif; text-align: center; padding: 40px; font-size: 1.2em; font-weight: 400; }
+        .loading { color: #3498DB; background: rgba(52,152,219,0.1); border-radius: 15px; margin: 20px; }
+        .error { color: #E74C3C; background: rgba(231,76,60,0.1); border-radius: 15px; margin: 20px; }
+        .loading::before { content: '⏳ '; animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+            .container { margin: 10px; border-radius: 15px; }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .form-group { min-width: auto; width: 100%; }
+            .export-buttons { text-align: center; }
+            .btn-success, .btn-info, .btn-warning { margin: 5px 0; margin-left: 0; }
+            th, td { padding: 8px 5px; font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 ระบบคะแนนพฤติกรรม E-Point</h1>
+            <p>ติดตามคะแนนและประวัติความประพฤติ</p>
+        </div>
+        
+        <div class="controls">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🏫 เลือกห้องเรียน</label>
+                    <select id="classSelect">
+                        <option value="">-- เลือกห้อง --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>⚙️ เกณฑ์คะแนน (ต่ำกว่าหรือเท่ากับ)</label>
+                    <input type="number" id="scoreThreshold" value="60" min="0" max="100" style="width: 150px;">
+                </div>
+                
+                <button class="btn btn-primary" onclick="loadSelectedData()">📊 แสดงข้อมูล</button>
+            </div>
+            
+            <div class="export-buttons" id="exportButtons" style="display:none;">
+                <button class="btn btn-success" id="exportSheetsBtn" onclick="exportToSheets()">📗 ส่งออกทั้งห้อง (Sheets)</button>
+                <button class="btn btn-info" id="exportPdfBtn" onclick="exportToPdf()">📕 ส่งออกทั้งห้อง (PDF)</button>
+                <button class="btn btn-warning" id="exportClassReportBtn" onclick="exportClassReport()">⚠️ สร้างรายงานห้องตามเกณฑ์</button>
+            </div>
+            
+            <div class="grade-reports" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.3);">
+                <div style="margin-bottom: 10px;">
+                    <label style="font-family: 'Kanit', sans-serif; font-weight: 500; color: #2C3E50;">📑 สร้างรายงานตามระดับชั้น (ใช้เกณฑ์คะแนนด้านบน):</label>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <button class="btn btn-secondary" onclick="exportGradeReport(1)">รายงานระดับ ม.1</button>
+                    <button class="btn btn-secondary" onclick="exportGradeReport(2)">รายงานระดับ ม.2</button>
+                    <button class="btn btn-secondary" onclick="exportGradeReport(3)">รายงานระดับ ม.3</button>
+                    <button class="btn btn-secondary" onclick="exportGradeReport(4)">รายงานระดับ ม.4</button>
+                    <button class="btn btn-secondary" onclick="exportGradeReport(5)">รายงานระดับ ม.5</button>
+                    <button class="btn btn-secondary" onclick="exportGradeReport(6)">รายงานระดับ ม.6</button>
+                </div>
+                
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn" id="exportAllGradesBtn" onclick="exportAllGradesReport()" style="background: linear-gradient(135deg, #8E44AD 0%, #9B59B6 100%); color: white; font-size: 16px; padding: 15px 30px;">
+                        📑 รายงานรวมทุกระดับชั้น (ม.1-6)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="export-status" id="exportStatus"></div>
+        </div>
+        
+        <div class="content-area">
+            <div id="loading" class="loading">กำลังโหลดข้อมูล...</div>
+            <div id="error" class="error" style="display:none;"></div>
+            
+            <div id="content" style="display:none;">
+                <div class="stats">
+                    <h3>📊 สถิติคะแนนรวม</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item"><span class="stat-value" id="totalScore">0</span><div class="stat-label">คะแนนรวม</div></div>
+                        <div class="stat-item"><span class="stat-value" id="totalStudents" style="color: #3498DB;">0</span><div class="stat-label">จำนวนนักเรียน</div></div>
+                        <div class="stat-item"><span class="stat-value" id="averageScore" style="color: #E91E63;">0</span><div class="stat-label">คะแนนเฉลี่ย</div></div>
+                    </div>
+                </div>
+               
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>📝 รหัสนักเรียน</th>
+                                <th>👤 ชื่อ-สกุล</th>
+                                <th>⭐ คะแนน</th>
+                                <th>📉 ประวัติการตัดคะแนน</th>
+                                <th>📈 ประวัติการเพิ่มคะแนน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *** แก้ไข SCRIPT_URL ตรงนี้ให้เป็น URL ของคุณ ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxehDjoxj7xSMMG59EUeldGSmmBuDc-PVlwaDr60yLxOvdMmyZaZJt159knA0p13s6QOQ/exec";
+        let currentData = null;
+
+        async function fetchAPI(action, params = {}) {
+            let url = new URL(SCRIPT_URL);
+            url.searchParams.append('action', action);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            try {
+                const response = await fetch(url.toString(), { method: 'GET', redirect: 'follow' });
+                return await response.json();
+            } catch (error) { throw error; }
+        }
+
+        async function loadClassroomList() {
+            document.getElementById('loading').style.display = 'block';
+            try {
+                const data = await fetchAPI('getClassroomList');
+                if (data && data.success) {
+                    const classSelect = document.getElementById('classSelect');
+                    classSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+                    data.classrooms.forEach(c => classSelect.add(new Option(`ม.${c}`, c)));
+                    document.getElementById('loading').style.display = 'none';
+                } else showError(data ? data.error : 'ไม่สามารถโหลดได้');
+            } catch (error) { showError(error.message); }
+        }
+
+        async function loadSelectedData() {
+            const className = document.getElementById('classSelect').value;
+            if (!className) return alert('กรุณาเลือกห้องเรียน');
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('exportButtons').style.display = 'none';
+            hideExportStatus();
+
+            try {
+                const data = await fetchAPI('getData', { className });
+                if (data && data.success) {
+                    currentData = { className, data };
+                    displayClassroomData(data);
+                    showExportButtons();
+                } else showError(data ? data.error : 'โหลดข้อมูลล้มเหลว');
+            } catch (error) { showError(error.message); }
+        }
+
+        function displayClassroomData(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('totalScore').textContent = data.stats.totalScore;
+            document.getElementById('totalStudents').textContent = data.stats.totalStudents;
+            document.getElementById('averageScore').textContent = data.stats.averageScore;
+            
+            const tableBody = document.getElementById('studentTable');
+            tableBody.innerHTML = '';
+            
+            data.students.forEach(student => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).textContent = student.id || '-';
+                row.insertCell(1).textContent = student.name || '-';
+                row.insertCell(2).textContent = student.score || 0;
+                
+                const penaltyCell = row.insertCell(3);
+                if (student.penalties && student.penalties.length > 0) {
+                    penaltyCell.innerHTML = student.penalties.map(p => `<div class="penalty"><strong>${p.date}</strong><br>${p.category}: ${p.violation}<br>คะแนน: <span class="penalty-points">${p.points}</span></div>`).join('');
+                } else penaltyCell.textContent = '-';
+                
+                const bonusCell = row.insertCell(4);
+                if (student.bonusRecords && student.bonusRecords.length > 0) {
+                    bonusCell.innerHTML = student.bonusRecords.map(b => `<div class="bonus-record"><strong>${b.date}</strong><br>${b.category}<br>คะแนน: <span class="bonus-points">+${b.points}</span></div>`).join('');
+                } else bonusCell.textContent = '-';
+            });
+        }
+
+        // --- ระบบส่งออกข้อมูล ---
+        function getThreshold() { return document.getElementById('scoreThreshold').value || 60; }
+
+        async function exportToSheets() {
+            if (!currentData) return alert('กรุณาเลือกข้อมูลก่อน');
+            hideExportStatus(); setButtonLoading('exportSheetsBtn', true);
+            try {
+                const result = await fetchAPI('exportToGoogleSheets', { className: currentData.className });
+                if (result.success) showExportStatus('✅ ส่งออก Google Sheets สำเร็จ!', true, result.url);
+                else showExportStatus('❌ ' + result.error, false);
+            } catch (error) { showExportStatus('❌ ' + error.message, false); }
+            finally { setButtonLoading('exportSheetsBtn', false); }
+        }
+
+        async function exportToPdf() {
+            if (!currentData) return alert('กรุณาเลือกข้อมูลก่อน');
+            hideExportStatus(); setButtonLoading('exportPdfBtn', true);
+            try {
+                const result = await fetchAPI('exportToPDF', { className: currentData.className });
+                if (result.success) showExportStatus('✅ ส่งออก PDF สำเร็จ!', true, result.url);
+                else showExportStatus('❌ ' + result.error, false);
+            } catch (error) { showExportStatus('❌ ' + error.message, false); }
+            finally { setButtonLoading('exportPdfBtn', false); }
+        }
+
+        async function exportClassReport() {
+            if (!currentData) return alert('กรุณาเลือกข้อมูลก่อน');
+            const threshold = getThreshold();
+            hideExportStatus(); setButtonLoading('exportClassReportBtn', true);
+            try {
+                const result = await fetchAPI('exportClassReport', { className: currentData.className, threshold });
+                if (result.success) showExportStatus(`✅ ${result.message}`, true, result.url);
+                else showExportStatus('❌ ' + result.error, false);
+            } catch (error) { showExportStatus('❌ ' + error.message, false); }
+            finally { setButtonLoading('exportClassReportBtn', false); }
+        }
+
+        async function exportGradeReport(gradeLevel) {
+            const threshold = getThreshold();
+            hideExportStatus();
+            showExportStatus(`⏳ กำลังสร้างรายงานระดับชั้น ม.${gradeLevel} (เกณฑ์ <= ${threshold})...`, true);
+            try {
+                const result = await fetchAPI('exportGradeReport', { gradeLevel, threshold });
+                if (result.success) showExportStatus(`✅ ${result.message}`, true, result.url);
+                else showExportStatus('❌ ' + result.error, false);
+            } catch (error) { showExportStatus('❌ ' + error.message, false); }
+        }
+
+        // ⭐ ระบบแก้ปัญหา Limit 6 นาที สำหรับสร้างรายงานรวม ม.1-6
+        async function exportAllGradesReport() {
+            const threshold = getThreshold();
+            hideExportStatus();
+            setButtonLoading('exportAllGradesBtn', true);
+            showExportStatus(`⏳ (1/8) กำลังเตรียมไฟล์รายงานรวมทุกระดับชั้น...`, true);
+            
+            try {
+                // Step 1: สร้างไฟล์ตั้งต้น
+                const initRes = await fetchAPI('initAllGradesReport', { threshold });
+                if (!initRes.success) throw new Error(initRes.error);
+                const spreadsheetId = initRes.spreadsheetId;
+
+                let allStats = {};
+                let totalStudents = 0;
+
+                // Step 2: ให้ Frontend สั่งดึงข้อมูลทีละระดับชั้น (ไม่เกิน 6 นาทีแน่นอน)
+                for (let grade = 1; grade <= 6; grade++) {
+                    showExportStatus(`⏳ (${grade+1}/8) กำลังรวบรวมข้อมูลชั้น ม.${grade}...`, true);
+                    const gradeRes = await fetchAPI('processGradeForReport', { spreadsheetId, gradeLevel: grade, threshold });
+                    if (!gradeRes.success) throw new Error(`ม.${grade}: ` + gradeRes.error);
+                    
+                    allStats[grade] = gradeRes.stats;
+                    totalStudents += gradeRes.stats.studentsBelowThreshold;
+                }
+
+                // Step 3: ให้ Backend สร้างหน้าสรุปผลและนำไปเก็บในโฟลเดอร์
+                showExportStatus(`⏳ (8/8) กำลังสร้างหน้าสรุปผลและบันทึกไฟล์...`, true);
+                const finalRes = await fetchAPI('finalizeAllGradesReport', { 
+                    spreadsheetId, 
+                    allStats: JSON.stringify(allStats), 
+                    threshold, 
+                    totalStudents 
+                });
+                
+                if (!finalRes.success) throw new Error(finalRes.error);
+                showExportStatus(`✅ สำเร็จ! สรุปยอดนักเรียนทั้งหมด ${totalStudents} คน (เกณฑ์ <= ${threshold})`, true, finalRes.url);
+
+            } catch (error) {
+                showExportStatus('❌ เกิดข้อผิดพลาด: ' + error.message, false);
+            } finally {
+                setButtonLoading('exportAllGradesBtn', false);
+            }
+        }
+
+        function showExportButtons() { document.getElementById('exportButtons').style.display = 'block'; }
+        function hideExportStatus() { document.getElementById('exportStatus').style.display = 'none'; }
+        
+        function showExportStatus(message, isSuccess = true, link = null) {
+            const statusDiv = document.getElementById('exportStatus');
+            statusDiv.className = `export-status ${isSuccess ? 'export-success' : 'export-error'}`;
+            let content = message;
+            if (link && isSuccess) content += `<a href="${link}" target="_blank" class="export-link">🔗 เปิดไฟล์</a>`;
+            statusDiv.innerHTML = content;
+            statusDiv.style.display = 'block';
+        }
+
+        function setButtonLoading(buttonId, loading) {
+            const button = document.getElementById(buttonId);
+            if(button) {
+                button.disabled = loading;
+                if (loading) {
+                    button.dataset.originalText = button.textContent;
+                    button.textContent = '⏳ กำลังประมวลผล...';
+                } else if (button.dataset.originalText) {
+                    button.textContent = button.dataset.originalText;
+                }
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = 'เกิดข้อผิดพลาด: ' + (typeof msg === 'string' ? msg : msg.message);
+        }
+
+        window.onload = loadClassroomList;
+    </script>
+</body>
+</html>
