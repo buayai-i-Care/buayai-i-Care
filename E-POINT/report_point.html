@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>ระบบคะแนนพฤติกรรม E-Point</title>
     <style>
-        /* คง CSS เดิมของคุณไว้ทั้งหมดครับ */
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Sarabun', 'Kanit', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; line-height: 1.6; }
@@ -79,9 +78,9 @@
         <div class="controls">
             <div class="form-row">
                 <div class="form-group">
-                    <label>🏫 เลือกห้องเรียน</label>
+                    <label>🏫 เลือกห้องเรียน / สายชั้น</label>
                     <select id="classSelect">
-                        <option value="">-- เลือกห้อง --</option>
+                        <option value="">-- เลือกห้อง/สายชั้น --</option>
                     </select>
                 </div>
 
@@ -94,9 +93,9 @@
             </div>
             
             <div class="export-buttons" id="exportButtons" style="display:none;">
-                <button class="btn btn-success" id="exportSheetsBtn" onclick="exportToSheets()">📗 ส่งออกทั้งห้อง (Sheets)</button>
-                <button class="btn btn-info" id="exportPdfBtn" onclick="exportToPdf()">📕 ส่งออกทั้งห้อง (PDF)</button>
-                <button class="btn btn-warning" id="exportClassReportBtn" onclick="exportClassReport()">⚠️ สร้างรายงานห้องตามเกณฑ์</button>
+                <button class="btn btn-success" id="exportSheetsBtn" onclick="exportToSheets()">📗 ส่งออกหน้าปัจจุบัน (Sheets)</button>
+                <button class="btn btn-info" id="exportPdfBtn" onclick="exportToPdf()">📕 ส่งออกหน้าปัจจุบัน (PDF)</button>
+                <button class="btn btn-warning" id="exportClassReportBtn" onclick="exportClassReport()">⚠️ สร้างรายงานตามเกณฑ์</button>
             </div>
             
             <div class="grade-reports" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.3);">
@@ -155,7 +154,7 @@
     </div>
 
     <script>
-        // *** แก้ไข SCRIPT_URL ตรงนี้ให้เป็น URL ของคุณ ***
+        // ⚠️ อย่าลืมแก้ SCRIPT_URL ตรงนี้ให้เป็น URL ของคุณจากการ Deploy ครั้งล่าสุด ⚠️
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxehDjoxj7xSMMG59EUeldGSmmBuDc-PVlwaDr60yLxOvdMmyZaZJt159knA0p13s6QOQ/exec";
         let currentData = null;
 
@@ -174,17 +173,37 @@
             try {
                 const data = await fetchAPI('getClassroomList');
                 if (data && data.success) {
-                    const classSelect = document.getElementById('classSelect');
-                    classSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
-                    data.classrooms.forEach(c => classSelect.add(new Option(`ม.${c}`, c)));
+                    populateClassroomSelect(data);
                     document.getElementById('loading').style.display = 'none';
-                } else showError(data ? data.error : 'ไม่สามารถโหลดได้');
+                } else {
+                    showError(data ? data.error : 'ไม่สามารถโหลดได้');
+                }
             } catch (error) { showError(error.message); }
+        }
+
+        // ฟังก์ชันใหม่ที่มีตัวเลือกสายชั้น
+        function populateClassroomSelect(data) {
+            const classSelect = document.getElementById('classSelect');
+            classSelect.innerHTML = '<option value="">-- เลือกห้อง/สายชั้น --</option>';
+            
+            // เพิ่มตัวเลือกสำหรับสายชั้น ม.1 - ม.6
+            for (let i = 1; i <= 6; i++) {
+                classSelect.add(new Option(`📊 สายชั้น ม.${i}`, `grade_${i}`));
+            }
+            
+            // ขีดคั่นแบ่งหมวดหมู่ให้ดูง่ายขึ้น
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = '──────────';
+            classSelect.appendChild(separator);
+            
+            // เพิ่มตัวเลือกรายห้องเหมือนเดิม
+            data.classrooms.forEach(c => classSelect.add(new Option(`ม.${c}`, c)));
         }
 
         async function loadSelectedData() {
             const className = document.getElementById('classSelect').value;
-            if (!className) return alert('กรุณาเลือกห้องเรียน');
+            if (!className) return alert('กรุณาเลือกห้อง/สายชั้น');
             
             document.getElementById('loading').style.display = 'block';
             document.getElementById('content').style.display = 'none';
@@ -294,7 +313,7 @@
                 let allStats = {};
                 let totalStudents = 0;
 
-                // Step 2: ให้ Frontend สั่งดึงข้อมูลทีละระดับชั้น (ไม่เกิน 6 นาทีแน่นอน)
+                // Step 2: ให้ Frontend สั่งดึงข้อมูลทีละระดับชั้น
                 for (let grade = 1; grade <= 6; grade++) {
                     showExportStatus(`⏳ (${grade+1}/8) กำลังรวบรวมข้อมูลชั้น ม.${grade}...`, true);
                     const gradeRes = await fetchAPI('processGradeForReport', { spreadsheetId, gradeLevel: grade, threshold });
