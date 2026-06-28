@@ -668,7 +668,7 @@ admin_Edit_Std_joinFlag.html" class="menu-card" onclick="return checkSuperAdminP
         event.preventDefault();
         let pw = sessionStorage.getItem('teacher_pw_auto');
         if (pw) {
-            window.open('usermanual.html=' + pw, '_blank');
+            window.open('usermanual.html?user=' + pw, '_blank');
         } else {
             unlockTeacher();
         }
