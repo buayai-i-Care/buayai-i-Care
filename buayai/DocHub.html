@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบค้นหาและคลังข้อมูล</title>
+    <title>ระบบคลังเอกสารดิจิทัล โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</title>
     <!-- นำเข้าฟอนต์ TH Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +11,18 @@
     
     <style>
         :root {
-            --primary-color: #2563eb;
-            --bg-color: #f1f5f9;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #0f172a;
             --text-light: #475569;
+            
+            /* กำหนดสีประจำแต่ละหมวดหมู่ */
+            --color-cat1: #2563eb; /* น้ำเงิน - วิชาการ */
+            --color-cat2: #16a34a; /* เขียว - บุคคล(ครู) */
+            --color-cat3: #ea580c; /* ส้ม - บุคคล(นักเรียน) */
+            --color-cat4: #9333ea; /* ม่วง - บริหารทั่วไป */
+            --color-cat5: #64748b; /* เทา - อื่นๆ */
+            --color-default: #ef4444; /* แดง - ยังไม่จัดหมวดหมู่ */
         }
         
         * {
@@ -29,24 +36,35 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 16px;
-            font-size: 18px; /* ปรับขนาดอักษรให้อ่านง่ายสำหรับผู้ใช้งานทั่วไป */
+            font-size: 18px;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
         }
 
+        /* ส่วนหัวของเว็บ (Header & Logo) */
         header {
             text-align: center;
             margin-bottom: 24px;
             padding: 16px 0;
         }
 
+        .school-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 12px;
+            border-radius: 50%; /* ทำให้ขอบมนสวยงาม */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
         header h1 {
             font-size: 28px;
-            color: var(--primary-color);
+            color: #1e293b;
             margin-bottom: 8px;
+            font-weight: 700;
         }
 
         header p {
@@ -54,19 +72,34 @@
             color: var(--text-light);
         }
 
+        /* ช่องค้นหา */
         .search-box {
             width: 100%;
             padding: 14px 16px;
             font-size: 18px;
             border: 2px solid #cbd5e1;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             outline: none;
             transition: border-color 0.2s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .search-box:focus {
-            border-color: var(--primary-color);
+            border-color: var(--color-cat1);
+        }
+
+        /* ส่วนแสดงหมวดหมู่และเส้นคั่น */
+        .category-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #334155;
+            margin: 30px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #cbd5e1; /* เส้นคั่นหมวดหมู่ */
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .file-list {
@@ -75,6 +108,7 @@
             gap: 16px;
         }
 
+        /* การ์ดแสดงไฟล์ */
         .file-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -82,19 +116,21 @@
             display: flex;
             gap: 16px;
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
 
         .thumbnail-area {
-            width: 80px;
-            height: 80px;
-            background-color: #e2e8f0;
+            width: 70px;
+            height: 70px;
+            background-color: #f1f5f9;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
+            border: 1px solid #e2e8f0;
         }
 
         .thumbnail-area img {
@@ -111,46 +147,46 @@
         .file-name {
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #0f172a;
         }
 
         .file-meta {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--text-light);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
-        .tag {
-            background-color: #dbeafe;
-            color: #1e40af;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
+        /* ปุ่มดาวน์โหลดหลากสี */
         .btn-download {
-            background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            padding: 10px 16px;
+            padding: 10px 18px;
             border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             text-align: center;
             white-space: nowrap;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .btn-download:hover { opacity: 0.9; }
+
+        /* กำหนดคลาสสีให้ปุ่มตามหมวดหมู่ */
+        .btn-cat-1 { background-color: var(--color-cat1); }
+        .btn-cat-2 { background-color: var(--color-cat2); }
+        .btn-cat-3 { background-color: var(--color-cat3); }
+        .btn-cat-4 { background-color: var(--color-cat4); }
+        .btn-cat-5 { background-color: var(--color-cat5); }
+        .btn-cat-default { background-color: var(--color-default); }
 
         .loading, .no-data {
             text-align: center;
             padding: 40px;
             color: var(--text-light);
-            font-size: 18px;
+            font-size: 20px;
         }
     </style>
 </head>
@@ -158,14 +194,16 @@
 
 <div class="container">
     <header>
-        <h1>ระบบคลังข้อมูลเอกสาร</h1>
-        <p>ค้นหาและดาวน์โหลดไฟล์โดยไม่ต้องเข้าสู่ระบบ</p>
+        <!-- ดึงรูปโลโก้จาก Google Drive ด้วย Direct View Link -->
+        <img src="https://drive.google.com/uc?export=view&id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj" alt="โลโก้โรงเรียนบัวใหญ่" class="school-logo">
+        <h1>ระบบคลังเอกสารดิจิทัล โรงเรียนบัวใหญ่</h1>
+        <p>ค้นหาและดาวน์โหลดไฟล์ได้อย่างรวดเร็ว</p>
     </header>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="พิมพ์ชื่อเอกสาร หรือหมวดหมู่..." oninput="filterFiles()">
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 พิมพ์ชื่อเอกสาร หรือนามสกุลไฟล์..." oninput="filterFiles()">
 
-    <div id="loadingStatus" class="loading">กำลังเชื่อมต่อฐานข้อมูล...</div>
-    <div id="fileList" class="file-list"></div>
+    <div id="loadingStatus" class="loading">⏳ กำลังเชื่อมต่อฐานข้อมูลเอกสาร...</div>
+    <div id="fileList"></div> <!-- ลบ class file-list ออก เพื่อให้รองรับการจัดกลุ่ม -->
 </div>
 
 <script>
@@ -187,7 +225,7 @@
             document.getElementById('loadingStatus').style.display = 'none';
             renderFiles(allFiles);
         } catch (error) {
-            document.getElementById('loadingStatus').innerText = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+            document.getElementById('loadingStatus').innerText = '❌ เกิดข้อผิดพลาดในการโหลดข้อมูล';
             console.error(error);
         }
     }
@@ -197,35 +235,67 @@
         listContainer.innerHTML = '';
 
         if(files.length === 0) {
-            listContainer.innerHTML = '<div class="no-data">ไม่พบข้อมูลเอกสาร</div>';
+            listContainer.innerHTML = '<div class="no-data">ไม่พบข้อมูลเอกสารที่ค้นหา</div>';
             return;
         }
 
-        files.forEach(file => {
-            const card = document.createElement('div');
-            card.className = 'file-card';
-            
-            // ใช้เทคนิคการดึง Thumbnail จาก Google Drive โดยตรง
-            const thumbnailUrl = `https://drive.google.com/thumbnail?id=${file.fileId}&sz=w200`;
-            const downloadUrl = `https://drive.google.com/uc?export=download&id=${file.fileId}`;
+        // จัดกลุ่มข้อมูล (Group By Category)
+        const groupedFiles = files.reduce((acc, file) => {
+            const cat = file.category || 'รอการระบุหมวดหมู่';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(file);
+            return acc;
+        }, {});
 
-            card.innerHTML = `
-                <div class="thumbnail-area">
-                    <img src="${thumbnailUrl}" alt="Preview" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\'><path d=\'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\'/><polyline points=\'14 2 14 8 20 8\'/></svg>'">
-                </div>
-                <div class="info-area">
-                    <div class="file-name" title="${file.name}">${file.name}</div>
-                    <div class="file-meta">
-                        <span class="tag">${file.category}</span>
-                        <span>ขนาด: ${file.size}</span>
+        // เรียงลำดับชื่อหมวดหมู่ (1, 2, 3...)
+        const sortedCategories = Object.keys(groupedFiles).sort();
+
+        sortedCategories.forEach(category => {
+            // สร้าง Header ของแต่ละหมวดหมู่พร้อมเส้นคั่น
+            const catHeader = document.createElement('h2');
+            catHeader.className = 'category-header';
+            
+            // เลือกสีเส้นคั่นและสีปุ่มตามชื่อหมวดหมู่
+            let btnClass = 'btn-cat-default';
+            let catIcon = '📁';
+            
+            if (category.includes('วิชาการ')) { btnClass = 'btn-cat-1'; catIcon = '📘'; catHeader.style.borderColor = 'var(--color-cat1)'; }
+            else if (category.includes('บุคคล(ครู)')) { btnClass = 'btn-cat-2'; catIcon = '📗'; catHeader.style.borderColor = 'var(--color-cat2)'; }
+            else if (category.includes('บุคคล(นักเรียน)')) { btnClass = 'btn-cat-3'; catIcon = '📙'; catHeader.style.borderColor = 'var(--color-cat3)'; }
+            else if (category.includes('บริหารงานทั่วไป')) { btnClass = 'btn-cat-4'; catIcon = '🟪'; catHeader.style.borderColor = 'var(--color-cat4)'; }
+            else if (category.includes('อื่นๆ')) { btnClass = 'btn-cat-5'; catIcon = '📓'; catHeader.style.borderColor = 'var(--color-cat5)'; }
+            
+            catHeader.innerText = `${catIcon} ${category}`;
+            listContainer.appendChild(catHeader);
+
+            // สร้าง Container คลุมไฟล์ในหมวดหมู่นั้นๆ
+            const catListContainer = document.createElement('div');
+            catListContainer.className = 'file-list';
+
+            // นำไฟล์ใส่ลงในหมวดหมู่
+            groupedFiles[category].forEach(file => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                
+                const thumbnailUrl = `https://drive.google.com/thumbnail?id=${file.fileId}&sz=w200`;
+                const downloadUrl = `https://drive.google.com/uc?export=download&id=${file.fileId}`;
+
+                card.innerHTML = `
+                    <div class="thumbnail-area">
+                        <img src="${thumbnailUrl}" alt="Preview" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\'><path d=\'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\'/><polyline points=\'14 2 14 8 20 8\'/></svg>'">
                     </div>
-                    <div class="file-meta" style="margin-top: 4px; font-size: 14px;">
-                        อัปเดต: ${file.date}
+                    <div class="info-area">
+                        <div class="file-name" title="${file.name}">${file.name}</div>
+                        <div class="file-meta">
+                            ขนาด: ${file.size} | อัปเดต: ${file.date}
+                        </div>
                     </div>
-                </div>
-                <a href="${downloadUrl}" class="btn-download" target="_blank">ดาวน์โหลด</a>
-            `;
-            listContainer.appendChild(card);
+                    <a href="${downloadUrl}" class="btn-download ${btnClass}" target="_blank">ดาวน์โหลด</a>
+                `;
+                catListContainer.appendChild(card);
+            });
+
+            listContainer.appendChild(catListContainer);
         });
     }
 
