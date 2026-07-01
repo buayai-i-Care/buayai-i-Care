@@ -159,38 +159,70 @@
         const dayOfWeekThai = THAI_DAYS[selectedDate.getDay()];
         let html = "";
         let hasSavedData = false;
+        let autoSaveQueue = []; 
 
         teachers.forEach((t, index) => {
           const isDutyToday = (t.dutyDay === dayOfWeekThai);
+          // 🎯 ปรับปรุงใหม่: ตรวจสอบจากคอลัมน์ B โดยตรงว่าเป็น "เฉพาะ" หรือไม่
+          const isSpecialTeacher = (t.dutyDay === "เฉพาะ"); 
+          
           const dutyBadge = isDutyToday ? '<span class="badge-duty">🚨 วันนี้มีเวร</span>' : '';
           const currentStatus = savedStatuses[t.name] || "";
           
           const isAlreadySaved = currentStatus !== "";
-          if(isAlreadySaved) hasSavedData = true; // ตรวจสอบว่ามีการบันทึกไปแล้วอย่างน้อย 1 คน
+          if(isAlreadySaved) hasSavedData = true;
 
           html += `<div class="teacher-card">
                     <div class="teacher-header">
                       <div><div class="t-name">${t.name}</div><div class="t-meta">ประจำชั้น: ${t.className} | วันเวร: ${t.dutyDay}</div></div>
                       <div>${dutyBadge}</div>
                     </div>
-                    <div class="status-grid">`;
+                    <div class="status-grid" id="grid-${index}">`;
           
           STATUSES.forEach(st => {
             const activeClass = (currentStatus === st) ? "active" : "";
-            const dutySuggestClass = (isDutyToday && st === "เวร" && !currentStatus) ? 'style="border-color:#ba68c8; color:#ba68c8;"' : '';
             const disabledAttr = isAlreadySaved ? "disabled" : "";
             
-            html += `<button class="btn-status ${activeClass}" ${dutySuggestClass} data-val="${st}" ${disabledAttr}
+            html += `<button class="btn-status ${activeClass}" data-val="${st}" data-teacher="${t.name}" ${disabledAttr}
                        onclick="saveRecord('${t.name}', '${t.dutyDay}', '${st}', this)">${st}</button>`;
           });
           html += `</div></div>`;
+
+          // 🎯 ระบบ Auto-Select ปรับปรุงตามเงื่อนไขใหม่
+          if (!isAlreadySaved) {
+            let autoTargetStatus = "";
+            if (isDutyToday) {
+              autoTargetStatus = "เวร";
+            } else if (isSpecialTeacher) {
+              autoTargetStatus = "เฉพาะ";
+            }
+
+            if (autoTargetStatus !== "") {
+              autoSaveQueue.push({
+                name: t.name,
+                duty: t.dutyDay,
+                status: autoTargetStatus
+              });
+            }
+          }
         });
 
         document.getElementById('teacherList').innerHTML = html || '<div style="text-align:center; padding:20px;">ไม่พบข้อมูล</div>';
         
-        // หากพบว่ามีข้อมูลถูกบันทึกไปแล้ว ให้แสดงปุ่มสำหรับแก้ไข
         if(hasSavedData) {
           document.getElementById('actionBar').style.display = "block";
+        }
+
+        // ประมวลผล Auto-Save Queue
+        if (autoSaveQueue.length > 0) {
+          setTimeout(() => {
+            autoSaveQueue.forEach((item, qIndex) => {
+              setTimeout(() => {
+                const btn = document.querySelector(`.btn-status[data-teacher="${item.name}"][data-val="${item.status}"]`);
+                if (btn) saveRecord(item.name, item.duty, item.status, btn);
+              }, qIndex * 500); 
+            });
+          }, 300);
         }
       }
 
