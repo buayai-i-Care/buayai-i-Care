@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คชื่อและพฤติกรรมครู</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      :root {
+        --primary: #558b2f;      
+        --primary-light: #f1f8e9;
+        --card-bg: #ffffff;
+        --border-color: #c5e1a5; 
+      }
+      body {
+        font-family: 'Sarabun', sans-serif;
+        background-color: var(--primary-light);
+        color: #333;
+        margin: 0;
+        padding: 15px;
+      }
+      .container { max-width: 800px; margin: 0 auto; }
+      .header-box {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-top: 5px solid var(--primary);
+        margin-bottom: 20px;
+      }
+      .form-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+      .form-control {
+        flex: 1; min-width: 150px; padding: 10px;
+        font-family: 'Sarabun', sans-serif; font-size: 16px;
+        border: 1px solid var(--border-color); border-radius: 6px;
+      }
+      .btn-load {
+        background-color: var(--primary); color: white; border: none;
+        padding: 10px 20px; font-size: 16px; border-radius: 6px;
+        cursor: pointer; font-family: 'Sarabun', sans-serif; width: 100%;
+      }
+      .teacher-card {
+        background: var(--card-bg); border: 1px solid var(--border-color);
+        border-radius: 10px; padding: 15px; margin-bottom: 15px;
+      }
+      .teacher-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;
+      }
+      .t-name { font-size: 18px; font-weight: 600; color: var(--primary); }
+      .t-meta { font-size: 14px; color: #666; }
+      .badge-duty {
+        background-color: #ff9800; color: white; padding: 2px 8px;
+        border-radius: 10px; font-size: 12px; animation: blinker 2s linear infinite;
+      }
+      @keyframes blinker { 50% { opacity: 0.7; } }
+      .status-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+      .btn-status {
+        flex: 1; min-width: 80px; padding: 8px 5px; font-family: 'Sarabun', sans-serif;
+        font-size: 14px; border: 1px solid #ddd; background-color: #fafafa;
+        border-radius: 4px; cursor: pointer; transition: all 0.2s;
+      }
+      .btn-status.active { font-weight: bold; border-color: var(--primary); box-shadow: 0 0 5px rgba(85, 139, 47, 0.3); }
+      .active[data-val="มาทันเวลา"] { background-color: #81c784; color: #000; }
+      .active[data-val="มาแต่ไม่ทันเวลา"] { background-color: #fff176; color: #000; }
+      .active[data-val="ลา"] { background-color: #e0e0e0; color: #000; }
+      .active[data-val="ไปราชการ"] { background-color: #64b5f6; color: #fff; }
+      .active[data-val="ขออนุญาต"] { background-color: #4dd0e1; color: #000; }
+      .active[data-val="ไม่ทราบสาเหตุ"] { background-color: #e57373; color: #fff; }
+      .active[data-val="เวร"] { background-color: #ba68c8; color: #fff; }
+      .loader { text-align: center; display: none; margin: 20px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-box">
+        <h2 style="margin-top:0; color: var(--primary); text-align:center;">ระบบจัดการสถานะเข้าแถว</h2>
+        <div class="form-group">
+          <select id="levelSelect" class="form-control">
+            <option value="m1">สายชั้น ม.1 (m1)</option>
+            <option value="m2">สายชั้น ม.2 (m2)</option>
+            <option value="m3">สายชั้น ม.3 (m3)</option>
+            <option value="m4">สายชั้น ม.4 (m4)</option>
+            <option value="m5">สายชั้น ม.5 (m5)</option>
+          </select>
+          <input type="date" id="dateSelect" class="form-control">
+        </div>
+        <button class="btn-load" onclick="loadData()" id="loadBtn">ดึงข้อมูลครู</button>
+      </div>
+
+      <div class="loader" id="loader">กำลังโหลดข้อมูล...</div>
+      <div id="teacherList"></div>
+    </div>
+
+    <script>
+      // ⚠️ เปลี่ยน URL ด้านล่างนี้เป็น Web App URL ของคุณที่ได้จากการ Deploy GAS แบบใหม่
+      const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyHKNxVyy0tq2X_b6w7FFFa6lTUVUYGsX0PwS23zoLjCqM8YQtkzqBrGVWgCrNziG0p/exec";
+      
+      document.getElementById('dateSelect').valueAsDate = new Date();
+      const STATUSES = ["มาทันเวลา", "มาแต่ไม่ทันเวลา", "ลา", "ไปราชการ", "ขออนุญาต", "ไม่ทราบสาเหตุ", "เวร"];
+      const THAI_DAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+
+      async function loadData() {
+        const level = document.getElementById('levelSelect').value;
+        const dateStr = document.getElementById('dateSelect').value;
+        if(!dateStr) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่', 'warning');
+
+        document.getElementById('loader').style.display = "block";
+        document.getElementById('teacherList').innerHTML = "";
+        document.getElementById('loadBtn').disabled = true;
+
+        try {
+          // สร้าง URL แบบ GET ส่งพารามิเตอร์ผ่าน Query String
+          const url = `${GAS_API_URL}?action=getTeachers&level=${level}&date=${dateStr}`;
+          const response = await fetch(url);
+          const result = await response.json();
+          
+          if(result.success) {
+            renderTeachers(result.teachers, result.savedStatuses);
+          } else {
+            Swal.fire('ข้อผิดพลาด', result.message, 'error');
+          }
+        } catch (error) {
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + error.message, 'error');
+        } finally {
+          document.getElementById('loader').style.display = "none";
+          document.getElementById('loadBtn').disabled = false;
+        }
+      }
+
+      function renderTeachers(teachers, savedStatuses) {
+        const selectedDate = new Date(document.getElementById('dateSelect').value);
+        const dayOfWeekThai = THAI_DAYS[selectedDate.getDay()];
+        let html = "";
+
+        teachers.forEach((t, index) => {
+          const isDutyToday = (t.dutyDay === dayOfWeekThai);
+          const dutyBadge = isDutyToday ? '<span class="badge-duty">🚨 วันนี้มีเวร</span>' : '';
+          const currentStatus = savedStatuses[t.name] || "";
+
+          html += `<div class="teacher-card">
+                    <div class="teacher-header">
+                      <div><div class="t-name">${t.name}</div><div class="t-meta">ประจำชั้น: ${t.className} | วันเวร: ${t.dutyDay}</div></div>
+                      <div>${dutyBadge}</div>
+                    </div>
+                    <div class="status-grid">`;
+          
+          STATUSES.forEach(st => {
+            const activeClass = (currentStatus === st) ? "active" : "";
+            const dutySuggestClass = (isDutyToday && st === "เวร" && !currentStatus) ? 'style="border-color:#ba68c8; color:#ba68c8;"' : '';
+            
+            html += `<button class="btn-status ${activeClass}" ${dutySuggestClass} data-val="${st}"
+                       onclick="saveRecord('${t.name}', '${t.dutyDay}', '${st}', this)">${st}</button>`;
+          });
+          html += `</div></div>`;
+        });
+
+        document.getElementById('teacherList').innerHTML = html || '<div style="text-align:center; padding:20px;">ไม่พบข้อมูล</div>';
+      }
+
+      async function saveRecord(teacherName, dutyDay, status, btnElement) {
+        const level = document.getElementById('levelSelect').value;
+        const dateStr = document.getElementById('dateSelect').value;
+
+        // อัปเดต UI ทันที
+        const siblings = btnElement.parentElement.children;
+        for(let i=0; i<siblings.length; i++) siblings[i].classList.remove('active');
+        btnElement.classList.add('active');
+        const originalText = btnElement.innerText;
+        btnElement.innerText = "...";
+
+        // เตรียมข้อมูลส่งไปยัง API
+        const payload = {
+          action: "saveStatus", dateStr, level, teacherName, dutyDay, status
+        };
+
+        try {
+          // ใช้การส่งแบบ POST กำหนด body เป็น text/plain เพื่อผ่านการป้องกัน CORS เบื้องต้น
+          const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+
+          btnElement.innerText = originalText;
+
+          const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1500, timerProgressBar: true });
+          
+          if(result.success) {
+            Toast.fire({ icon: 'success', title: `บันทึก ${status} สำเร็จ` });
+          } else {
+            Toast.fire({ icon: 'error', title: 'บันทึกผิดพลาด' });
+            btnElement.classList.remove('active');
+          }
+        } catch (error) {
+          btnElement.innerText = originalText;
+          btnElement.classList.remove('active');
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+        }
+      }
+    </script>
+  </body>
+</html>
