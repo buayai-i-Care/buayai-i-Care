@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบเช็คชื่อและพฤติกรรมครู</title>
+    <title>ระบบบันทึกการเข้่าร่วมควบคุมนักเรียนร่วมกิจกรรมพิธีการหน้าเสาธง</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -39,10 +39,26 @@
         background-color: var(--primary); color: white; border: none;
         padding: 10px 20px; font-size: 16px; border-radius: 6px;
         cursor: pointer; font-family: 'Sarabun', sans-serif; width: 100%;
+        transition: 0.3s;
       }
+      .btn-load:hover { filter: brightness(0.9); }
+      
+      .action-bar {
+        display: none; /* ซ่อนไว้ก่อน จะแสดงเมื่อมีข้อมูลที่บันทึกแล้ว */
+        text-align: right; 
+        margin-bottom: 15px;
+      }
+      .btn-edit {
+        background-color: #f39c12; color: white; border: none;
+        padding: 8px 16px; font-size: 16px; border-radius: 6px;
+        cursor: pointer; font-family: 'Sarabun', sans-serif;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
       .teacher-card {
         background: var(--card-bg); border: 1px solid var(--border-color);
         border-radius: 10px; padding: 15px; margin-bottom: 15px;
+        transition: 0.3s;
       }
       .teacher-header {
         display: flex; justify-content: space-between; align-items: center;
@@ -62,6 +78,7 @@
         border-radius: 4px; cursor: pointer; transition: all 0.2s;
       }
       .btn-status.active { font-weight: bold; border-color: var(--primary); box-shadow: 0 0 5px rgba(85, 139, 47, 0.3); }
+      
       .active[data-val="มาทันเวลา"] { background-color: #81c784; color: #000; }
       .active[data-val="มาแต่ไม่ทันเวลา"] { background-color: #fff176; color: #000; }
       .active[data-val="ลา"] { background-color: #e0e0e0; color: #000; }
@@ -69,6 +86,9 @@
       .active[data-val="ขออนุญาต"] { background-color: #4dd0e1; color: #000; }
       .active[data-val="ไม่ทราบสาเหตุ"] { background-color: #e57373; color: #fff; }
       .active[data-val="เวร"] { background-color: #ba68c8; color: #fff; }
+      
+      .btn-status:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-status.active:disabled { opacity: 0.9; border: 2px solid #999; }
       .loader { text-align: center; display: none; margin: 20px 0; }
     </style>
   </head>
@@ -89,12 +109,17 @@
         <button class="btn-load" onclick="loadData()" id="loadBtn">ดึงข้อมูลครู</button>
       </div>
 
+      <!-- แถบเครื่องมือสำหรับแก้ไข จะแสดงเมื่อมีข้อมูล -->
+      <div class="action-bar" id="actionBar">
+        <button class="btn-edit" onclick="enableEditMode()">✏️ ปลดล็อกเพื่อแก้ไขข้อมูล</button>
+      </div>
+
       <div class="loader" id="loader">กำลังโหลดข้อมูล...</div>
       <div id="teacherList"></div>
     </div>
 
     <script>
-      // ⚠️ เปลี่ยน URL ด้านล่างนี้เป็น Web App URL ของคุณที่ได้จากการ Deploy GAS แบบใหม่
+      // ⚠️ นำ Web App URL ของคุณมาใส่ที่นี่
       const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyHKNxVyy0tq2X_b6w7FFFa6lTUVUYGsX0PwS23zoLjCqM8YQtkzqBrGVWgCrNziG0p/exec";
       
       document.getElementById('dateSelect').valueAsDate = new Date();
@@ -108,10 +133,10 @@
 
         document.getElementById('loader').style.display = "block";
         document.getElementById('teacherList').innerHTML = "";
+        document.getElementById('actionBar').style.display = "none";
         document.getElementById('loadBtn').disabled = true;
 
         try {
-          // สร้าง URL แบบ GET ส่งพารามิเตอร์ผ่าน Query String
           const url = `${GAS_API_URL}?action=getTeachers&level=${level}&date=${dateStr}`;
           const response = await fetch(url);
           const result = await response.json();
@@ -133,11 +158,15 @@
         const selectedDate = new Date(document.getElementById('dateSelect').value);
         const dayOfWeekThai = THAI_DAYS[selectedDate.getDay()];
         let html = "";
+        let hasSavedData = false;
 
         teachers.forEach((t, index) => {
           const isDutyToday = (t.dutyDay === dayOfWeekThai);
           const dutyBadge = isDutyToday ? '<span class="badge-duty">🚨 วันนี้มีเวร</span>' : '';
           const currentStatus = savedStatuses[t.name] || "";
+          
+          const isAlreadySaved = currentStatus !== "";
+          if(isAlreadySaved) hasSavedData = true; // ตรวจสอบว่ามีการบันทึกไปแล้วอย่างน้อย 1 คน
 
           html += `<div class="teacher-card">
                     <div class="teacher-header">
@@ -149,34 +178,56 @@
           STATUSES.forEach(st => {
             const activeClass = (currentStatus === st) ? "active" : "";
             const dutySuggestClass = (isDutyToday && st === "เวร" && !currentStatus) ? 'style="border-color:#ba68c8; color:#ba68c8;"' : '';
+            const disabledAttr = isAlreadySaved ? "disabled" : "";
             
-            html += `<button class="btn-status ${activeClass}" ${dutySuggestClass} data-val="${st}"
+            html += `<button class="btn-status ${activeClass}" ${dutySuggestClass} data-val="${st}" ${disabledAttr}
                        onclick="saveRecord('${t.name}', '${t.dutyDay}', '${st}', this)">${st}</button>`;
           });
           html += `</div></div>`;
         });
 
         document.getElementById('teacherList').innerHTML = html || '<div style="text-align:center; padding:20px;">ไม่พบข้อมูล</div>';
+        
+        // หากพบว่ามีข้อมูลถูกบันทึกไปแล้ว ให้แสดงปุ่มสำหรับแก้ไข
+        if(hasSavedData) {
+          document.getElementById('actionBar').style.display = "block";
+        }
+      }
+
+      // ฟังก์ชันสำหรับเปิดโหมดแก้ไข
+      function enableEditMode() {
+        const allButtons = document.querySelectorAll('.btn-status');
+        allButtons.forEach(btn => {
+          btn.removeAttribute('disabled');
+        });
+        
+        // ซ่อนปุ่มแก้ไข และแจ้งเตือนให้ผู้ใช้ทราบ
+        document.getElementById('actionBar').style.display = "none";
+        Swal.fire({
+          icon: 'info',
+          title: 'โหมดแก้ไข',
+          text: 'ปลดล็อกสถานะเรียบร้อยแล้ว คุณสามารถคลิกเพื่อแก้ไขข้อมูลได้ทันที',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
 
       async function saveRecord(teacherName, dutyDay, status, btnElement) {
         const level = document.getElementById('levelSelect').value;
         const dateStr = document.getElementById('dateSelect').value;
-
-        // อัปเดต UI ทันที
         const siblings = btnElement.parentElement.children;
+        
+        if(btnElement.hasAttribute('disabled')) return;
+
+        // อัปเดต UI ชั่วคราว
         for(let i=0; i<siblings.length; i++) siblings[i].classList.remove('active');
         btnElement.classList.add('active');
         const originalText = btnElement.innerText;
         btnElement.innerText = "...";
 
-        // เตรียมข้อมูลส่งไปยัง API
-        const payload = {
-          action: "saveStatus", dateStr, level, teacherName, dutyDay, status
-        };
+        const payload = { action: "saveStatus", dateStr, level, teacherName, dutyDay, status };
 
         try {
-          // ใช้การส่งแบบ POST กำหนด body เป็น text/plain เพื่อผ่านการป้องกัน CORS เบื้องต้น
           const response = await fetch(GAS_API_URL, {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -185,12 +236,16 @@
 
           btnElement.innerText = originalText;
 
-          const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1500, timerProgressBar: true });
-          
           if(result.success) {
-            Toast.fire({ icon: 'success', title: `บันทึก ${status} สำเร็จ` });
+            Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 1500, timerProgressBar: true })
+                .fire({ icon: 'success', title: result.message });
+            
+            // ล็อกปุ่มแถวนี้อีกครั้งหลังบันทึกเสร็จ เพื่อป้องกันการกดพลาดซ้ำ
+            for(let i=0; i<siblings.length; i++) siblings[i].setAttribute('disabled', 'true');
+            // แสดงปุ่มปลดล็อกอีกครั้งเผื่อต้องการแก้ใหม่
+            document.getElementById('actionBar').style.display = "block";
           } else {
-            Toast.fire({ icon: 'error', title: 'บันทึกผิดพลาด' });
+            Swal.fire('ไม่สามารถบันทึกได้', result.message, 'warning');
             btnElement.classList.remove('active');
           }
         } catch (error) {
