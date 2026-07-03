@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบพิมพ์ใบรับรองความประพฤติ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Sarabun', sans-serif; }
+        .container { max-width: 800px; margin-top: 50px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        #warningMessage { font-size: 1.1em; color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4 text-primary">ระบบพิมพ์ใบรับรองความประพฤติ<br>งานกิจการนักเรียน โรงเรียนบัวใหญ่</h2>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">1. เลือกชั้นเรียน</label>
+            <select id="classSelect" class="form-select" onchange="fetchStudents()">
+                <option value="">-- กรุณาเลือกห้องเรียน --</option>
+                </select>
+        </div>
+
+        <div id="loadingStudents" class="text-info hidden">กำลังโหลดรายชื่อนักเรียน...</div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">2. เลือกชื่อนักเรียน</label>
+            <select id="studentSelect" class="form-select" disabled onchange="checkScore()">
+                <option value="">-- กรุณาเลือกนักเรียน --</option>
+            </select>
+        </div>
+
+        <div id="scoreDisplaySection" class="mb-3 hidden">
+            <h4>คะแนนพฤติกรรม: <span id="studentScore" class="badge bg-secondary">0</span> คะแนน</h4>
+            
+            <div id="warningMessage" class="alert alert-danger mt-3 hidden"></div>
+
+            <div id="printSection" class="mt-4 hidden p-3 border rounded bg-light">
+                <h5 class="text-success">✔ คะแนนถึงเกณฑ์ สามารถออกใบรับรองได้</h5>
+                
+                <div class="mt-3">
+                    <label class="form-label fw-bold">เลือกตำแหน่งผู้ลงนาม</label>
+                    <select id="positionSelect" class="form-select mb-2">
+                        <option value="ผู้อำนวยการสถานศึกษา">ผู้อำนวยการสถานศึกษา</option>
+                        <option value="รักษาราชการแทน ผู้อำนวยการสถานศึกษา">รักษาราชการแทน ผู้อำนวยการสถานศึกษา</option>
+                    </select>
+                </div>
+                
+                <div class="mt-3">
+                    <label class="form-label fw-bold">ชื่อ-นามสกุล ผู้ลงนาม</label>
+                    <input type="text" id="directorName" class="form-control" placeholder="ระบุชื่อ-นามสกุล">
+                </div>
+
+                <button class="btn btn-primary w-100 mt-4" id="printBtn" onclick="generateCertificate()">
+                    🖨️ พริ้น ใบรับรองความประพฤติ
+                </button>
+                <div id="loadingPrint" class="text-primary mt-2 hidden text-center">กำลังสร้างเอกสาร PDF กรุณารอสักครู่...</div>
+                <div id="resultLink" class="mt-3 text-center hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === กรุณาแก้ไข URL ตรงนี้เป็น Web App URL ที่ได้จาก GAS ===
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8lge6WKeECMV6RghTVI3_jlEX4aGy8UVqIkiNdqlv_xWgx78tuR6goMgGWF1Dg4gv/exec";
+
+        let currentStudents = [];
+
+        // สร้างตัวเลือกห้องเรียน (ม.1/1 - ม.6/12)
+        window.onload = function() {
+            const classSelect = document.getElementById('classSelect');
+            for (let m = 1; m <= 6; m++) {
+                for (let r = 1; r <= 12; r++) {
+                    const sheetName = `${m}/${r}`;
+                    const displayName = `ม.${m}/${r}`;
+                    const option = new Option(displayName, sheetName);
+                    classSelect.add(option);
+                }
+            }
+        };
+
+        // ดึงรายชื่อนักเรียนจาก GAS
+        function fetchStudents() {
+            const sheetName = document.getElementById('classSelect').value;
+            const studentSelect = document.getElementById('studentSelect');
+            
+            // รีเซ็ต UI
+            studentSelect.innerHTML = '<option value="">-- กรุณาเลือกนักเรียน --</option>';
+            studentSelect.disabled = true;
+            document.getElementById('scoreDisplaySection').classList.add('hidden');
+            
+            if (!sheetName) return;
+
+            document.getElementById('loadingStudents').classList.remove('hidden');
+
+            // เรียก API ไปที่ GAS
+            fetch(`${GAS_API_URL}?action=getStudents&sheetName=${sheetName}`)
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('loadingStudents').classList.add('hidden');
+                    if (result.status === 'success') {
+                        currentStudents = result.data;
+                        currentStudents.forEach((student, index) => {
+                            studentSelect.add(new Option(`${student.id} - ${student.name}`, index));
+                        });
+                        studentSelect.disabled = false;
+                    } else {
+                        alert("เกิดข้อผิดพลาด: " + result.message);
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loadingStudents').classList.add('hidden');
+                    alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+                });
+        }
+
+        // ตรวจสอบคะแนนเมื่อเลือกนักเรียน
+        function checkScore() {
+            const studentIndex = document.getElementById('studentSelect').value;
+            const scoreSection = document.getElementById('scoreDisplaySection');
+            const warningMsg = document.getElementById('warningMessage');
+            const printSection = document.getElementById('printSection');
+            const studentScoreSpan = document.getElementById('studentScore');
+            const className = document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text;
+
+            if (studentIndex === "") {
+                scoreSection.classList.add('hidden');
+                return;
+            }
+
+            const student = currentStudents[studentIndex];
+            const score = parseInt(student.score);
+            
+            studentScoreSpan.innerText = score;
+            scoreSection.classList.remove('hidden');
+
+            if (score >= 80) {
+                // คะแนนถึงเกณฑ์
+                warningMsg.classList.add('hidden');
+                printSection.classList.remove('hidden');
+            } else {
+                // คะแนนไม่ถึงเกณฑ์
+                printSection.classList.add('hidden');
+                warningMsg.classList.remove('hidden');
+                warningMsg.innerText = `นักเรียน ${student.name} ชั้น ${className} มีคะแนนไม่ถึงเกณฑ์ คือ (80 คะแนน) แนะนำให้บันทึกความดี และนำคะแนนเข้าสู่ระบบ จนถึง 80 คะแนน จึงจะสามารถ ออกใบรับรองความประพฤติได้`;
+            }
+        }
+
+        // สั่งสร้างใบรับรอง PDF
+        function generateCertificate() {
+            const studentIndex = document.getElementById('studentSelect').value;
+            const student = currentStudents[studentIndex];
+            const className = document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text;
+            const position = document.getElementById('positionSelect').value;
+            const dirName = document.getElementById('directorName').value;
+
+            if (!dirName) {
+                alert("กรุณาระบุชื่อ-นามสกุล ผู้ลงนาม");
+                return;
+            }
+
+            document.getElementById('printBtn').disabled = true;
+            document.getElementById('loadingPrint').classList.remove('hidden');
+            document.getElementById('resultLink').classList.add('hidden');
+
+            // เตรียมข้อมูลส่งไป GAS
+            const params = new URLSearchParams({
+                action: 'generate',
+                name: student.name,
+                className: className,
+                dirName: dirName,
+                position: position
+            });
+
+            fetch(`${GAS_API_URL}?${params.toString()}`)
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('printBtn').disabled = false;
+                    document.getElementById('loadingPrint').classList.add('hidden');
+                    
+                    if (result.status === 'success') {
+                        const linkDiv = document.getElementById('resultLink');
+                        linkDiv.innerHTML = `<a href="${result.url}" target="_blank" class="btn btn-success w-100">เปิดดูและดาวน์โหลดใบรับรอง (PDF)</a>`;
+                        linkDiv.classList.remove('hidden');
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการสร้างเอกสาร: " + result.message);
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('printBtn').disabled = false;
+                    document.getElementById('loadingPrint').classList.add('hidden');
+                    alert("ไม่สามารถติดต่อเซิร์ฟเวอร์เพื่อสร้างเอกสารได้");
+                });
+        }
+    </script>
+</body>
+</html>
