@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบพิมพ์ใบรับรองความประพฤติ งานกิจการนักเรียนโรงเรียนบัวใหญ่</title>
+    <title>ระบบพิมพ์ใบรับรองความประพฤติ</title>
     
-    <!-- ฟอนต์ภาษาไทย และ Bootstrap -->
+    <!-- ฟอนต์ภาษาไทย TH Sarabun และ Bootstrap -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -18,7 +18,7 @@
         .form-select, .form-control { font-size: 1rem; padding: 10px; border-radius: 8px; }
         .btn-custom { background-color: #0d6efd; color: white; font-weight: 600; padding: 12px; border-radius: 8px; font-size: 1.1rem; }
         .btn-custom:hover { background-color: #0b5ed7; color: white; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .score-box { background-color: #e9ecef; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
         .score-number { font-size: 1.8rem; font-weight: bold; color: #0d6efd; }
         .section-title { font-size: 1.1rem; font-weight: 600; color: #198754; margin-top: 20px; margin-bottom: 15px; border-left: 4px solid #198754; padding-left: 10px; }
@@ -52,7 +52,6 @@
                     <span id="studentScore" class="score-number">0</span>
                 </div>
                 
-                <!-- ส่วนกรอกข้อมูลแสดงเฉพาะคะแนนถึงเกณฑ์ -->
                 <div id="printSection" class="hidden">
                     <div class="section-title">ข้อมูลส่วนตัวนักเรียน</div>
                     
@@ -100,17 +99,27 @@
                         <input type="number" id="terms" class="form-control" placeholder="เช่น 2569">
                     </div>
 
+                    <!-- ส่วนที่ปรับปรุงใหม่: ตำแหน่งผู้ลงนาม -->
                     <div class="mb-3">
                         <label class="form-label">ตำแหน่งผู้ลงนาม</label>
                         <select id="positionSelect" class="form-select mb-2">
-                            <option value="ผู้อำนวยการสถานศึกษา">ผู้อำนวยการสถานศึกษา</option>
-                            <option value="รักษาราชการแทน ผู้อำนวยการสถานศึกษา">รักษาราชการแทน ผู้อำนวยการสถานศึกษา</option>
+                            <option value="ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่">ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่</option>
+                            <option value="รองผู้อำนวยการสถานศึกษาโรงเรียนบัวใหญ่\nรักษาราชการแทน ผู้อำนวยการสถานศึกษาโรงเรียนบัวใหญ่">รองผู้อำนวยการสถานศึกษา (รักษาราชการแทน)</option>
+                            <option value="รองผู้อำนวยการสถานศึกษาโรงเรียนบัวใหญ่\nปฏิบัติราชการแทน ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่">รองผู้อำนวยการสถานศึกษา (ปฏิบัติราชการแทน)</option>
                         </select>
                     </div>
                     
+                    <!-- ส่วนที่ปรับปรุงใหม่: ชื่อผู้อำนวยการ -->
                     <div class="mb-3">
                         <label class="form-label">ชื่อ-นามสกุล ผู้ลงนาม</label>
-                        <input type="text" id="directorName" class="form-control" placeholder="ระบุชื่อ-นามสกุลผู้อำนวยการ">
+                        <select id="directorNameSelect" class="form-select mb-2" onchange="toggleCustomDirectorName()">
+                            <option value="นายไพทูลย์ จักรแก้ว" selected>นายไพทูลย์ จักรแก้ว</option>
+                            <option value="นายธานินท์ บัวเข็ม">นายธานินท์ บัวเข็ม</option>
+                            <option value="นายอุเทน ภูสิลิต">นายอุเทน ภูสิลิต</option>
+                            <option value="นายณรงค์ฤทธิ์ สิงหชัย">นายณรงค์ฤทธิ์ สิงหชัย</option>
+                            <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
+                        </select>
+                        <input type="text" id="customDirectorName" class="form-control hidden" placeholder="ระบุชื่อ-นามสกุลผู้ลงนาม">
                     </div>
 
                     <div class="mb-4">
@@ -137,7 +146,7 @@
             for (let m = 1; m <= 6; m++) {
                 for (let r = 1; r <= 12; r++) {
                     const sheetName = `${m}/${r}`;
-                    const displayName = `ชั้นมัธยมศึกษาปีที่ ${m}/${r}`; // ปรับตามคำขอครั้งที่แล้ว
+                    const displayName = `ชั้นมัธยมศึกษาปีที่ ${m}/${r}`; 
                     classSelect.add(new Option(displayName, sheetName));
                 }
             }
@@ -209,16 +218,33 @@
             }
         }
 
+        // ฟังก์ชันใหม่: จัดการการแสดงผลช่องกรอกชื่อผู้ลงนามแบบกำหนดเอง
+        function toggleCustomDirectorName() {
+            const select = document.getElementById('directorNameSelect');
+            const customInput = document.getElementById('customDirectorName');
+            if (select.value === 'other') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        }
+
         function generateCertificate() {
             const studentIndex = document.getElementById('studentSelect').value;
             const student = currentStudents[studentIndex];
             const className = document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text;
             
-            // ดึงข้อมูลจากฟอร์มทั้งหมด
+            // ตรวจสอบชื่อผู้อำนวยการ (เลือกระหว่าง Dropdown หรือ พิมพ์เอง)
+            let finalDirectorName = document.getElementById('directorNameSelect').value;
+            if (finalDirectorName === 'other') {
+                finalDirectorName = document.getElementById('customDirectorName').value;
+            }
+            
             const formData = {
                 action: 'generate',
                 name: student.name,
-                studentId: student.id, // ส่งรหัสนักเรียนไปด้วย
+                studentId: student.id, 
                 className: className,
                 dateBirth: document.getElementById('dateBirth').value,
                 monthBirth: document.getElementById('monthBirth').value,
@@ -227,11 +253,10 @@
                 motherName: document.getElementById('motherName').value,
                 terms: document.getElementById('terms').value,
                 position: document.getElementById('positionSelect').value,
-                dirName: document.getElementById('directorName').value,
+                dirName: finalDirectorName, // ใช้ตัวแปรที่ตรวจสอบแล้ว
                 officer: document.getElementById('officer').value
             };
 
-            // ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
             if (Object.values(formData).some(val => val === "")) {
                 Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบทุกช่องเพื่อความสมบูรณ์ของเอกสาร', 'warning');
                 return;
