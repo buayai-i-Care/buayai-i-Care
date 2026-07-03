@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบพิมพ์ใบรับรองความประพฤติ งานกิจการนักเรียนโรงเรียนบัวใหญ่</title>
+    <title>ระบบพิมพ์ใบรับรองความประพฤติ</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,6 +23,10 @@
         .section-title { font-size: 1.1rem; font-weight: 600; color: #198754; margin-top: 20px; margin-bottom: 15px; border-left: 4px solid #198754; padding-left: 10px; }
         .radio-btn-label { font-size: 1.2rem; font-weight: 600; padding: 15px; border-radius: 10px; }
         .deputy-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #ced4da; margin-bottom: 15px; }
+        
+        /* ตกแต่งปุ่มใน SweetAlert */
+        .swal-btn-pdf { background-color: #dc3545 !important; color: white !important; margin-bottom: 10px; }
+        .swal-btn-doc { background-color: #0d6efd !important; color: white !important; }
     </style>
 </head>
 <body>
@@ -103,7 +107,6 @@
                     <div class="mb-3">
                         <label class="form-label">เลือกรูปแบบเอกสาร (ผู้ลงนาม)</label>
                         <div class="d-flex gap-2">
-                            <!-- เพิ่ม onchange เพื่อดักจับเหตุการณ์คลิกและสลับการแสดงผล -->
                             <input type="radio" class="btn-check" name="templateType" id="directorTemplate" value="director" checked onchange="toggleDeputySection()">
                             <label class="btn btn-outline-primary w-100 radio-btn-label" for="directorTemplate">
                                 1. ผอ.ลงนาม
@@ -116,12 +119,12 @@
                         </div>
                     </div>
 
-                    <!-- ส่วนที่จะแสดงเฉพาะเมื่อเลือก "รองลงนาม" -->
                     <div id="deputyPositionBox" class="deputy-box hidden">
                         <label class="form-label text-primary">ระบุตำแหน่งของรองผู้อำนวยการ</label>
                         <select id="deputyPositionSelect" class="form-select mb-2" onchange="toggleCustomDeputyPosition()">
-                            <option value="รักษาราชการแทน ผู้อำนวยการโรงเรียนสถานศึกษา โรงเรียนบัวใหญ่" selected>1. รักษาราชการแทน ผู้อำนวยการฯ</option>
-                            <option value="ปฏิบัติราชการแทน ผู้อำนวยการโรงเรียนสถานศึกษา โรงเรียนบัวใหญ่">2. ปฏิบัติราชการแทน ผู้อำนวยการฯ</option>
+                            <!-- ลบคำว่า รองผู้อำนวยการ ออกจากตัวเลือก ให้ผู้ใช้เลือกแค่สายงานปฏิบัติ -->
+                            <option value="รักษาราชการแทน ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่" selected>1. รักษาราชการแทน ผู้อำนวยการฯ</option>
+                            <option value="ปฏิบัติราชการแทน ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่">2. ปฏิบัติราชการแทน ผู้อำนวยการฯ</option>
                             <option value="other">3. อื่นๆ (พิมพ์ระบุเอง)</option>
                         </select>
                         <input type="text" id="customDeputyPosition" class="form-control hidden" placeholder="พิมพ์ตำแหน่งที่ต้องการระบุ">
@@ -132,7 +135,7 @@
                         <select id="directorNameSelect" class="form-select mb-2" onchange="toggleCustomDirectorName()">
                             <option value="นายไพทูลย์ จักรแก้ว" selected>นายไพทูลย์ จักรแก้ว</option>
                             <option value="นายธานินท์ บัวเข็ม">นายธานินท์ บัวเข็ม</option>
-                            <option value="นายอุเทน ภูสิลิต">นายอุเทน ภูสิลิตร</option>
+                            <option value="นายอุเทน ภูสิลิต">นายอุเทน ภูสิลิต</option>
                             <option value="นายณรงค์ฤทธิ์ สิงหชัย">นายณรงค์ฤทธิ์ สิงหชัย</option>
                             <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
                         </select>
@@ -145,7 +148,7 @@
                     </div>
 
                     <button class="btn btn-custom w-100" id="printBtn" onclick="generateCertificate()">
-                        🖨️ พิมพ์ใบรับรองความประพฤติ
+                        🖨️ สร้างใบรับรองความประพฤติ
                     </button>
                 </div>
             </div>
@@ -235,7 +238,6 @@
             }
         }
 
-        // ฟังก์ชันซ่อน/แสดง กรอบเลือกรองผู้อำนวยการ
         function toggleDeputySection() {
             const selectedTemplate = document.querySelector('input[name="templateType"]:checked').value;
             const deputyBox = document.getElementById('deputyPositionBox');
@@ -246,7 +248,6 @@
             }
         }
 
-        // ฟังก์ชันซ่อน/แสดง ช่องพิมพ์ตำแหน่งรองผู้อำนวยการ (กรณีเลือกอื่นๆ)
         function toggleCustomDeputyPosition() {
             const select = document.getElementById('deputyPositionSelect');
             const customInput = document.getElementById('customDeputyPosition');
@@ -274,24 +275,24 @@
             const student = currentStudents[studentIndex];
             const className = document.getElementById('classSelect').options[document.getElementById('classSelect').selectedIndex].text;
             
-            // 1. ตรวจสอบชื่อผู้อำนวยการ/ผู้ลงนาม
             let finalDirectorName = document.getElementById('directorNameSelect').value;
             if (finalDirectorName === 'other') {
                 finalDirectorName = document.getElementById('customDirectorName').value;
             }
 
-            // 2. ตรวจสอบประเภท Template
             const selectedTemplate = document.querySelector('input[name="templateType"]:checked').value;
             
-            // 3. กำหนดค่าตำแหน่งตาม Template ที่เลือก
+            // แก้ไขปัญหา Position ไม่แสดง: ประกอบข้อความให้สมบูรณ์ก่อนส่งไป Backend
             let finalPosition = "";
             if (selectedTemplate === 'director') {
                 finalPosition = "ผู้อำนวยการสถานศึกษา โรงเรียนบัวใหญ่";
             } else {
-                finalPosition = document.getElementById('deputyPositionSelect').value;
-                if (finalPosition === 'other') {
-                    finalPosition = document.getElementById('customDeputyPosition').value;
+                let actingRole = document.getElementById('deputyPositionSelect').value;
+                if (actingRole === 'other') {
+                    actingRole = document.getElementById('customDeputyPosition').value;
                 }
+                // ใช้ __NEWLINE__ เชื่อมข้อความหลักกับสายงานปฏิบัติ
+                finalPosition = "รองผู้อำนวยการสถานศึกษาโรงเรียนบัวใหญ่__NEWLINE__" + actingRole;
             }
             
             const formData = {
@@ -306,20 +307,19 @@
                 motherName: document.getElementById('motherName').value,
                 terms: document.getElementById('terms').value,
                 templateType: selectedTemplate,
-                position: finalPosition, // ส่งข้อมูลตำแหน่งไปยัง Backend
+                position: finalPosition, 
                 dirName: finalDirectorName,
                 officer: document.getElementById('officer').value
             };
 
-            // ตรวจสอบว่ามีช่องไหนที่ยังไม่ได้กรอกหรือไม่
             if (Object.values(formData).some(val => val === "")) {
                 Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบทุกช่องเพื่อความสมบูรณ์ของเอกสาร', 'warning');
                 return;
             }
 
             Swal.fire({
-                title: 'กำลังสร้างเอกสาร PDF',
-                html: 'กระบวนการนี้อาจใช้เวลา 10-15 วินาที<br>กรุณารอสักครู่...',
+                title: 'กำลังสร้างเอกสาร...',
+                html: 'ประมวลผลข้อมูลและปรับปรุงสิทธิ์การเข้าถึง<br>กรุณารอสักครู่',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -330,15 +330,19 @@
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === 'success') {
+                        // ปรับปรุงหน้าต่างสำเร็จให้แสดง 2 ปุ่ม สำหรับ PDF และ Doc
                         Swal.fire({
                             icon: 'success',
                             title: 'สร้างเอกสารสำเร็จ',
-                            text: 'ใบรับรองถูกจัดเก็บเรียบร้อยแล้ว',
-                            confirmButtonText: 'เปิดดูเอกสาร PDF',
-                        }).then((res) => {
-                            if (res.isConfirmed) {
-                                window.open(result.url, '_blank');
-                            }
+                            html: `
+                                <div class="mt-3">
+                                    <p class="text-muted mb-3">กรุณาเลือกรูปแบบเอกสารที่ต้องการ</p>
+                                    <a href="${result.pdfUrl}" target="_blank" class="btn swal-btn-pdf w-100">📄 เปิดไฟล์ PDF (พร้อมพิมพ์)</a>
+                                    <a href="${result.docUrl}" target="_blank" class="btn swal-btn-doc w-100">📝 เปิดไฟล์ Doc (แก้ไขได้)</a>
+                                </div>
+                            `,
+                            showConfirmButton: false,
+                            showCloseButton: true
                         });
                     } else {
                         Swal.fire('ข้อผิดพลาด', result.message, 'error');
