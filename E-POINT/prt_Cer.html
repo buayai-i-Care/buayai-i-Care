@@ -69,14 +69,14 @@
         let currentStudents = [];
 
         // สร้างตัวเลือกห้องเรียน (ม.1/1 - ม.6/12)
-        window.onload = function() {
+window.onload = function() {
             const classSelect = document.getElementById('classSelect');
             for (let m = 1; m <= 6; m++) {
                 for (let r = 1; r <= 12; r++) {
                     const sheetName = `${m}/${r}`;
-                    const displayName = `ม.${m}/${r}`;
-                    const option = new Option(displayName, sheetName);
-                    classSelect.add(option);
+                    // แก้ไขจาก: `มัธยมศึกษาปีที่ ${m}/${r}` เป็นบรรทัดล่างนี้ครับ
+                    const displayName = `ชั้นมัธยมศึกษาปีที่ ${m}/${r}`; 
+                    classSelect.add(new Option(displayName, sheetName));
                 }
             }
         };
