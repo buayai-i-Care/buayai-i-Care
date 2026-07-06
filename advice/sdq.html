@@ -671,47 +671,49 @@
         }
 
         function validateStep(step) {
-            if (step === 1) {
-                const role = document.querySelector('input[name="assessorRole"]:checked');
-                if (role) { selectedRole = role.value; setupFormByRole(selectedRole); return true; }
+    if (step === 1) {
+        const role = document.querySelector('input[name="assessorRole"]:checked');
+        if (role) { selectedRole = role.value; setupFormByRole(selectedRole); return true; }
+        return false;
+    }
+    if (step === 2) {
+        const id = document.getElementById('info-id').value;
+        const name = document.getElementById('info-name').value;
+        const room = document.getElementById('info-room').value;
+        if(id && name && room) return true;
+        Swal.fire('ข้อมูลไม่ครบ', "กรุณาเลือกห้องและชื่อนักเรียนให้ครบถ้วน", 'warning');
+        return false;
+    }
+    if (step === 3) {
+        for (let i = 1; i <= 25; i++) {
+            if (!document.querySelector(`input[name="q${i}"]:checked`)) {
+                Swal.fire('ตอบคำถามไม่ครบ', `กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อ ${i})`, 'warning');
+                document.getElementById(`q-row-${i}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }
-            if (step === 2) {
-                const id = document.getElementById('info-id').value;
-                const name = document.getElementById('info-name').value;
-                const room = document.getElementById('info-room').value;
-                if(id && name && room) return true;
-                Swal.fire('ข้อมูลไม่ครบ', "กรุณาเลือกห้องและชื่อนักเรียนให้ครบถ้วน", 'warning');
-                return false;
-            }
-            if (step === 3) {
-                for (let i = 1; i <= 25; i++) {
-                    if (!document.querySelector(`input[name="q${i}"]:checked`)) {
-                        Swal.fire('ตอบคำถามไม่ครบ', `กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อ ${i})`, 'warning');
-                        document.getElementById(`q-row-${i}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        return false;
-                    }
-                }
-                return true;
-            }
-            if (step === 4) {
-                const main = document.querySelector('input[name="impact_main"]:checked');
-                if (!main) { Swal.fire("ข้อมูลไม่ครบ", "กรุณาประเมินผลกระทบด้านล่างสุดด้วยครับ", "warning"); return false; }
-                if (main.value !== "0") {
-                    const req = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_leisure', 'im_burden'];
-                    if (selectedRole !== 'ครู') req.push('im_leisure'); 
-                    for (let r of req) {
-                        if (!document.querySelector(`input[name="${r}"]:checked`)) {
-                            Swal.fire("ข้อมูลไม่ครบ", "กรุณาตอบคำถามย่อยด้านผลกระทบให้ครบถ้วน", "warning");
-                            return false;
-                        }
-                    }
-                }
-                calculateFinalScores(); 
-                return true;
-            }
-            return true;
         }
+        return true;
+    }
+    if (step === 4) {
+        const main = document.querySelector('input[name="impact_main"]:checked');
+        if (!main) { Swal.fire("ข้อมูลไม่ครบ", "กรุณาประเมินผลกระทบด้านล่างสุดด้วยครับ", "warning"); return false; }
+        if (main.value !== "0") {
+            const req = ['im_duration', 'im_distress', 'im_home', 'im_friend', 'im_class', 'im_burden'];
+            if (selectedRole !== 'ครู') {
+                req.push('im_leisure'); 
+            }
+            for (let r of req) {
+                if (!document.querySelector(`input[name="${r}"]:checked`)) {
+                    Swal.fire("ข้อมูลไม่ครบ", "กรุณาตอบคำถามย่อยด้านผลกระทบให้ครบถ้วน", "warning");
+                    return false;
+                }
+            }
+        }
+        calculateFinalScores(); 
+        return true;
+    }
+    return true;
+}
 
         function navigate(dir) {
             if (dir === 1 && !validateStep(currentStep)) return;
