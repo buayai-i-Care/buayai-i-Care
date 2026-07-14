@@ -199,6 +199,7 @@
     }
 
     // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
+    // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
     function exportExcel() {
       if (!currentData || currentData.students.length === 0) {
         Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลสำหรับดาวน์โหลด', 'warning');
@@ -215,14 +216,15 @@
         try {
           const wb = XLSX.utils.book_new();
 
-          // ฟังก์ชันช่วยจัดรูปแบบข้อมูล
+          // ฟังก์ชันช่วยจัดรูปแบบข้อมูล (อัปเดตเพื่อดึง วันที่ มาใส่ใน รายละเอียด)
           const formatDataForExcel = (studentsArr) => {
             return studentsArr.map((student, idx) => ({
               "มาสายจำนวน (ครั้ง)": student.count,
               "ที่": idx + 1,
               "ห้อง": student.grade,
               "ชื่อ-สกุล": student.name,
-              "รายละเอียด[]": "",
+              // รวม array วันที่ ให้เป็นข้อความเดียวกัน คั่นด้วยลูกน้ำ
+              "รายละเอียด[]": student.dates ? student.dates.join(", ") : "",
               "รับทราบ": ""
             }));
           };
