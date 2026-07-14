@@ -216,10 +216,13 @@
         try {
           const wb = XLSX.utils.book_new();
 
-          // 1. ดึงค่าจำนวนครั้งที่เลือกมาสร้างข้อความหัวเรื่องให้สอดคล้องกัน
+          // 1. ดึงค่าจำนวนครั้งที่เลือกมาสร้างข้อความหัวเรื่อง
           const freqVal = document.getElementById('freqSelect').value;
           const titleFreqText = freqVal === "ทั้งหมด" ? "ทั้งหมด" : `ตั้งแต่ ${freqVal} ครั้งขึ้นไป`;
-          const reportTitle = `รายงานผู้มาสาย ${titleFreqText} ภาคเรียนที่ 1/2569 ระบบคะแนนพฤติกรรม E-Point ของระบบ Buayai I Care School`;
+          
+          // --- แก้ไข: แบ่งข้อความออกเป็น 2 บรรทัด ---
+          const titleLine1 = `รายงานผู้มาสาย ${titleFreqText} ภาคเรียนที่ 1/2569`;
+          const titleLine2 = `ระบบคะแนนพฤติกรรม E-Point ของระบบ Buayai I Care School`;
 
           // ฟังก์ชันช่วยจัดรูปแบบข้อมูลสำหรับ Excel
           const formatDataForExcel = (studentsArr) => {
@@ -233,17 +236,21 @@
             }));
           };
 
-          // ฟังก์ชันเสริมสำหรับสร้างชีต ใส่หัวเรื่อง และผสานเซลล์
+          // ฟังก์ชันเสริมสำหรับสร้างชีต ใส่หัวเรื่อง 2 บรรทัด และผสานเซลล์
           const createSheetWithHeader = (dataArr) => {
-            // สร้าง Sheet โดยให้ตารางข้อมูลเริ่มที่แถว 3 (A3) แทนที่จะเป็น A1
-            const ws = XLSX.utils.json_to_sheet(dataArr, { origin: "A3" });
+            // เลื่อนตารางข้อมูลให้ไปเริ่มที่แถว 4 (A4) เพื่อเว้นที่ให้หัวเรื่อง 2 บรรทัด
+            const ws = XLSX.utils.json_to_sheet(dataArr, { origin: "A4" });
             
-            // แทรกข้อความหัวเรื่องลงไปที่เซลล์ A1
-            XLSX.utils.sheet_add_aoa(ws, [[reportTitle]], { origin: "A1" });
+            // แทรกข้อความหัวเรื่อง 2 บรรทัด ลงไปเริ่มที่เซลล์ A1
+            XLSX.utils.sheet_add_aoa(ws, [
+              [titleLine1], 
+              [titleLine2]
+            ], { origin: "A1" });
             
-            // ผสานเซลล์ (Merge Cells) แถวที่ 1 (r:0) ตั้งแต่คอลัมน์ A (c:0) ถึง F (c:5)
+            // ผสานเซลล์แยกทีละบรรทัด (คอลัมน์ A ถึง F หรือ index 0 ถึง 5)
             ws["!merges"] = [
-              { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
+              { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // ผสานบรรทัดที่ 1 (A1:F1)
+              { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }  // ผสานบรรทัดที่ 2 (A2:F2)
             ];
 
             return ws;
