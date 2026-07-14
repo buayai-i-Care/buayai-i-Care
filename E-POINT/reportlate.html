@@ -17,7 +17,7 @@
     body {
       font-family: 'Sarabun', sans-serif;
       background-color: #f3f4f6;
-      font-size: 18px;
+      font-size: 18px; /* ปรับขนาดฟอนต์ให้อ่านง่าย */
     }
     .card {
       background: white;
@@ -94,19 +94,19 @@
   </div>
 
   <script>
-    // URL ของ Google Apps Script ที่ Deploy ไว้
+    // URL ของ Google Apps Script API
     const API_URL = 'https://script.google.com/macros/s/AKfycbxImsR2s63v6eWUJvfxyxLZ1hvhMO751E-6gxadTPaz6qqydNuVyq3s_SD53ypU65fHTg/exec';
     
     // ตัวแปรเก็บข้อมูลสำหรับส่งออก Excel
     let currentData = null;
 
-    // เตรียม Dropdown จำนวนครั้ง 1-50 เมื่อโหลดหน้าเว็บ
+    // เตรียม Dropdown จำนวนครั้ง 1-50 เมื่อโหลดหน้าเว็บ (แสดงเป็น "X ครั้งขึ้นไป")
     window.onload = function() {
       const freqSelect = document.getElementById('freqSelect');
       for (let i = 1; i <= 50; i++) {
         let option = document.createElement('option');
         option.value = i;
-        option.text = i;
+        option.text = `${i} ครั้งขึ้นไป`;
         freqSelect.appendChild(option);
       }
     };
@@ -125,7 +125,7 @@
         }
       });
 
-      // สร้าง URL พร้อมพารามิเตอร์ส่งไปให้ GAS
+      // สร้าง URL พร้อมพารามิเตอร์
       const requestUrl = `${API_URL}?grade=${encodeURIComponent(grade)}&freq=${encodeURIComponent(freq)}`;
 
       fetch(requestUrl)
@@ -147,7 +147,7 @@
         })
         .catch(error => {
           console.error('Error fetching data:', error);
-          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ลองตรวจสอบ URL หรือการตั้งค่า CORS ฝั่ง Google Apps Script', 'error');
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ลองตรวจสอบ URL หรือการตั้งค่าฝั่ง Google Apps Script', 'error');
         });
     }
 
@@ -173,7 +173,7 @@
         return;
       }
 
-      // สร้างข้อความสรุป
+      // สร้างข้อความสรุป เรียงตามจำนวนครั้งที่มาสาย
       let freqKeys = Object.keys(data.summary).sort((a, b) => Number(a) - Number(b));
       freqKeys.forEach(freq => {
         let count = data.summary[freq];
@@ -182,8 +182,8 @@
         summaryContent.appendChild(p);
       });
 
-      // สร้างตารางรายชื่อ
-      data.students.sort((a, b) => b.count - a.count); // เรียงจากมาสายมากไปน้อย
+      // สร้างตารางรายชื่อ เรียงจากคนมาสายมากไปน้อย
+      data.students.sort((a, b) => b.count - a.count);
       data.students.forEach((student, index) => {
         let tr = document.createElement('tr');
         tr.classList.add('border-b', 'hover:bg-gray-50');
@@ -198,7 +198,6 @@
       });
     }
 
-    // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
     // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
     function exportExcel() {
       if (!currentData || currentData.students.length === 0) {
@@ -216,25 +215,24 @@
         try {
           const wb = XLSX.utils.book_new();
 
-          // ฟังก์ชันช่วยจัดรูปแบบข้อมูล (อัปเดตเพื่อดึง วันที่ มาใส่ใน รายละเอียด)
+          // จัดรูปแบบข้อมูลสำหรับ Excel และนำ Array วันที่มาต่อกัน
           const formatDataForExcel = (studentsArr) => {
             return studentsArr.map((student, idx) => ({
               "มาสายจำนวน (ครั้ง)": student.count,
               "ที่": idx + 1,
               "ห้อง": student.grade,
               "ชื่อ-สกุล": student.name,
-              // รวม array วันที่ ให้เป็นข้อความเดียวกัน คั่นด้วยลูกน้ำ
-              "รายละเอียด[]": student.dates ? student.dates.join(", ") : "",
+              "รายละเอียด[]": student.dates ? student.dates.join(", ") : "", // รวมวันที่มาสาย
               "รับทราบ": ""
             }));
           };
 
-          // 1. ชีต "สรุปรวม"
+          // 1. สร้างชีต "สรุปรวม" (นักเรียนทุกคนในระดับชั้นที่กรองมา)
           const allFormatted = formatDataForExcel(currentData.students);
           const wsAll = XLSX.utils.json_to_sheet(allFormatted);
           XLSX.utils.book_append_sheet(wb, wsAll, "สรุปรวม");
 
-          // 2. ชีตแยกตามจำนวนครั้ง
+          // 2. สร้างชีตแยกตามจำนวนครั้ง (มาสาย 1 ครั้ง, มาสาย 2 ครั้ง ฯลฯ)
           const frequencies = [...new Set(currentData.students.map(s => s.count))].sort((a, b) => a - b);
           frequencies.forEach(freq => {
             const studentsFiltered = currentData.students.filter(s => s.count === freq);
@@ -243,7 +241,7 @@
             XLSX.utils.book_append_sheet(wb, wsFreq, `มาสาย ${freq} ครั้ง`);
           });
 
-          // ดาวน์โหลดไฟล์
+          // สั่งดาวน์โหลดไฟล์
           XLSX.writeFile(wb, `รายงานการมาสาย_${currentData.grade}.xlsx`);
           
           Swal.fire({
