@@ -199,6 +199,7 @@
     }
 
     // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
+    // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
     function exportExcel() {
       if (!currentData || currentData.students.length === 0) {
         Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลสำหรับดาวน์โหลด', 'warning');
@@ -215,29 +216,50 @@
         try {
           const wb = XLSX.utils.book_new();
 
-          // จัดรูปแบบข้อมูลสำหรับ Excel และนำ Array วันที่มาต่อกัน
+          // 1. ดึงค่าจำนวนครั้งที่เลือกมาสร้างข้อความหัวเรื่องให้สอดคล้องกัน
+          const freqVal = document.getElementById('freqSelect').value;
+          const titleFreqText = freqVal === "ทั้งหมด" ? "ทั้งหมด" : `ตั้งแต่ ${freqVal} ครั้งขึ้นไป`;
+          const reportTitle = `รายงานผู้มาสาย ${titleFreqText} ภาคเรียนที่ 1/2569 ระบบคะแนนพฤติกรรม E-Point ของระบบ Buayai I Care School`;
+
+          // ฟังก์ชันช่วยจัดรูปแบบข้อมูลสำหรับ Excel
           const formatDataForExcel = (studentsArr) => {
             return studentsArr.map((student, idx) => ({
               "มาสายจำนวน (ครั้ง)": student.count,
               "ที่": idx + 1,
               "ห้อง": student.grade,
               "ชื่อ-สกุล": student.name,
-              "รายละเอียด[]": student.dates ? student.dates.join(", ") : "", // รวมวันที่มาสาย
+              "รายละเอียด[]": student.dates ? student.dates.join(", ") : "", 
               "รับทราบ": ""
             }));
           };
 
-          // 1. สร้างชีต "สรุปรวม" (นักเรียนทุกคนในระดับชั้นที่กรองมา)
+          // ฟังก์ชันเสริมสำหรับสร้างชีต ใส่หัวเรื่อง และผสานเซลล์
+          const createSheetWithHeader = (dataArr) => {
+            // สร้าง Sheet โดยให้ตารางข้อมูลเริ่มที่แถว 3 (A3) แทนที่จะเป็น A1
+            const ws = XLSX.utils.json_to_sheet(dataArr, { origin: "A3" });
+            
+            // แทรกข้อความหัวเรื่องลงไปที่เซลล์ A1
+            XLSX.utils.sheet_add_aoa(ws, [[reportTitle]], { origin: "A1" });
+            
+            // ผสานเซลล์ (Merge Cells) แถวที่ 1 (r:0) ตั้งแต่คอลัมน์ A (c:0) ถึง F (c:5)
+            ws["!merges"] = [
+              { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
+            ];
+
+            return ws;
+          };
+
+          // 1. สร้างชีต "สรุปรวม" พร้อมหัวเรื่อง
           const allFormatted = formatDataForExcel(currentData.students);
-          const wsAll = XLSX.utils.json_to_sheet(allFormatted);
+          const wsAll = createSheetWithHeader(allFormatted);
           XLSX.utils.book_append_sheet(wb, wsAll, "สรุปรวม");
 
-          // 2. สร้างชีตแยกตามจำนวนครั้ง (มาสาย 1 ครั้ง, มาสาย 2 ครั้ง ฯลฯ)
+          // 2. สร้างชีตแยกตามจำนวนครั้ง พร้อมหัวเรื่อง
           const frequencies = [...new Set(currentData.students.map(s => s.count))].sort((a, b) => a - b);
           frequencies.forEach(freq => {
             const studentsFiltered = currentData.students.filter(s => s.count === freq);
             const freqFormatted = formatDataForExcel(studentsFiltered);
-            const wsFreq = XLSX.utils.json_to_sheet(freqFormatted);
+            const wsFreq = createSheetWithHeader(freqFormatted);
             XLSX.utils.book_append_sheet(wb, wsFreq, `มาสาย ${freq} ครั้ง`);
           });
 
