@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบรายงานผู้มาสาย E-Point</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f3f4f6;
+      font-size: 18px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <div class="max-w-4xl mx-auto card p-6 md:p-8">
+    
+    <div class="text-center mb-8 border-b pb-4">
+      <h1 class="text-2xl md:text-3xl font-bold text-blue-800">ระบบรายงานผู้มาสาย</h1>
+      <h2 class="text-xl md:text-2xl font-semibold text-gray-600 mt-2">ระบบ E-Point ของระบบ Buayai I Care School</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div>
+        <label class="block text-gray-700 font-bold mb-2">จำนวนครั้ง:</label>
+        <select id="freqSelect" class="w-full border rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-blue-500">
+          <option value="ทั้งหมด">ทั้งหมด</option>
+          </select>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-bold mb-2">ระดับชั้น:</label>
+        <select id="gradeSelect" class="w-full border rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-blue-500">
+          <option value="ม.1">ม.1</option>
+          <option value="ม.2">ม.2</option>
+          <option value="ม.3">ม.3</option>
+          <option value="ม.4">ม.4</option>
+          <option value="ม.5">ม.5</option>
+          <option value="ม.6">ม.6</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200">
+          ดูรายงาน
+        </button>
+      </div>
+    </div>
+
+    <div id="downloadContainer" class="hidden text-right mb-6">
+       <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200 flex items-center justify-center md:inline-flex w-full md:w-auto">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          ดาวน์โหลด EXCEL
+       </button>
+    </div>
+
+    <div id="resultArea" class="bg-gray-50 rounded-lg p-4 border hidden">
+      <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2" id="summaryTitle">สรุปข้อมูล</h3>
+      <div id="summaryContent" class="mb-6 space-y-2 text-gray-700 font-medium"></div>
+      
+      <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">รายชื่อนักเรียน</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="py-2 px-4 border">ที่</th>
+              <th class="py-2 px-4 border">ห้อง</th>
+              <th class="py-2 px-4 border">รหัสนักเรียน</th>
+              <th class="py-2 px-4 border">ชื่อ-สกุล</th>
+              <th class="py-2 px-4 border">มาสาย (ครั้ง)</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody" class="text-center">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // URL ของ Google Apps Script ที่ Deploy ไว้
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxImsR2s63v6eWUJvfxyxLZ1hvhMO751E-6gxadTPaz6qqydNuVyq3s_SD53ypU65fHTg/exec';
+    
+    // ตัวแปรเก็บข้อมูลสำหรับส่งออก Excel
+    let currentData = null;
+
+    // เตรียม Dropdown จำนวนครั้ง 1-50 เมื่อโหลดหน้าเว็บ
+    window.onload = function() {
+      const freqSelect = document.getElementById('freqSelect');
+      for (let i = 1; i <= 50; i++) {
+        let option = document.createElement('option');
+        option.value = i;
+        option.text = i;
+        freqSelect.appendChild(option);
+      }
+    };
+
+    // ฟังก์ชันดึงข้อมูลจาก Google Apps Script (แบบ REST API)
+    function fetchData() {
+      const grade = document.getElementById('gradeSelect').value;
+      const freq = document.getElementById('freqSelect').value;
+
+      Swal.fire({
+        title: 'กำลังดึงข้อมูล...',
+        text: 'โปรดรอสักครู่ ระบบกำลังประมวลผล',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // สร้าง URL พร้อมพารามิเตอร์ส่งไปให้ GAS
+      const requestUrl = `${API_URL}?grade=${encodeURIComponent(grade)}&freq=${encodeURIComponent(freq)}`;
+
+      fetch(requestUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            displayReport(data);
+            Swal.close();
+            Swal.fire({
+              icon: 'success',
+              title: 'สำเร็จ',
+              text: 'ดึงข้อมูลเรียบร้อยแล้ว',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire('ข้อผิดพลาด', data.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ลองตรวจสอบ URL หรือการตั้งค่า CORS ฝั่ง Google Apps Script', 'error');
+        });
+    }
+
+    // ฟังก์ชันแสดงผลบนหน้าจอ
+    function displayReport(data) {
+      currentData = data; 
+      
+      const resultArea = document.getElementById('resultArea');
+      const downloadContainer = document.getElementById('downloadContainer');
+      const summaryTitle = document.getElementById('summaryTitle');
+      const summaryContent = document.getElementById('summaryContent');
+      const studentTableBody = document.getElementById('studentTableBody');
+
+      resultArea.classList.remove('hidden');
+      downloadContainer.classList.remove('hidden');
+      
+      summaryTitle.textContent = `สรุปข้อมูล ของระดับชั้น ${data.grade}`;
+      summaryContent.innerHTML = '';
+      studentTableBody.innerHTML = '';
+
+      if (data.students.length === 0) {
+        summaryContent.innerHTML = '<p class="text-red-500">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</p>';
+        return;
+      }
+
+      // สร้างข้อความสรุป
+      let freqKeys = Object.keys(data.summary).sort((a, b) => Number(a) - Number(b));
+      freqKeys.forEach(freq => {
+        let count = data.summary[freq];
+        let p = document.createElement('p');
+        p.textContent = `มาสาย ${freq} ครั้ง จำนวน ${count} คน`;
+        summaryContent.appendChild(p);
+      });
+
+      // สร้างตารางรายชื่อ
+      data.students.sort((a, b) => b.count - a.count); // เรียงจากมาสายมากไปน้อย
+      data.students.forEach((student, index) => {
+        let tr = document.createElement('tr');
+        tr.classList.add('border-b', 'hover:bg-gray-50');
+        tr.innerHTML = `
+          <td class="py-2 px-4 border">${index + 1}</td>
+          <td class="py-2 px-4 border">${student.grade}</td>
+          <td class="py-2 px-4 border">${student.id}</td>
+          <td class="py-2 px-4 border text-left">${student.name}</td>
+          <td class="py-2 px-4 border font-bold text-red-600">${student.count}</td>
+        `;
+        studentTableBody.appendChild(tr);
+      });
+    }
+
+    // ฟังก์ชันสร้างและดาวน์โหลด Excel ด้วย SheetJS
+    function exportExcel() {
+      if (!currentData || currentData.students.length === 0) {
+        Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลสำหรับดาวน์โหลด', 'warning');
+        return;
+      }
+
+      Swal.fire({
+        title: 'กำลังสร้างไฟล์ Excel...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      setTimeout(() => {
+        try {
+          const wb = XLSX.utils.book_new();
+
+          // ฟังก์ชันช่วยจัดรูปแบบข้อมูล
+          const formatDataForExcel = (studentsArr) => {
+            return studentsArr.map((student, idx) => ({
+              "มาสายจำนวน (ครั้ง)": student.count,
+              "ที่": idx + 1,
+              "ห้อง": student.grade,
+              "ชื่อ-สกุล": student.name,
+              "รายละเอียด[]": "",
+              "รับทราบ": ""
+            }));
+          };
+
+          // 1. ชีต "สรุปรวม"
+          const allFormatted = formatDataForExcel(currentData.students);
+          const wsAll = XLSX.utils.json_to_sheet(allFormatted);
+          XLSX.utils.book_append_sheet(wb, wsAll, "สรุปรวม");
+
+          // 2. ชีตแยกตามจำนวนครั้ง
+          const frequencies = [...new Set(currentData.students.map(s => s.count))].sort((a, b) => a - b);
+          frequencies.forEach(freq => {
+            const studentsFiltered = currentData.students.filter(s => s.count === freq);
+            const freqFormatted = formatDataForExcel(studentsFiltered);
+            const wsFreq = XLSX.utils.json_to_sheet(freqFormatted);
+            XLSX.utils.book_append_sheet(wb, wsFreq, `มาสาย ${freq} ครั้ง`);
+          });
+
+          // ดาวน์โหลดไฟล์
+          XLSX.writeFile(wb, `รายงานการมาสาย_${currentData.grade}.xlsx`);
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'ดาวน์โหลดสำเร็จ',
+            text: 'ไฟล์ Excel ถูกบันทึกลงในเครื่องของคุณแล้ว',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+        } catch (error) {
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ Excel ได้: ' + error.message, 'error');
+        }
+      }, 500); 
+    }
+  </script>
+</body>
+</html>
