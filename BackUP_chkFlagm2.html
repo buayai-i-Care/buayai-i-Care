@@ -195,7 +195,7 @@
 
             <!-- เมนู: สถิติ -->
             <div id="content-report" style="display:none;">
-                <h3 class="fw-bold mb-4 text-dark">สถิติภาพรวม</h3>
+                <h3 class="fw-bold mb-4 text-dark">สถิติภาพรวม <span id="report-date-display" class="text-danger fs-5 ms-2"></span></h3>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card p-3 border-0 shadow-sm rounded-4">
@@ -296,6 +296,18 @@
         let pendingData = []; 
         let lastStat = null;
         google.charts.load('current', {'packages':['corechart']});
+
+
+// ฟังก์ชันแปลงวันที่เป็นภาษาไทย
+function formatThaiDateFull(dateVal) {
+    if (!dateVal) return "";
+    const d = new Date(dateVal);
+    const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    return `วัน${days[d.getDay()]} ที่ ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+}
+
+        
 
         // 🌟 1. ฟังก์ชัน Fetch API เชื่อมต่อกับ Master API
         async function fetchAPI(payload) {
@@ -609,6 +621,10 @@
             
             let top10 = res.top10.map((t, i) => `<div class="d-flex justify-content-between mb-1 border-bottom pb-1"><span>${i+1}. ${t.name}</span> <span class="badge bg-danger rounded-pill">${t.count} ครั้ง</span></div>`).join(''); 
             document.getElementById('top10-res').innerHTML = top10 || '<div class="text-muted">ไม่มีข้อมูลสายในช่วง 7 วัน</div>'; 
+
+// อัปเดตข้อความวันที่บนหน้าจอ
+document.getElementById('report-date-display').innerText = formatThaiDateFull(res.lastDate);
+            
         }
 
         function showIndividual() { 
