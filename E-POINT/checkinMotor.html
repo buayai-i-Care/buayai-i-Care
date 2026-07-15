@@ -5,117 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check-in รถจักรยานยนต์</title>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        /* สไตล์สำหรับหน้าจอปกติ */
+        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
         input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: center; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        button:hover:not(:disabled) { background-color: #0056b3; }
-        #status { margin-top: 15px; font-size: 14px; color: #d9534f; font-weight: bold; }
-        .success { color: #28a745 !important; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px;}
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; font-size: 14px; font-weight: bold; }
+        
+        /* สไตล์หน้า Admin */
+        #adminUI { display: none; }
+        .btn-admin { background-color: #ff9800; }
+        .btn-admin:hover { background-color: #e68a00; }
+        
+        /* ปุ่มลับสำหรับแอดมิน มุมขวาบน */
+        #secretBtn { position: fixed; top: 0; right: 0; width: 40px; height: 40px; cursor: pointer; z-index: 999; }
+
+        /* ==========================================
+           สไตล์สำหรับการพิมพ์ / สร้าง PDF
+           ========================================== */
+        #printArea { display: none; } 
+        @media print {
+            body * { visibility: hidden; } /* ซ่อนทุกอย่างยกเว้นตารางรหัส */
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { 
+                position: absolute; left: 0; top: 0; width: 100%; 
+                display: flex; flex-wrap: wrap; align-content: flex-start;
+            }
+            .code-box {
+                width: 3cm; height: 3cm; /* บังคับขนาด 3x3 ซม. */
+                border: 1px dashed #000; /* เส้นประสำหรับตัดกรรไกร */
+                font-size: 20pt; /* ขนาดตัวอักษร 20 */
+                font-family: 'Sarabun', sans-serif; font-weight: bold;
+                display: flex; justify-content: center; align-items: center;
+                box-sizing: border-box; margin: 2px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="secretBtn" onclick="enterAdminMode()"></div>
+
+<div id="printArea"></div>
+
+<div class="container" id="studentUI">
     <h2>🏍️ เช็คอินรถจักรยานยนต์</h2>
     <p>สแกนและกรอกรหัสยืนยันตัวตน</p>
-    
     <input type="text" id="studentId" placeholder="รหัสนักเรียน" maxlength="5">
     <input type="text" id="dailyPin" placeholder="รหัสประจำวัน 6 หลัก" maxlength="6">
-    
     <button id="checkinBtn" onclick="processCheckin()">ยืนยันการเช็คอิน</button>
-    <div id="status">ระบบพร้อมใช้งาน</div>
+    <div id="status" style="color: #d9534f;">ระบบพร้อมใช้งาน</div>
+</div>
+
+<div class="container" id="adminUI">
+    <h2>⚙️ ผู้ดูแลระบบ</h2>
+    <p>สร้างรหัส 400 รายการล่วงหน้า</p>
+    <input type="date" id="targetDate">
+    <button class="btn-admin" id="generateBtn" onclick="generateAndDownload()">สร้างรหัสและโหลด PDF</button>
+    <div id="adminStatus" style="margin-top: 15px; font-weight: bold; color: #28a745;"></div>
 </div>
 
 <script>
-    // 🔗 เชื่อมโยงกับ URL Web App ของคุณแล้ว
+    // 🔗 URL ของ GAS
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwLaXKJJemWYXOCSy4ytU3qGf9bpoX0qJ0f0cPMKYwyuFHxkSCrq-kmPV2QssQHDaVvDA/exec"; 
     
+    // ฟังก์ชันเปิดหน้า Admin
+    function enterAdminMode() {
+        const pass = prompt("Enter Admin Password:");
+        if (pass === "kkss") {
+            document.getElementById('studentUI').style.display = 'none';
+            document.getElementById('adminUI').style.display = 'block';
+            document.getElementById('targetDate').valueAsDate = new Date(); // ตั้งค่าเริ่มต้นเป็นวันนี้
+        }
+    }
+
+    // ฟังก์ชันแอดมินสร้างรหัสและสั่งพิมพ์
+    function generateAndDownload() {
+        const dateInput = document.getElementById('targetDate').value;
+        if (!dateInput) return alert("กรุณาเลือกวันที่");
+
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('adminStatus').innerText = "กำลังสร้างรหัสและเชื่อมต่อฐานข้อมูล...";
+
+        // สร้างรหัส 400 ชุดด้วย JavaScript
+        const dayNum = parseInt(dateInput.split('-')[2], 10);
+        const dayBase36 = dayNum.toString(36).toUpperCase();
+        let generatedCodes = [];
+        
+        for (let i = 1; i <= 400; i++) {
+            const c1 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            const c2 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            let seq = i.toString(36).toUpperCase();
+            if (seq.length < 2) seq = "0" + seq;
+            const firstFive = c1 + c2 + seq + dayBase36;
+            
+            let sum = 0;
+            for (let j = 0; j < firstFive.length; j++) { sum += firstFive.charCodeAt(j); }
+            const chk = String.fromCharCode(65 + (sum % 26));
+            generatedCodes.push(firstFive + chk);
+        }
+
+        // จัดเตรียมตารางสำหรับการพิมพ์ (สร้าง Div 3x3 ซม.)
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = ''; // ล้างของเก่า
+        generatedCodes.forEach(code => {
+            const div = document.createElement('div');
+            div.className = 'code-box';
+            div.innerText = code;
+            printArea.appendChild(div);
+        });
+
+        // ส่งข้อมูลรหัส 400 ตัวไปเก็บใน GAS
+        fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                'action': 'save_codes',
+                'date': dateInput,
+                'codes': JSON.stringify(generatedCodes)
+            })
+        }).then(() => {
+            document.getElementById('adminStatus').innerText = "✅ บันทึกลงฐานข้อมูลสำเร็จ!";
+            document.getElementById('generateBtn').disabled = false;
+            
+            // สั่งเปิดหน้าต่าง Print (ให้แอดมินเลือก Save as PDF ได้เลย)
+            window.print(); 
+        }).catch(() => {
+            alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+            document.getElementById('generateBtn').disabled = false;
+        });
+    }
+
+    // ==========================================
+    // ฟังก์ชันเช็คอินของนักเรียน (ปรับให้ส่ง parameter 'action')
+    // ==========================================
     const SCHOOL_LAT = 15.562072; 
     const SCHOOL_LNG = 102.413097; 
-    const ALLOWED_RADIUS = 200; // รัศมี 50 เมตร
-
+    const ALLOWED_RADIUS = 200; // ตอนนี้ตั้งไว้ 200 สำหรับทดสอบ
     const statusEl = document.getElementById('status');
-    const checkinBtn = document.getElementById('checkinBtn');
 
-    async function processCheckin() {
+    function processCheckin() {
         const studentId = document.getElementById('studentId').value.trim();
         const dailyPin = document.getElementById('dailyPin').value.trim().toUpperCase();
         const today = new Date().toLocaleDateString();
 
-        if (!studentId || !dailyPin || dailyPin.length !== 6) {
-            statusEl.innerText = "❌ กรุณากรอกรหัสนักเรียนและรหัส 6 หลักให้ครบ";
-            statusEl.className = "";
+        if (!studentId || dailyPin.length !== 6) {
+            statusEl.innerText = "❌ กรอกข้อมูลให้ครบถ้วน";
             return;
         }
 
         if (localStorage.getItem('checkin_date') === today) {
-            statusEl.innerText = "❌ มือถือเครื่องนี้เช็คอินไปแล้วในวันนี้";
-            statusEl.className = "";
+            statusEl.innerText = "❌ เครื่องนี้เช็คอินไปแล้ว";
             return;
         }
 
         statusEl.innerText = "📍 กำลังตรวจสอบ GPS...";
-        statusEl.className = "";
-        checkinBtn.disabled = true;
+        document.getElementById('checkinBtn').disabled = true;
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => sendDataToGAS(position, studentId, dailyPin, today),
-                (error) => {
-                    statusEl.innerText = "❌ โปรดเปิด GPS และอนุญาตให้เว็บเข้าถึงตำแหน่ง";
-                    checkinBtn.disabled = false;
-                },
+                (pos) => sendData(pos, studentId, dailyPin, today),
+                () => { statusEl.innerText = "❌ โปรดเปิด GPS"; document.getElementById('checkinBtn').disabled = false; },
                 { enableHighAccuracy: true }
             );
-        } else {
-            statusEl.innerText = "❌ เบราว์เซอร์ไม่รองรับ GPS";
-            checkinBtn.disabled = false;
         }
     }
 
-    function sendDataToGAS(position, studentId, dailyPin, today) {
-        const distance = calculateDistance(position.coords.latitude, position.coords.longitude, SCHOOL_LAT, SCHOOL_LNG);
-
-        if (distance > ALLOWED_RADIUS) {
-            statusEl.innerText = `❌ คุณอยู่ห่างจุดจอดรถเกินไป (${Math.round(distance)} เมตร)`;
-            checkinBtn.disabled = false;
-            return;
-        }
-
-        statusEl.innerText = "⏳ กำลังบันทึกข้อมูลลงระบบ...";
-
-        // ส่งข้อมูลไปยัง Google Apps Script ด้วยคำสั่ง POST
+    function sendData(position, studentId, dailyPin, today) {
+        // หากต้องการเช็คระยะทาง ให้เปิดการใช้งาน calculateDistance ที่เคยคุยกัน
+        
+        statusEl.innerText = "⏳ กำลังบันทึกข้อมูล...";
+        
         fetch(GAS_URL, {
             method: 'POST',
-            mode: 'no-cors', // บังคับเพื่อหลีกเลี่ยงปัญหา CORS บน GAS
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
+                'action': 'checkin', // สำคัญ: ระบุให้ GAS รู้ว่ากำลังทำอะไร
                 'studentId': studentId,
                 'pin': dailyPin
             })
-        })
-        .then(() => {
-            // เนื่องจากโหมด no-cors จะไม่สามารถอ่านข้อความตอบกลับได้ 
-            // แต่ถ้า fetch สำเร็จ (ไม่ catch error) หมายถึงข้อมูลเข้าเซิร์ฟเวอร์แล้ว
-            statusEl.innerText = "🎉 เช็คอินสำเร็จเรียบร้อย!";
-            statusEl.className = "success";
-            localStorage.setItem('checkin_date', today); // ล็อคมือถือเครื่องนี้
-        })
-        .catch(err => {
-            statusEl.innerText = "❌ เกิดข้อผิดพลาดในระบบการส่งข้อมูล";
-            checkinBtn.disabled = false;
+        }).then(() => {
+            statusEl.innerText = "🎉 เช็คอินสำเร็จ!";
+            statusEl.style.color = "#28a745";
+            localStorage.setItem('checkin_date', today); 
+        }).catch(() => {
+            statusEl.innerText = "❌ เกิดข้อผิดพลาด";
+            document.getElementById('checkinBtn').disabled = false;
         });
-    }
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371e3;
-        const p1 = lat1 * Math.PI / 180; const p2 = lat2 * Math.PI / 180;
-        const dp = (lat2 - lat1) * Math.PI / 180; const dl = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
     }
 </script>
 </body>
