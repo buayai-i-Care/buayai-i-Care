@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>แบบตอบรับการเข้าร่วมประชุมแก้ไขพฤติกรรม โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวันดครราชสีมา</title>
+  <title>แบบตอบรับการเข้าร่วมประชุมแก้ไขพฤติกรรม</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- เปลี่ยนมาใช้ฟอนต์ TH Sarabun เพื่อความเป็นทางการและสบายตา -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- SheetJS สำหรับ Export Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     body {
@@ -27,9 +28,14 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 flex flex-col items-center py-6 px-4">
+<body class="bg-gray-100 min-h-screen text-gray-800 flex flex-col items-center py-6 px-4 relative">
 
-  <div class="max-w-lg w-full bg-white rounded-xl shadow-lg overflow-hidden">
+  <!-- ปุ่มแอดมินมุมขวาบน -->
+  <button onclick="openAdminLogin()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-lg font-medium shadow-sm transition-colors flex items-center gap-1">
+    🔒 แอดมิน
+  </button>
+
+  <div class="max-w-xl w-full bg-white rounded-xl shadow-lg overflow-hidden mt-8">
     <!-- Header -->
     <div class="bg-blue-800 text-white py-5 px-6 text-center">
       <h1 class="text-3xl font-semibold leading-tight">แบบตอบรับการประชุม</h1>
@@ -39,13 +45,11 @@
     <!-- Loading -->
     <div id="loading" class="flex flex-col items-center justify-center py-12">
       <div class="loader mb-4"></div>
-      <p class="text-gray-600 text-xl">กำลังดึงข้อมูลรายชื่อ กรุณารอสักครู่...</p>
+      <p class="text-gray-600 text-xl">กำลังดึงข้อมูล กรุณารอสักครู่...</p>
     </div>
 
-    <!-- Form -->
+    <!-- PAGE 1: PARENT FORM -->
     <form id="parentForm" onsubmit="handleParentSubmit(event)" class="hidden p-6 sm:p-8 space-y-6">
-      
-      <!-- 1. Room Selection -->
       <div>
         <label class="block text-2xl font-medium text-gray-700 mb-2">1. เลือกระดับชั้น / ห้องเรียน <span class="text-red-500">*</span></label>
         <select id="roomSelect" onchange="onRoomChange()" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-xl focus:border-blue-500 focus:outline-none bg-white">
@@ -53,7 +57,6 @@
         </select>
       </div>
 
-      <!-- 2. Name Selection -->
       <div>
         <label class="block text-2xl font-medium text-gray-700 mb-2">2. เลือกชื่อ-สกุล นักเรียน <span class="text-red-500">*</span></label>
         <select id="studentSelect" required disabled class="w-full border-2 border-gray-300 rounded-lg p-3 text-xl focus:border-blue-500 focus:outline-none bg-gray-50">
@@ -62,43 +65,102 @@
         <p class="text-gray-500 text-lg mt-1">* รายชื่อที่ตอบรับแล้ว จะถูกตัดออกจากระบบอัตโนมัติ</p>
       </div>
 
-      <!-- 3. Response Status -->
       <div>
         <label class="block text-2xl font-medium text-gray-700 mb-2">3. ความประสงค์ในการเข้าร่วมประชุม <span class="text-red-500">*</span></label>
         <div class="flex flex-col gap-3 mt-2">
           <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-green-50 border-gray-300 transition-colors">
-            <input type="radio" name="attendStatus" value="เข้าร่วม" onclick="toggleReason(false)" required class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+            <input type="radio" name="attendStatus" value="เข้าร่วม" onclick="toggleReason(false)" required class="w-5 h-5 text-blue-600">
             <span class="ml-3 text-2xl font-medium text-green-700">✓ สะดวกเข้าร่วมประชุม</span>
           </label>
           <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-red-50 border-gray-300 transition-colors">
-            <input type="radio" name="attendStatus" value="ไม่เข้าร่วม" onclick="toggleReason(true)" class="w-5 h-5 text-red-600 focus:ring-red-500">
+            <input type="radio" name="attendStatus" value="ไม่เข้าร่วม" onclick="toggleReason(true)" class="w-5 h-5 text-red-600">
             <span class="ml-3 text-2xl font-medium text-red-600">✕ ไม่สะดวกเข้าร่วม</span>
           </label>
         </div>
       </div>
 
-      <!-- Reason Input -->
       <div id="reason-container" class="hidden">
         <label class="block text-2xl font-medium text-gray-700 mb-2">ระบุเหตุผลที่ไม่สะดวกเข้าร่วม <span class="text-red-500">*</span></label>
         <textarea id="reasonInput" rows="2" placeholder="เช่น ติดภารกิจงาน, อยู่ต่างจังหวัด ฯลฯ" class="w-full border-2 border-gray-300 rounded-lg p-3 text-xl focus:border-blue-500 focus:outline-none"></textarea>
       </div>
 
-      <!-- 4. Phone Number -->
       <div>
         <label class="block text-2xl font-medium text-gray-700 mb-2">4. เบอร์โทรศัพท์ติดต่อกลับ <span class="text-red-500">*</span></label>
         <input type="tel" id="phoneInput" required placeholder="08X-XXX-XXXX" class="w-full border-2 border-gray-300 rounded-lg p-3 text-xl focus:border-blue-500 focus:outline-none">
       </div>
 
       <div class="pt-2">
-        <button type="submit" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-medium text-2xl py-4 rounded-lg shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-blue-300">
+        <button type="submit" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-medium text-2xl py-4 rounded-lg shadow-md transition-all">
           ยืนยันการส่งข้อมูล
         </button>
       </div>
     </form>
+
+    <!-- PAGE 2: ADMIN DASHBOARD (ซ่อนไว้จนกว่าจะใส่รหัสผ่านถูก) -->
+    <div id="adminPanel" class="hidden p-6 sm:p-8 space-y-6">
+      <div class="flex justify-between items-center border-b pb-4">
+        <h2 class="text-2xl font-bold text-blue-900">📊 สรุปผลการตอบรับ</h2>
+        <button onclick="backToForm()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-lg">
+          ← กลับหน้ากรอก
+        </button>
+      </div>
+
+      <!-- สรุปยอดรวม (Cards) -->
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+          <p class="text-gray-600 text-base">ทั้งหมด</p>
+          <p id="statTotal" class="text-2xl font-bold text-blue-800">0</p>
+        </div>
+        <div class="bg-green-50 p-3 rounded-xl border border-green-200">
+          <p class="text-gray-600 text-base">เข้าร่วม</p>
+          <p id="statJoin" class="text-2xl font-bold text-green-700">0</p>
+        </div>
+        <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+          <p class="text-gray-600 text-base">ไม่เข้าร่วม</p>
+          <p id="statNotJoin" class="text-2xl font-bold text-red-700">0</p>
+        </div>
+      </div>
+
+      <!-- ปุ่ม Export -->
+      <button onclick="exportToExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xl py-3 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+        📥 ดาวน์โหลดรายงาน Excel
+      </button>
+
+      <!-- ตารางแยกตาม "เข้าร่วม" และ "ไม่เข้าร่วม" -->
+      <div class="space-y-4">
+        <!-- กลุ่มเข้าร่วม -->
+        <div class="border rounded-lg overflow-hidden">
+          <div class="bg-green-700 text-white px-4 py-2 text-xl font-medium">
+            ✅ รายชื่อผู้ที่ "เข้าร่วม" (<span id="countJoin">0</span>)
+          </div>
+          <div class="overflow-x-auto max-h-60 overflow-y-auto">
+            <table class="w-full text-left border-collapse min-w-[400px]">
+              <tbody id="tableJoin" class="divide-y text-lg">
+                <tr><td class="p-3 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- กลุ่มไม่เข้าร่วม -->
+        <div class="border rounded-lg overflow-hidden">
+          <div class="bg-red-700 text-white px-4 py-2 text-xl font-medium">
+            ❌ รายชื่อผู้ที่ "ไม่เข้าร่วม" (<span id="countNotJoin">0</span>)
+          </div>
+          <div class="overflow-x-auto max-h-60 overflow-y-auto">
+            <table class="w-full text-left border-collapse min-w-[400px]">
+              <tbody id="tableNotJoin" class="divide-y text-lg">
+                <tr><td class="p-3 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // ** โปรดใส่ URL Web App ของคุณตรงนี้ **
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbznQGxBbU2ha5QTdkGx9Jo2o-XHb2O10PbMvPhblxpzydMVCrn1ITVk_EDthXb85q1RHg/exec';
     
     let allStudents = [];
@@ -112,7 +174,6 @@
       document.getElementById('parentForm').classList.add('hidden');
       
       try {
-        // แนบเวลาป้องกัน Cache
         const res = await fetch(`${GAS_WEB_APP_URL}?action=getAvailableStudents&t=${new Date().getTime()}`);
         const data = await res.json();
         
@@ -132,8 +193,6 @@
 
     function setupRoomDropdown() {
       const roomSelect = document.getElementById('roomSelect');
-      
-      // ดึงชื่อห้องที่ไม่ซ้ำกัน และจัดเรียง
       const rooms = [...new Set(allStudents.map(s => s.room))].sort((a, b) => {
           const parseRoom = (r) => {
               try {
@@ -164,13 +223,11 @@
         return;
       }
 
-      // กรองชื่อนักเรียนตามห้อง และจัดเรียงตามตัวอักษร
       const filtered = allStudents.filter(s => s.room === room);
       filtered.sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
       studentSelect.innerHTML = '<option value="">-- โปรดเลือกชื่อนักเรียน --</option>';
       filtered.forEach(s => {
-        // ซ่อนข้อมูลกิจกรรมไว้ใน data-activity 
         studentSelect.innerHTML += `<option value="${s.name}" data-activity="${s.activity}">${s.name}</option>`;
       });
 
@@ -203,13 +260,11 @@
           return;
       }
 
-      // ดึงชื่อกิจกรรมออกมาจากตัวเลือกที่ผู้ใช้เลือก
       const activity = studentSelect.options[studentSelect.selectedIndex].getAttribute('data-activity');
       const attendStatus = document.querySelector('input[name="attendStatus"]:checked').value;
       const reason = document.getElementById('reasonInput').value;
       const phone = document.getElementById('phoneInput').value;
 
-      // สร้าง Payload เป็น JSON Text
       const payload = {
           action: 'submitResponse',
           activity: activity,
@@ -227,7 +282,7 @@
         const res = await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
             body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' } // ป้องกัน CORS
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
         
         const data = await res.json();
@@ -238,8 +293,6 @@
           toggleReason(false);
           document.getElementById('studentSelect').disabled = true;
           document.getElementById('studentSelect').classList.add('bg-gray-50');
-          
-          // โหลดรายชื่อใหม่เพื่อตัดคนที่ตอบแล้วออก
           fetchData();
         } else {
           alert('บันทึกไม่สำเร็จ: ' + data.message);
@@ -251,6 +304,131 @@
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('parentForm').classList.remove('hidden');
       }
+    }
+
+    // --- ระบบแอดมิน ---
+    function openAdminLogin() {
+      const pass = prompt('กรุณากรอกรหัสผ่านแอดมิน:');
+      if (pass === '8888') {
+        loadAdminDashboard();
+      } else if (pass !== null) {
+        alert('รหัสผ่านไม่ถูกต้อง!');
+      }
+    }
+
+    async function loadAdminDashboard() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('parentForm').classList.add('hidden');
+      document.getElementById('adminPanel').classList.add('hidden');
+
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getResponses&t=${new Date().getTime()}`);
+        // หมายเหตุ: ต้องมั่นใจว่าใน Code.gs ฝั่ง doGet มีเงื่อนไข action === 'getResponses' อยู่แล้ว (จากโค้ดเดิมมีอยู่แล้วครับ)
+        const data = await res.json();
+
+        // เนื่องจากฟังก์ชัน getResponses ใน Code.gs เดิมส่งค่ากลับมา ลองดึงข้อมูลมาแสดง
+        // ถ้าใช้โค้ด Code.gs ตัวล่าสุดที่เราทำร่วมกัน จะต้องดึงผ่าน doGet action=getResponses
+        // เพื่อความชัวร์เราจะดึงข้อมูลผ่านการสร้าง helper เล็กน้อย หรือใช้ getAvailableStudents ร่วมกับ responses
+        // แต่ในที่นี้ เราดึงตรงจาก Sheet ผ่าน getDataRange ได้ถ้าเขียนเพิ่ม หรือใช้ฟังก์ชันเดิม
+        // เพื่อความสมบูรณ์ มาดูฟังก์ชันดึง Responses ด้านล่างครับ
+        
+        // โหลดข้อมูล Responses แบบสดๆ
+        const respRes = await fetch(`${GAS_WEB_APP_URL}?action=getResponses&t=${new Date().getTime()}`);
+        const respData = await respRes.json();
+
+        if (respData.status === 'success') {
+          renderAdminData(respData.responses);
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('adminPanel').classList.remove('hidden');
+        } else {
+          alert('ไม่สามารถดึงข้อมูลสรุปได้');
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('parentForm').classList.remove('hidden');
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูลแอดมิน');
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('parentForm').classList.remove('hidden');
+      }
+    }
+
+    function renderAdminData(responses) {
+      const tableJoin = document.getElementById('tableJoin');
+      const tableNotJoin = document.getElementById('tableNotJoin');
+      
+      tableJoin.innerHTML = '';
+      tableNotJoin.innerHTML = '';
+
+      let joinList = responses.filter(r => r.status === 'เข้าร่วม' || r.attendStatus === 'เข้าร่วม');
+      let notJoinList = responses.filter(r => r.status === 'ไม่เข้าร่วม' || r.attendStatus === 'ไม่เข้าร่วม');
+
+      // อัปเดตตัวเลขสรุปยอด
+      document.getElementById('statTotal').textContent = responses.length;
+      document.getElementById('statJoin').textContent = joinList.length;
+      document.getElementById('statNotJoin').textContent = notJoinList.length;
+      document.getElementById('countJoin').textContent = joinList.length;
+      document.getElementById('countNotJoin').textContent = notJoinList.length;
+
+      // เติมตารางเข้าร่วม
+      if (joinList.length === 0) {
+        tableJoin.innerHTML = '<tr><td class="p-3 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>';
+      } else {
+        joinList.forEach(r => {
+          let room = r.room || '-';
+          let name = r.name || '-';
+          let phone = r.phone || '-';
+          tableJoin.innerHTML += `
+            <tr class="hover:bg-green-50">
+              <td class="p-3 border-b"><strong>${room}</strong> ${name}<br><span class="text-gray-500 text-base">📞 ${phone}</span></td>
+            </tr>`;
+        });
+      }
+
+      // เติมตารางไม่เข้าร่วม
+      if (notJoinList.length === 0) {
+        tableNotJoin.innerHTML = '<tr><td class="p-3 text-center text-gray-400">ยังไม่มีข้อมูล</td></tr>';
+      } else {
+        notJoinList.forEach(r => {
+          let room = r.room || '-';
+          let name = r.name || '-';
+          let reason = r.reason || '-';
+          let phone = r.phone || '-';
+          tableNotJoin.innerHTML += `
+            <tr class="hover:bg-red-50">
+              <td class="p-3 border-b"><strong>${room}</strong> ${name}<br><span class="text-red-700 text-base">เหตุผล: ${reason}</span><br><span class="text-gray-500 text-base">📞 ${phone}</span></td>
+            </tr>`;
+        });
+      }
+    }
+
+    function backToForm() {
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('parentForm').classList.remove('hidden');
+    }
+
+    function exportToExcel() {
+      // ดึงข้อมูลทั้งหมดจาก responses มาทำ Excel
+      fetch(`${GAS_WEB_APP_URL}?action=getResponses&t=${new Date().getTime()}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success' && data.responses.length > 0) {
+                let exportData = data.responses.map(r => ({
+                    'วัน-เวลา': r.timestamp || '',
+                    'กิจกรรม': r.activity || '',
+                    'ห้อง': r.room || '',
+                    'ชื่อ-สกุล': r.name || '',
+                    'การตอบรับ': r.status || r.attendStatus || '',
+                    'เหตุผล': r.reason || '',
+                    'เบอร์โทรศัพท์': r.phone || ''
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "สรุปการตอบรับ");
+                XLSX.writeFile(workbook, "รายงานสรุปการตอบรับประชุม.xlsx");
+            } else {
+                alert('ยังไม่มีข้อมูลสำหรับส่งออก');
+            }
+        });
     }
   </script>
 </body>
