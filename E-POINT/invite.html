@@ -554,58 +554,95 @@
       e.preventDefault();
       const topic = document.getElementById('p2-topic-input').value;
       const rawText = document.getElementById('p2-raw-text').value;
-      const setActive = document.getElementById('p2-set-active-chk').checked;
-
-      if (!topic) {
-          showModal('error', 'เกิดข้อผิดพลาด', 'ไม่พบข้อมูลหัวข้อเรื่อง กรุณาบันทึกหัวข้อเรื่องอีกครั้ง');
-          return;
-      }
 
       showLoading(true);
       try {
-        const query = `action=addBulkStudents`;
-        const res = await fetch(`${GAS_WEB_APP_URL}?${query}&topic=${encodeURIComponent(topic)}&rawText=${encodeURIComponent(rawText)}`, { method: 'GET' });
+        // สร้างข้อมูลเป็นรูปแบบ JSON เพื่อส่งแบบ POST ป้องกันปัญหาข้อความยาวเกินจำกัด
+        const payload = {
+            action: 'addBulkStudents',
+            topic: topic,
+            rawText: rawText
+        };
+
+        const res = await fetch(GAS_WEB_APP_URL, { 
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: {
+                // ทริคสำคัญสำหรับ Google Apps Script: ต้องส่งเป็นข้อความธรรมดา เพื่อหลบการบล็อก CORS ของเบราว์เซอร์
+                'Content-Type': 'text/plain;charset=utf-8' 
+            }
+        });
+        
         const data = await res.json();
 
         if (data.status === 'success') {
-          // If checkbox is checked, set active topic silently
-          if (setActive) {
-             try {
-                await fetch(`${GAS_WEB_APP_URL}?action=setActiveTopic&topic=${encodeURIComponent(topic)}`, { method: 'GET' });
-             } catch(e) {}
-          }
-
-          showModal('success', 'นำเข้าข้อมูลสำเร็จ', `เพิ่มรายชื่อทั้งหมด ${data.count} รายการในเรื่อง "${topic}" เรียบร้อยแล้ว`);
+          showModal('success', 'นำเข้าข้อมูลสำเร็จ', `เพิ่มรายชื่อทั้งหมด ${data.count} รายการในเรื่อง ${topic} เรียบร้อยแล้ว`);
           document.getElementById('p2-raw-text').value = '';
-          loadInitialData(); 
+          document.getElementById('p2-topic-input').value = '';
+          loadInitialData(); // Reload Config & Topics globally
         } else {
              showModal('error', 'นำเข้าข้อมูลไม่สำเร็จ', data.message);
         }
       } catch (err) {
-        showModal('error', 'เกิดข้อผิดพลาด', 'การเชื่อมต่อถูกขัดจังหวะ โปรดลองอีกครั้ง');
+        showModal('error', 'เกิดข้อผิดพลาด', 'การเชื่อมต่อถูกขัดจังหวะ โปรดลองอีกครั้ง: ' + err);
       } finally {
         showLoading(false);
       }
     }
+    async function handleParentSubmit(e) {
+      e.preventDefault();
+      
+      const topic = document.getElementById('p1-topic').value;
+      const room = document.getElementById('p1-room').value;
+      const studentSelect = document.getElementById('p1-student');
+      const studentName = studentSelect.value;
+      
+      if(!topic || !room || !studentName) {
+          showModal('error', 'ข้อมูลไม่ครบถ้วน', 'กรุณาเลือก เรื่อง, ห้องเรียน และ ชื่อนักเรียน ให้ครบถ้วน');
+          return;
+      }
 
-    async function loadDashboardData() {
+      const studentId = studentSelect.options[studentSelect.selectedIndex].getAttribute('data-id');
+      const attendStatus = document.querySelector('input[name="attendStatus"]:checked')?.value;
+      const reason = document.getElementById('p1-reason').value;
+      const phone = document.getElementById('p1-phone').value;
+
       showLoading(true);
       try {
-        const [resStudents, resResponses] = await Promise.all([
-          fetch(`${GAS_WEB_APP_URL}?action=getStudents`).then(r => r.json()),
-          fetch(`${GAS_WEB_APP_URL}?action=getResponses`).then(r => r.json())
-        ]);
+        // ใช้เทคนิค POST แบบ text/plain เหมือนกันเพื่อความเสถียร
+        const payload = {
+            action: 'submitResponse',
+            topic: topic,
+            room: room,
+            studentId: studentId,
+            name: studentName,
+            attendStatus: attendStatus,
+            reason: reason,
+            phone: phone
+        };
 
-        if (resStudents.status === 'success' && resResponses.status === 'success') {
-          allStudents = resStudents.students;
-          allResponses = resResponses.responses;
-          setupDashboardFilters();
-          renderDashboardTable();
+        const res = await fetch(GAS_WEB_APP_URL, { 
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        }); 
+        
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          showModal('success', 'บันทึกสำเร็จ', 'ระบบได้รับข้อมูลการตอบรับเรียบร้อยแล้ว ขอขอบพระคุณเป็นอย่างยิ่ง');
+          document.getElementById('parentForm').reset();
+          toggleReason(false);
+          document.getElementById('p1-note-box').classList.add('hidden');
+          document.getElementById('p1-room').disabled = true;
+          document.getElementById('p1-student').disabled = true;
+          
+          loadInitialData();
         } else {
-            showModal('error', 'ข้อผิดพลาด', 'โหลดข้อมูลตารางสรุปไม่สำเร็จ');
+            showModal('error', 'บันทึกไม่สำเร็จ', 'ระบบแจ้งเตือน: ' + data.message);
         }
       } catch (err) {
-         showModal('error', 'ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลรายงานได้');
+        showModal('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้: ' + err);
       } finally {
         showLoading(false);
       }
