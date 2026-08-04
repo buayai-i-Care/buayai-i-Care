@@ -15,6 +15,26 @@
       font-family: 'Kanit', sans-serif;
       background-color: #f3f4f6;
     }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 4px solid #3498db;
+      width: 40px;
+      height: 40px;
+      -webkit-animation: spin 1s linear infinite; /* Safari */
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.4s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
@@ -44,9 +64,9 @@
   <main class="max-w-4xl mx-auto my-6 px-4">
 
     <!-- Loading Indicator -->
-    <div id="loading" class="hidden text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
-      <p class="mt-2 text-gray-600 text-lg">กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
+    <div id="loading" class="hidden flex-col items-center justify-center py-10 bg-white rounded-xl shadow-lg mb-6">
+      <div class="loader mb-4"></div>
+      <p class="text-gray-600 text-lg font-medium">กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
     </div>
 
     <!-- PAGE 1: PARENT RESPONSE FORM -->
@@ -58,7 +78,7 @@
         <div>
           <label class="block text-lg font-medium text-gray-700 mb-2">1. เรื่องที่เชิญประชุม <span class="text-red-500">*</span></label>
           <select id="p1-topic" onchange="onTopicChange()" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none">
-            <option value="">-- กำลังโหลดรายการเรื่อง --</option>
+            <option value="">-- กำลังเชื่อมต่อฐานข้อมูล --</option>
           </select>
         </div>
 
@@ -79,20 +99,20 @@
         </div>
 
         <!-- Note Display if any -->
-        <div id="p1-note-box" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
-          <p class="text-amber-800 font-medium" id="p1-note-text"></p>
+        <div id="p1-note-box" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg animate-fade-in">
+          <p class="text-amber-800 font-medium text-lg" id="p1-note-text"></p>
         </div>
 
         <!-- 4. Response Status -->
         <div>
           <label class="block text-lg font-medium text-gray-700 mb-2">4. การตอบรับการเข้าร่วมประชุม <span class="text-red-500">*</span></label>
           <div class="flex flex-col sm:flex-row gap-4 mt-2">
-            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 border-gray-300 flex-1">
-              <input type="radio" name="attendStatus" value="เข้าร่วม" onclick="toggleReason(false)" required class="w-5 h-5 text-blue-600">
+            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 border-gray-300 flex-1 transition-colors">
+              <input type="radio" name="attendStatus" value="เข้าร่วม" onclick="toggleReason(false)" required class="w-5 h-5 text-blue-600 focus:ring-blue-500">
               <span class="ml-3 text-lg font-medium text-green-700">✓ เข้าร่วมประชุม</span>
             </label>
-            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 border-gray-300 flex-1">
-              <input type="radio" name="attendStatus" value="ไม่เข้าร่วม" onclick="toggleReason(true)" class="w-5 h-5 text-blue-600">
+            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-red-50 border-gray-300 flex-1 transition-colors">
+              <input type="radio" name="attendStatus" value="ไม่เข้าร่วม" onclick="toggleReason(true)" class="w-5 h-5 text-red-600 focus:ring-red-500">
               <span class="ml-3 text-lg font-medium text-red-600">✕ ไม่สะดวกเข้าร่วม</span>
             </label>
           </div>
@@ -101,7 +121,7 @@
         <!-- Reason Input (Conditional) -->
         <div id="reason-container" class="hidden">
           <label class="block text-lg font-medium text-gray-700 mb-2">ระบุเหตุผลที่ไม่สะดวกเข้าร่วม <span class="text-red-500">*</span></label>
-          <textarea id="p1-reason" rows="3" placeholder="โปรดระบุเหตุผล เช่น ติดภารกิจต่างจังหวัด..." class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none"></textarea>
+          <textarea id="p1-reason" rows="3" placeholder="โปรดระบุเหตุผล เช่น ติดภารกิจต่างจังหวัด หรือ ไม่สะดวกเรื่องการเดินทาง..." class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none"></textarea>
         </div>
 
         <!-- 5. Phone Number -->
@@ -110,91 +130,110 @@
           <input type="tel" id="p1-phone" required placeholder="08X-XXX-XXXX" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none">
         </div>
 
-        <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xl py-4 rounded-lg shadow-md transition-all">
-          ยืนยันการส่งข้อมูล
-        </button>
+        <div class="pt-4 border-t">
+            <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xl py-4 rounded-lg shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-blue-300">
+            ยืนยันการส่งข้อมูล
+            </button>
+        </div>
       </form>
     </section>
 
     <!-- PAGE 2: ADMIN PANEL -->
-    <section id="page-2" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-8">
-      <h2 class="text-xl md:text-2xl font-bold text-blue-900 border-b pb-3">ระบบแอดมินและการจัดการข้อมูล</h2>
-
-      <!-- Part 2.1 Bulk Import -->
-      <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">2.1 กรอกข้อมูล / นำเข้ารายชื่อนักเรียนใหม่ (Bulk Import)</h3>
-        
-        <form onsubmit="handleAdminImport(event)" class="space-y-4">
-          <div>
-            <label class="block font-medium text-gray-700 mb-1">หัวข้อ / เรื่องที่เชิญประชุม (พิมพ์ใหม่ หรือเลือกเรื่องเดิม)</label>
-            <input type="text" id="p2-topic-input" required list="existing-topics" placeholder="เช่น เชิญเรื่อง ชกต่อย ครั้งที่ 1" class="w-full border rounded-lg p-3 text-base">
-            <datalist id="existing-topics"></datalist>
-          </div>
-
-          <div>
-            <label class="block font-medium text-gray-700 mb-1">วางรายการรายชื่อ (รูปแบบ: ห้อง [Tap/Comma] เลขประจำตัว [Tap/Comma] ชื่อ-สกุล [Tap/Comma] หมายเหตุ)</label>
-            <textarea id="p2-raw-text" rows="6" required placeholder="ม.2/1	33210	เด็กหญิงสุมาลี	เชิญมาสายครั้งที่ 1-69&#10;ม.2/1	33211	เด็กชายสมศักดิ์	เชิญชกต่อย ครั้งที่ 1" class="w-full border rounded-lg p-3 font-mono text-sm"></textarea>
-          </div>
-
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg shadow">
-            บันทึกนำเข้ารายชื่อ
-          </button>
-        </form>
-      </div>
-
-      <!-- Part 2.2 Active Topic Setting -->
-      <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-        <h3 class="text-lg font-semibold text-blue-900 mb-4">2.2 กำหนดเรื่องหลักปัจจุบัน (Active Event) ให้ผู้ปกครอง</h3>
+    <section id="page-2" class="hidden space-y-6">
+      
+      <!-- Part 2.1 Set Working Topic -->
+      <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 border-l-4 border-blue-500">
+        <h2 class="text-xl md:text-2xl font-bold text-blue-900 border-b pb-3 mb-6">2.1 บันทึกหัวข้อเรื่อง เพื่อดำเนินการ</h2>
         
         <div class="flex flex-col sm:flex-row gap-4 items-end">
           <div class="flex-1 w-full">
-            <label class="block font-medium text-gray-700 mb-1">เลือกเรื่องที่จะกำหนดให้แสดงเป็นเรื่องหลัก</label>
-            <select id="p2-active-topic-select" class="w-full border rounded-lg p-3 text-base"></select>
+            <label class="block font-medium text-gray-700 mb-2 text-lg">หัวข้อ / เรื่องที่เชิญประชุม (พิมพ์ใหม่ หรือเลือกเรื่องเดิม) <span class="text-red-500">*</span></label>
+            <input type="text" id="p2-working-topic" list="existing-topics" placeholder="เช่น เชิญเรื่อง ชกต่อย ครั้งที่ 1" class="w-full border-2 rounded-lg p-3 text-lg border-gray-300 focus:border-blue-500 focus:outline-none shadow-sm transition-all">
+            <datalist id="existing-topics"></datalist>
           </div>
-          <button onclick="saveActiveTopic()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow">
-            ตั้งค่าเป็นเรื่องหลัก
+          <button onclick="confirmWorkingTopic()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg px-8 py-3 rounded-lg shadow-md transition-colors whitespace-nowrap">
+            บันทึกหัวข้อนี้
           </button>
         </div>
+        <p class="text-gray-500 mt-2 text-sm">* ต้องบันทึกหัวข้อก่อน จึงจะสามารถนำเข้ารายชื่อนักเรียนในหัวข้อนั้นๆ ได้</p>
       </div>
+
+      <!-- Part 2.2 Bulk Import (Locked initially) -->
+      <div id="bulk-import-container" class="bg-white rounded-xl shadow-lg p-6 md:p-8 opacity-50 pointer-events-none transition-all duration-300">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 mb-6 gap-2">
+            <h2 class="text-xl md:text-2xl font-bold text-blue-900">2.2 นำเข้ารายชื่อนักเรียน</h2>
+            <span id="display-working-topic" class="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full text-base font-semibold shadow-sm hidden"></span>
+        </div>
+        
+        <form onsubmit="handleAdminImport(event)" class="space-y-5">
+          <input type="hidden" id="p2-topic-input">
+          
+          <div>
+            <label class="block font-medium text-gray-700 mb-2 text-lg">วางรายชื่อที่คัดลอกมาจาก Excel <span class="text-red-500">*</span></label>
+            <div class="bg-blue-50 p-3 rounded-t-lg border-2 border-b-0 border-blue-200 text-sm text-blue-800">
+                <strong>รูปแบบที่รองรับ:</strong> <span class="bg-white px-2 py-1 rounded shadow-sm inline-block my-1">ห้อง &lt;วรรค/Tab&gt; เลขประจำตัว &lt;วรรค/Tab&gt; ชื่อ-สกุล &lt;วรรค/Tab&gt; หมายเหตุ(ถ้ามี)</span>
+            </div>
+            <textarea id="p2-raw-text" rows="8" required placeholder="ม.2/1	33210	เด็กหญิงสุมาลี	เชิญมาสายครั้งที่ 1-69&#10;ม.2/1	33211	เด็กชายสมศักดิ์	เชิญชกต่อย ครั้งที่ 1" class="w-full border-2 border-t-0 rounded-b-lg p-3 font-mono text-base border-gray-300 focus:border-blue-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4 items-center justify-between pt-4 border-t">
+              <label class="flex items-center text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                  <input type="checkbox" id="p2-set-active-chk" checked class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                  <span class="ml-3 font-medium text-lg">ตั้งให้เรื่องนี้เป็นค่าเริ่มต้นสำหรับผู้ปกครอง</span>
+              </label>
+              <button type="submit" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold text-lg px-8 py-3 rounded-lg shadow transition-colors">
+                บันทึกนำเข้ารายชื่อ
+              </button>
+          </div>
+        </form>
+      </div>
+
     </section>
 
     <!-- PAGE 3: TEACHER DASHBOARD & EXPORT -->
     <section id="page-3" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
-        <h2 class="text-xl md:text-2xl font-bold text-blue-900">สรุปการตอบรับและการติดตามของผู้ปกครอง</h2>
-        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow">
-          📊 ส่งออกเป็น Excel (.xlsx)
+        <h2 class="text-xl md:text-2xl font-bold text-blue-900">สรุปการตอบรับและการติดตามผู้ปกครอง</h2>
+        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          ส่งออกเป็น Excel
         </button>
       </div>
 
       <!-- Filters -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-5 rounded-lg border">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ตัวกรองเรื่อง</label>
-          <select id="p3-filter-topic" onchange="renderDashboardTable()" class="w-full border rounded-lg p-2"></select>
+          <label class="block text-base font-medium text-gray-700 mb-2">กรองตามเรื่อง</label>
+          <select id="p3-filter-topic" onchange="renderDashboardTable()" class="w-full border-2 rounded-lg p-2.5 border-gray-300 focus:border-blue-500 focus:outline-none text-lg">
+             <option value="">-- กำลังโหลดข้อมูล --</option>
+          </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ตัวกรองห้องเรียน</label>
-          <select id="p3-filter-room" onchange="renderDashboardTable()" class="w-full border rounded-lg p-2">
+          <label class="block text-base font-medium text-gray-700 mb-2">กรองตามห้องเรียน</label>
+          <select id="p3-filter-room" onchange="renderDashboardTable()" class="w-full border-2 rounded-lg p-2.5 border-gray-300 focus:border-blue-500 focus:outline-none text-lg">
             <option value="">-- ทั้งหมดทุกห้อง --</option>
           </select>
         </div>
       </div>
 
       <!-- Table Container -->
-      <div class="overflow-x-auto border rounded-lg">
-        <table id="dashboard-table" class="w-full text-left border-collapse min-w-[600px]">
+      <div class="overflow-x-auto border-2 border-gray-200 rounded-lg shadow-sm">
+        <table id="dashboard-table" class="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr class="bg-blue-800 text-white text-base">
-              <th class="p-3 border">ห้อง</th>
-              <th class="p-3 border">เลขประจำตัว</th>
-              <th class="p-3 border">ชื่อ - สกุล</th>
-              <th class="p-3 border">สถานะการตอบรับ</th>
-              <th class="p-3 border">เหตุผล / เบอร์โทร</th>
+              <th class="p-4 border-b font-medium">ห้อง</th>
+              <th class="p-4 border-b font-medium">เลขประจำตัว</th>
+              <th class="p-4 border-b font-medium">ชื่อ - สกุล</th>
+              <th class="p-4 border-b font-medium">สถานะการตอบรับ</th>
+              <th class="p-4 border-b font-medium">เหตุผล / เบอร์โทรศัพท์</th>
             </tr>
           </thead>
-          <tbody id="dashboard-tbody" class="divide-y text-base">
-            <!-- Dynamic Content -->
+          <tbody id="dashboard-tbody" class="divide-y divide-gray-200 text-base bg-white">
+            <tr>
+                <td colspan="5" class="p-8 text-center text-gray-500">
+                    โปรดเลือกตัวกรองด้านบนเพื่อแสดงข้อมูล
+                </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -202,14 +241,31 @@
 
   </main>
 
+  <!-- Message Modal Setup -->
+  <div id="msgModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-xl shadow-2xl p-6 md:p-8 max-w-sm w-full mx-4 transform transition-all">
+        <div class="text-center">
+            <div id="modalIcon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4">
+               <!-- Icon injected here -->
+            </div>
+            <h3 id="modalTitle" class="text-2xl font-bold text-gray-900 mb-2">สถานะ</h3>
+            <p id="modalMsg" class="text-gray-600 text-lg mb-6">รายละเอียด</p>
+            <button onclick="closeModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                ตกลง
+            </button>
+        </div>
+    </div>
+  </div>
+
   <!-- JS Logic -->
   <script>
-    // ** โปรดวาง Web App URL ของ Google Apps Script ที่เปิดเผยแพร่แล้วตรงนี้ **
+    // URL Web App
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbznQGxBbU2ha5QTdkGx9Jo2o-XHb2O10PbMvPhblxpzydMVCrn1ITVk_EDthXb85q1RHg/exec';
 
     let allStudents = [];
     let allResponses = [];
     let currentConfig = {};
+    let currentTab = 1;
 
     window.onload = function() {
       loadInitialData();
@@ -217,9 +273,36 @@
 
     function showLoading(show) {
       document.getElementById('loading').classList.toggle('hidden', !show);
+      document.getElementById('loading').classList.toggle('flex', show);
+      document.getElementById(`page-${currentTab}`).classList.toggle('hidden', show);
+    }
+
+    function showModal(type, title, msg) {
+        const modal = document.getElementById('msgModal');
+        const iconContainer = document.getElementById('modalIcon');
+        const titleEl = document.getElementById('modalTitle');
+        const msgEl = document.getElementById('modalMsg');
+
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+
+        if (type === 'success') {
+            iconContainer.className = 'mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4';
+            iconContainer.innerHTML = '<svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        } else {
+            iconContainer.className = 'mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4';
+            iconContainer.innerHTML = '<svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('msgModal').classList.add('hidden');
     }
 
     function switchTab(tabNum) {
+      currentTab = tabNum;
       for (let i = 1; i <= 3; i++) {
         document.getElementById(`page-${i}`).classList.add('hidden');
         const btn = document.getElementById(`tab-btn-${i}`);
@@ -244,9 +327,11 @@
         if (data.status === 'success') {
           currentConfig = data;
           populateTopicDropdowns(data.topics, data.activeTopic);
+        } else {
+          showModal('error', 'ข้อผิดพลาดของระบบ', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่');
         }
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err);
+        showModal('error', 'ข้อผิดพลาดของระบบ', 'เกิดปัญหาการเชื่อมต่อเครือข่าย');
       } finally {
         showLoading(false);
       }
@@ -254,22 +339,23 @@
 
     function populateTopicDropdowns(topics, activeTopic) {
       const p1Select = document.getElementById('p1-topic');
-      const p2Select = document.getElementById('p2-active-topic-select');
       const datalist = document.getElementById('existing-topics');
 
-      p1Select.innerHTML = '<option value="">-- เลือกเรื่องที่เชิญประชุม --</option>';
-      p2Select.innerHTML = '';
+      if (!topics || topics.length === 0) {
+          p1Select.innerHTML = '<option value="">-- ยังไม่มีการสร้างเรื่องประชุม --</option>';
+          return;
+      }
+
+      p1Select.innerHTML = '<option value="">-- โปรดเลือกเรื่อง --</option>';
       datalist.innerHTML = '';
 
       topics.forEach(top => {
         p1Select.innerHTML += `<option value="${top}">${top}</option>`;
-        p2Select.innerHTML += `<option value="${top}">${top}</option>`;
         datalist.innerHTML += `<option value="${top}">`;
       });
 
-      if (activeTopic) {
+      if (activeTopic && topics.includes(activeTopic)) {
         p1Select.value = activeTopic;
-        p2Select.value = activeTopic;
         onTopicChange();
       }
     }
@@ -279,12 +365,16 @@
       const roomSelect = document.getElementById('p1-room');
       const studentSelect = document.getElementById('p1-student');
 
-      roomSelect.innerHTML = '<option value="">-- กำลังโหลดห้องเรียน --</option>';
+      roomSelect.innerHTML = '<option value="">-- กำลังโหลดข้อมูล... --</option>';
       studentSelect.innerHTML = '<option value="">-- เลือกห้องเรียนก่อน --</option>';
       studentSelect.disabled = true;
 
+      const noteBox = document.getElementById('p1-note-box');
+      noteBox.classList.add('hidden');
+
       if (!topic) {
         roomSelect.disabled = true;
+        roomSelect.innerHTML = '<option value="">-- เลือกเรื่องก่อน --</option>';
         return;
       }
 
@@ -292,19 +382,40 @@
       try {
         const res = await fetch(`${GAS_WEB_APP_URL}?action=getStudents&topic=${encodeURIComponent(topic)}`);
         const data = await res.json();
+        
         if (data.status === 'success') {
           allStudents = data.students;
           
-          // Get unique rooms
-          const rooms = [...new Set(allStudents.map(s => s.room))].sort();
-          roomSelect.innerHTML = '<option value="">-- เลือกห้องเรียน --</option>';
+          if(allStudents.length === 0) {
+             roomSelect.innerHTML = '<option value="">-- ไม่พบรายชื่อนักเรียนในเรื่องนี้ --</option>';
+             roomSelect.disabled = true;
+             return;
+          }
+
+          // Custom sort function for rooms
+          const rooms = [...new Set(allStudents.map(s => s.room))].sort((a, b) => {
+              const parseRoom = (r) => {
+                  try {
+                    let p = r.replace('ม.', '').replace('ห้อง', '').trim().split('/');
+                    return [parseInt(p[0]) || 0, parseInt(p[1]) || 0];
+                  } catch(e) { return [0,0]; }
+              };
+              let [a1, a2] = parseRoom(a);
+              let [b1, b2] = parseRoom(b);
+              if(a1 !== b1) return a1 - b1;
+              return a2 - b2;
+          });
+
+          roomSelect.innerHTML = '<option value="">-- โปรดเลือกห้องเรียน --</option>';
           rooms.forEach(r => {
             roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
           });
           roomSelect.disabled = false;
+        } else {
+             roomSelect.innerHTML = '<option value="">-- เกิดข้อผิดพลาดในการโหลดข้อมูล --</option>';
         }
       } catch (err) {
-        alert('ไม่สามารถดึงรายชื่อได้: ' + err);
+         roomSelect.innerHTML = '<option value="">-- ขัดข้อง --</option>';
       } finally {
         showLoading(false);
       }
@@ -313,7 +424,10 @@
     function onRoomChange() {
       const room = document.getElementById('p1-room').value;
       const studentSelect = document.getElementById('p1-student');
-      studentSelect.innerHTML = '<option value="">-- เลือกชื่อนักเรียน --</option>';
+      studentSelect.innerHTML = '<option value="">-- โปรดเลือกชื่อนักเรียน --</option>';
+      
+      const noteBox = document.getElementById('p1-note-box');
+      noteBox.classList.add('hidden');
 
       if (!room) {
         studentSelect.disabled = true;
@@ -321,8 +435,10 @@
       }
 
       const filtered = allStudents.filter(s => s.room === room);
+      filtered.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
       filtered.forEach(s => {
-        studentSelect.innerHTML += `<option value="${s.name}" data-id="${s.studentId}" data-note="${s.note || ''}">${s.name} (${s.studentId})</option>`;
+        studentSelect.innerHTML += `<option value="${s.name}" data-id="${s.studentId}" data-note="${s.note || ''}">${s.name} (รหัส: ${s.studentId || '-'})</option>`;
       });
 
       studentSelect.disabled = false;
@@ -330,14 +446,19 @@
 
     function onStudentChange() {
       const studentSelect = document.getElementById('p1-student');
+      const noteBox = document.getElementById('p1-note-box');
+      const noteText = document.getElementById('p1-note-text');
+      
+      if(studentSelect.selectedIndex <= 0) {
+         noteBox.classList.add('hidden');
+         return;
+      }
+
       const selectedOpt = studentSelect.options[studentSelect.selectedIndex];
       const note = selectedOpt.getAttribute('data-note');
 
-      const noteBox = document.getElementById('p1-note-box');
-      const noteText = document.getElementById('p1-note-text');
-
-      if (note) {
-        noteText.textContent = 'หมายเหตุ: ' + note;
+      if (note && note.trim() !== '') {
+        noteText.textContent = 'ระบุเพิ่มเติม: ' + note;
         noteBox.classList.remove('hidden');
       } else {
         noteBox.classList.add('hidden');
@@ -347,18 +468,31 @@
     function toggleReason(show) {
       const reasonContainer = document.getElementById('reason-container');
       const reasonInput = document.getElementById('p1-reason');
-      reasonContainer.classList.toggle('hidden', !show);
-      reasonInput.required = show;
+      if(show) {
+         reasonContainer.classList.remove('hidden');
+         reasonContainer.classList.add('animate-fade-in');
+         reasonInput.required = true;
+      } else {
+         reasonContainer.classList.add('hidden');
+         reasonInput.required = false;
+         reasonInput.value = ''; 
+      }
     }
 
     async function handleParentSubmit(e) {
       e.preventDefault();
+      
       const topic = document.getElementById('p1-topic').value;
       const room = document.getElementById('p1-room').value;
       const studentSelect = document.getElementById('p1-student');
       const studentName = studentSelect.value;
-      const studentId = studentSelect.options[studentSelect.selectedIndex].getAttribute('data-id');
       
+      if(!topic || !room || !studentName) {
+          showModal('error', 'ข้อมูลไม่ครบถ้วน', 'กรุณาเลือก เรื่อง, ห้องเรียน และ ชื่อนักเรียน ให้ครบถ้วน');
+          return;
+      }
+
+      const studentId = studentSelect.options[studentSelect.selectedIndex].getAttribute('data-id');
       const attendStatus = document.querySelector('input[name="attendStatus"]:checked')?.value;
       const reason = document.getElementById('p1-reason').value;
       const phone = document.getElementById('p1-phone').value;
@@ -366,59 +500,89 @@
       showLoading(true);
       try {
         const query = `action=submitResponse&topic=${encodeURIComponent(topic)}&room=${encodeURIComponent(room)}&studentId=${encodeURIComponent(studentId)}&name=${encodeURIComponent(studentName)}&attendStatus=${encodeURIComponent(attendStatus)}&reason=${encodeURIComponent(reason)}&phone=${encodeURIComponent(phone)}`;
-        const res = await fetch(`${GAS_WEB_APP_URL}?${query}`);
+        const res = await fetch(`${GAS_WEB_APP_URL}?${query}`, { method: 'GET'}); 
         const data = await res.json();
 
         if (data.status === 'success') {
-          alert('บันทึกการตอบรับเรียบร้อยแล้ว ขอขอบพระคุณครับ');
+          showModal('success', 'บันทึกสำเร็จ', 'ระบบได้รับข้อมูลการตอบรับเรียบร้อยแล้ว ขอขอบพระคุณเป็นอย่างยิ่ง');
           document.getElementById('parentForm').reset();
           toggleReason(false);
           document.getElementById('p1-note-box').classList.add('hidden');
+          document.getElementById('p1-room').disabled = true;
+          document.getElementById('p1-student').disabled = true;
+          
+          loadInitialData();
+        } else {
+            showModal('error', 'บันทึกไม่สำเร็จ', 'ระบบแจ้งเตือน: ' + data.message);
         }
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + err);
+        showModal('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้');
       } finally {
         showLoading(false);
       }
+    }
+
+    // --- New Admin Logic ---
+    function confirmWorkingTopic() {
+        const topicInput = document.getElementById('p2-working-topic');
+        const topic = topicInput.value.trim();
+        
+        if (!topic) {
+            showModal('error', 'ข้อมูลไม่ครบถ้วน', 'กรุณาพิมพ์หัวข้อเรื่อง หรือเลือกจากรายการก่อนครับ');
+            topicInput.focus();
+            return;
+        }
+
+        // Lock topic in hidden input
+        document.getElementById('p2-topic-input').value = topic;
+        
+        // Update UI
+        const displayLabel = document.getElementById('display-working-topic');
+        displayLabel.textContent = `เรื่อง: ${topic}`;
+        displayLabel.classList.remove('hidden');
+        displayLabel.classList.add('animate-fade-in');
+
+        // Unlock Import Section
+        const importSection = document.getElementById('bulk-import-container');
+        importSection.classList.remove('opacity-50', 'pointer-events-none');
+        importSection.classList.add('border-blue-300');
+        
+        showModal('success', 'บันทึกหัวข้อสำเร็จ', `กำหนดหัวข้อ "${topic}" เรียบร้อยแล้ว ตอนนี้สามารถวางรายชื่อนักเรียนและกดนำเข้าข้อมูลได้เลยครับ`);
     }
 
     async function handleAdminImport(e) {
       e.preventDefault();
       const topic = document.getElementById('p2-topic-input').value;
       const rawText = document.getElementById('p2-raw-text').value;
+      const setActive = document.getElementById('p2-set-active-chk').checked;
 
-      showLoading(true);
-      try {
-        const query = `action=addBulkStudents&topic=${encodeURIComponent(topic)}&rawText=${encodeURIComponent(rawText)}`;
-        const res = await fetch(`${GAS_WEB_APP_URL}?${query}`, { method: 'POST' });
-        const data = await res.json();
-
-        if (data.status === 'success') {
-          alert(data.message);
-          document.getElementById('p2-raw-text').value = '';
-          loadInitialData(); // Reload Config & Topics
-        }
-      } catch (err) {
-        alert('เกิดข้อผิดพลาด: ' + err);
-      } finally {
-        showLoading(false);
+      if (!topic) {
+          showModal('error', 'เกิดข้อผิดพลาด', 'ไม่พบข้อมูลหัวข้อเรื่อง กรุณาบันทึกหัวข้อเรื่องอีกครั้ง');
+          return;
       }
-    }
-
-    async function saveActiveTopic() {
-      const topic = document.getElementById('p2-active-topic-select').value;
-      if (!topic) return;
 
       showLoading(true);
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=setActiveTopic&topic=${encodeURIComponent(topic)}`);
+        const query = `action=addBulkStudents`;
+        const res = await fetch(`${GAS_WEB_APP_URL}?${query}&topic=${encodeURIComponent(topic)}&rawText=${encodeURIComponent(rawText)}`, { method: 'GET' });
         const data = await res.json();
+
         if (data.status === 'success') {
-          alert('ตั้งค่าเรื่องหลักสำเร็จ');
-          loadInitialData();
+          // If checkbox is checked, set active topic silently
+          if (setActive) {
+             try {
+                await fetch(`${GAS_WEB_APP_URL}?action=setActiveTopic&topic=${encodeURIComponent(topic)}`, { method: 'GET' });
+             } catch(e) {}
+          }
+
+          showModal('success', 'นำเข้าข้อมูลสำเร็จ', `เพิ่มรายชื่อทั้งหมด ${data.count} รายการในเรื่อง "${topic}" เรียบร้อยแล้ว`);
+          document.getElementById('p2-raw-text').value = '';
+          loadInitialData(); 
+        } else {
+             showModal('error', 'นำเข้าข้อมูลไม่สำเร็จ', data.message);
         }
       } catch (err) {
-        alert('ข้อผิดพลาด: ' + err);
+        showModal('error', 'เกิดข้อผิดพลาด', 'การเชื่อมต่อถูกขัดจังหวะ โปรดลองอีกครั้ง');
       } finally {
         showLoading(false);
       }
@@ -437,9 +601,11 @@
           allResponses = resResponses.responses;
           setupDashboardFilters();
           renderDashboardTable();
+        } else {
+            showModal('error', 'ข้อผิดพลาด', 'โหลดข้อมูลตารางสรุปไม่สำเร็จ');
         }
       } catch (err) {
-        alert('ข้อผิดพลาดในการโหลดรายงาน: ' + err);
+         showModal('error', 'ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลรายงานได้');
       } finally {
         showLoading(false);
       }
@@ -450,17 +616,46 @@
       const roomFilter = document.getElementById('p3-filter-room');
 
       const topics = [...new Set(allStudents.map(s => s.topic))];
-      topicFilter.innerHTML = '<option value="">-- ทุกเรื่อง --</option>';
+      topicFilter.innerHTML = '<option value="">-- แสดงทั้งหมดทุกเรื่อง --</option>';
       topics.forEach(t => topicFilter.innerHTML += `<option value="${t}">${t}</option>`);
 
-      if (currentConfig.activeTopic) {
+      if (currentConfig.activeTopic && topics.includes(currentConfig.activeTopic)) {
         topicFilter.value = currentConfig.activeTopic;
       }
 
-      const rooms = [...new Set(allStudents.map(s => s.room))].sort();
-      roomFilter.innerHTML = '<option value="">-- ทั้งหมดทุกห้อง --</option>';
-      rooms.forEach(r => roomFilter.innerHTML += `<option value="${r}">${r}</option>`);
+      updateDashboardRoomFilter();
     }
+    
+    function updateDashboardRoomFilter() {
+        const topicFilter = document.getElementById('p3-filter-topic').value;
+        const roomFilter = document.getElementById('p3-filter-room');
+        
+        let filteredStudents = allStudents;
+        if(topicFilter) {
+            filteredStudents = filteredStudents.filter(s => s.topic === topicFilter);
+        }
+
+        const rooms = [...new Set(filteredStudents.map(s => s.room))].sort((a, b) => {
+              const parseRoom = (r) => {
+                  try {
+                    let p = r.replace('ม.', '').replace('ห้อง', '').trim().split('/');
+                    return [parseInt(p[0]) || 0, parseInt(p[1]) || 0];
+                  } catch(e) { return [0,0]; }
+              };
+              let [a1, a2] = parseRoom(a);
+              let [b1, b2] = parseRoom(b);
+              if(a1 !== b1) return a1 - b1;
+              return a2 - b2;
+        });
+
+        roomFilter.innerHTML = '<option value="">-- ทั้งหมดทุกห้อง --</option>';
+        rooms.forEach(r => roomFilter.innerHTML += `<option value="${r}">${r}</option>`);
+    }
+    
+    document.getElementById('p3-filter-topic').addEventListener('change', function() {
+        updateDashboardRoomFilter();
+        renderDashboardTable();
+    });
 
     function renderDashboardTable() {
       const selectedTopic = document.getElementById('p3-filter-topic').value;
@@ -472,31 +667,48 @@
       if (selectedTopic) filteredStudents = filteredStudents.filter(s => s.topic === selectedTopic);
       if (selectedRoom) filteredStudents = filteredStudents.filter(s => s.room === selectedRoom);
 
-      filteredStudents.forEach(st => {
-        // Find latest response for student
-        const resp = allResponses.filter(r => r.topic === st.topic && r.name === st.name)
-                                 .pop(); // latest
+      if(filteredStudents.length === 0) {
+           tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 text-lg">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
+           return;
+      }
 
-        let statusBadge = '<span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">ยังไม่ตอบ</span>';
-        let detailText = '-';
+       filteredStudents.sort((a, b) => {
+            const parseRoom = (r) => {
+                  try {
+                    let p = r.replace('ม.', '').replace('ห้อง', '').trim().split('/');
+                    return [parseInt(p[0]) || 0, parseInt(p[1]) || 0];
+                  } catch(e) { return [0,0]; }
+              };
+            let [a1, a2] = parseRoom(a.room);
+            let [b1, b2] = parseRoom(b.room);
+            if(a1 !== b1) return a1 - b1;
+            if(a2 !== b2) return a2 - b2;
+            return a.name.localeCompare(b.name, 'th');
+       });
+
+      filteredStudents.forEach(st => {
+        const resp = allResponses.filter(r => r.topic === st.topic && r.name === st.name && r.room === st.room).pop();
+
+        let statusBadge = '<span class="bg-gray-100 text-gray-600 px-4 py-1.5 rounded-full text-sm font-medium border border-gray-200">ยังไม่ตอบรับ</span>';
+        let detailText = '<span class="text-gray-400">-</span>';
 
         if (resp) {
           if (resp.status === 'เข้าร่วม') {
-            statusBadge = '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">✓ เข้าร่วม</span>';
-            detailText = 'โทร: ' + (resp.phone || '-');
+            statusBadge = '<span class="bg-green-50 text-green-700 border border-green-200 px-4 py-1.5 rounded-full text-sm font-medium shadow-sm">✓ เข้าร่วม</span>';
+            detailText = `<span class="text-gray-700">📞 ${resp.phone || '-'}</span>`;
           } else {
-            statusBadge = '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">✕ ไม่เข้าร่วม</span>';
-            detailText = `เหตุผล: ${resp.reason || '-'} (โทร: ${resp.phone || '-'})`;
+            statusBadge = '<span class="bg-red-50 text-red-700 border border-red-200 px-4 py-1.5 rounded-full text-sm font-medium shadow-sm">✕ ไม่เข้าร่วม</span>';
+            detailText = `<div class="text-red-700 font-medium">เหตุผล: ${resp.reason || '-'}</div><div class="text-gray-600 mt-1">📞 ${resp.phone || '-'}</div>`;
           }
         }
 
         tbody.innerHTML += `
-          <tr class="hover:bg-gray-50">
-            <td class="p-3 border font-medium">${st.room}</td>
-            <td class="p-3 border">${st.studentId || '-'}</td>
-            <td class="p-3 border font-semibold text-gray-900">${st.name}</td>
-            <td class="p-3 border">${statusBadge}</td>
-            <td class="p-3 border text-sm text-gray-700">${detailText}</td>
+          <tr class="hover:bg-blue-50 transition-colors">
+            <td class="p-4 border-b font-medium text-gray-800">${st.room}</td>
+            <td class="p-4 border-b text-gray-600">${st.studentId || '-'}</td>
+            <td class="p-4 border-b font-semibold text-blue-900">${st.name}</td>
+            <td class="p-4 border-b">${statusBadge}</td>
+            <td class="p-4 border-b text-sm">${detailText}</td>
           </tr>
         `;
       });
@@ -504,8 +716,11 @@
 
     function exportToExcel() {
       const table = document.getElementById('dashboard-table');
-      const wb = XLSX.utils.table_to_book(table, { sheet: "รายงานการตอบรับ" });
-      XLSX.writeFile(wb, `รายงานสรุปการตอบรับผู้ปกครอง.xlsx`);
+      const clone = table.cloneNode(true);
+      
+      const wb = XLSX.utils.table_to_book(clone, { sheet: "รายงานการตอบรับ" });
+      const activeTopic = document.getElementById('p3-filter-topic').value || 'ทั้งหมด';
+      XLSX.writeFile(wb, `สรุปการตอบรับ_${activeTopic}.xlsx`);
     }
   </script>
 </body>
