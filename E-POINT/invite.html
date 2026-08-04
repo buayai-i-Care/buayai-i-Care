@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบตอบรับการเข้าร่วมประชุมแก้ไขพฤติกรรมนักเรียน</title>
+  <!-- Tailwind CSS & Font Support -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- SheetJS for Exporting Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #f3f4f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+  <!-- Header Banner -->
+  <header class="bg-blue-800 text-white shadow-md py-4 px-6 text-center">
+    <h1 class="text-2xl md:text-3xl font-semibold">ระบบดูแลช่วยเหลือและแก้ไขพฤติกรรมนักเรียน</h1>
+    <p class="text-sm md:text-base mt-1 text-blue-100">โรงเรียนบัวใหญ่ | ระบบตอบรับการประชุมผู้ปกครอง</p>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-4xl mx-auto mt-4 px-4">
+    <nav class="flex bg-white rounded-lg shadow overflow-hidden text-lg font-medium">
+      <button id="tab-btn-1" onclick="switchTab(1)" class="flex-1 py-3 px-2 text-center border-b-4 border-blue-600 text-blue-600 bg-blue-50 focus:outline-none transition-all">
+        1. ตอบรับการประชุม
+      </button>
+      <button id="tab-btn-2" onclick="switchTab(2)" class="flex-1 py-3 px-2 text-center border-b-4 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none transition-all">
+        2. แอดมิน / นำเข้าข้อมูล
+      </button>
+      <button id="tab-btn-3" onclick="switchTab(3)" class="flex-1 py-3 px-2 text-center border-b-4 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none transition-all">
+        3. สรุปผล & Export
+      </button>
+    </nav>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto my-6 px-4">
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="hidden text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
+      <p class="mt-2 text-gray-600 text-lg">กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
+    </div>
+
+    <!-- PAGE 1: PARENT RESPONSE FORM -->
+    <section id="page-1" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+      <h2 class="text-xl md:text-2xl font-bold text-blue-900 border-b pb-3 mb-6">แบบตอบรับการเข้าร่วมประชุมผู้ปกครอง</h2>
+
+      <form id="parentForm" onsubmit="handleParentSubmit(event)" class="space-y-6">
+        <!-- 1. Topic Selection -->
+        <div>
+          <label class="block text-lg font-medium text-gray-700 mb-2">1. เรื่องที่เชิญประชุม <span class="text-red-500">*</span></label>
+          <select id="p1-topic" onchange="onTopicChange()" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none">
+            <option value="">-- กำลังโหลดรายการเรื่อง --</option>
+          </select>
+        </div>
+
+        <!-- 2. Room Selection -->
+        <div>
+          <label class="block text-lg font-medium text-gray-700 mb-2">2. เลือกระดับชั้น / ห้องเรียน <span class="text-red-500">*</span></label>
+          <select id="p1-room" onchange="onRoomChange()" required disabled class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none bg-gray-50">
+            <option value="">-- เลือกเรื่องก่อน --</option>
+          </select>
+        </div>
+
+        <!-- 3. Name Selection -->
+        <div>
+          <label class="block text-lg font-medium text-gray-700 mb-2">3. เลือกชื่อ - สกุล นักเรียน <span class="text-red-500">*</span></label>
+          <select id="p1-student" onchange="onStudentChange()" required disabled class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none bg-gray-50">
+            <option value="">-- เลือกห้องเรียนก่อน --</option>
+          </select>
+        </div>
+
+        <!-- Note Display if any -->
+        <div id="p1-note-box" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+          <p class="text-amber-800 font-medium" id="p1-note-text"></p>
+        </div>
+
+        <!-- 4. Response Status -->
+        <div>
+          <label class="block text-lg font-medium text-gray-700 mb-2">4. การตอบรับการเข้าร่วมประชุม <span class="text-red-500">*</span></label>
+          <div class="flex flex-col sm:flex-row gap-4 mt-2">
+            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 border-gray-300 flex-1">
+              <input type="radio" name="attendStatus" value="เข้าร่วม" onclick="toggleReason(false)" required class="w-5 h-5 text-blue-600">
+              <span class="ml-3 text-lg font-medium text-green-700">✓ เข้าร่วมประชุม</span>
+            </label>
+            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-blue-50 border-gray-300 flex-1">
+              <input type="radio" name="attendStatus" value="ไม่เข้าร่วม" onclick="toggleReason(true)" class="w-5 h-5 text-blue-600">
+              <span class="ml-3 text-lg font-medium text-red-600">✕ ไม่สะดวกเข้าร่วม</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Reason Input (Conditional) -->
+        <div id="reason-container" class="hidden">
+          <label class="block text-lg font-medium text-gray-700 mb-2">ระบุเหตุผลที่ไม่สะดวกเข้าร่วม <span class="text-red-500">*</span></label>
+          <textarea id="p1-reason" rows="3" placeholder="โปรดระบุเหตุผล เช่น ติดภารกิจต่างจังหวัด..." class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- 5. Phone Number -->
+        <div>
+          <label class="block text-lg font-medium text-gray-700 mb-2">5. หมายเลขโทรศัพท์ติดต่อกลับของผู้ปกครอง <span class="text-red-500">*</span></label>
+          <input type="tel" id="p1-phone" required placeholder="08X-XXX-XXXX" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none">
+        </div>
+
+        <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xl py-4 rounded-lg shadow-md transition-all">
+          ยืนยันการส่งข้อมูล
+        </button>
+      </form>
+    </section>
+
+    <!-- PAGE 2: ADMIN PANEL -->
+    <section id="page-2" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-8">
+      <h2 class="text-xl md:text-2xl font-bold text-blue-900 border-b pb-3">ระบบแอดมินและการจัดการข้อมูล</h2>
+
+      <!-- Part 2.1 Bulk Import -->
+      <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">2.1 กรอกข้อมูล / นำเข้ารายชื่อนักเรียนใหม่ (Bulk Import)</h3>
+        
+        <form onsubmit="handleAdminImport(event)" class="space-y-4">
+          <div>
+            <label class="block font-medium text-gray-700 mb-1">หัวข้อ / เรื่องที่เชิญประชุม (พิมพ์ใหม่ หรือเลือกเรื่องเดิม)</label>
+            <input type="text" id="p2-topic-input" required list="existing-topics" placeholder="เช่น เชิญเรื่อง ชกต่อย ครั้งที่ 1" class="w-full border rounded-lg p-3 text-base">
+            <datalist id="existing-topics"></datalist>
+          </div>
+
+          <div>
+            <label class="block font-medium text-gray-700 mb-1">วางรายการรายชื่อ (รูปแบบ: ห้อง [Tap/Comma] เลขประจำตัว [Tap/Comma] ชื่อ-สกุล [Tap/Comma] หมายเหตุ)</label>
+            <textarea id="p2-raw-text" rows="6" required placeholder="ม.2/1	33210	เด็กหญิงสุมาลี	เชิญมาสายครั้งที่ 1-69&#10;ม.2/1	33211	เด็กชายสมศักดิ์	เชิญชกต่อย ครั้งที่ 1" class="w-full border rounded-lg p-3 font-mono text-sm"></textarea>
+          </div>
+
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg shadow">
+            บันทึกนำเข้ารายชื่อ
+          </button>
+        </form>
+      </div>
+
+      <!-- Part 2.2 Active Topic Setting -->
+      <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+        <h3 class="text-lg font-semibold text-blue-900 mb-4">2.2 กำหนดเรื่องหลักปัจจุบัน (Active Event) ให้ผู้ปกครอง</h3>
+        
+        <div class="flex flex-col sm:flex-row gap-4 items-end">
+          <div class="flex-1 w-full">
+            <label class="block font-medium text-gray-700 mb-1">เลือกเรื่องที่จะกำหนดให้แสดงเป็นเรื่องหลัก</label>
+            <select id="p2-active-topic-select" class="w-full border rounded-lg p-3 text-base"></select>
+          </div>
+          <button onclick="saveActiveTopic()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow">
+            ตั้งค่าเป็นเรื่องหลัก
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: TEACHER DASHBOARD & EXPORT -->
+    <section id="page-3" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
+        <h2 class="text-xl md:text-2xl font-bold text-blue-900">สรุปการตอบรับและการติดตามของผู้ปกครอง</h2>
+        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow">
+          📊 ส่งออกเป็น Excel (.xlsx)
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">ตัวกรองเรื่อง</label>
+          <select id="p3-filter-topic" onchange="renderDashboardTable()" class="w-full border rounded-lg p-2"></select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">ตัวกรองห้องเรียน</label>
+          <select id="p3-filter-room" onchange="renderDashboardTable()" class="w-full border rounded-lg p-2">
+            <option value="">-- ทั้งหมดทุกห้อง --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table Container -->
+      <div class="overflow-x-auto border rounded-lg">
+        <table id="dashboard-table" class="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr class="bg-blue-800 text-white text-base">
+              <th class="p-3 border">ห้อง</th>
+              <th class="p-3 border">เลขประจำตัว</th>
+              <th class="p-3 border">ชื่อ - สกุล</th>
+              <th class="p-3 border">สถานะการตอบรับ</th>
+              <th class="p-3 border">เหตุผล / เบอร์โทร</th>
+            </tr>
+          </thead>
+          <tbody id="dashboard-tbody" class="divide-y text-base">
+            <!-- Dynamic Content -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JS Logic -->
+  <script>
+    // ** โปรดวาง Web App URL ของ Google Apps Script ที่เปิดเผยแพร่แล้วตรงนี้ **
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbznQGxBbU2ha5QTdkGx9Jo2o-XHb2O10PbMvPhblxpzydMVCrn1ITVk_EDthXb85q1RHg/exec';
+
+    let allStudents = [];
+    let allResponses = [];
+    let currentConfig = {};
+
+    window.onload = function() {
+      loadInitialData();
+    };
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('hidden', !show);
+    }
+
+    function switchTab(tabNum) {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`page-${i}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${i}`);
+        btn.classList.remove('border-blue-600', 'text-blue-600', 'bg-blue-50');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      }
+
+      document.getElementById(`page-${tabNum}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabNum}`);
+      activeBtn.classList.add('border-blue-600', 'text-blue-600', 'bg-blue-50');
+
+      if (tabNum === 3) {
+        loadDashboardData();
+      }
+    }
+
+    async function loadInitialData() {
+      showLoading(true);
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getConfig`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentConfig = data;
+          populateTopicDropdowns(data.topics, data.activeTopic);
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function populateTopicDropdowns(topics, activeTopic) {
+      const p1Select = document.getElementById('p1-topic');
+      const p2Select = document.getElementById('p2-active-topic-select');
+      const datalist = document.getElementById('existing-topics');
+
+      p1Select.innerHTML = '<option value="">-- เลือกเรื่องที่เชิญประชุม --</option>';
+      p2Select.innerHTML = '';
+      datalist.innerHTML = '';
+
+      topics.forEach(top => {
+        p1Select.innerHTML += `<option value="${top}">${top}</option>`;
+        p2Select.innerHTML += `<option value="${top}">${top}</option>`;
+        datalist.innerHTML += `<option value="${top}">`;
+      });
+
+      if (activeTopic) {
+        p1Select.value = activeTopic;
+        p2Select.value = activeTopic;
+        onTopicChange();
+      }
+    }
+
+    async function onTopicChange() {
+      const topic = document.getElementById('p1-topic').value;
+      const roomSelect = document.getElementById('p1-room');
+      const studentSelect = document.getElementById('p1-student');
+
+      roomSelect.innerHTML = '<option value="">-- กำลังโหลดห้องเรียน --</option>';
+      studentSelect.innerHTML = '<option value="">-- เลือกห้องเรียนก่อน --</option>';
+      studentSelect.disabled = true;
+
+      if (!topic) {
+        roomSelect.disabled = true;
+        return;
+      }
+
+      showLoading(true);
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getStudents&topic=${encodeURIComponent(topic)}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          allStudents = data.students;
+          
+          // Get unique rooms
+          const rooms = [...new Set(allStudents.map(s => s.room))].sort();
+          roomSelect.innerHTML = '<option value="">-- เลือกห้องเรียน --</option>';
+          rooms.forEach(r => {
+            roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
+          });
+          roomSelect.disabled = false;
+        }
+      } catch (err) {
+        alert('ไม่สามารถดึงรายชื่อได้: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function onRoomChange() {
+      const room = document.getElementById('p1-room').value;
+      const studentSelect = document.getElementById('p1-student');
+      studentSelect.innerHTML = '<option value="">-- เลือกชื่อนักเรียน --</option>';
+
+      if (!room) {
+        studentSelect.disabled = true;
+        return;
+      }
+
+      const filtered = allStudents.filter(s => s.room === room);
+      filtered.forEach(s => {
+        studentSelect.innerHTML += `<option value="${s.name}" data-id="${s.studentId}" data-note="${s.note || ''}">${s.name} (${s.studentId})</option>`;
+      });
+
+      studentSelect.disabled = false;
+    }
+
+    function onStudentChange() {
+      const studentSelect = document.getElementById('p1-student');
+      const selectedOpt = studentSelect.options[studentSelect.selectedIndex];
+      const note = selectedOpt.getAttribute('data-note');
+
+      const noteBox = document.getElementById('p1-note-box');
+      const noteText = document.getElementById('p1-note-text');
+
+      if (note) {
+        noteText.textContent = 'หมายเหตุ: ' + note;
+        noteBox.classList.remove('hidden');
+      } else {
+        noteBox.classList.add('hidden');
+      }
+    }
+
+    function toggleReason(show) {
+      const reasonContainer = document.getElementById('reason-container');
+      const reasonInput = document.getElementById('p1-reason');
+      reasonContainer.classList.toggle('hidden', !show);
+      reasonInput.required = show;
+    }
+
+    async function handleParentSubmit(e) {
+      e.preventDefault();
+      const topic = document.getElementById('p1-topic').value;
+      const room = document.getElementById('p1-room').value;
+      const studentSelect = document.getElementById('p1-student');
+      const studentName = studentSelect.value;
+      const studentId = studentSelect.options[studentSelect.selectedIndex].getAttribute('data-id');
+      
+      const attendStatus = document.querySelector('input[name="attendStatus"]:checked')?.value;
+      const reason = document.getElementById('p1-reason').value;
+      const phone = document.getElementById('p1-phone').value;
+
+      showLoading(true);
+      try {
+        const query = `action=submitResponse&topic=${encodeURIComponent(topic)}&room=${encodeURIComponent(room)}&studentId=${encodeURIComponent(studentId)}&name=${encodeURIComponent(studentName)}&attendStatus=${encodeURIComponent(attendStatus)}&reason=${encodeURIComponent(reason)}&phone=${encodeURIComponent(phone)}`;
+        const res = await fetch(`${GAS_WEB_APP_URL}?${query}`);
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          alert('บันทึกการตอบรับเรียบร้อยแล้ว ขอขอบพระคุณครับ');
+          document.getElementById('parentForm').reset();
+          toggleReason(false);
+          document.getElementById('p1-note-box').classList.add('hidden');
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function handleAdminImport(e) {
+      e.preventDefault();
+      const topic = document.getElementById('p2-topic-input').value;
+      const rawText = document.getElementById('p2-raw-text').value;
+
+      showLoading(true);
+      try {
+        const query = `action=addBulkStudents&topic=${encodeURIComponent(topic)}&rawText=${encodeURIComponent(rawText)}`;
+        const res = await fetch(`${GAS_WEB_APP_URL}?${query}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          alert(data.message);
+          document.getElementById('p2-raw-text').value = '';
+          loadInitialData(); // Reload Config & Topics
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function saveActiveTopic() {
+      const topic = document.getElementById('p2-active-topic-select').value;
+      if (!topic) return;
+
+      showLoading(true);
+      try {
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=setActiveTopic&topic=${encodeURIComponent(topic)}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert('ตั้งค่าเรื่องหลักสำเร็จ');
+          loadInitialData();
+        }
+      } catch (err) {
+        alert('ข้อผิดพลาด: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function loadDashboardData() {
+      showLoading(true);
+      try {
+        const [resStudents, resResponses] = await Promise.all([
+          fetch(`${GAS_WEB_APP_URL}?action=getStudents`).then(r => r.json()),
+          fetch(`${GAS_WEB_APP_URL}?action=getResponses`).then(r => r.json())
+        ]);
+
+        if (resStudents.status === 'success' && resResponses.status === 'success') {
+          allStudents = resStudents.students;
+          allResponses = resResponses.responses;
+          setupDashboardFilters();
+          renderDashboardTable();
+        }
+      } catch (err) {
+        alert('ข้อผิดพลาดในการโหลดรายงาน: ' + err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function setupDashboardFilters() {
+      const topicFilter = document.getElementById('p3-filter-topic');
+      const roomFilter = document.getElementById('p3-filter-room');
+
+      const topics = [...new Set(allStudents.map(s => s.topic))];
+      topicFilter.innerHTML = '<option value="">-- ทุกเรื่อง --</option>';
+      topics.forEach(t => topicFilter.innerHTML += `<option value="${t}">${t}</option>`);
+
+      if (currentConfig.activeTopic) {
+        topicFilter.value = currentConfig.activeTopic;
+      }
+
+      const rooms = [...new Set(allStudents.map(s => s.room))].sort();
+      roomFilter.innerHTML = '<option value="">-- ทั้งหมดทุกห้อง --</option>';
+      rooms.forEach(r => roomFilter.innerHTML += `<option value="${r}">${r}</option>`);
+    }
+
+    function renderDashboardTable() {
+      const selectedTopic = document.getElementById('p3-filter-topic').value;
+      const selectedRoom = document.getElementById('p3-filter-room').value;
+      const tbody = document.getElementById('dashboard-tbody');
+      tbody.innerHTML = '';
+
+      let filteredStudents = allStudents;
+      if (selectedTopic) filteredStudents = filteredStudents.filter(s => s.topic === selectedTopic);
+      if (selectedRoom) filteredStudents = filteredStudents.filter(s => s.room === selectedRoom);
+
+      filteredStudents.forEach(st => {
+        // Find latest response for student
+        const resp = allResponses.filter(r => r.topic === st.topic && r.name === st.name)
+                                 .pop(); // latest
+
+        let statusBadge = '<span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">ยังไม่ตอบ</span>';
+        let detailText = '-';
+
+        if (resp) {
+          if (resp.status === 'เข้าร่วม') {
+            statusBadge = '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">✓ เข้าร่วม</span>';
+            detailText = 'โทร: ' + (resp.phone || '-');
+          } else {
+            statusBadge = '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">✕ ไม่เข้าร่วม</span>';
+            detailText = `เหตุผล: ${resp.reason || '-'} (โทร: ${resp.phone || '-'})`;
+          }
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 border font-medium">${st.room}</td>
+            <td class="p-3 border">${st.studentId || '-'}</td>
+            <td class="p-3 border font-semibold text-gray-900">${st.name}</td>
+            <td class="p-3 border">${statusBadge}</td>
+            <td class="p-3 border text-sm text-gray-700">${detailText}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function exportToExcel() {
+      const table = document.getElementById('dashboard-table');
+      const wb = XLSX.utils.table_to_book(table, { sheet: "รายงานการตอบรับ" });
+      XLSX.writeFile(wb, `รายงานสรุปการตอบรับผู้ปกครอง.xlsx`);
+    }
+  </script>
+</body>
+</html>
