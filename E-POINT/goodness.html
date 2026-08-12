@@ -2,16 +2,12 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard บันทึกความดี</title>
+  <title>Dashboard บันทึกความดี งานส่งเสริมดูแลแก้ไขพฤติกรรมนักเรียนโรงเรียนบัวใหญ่</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
-  <!-- นำเข้าฟอนต์ TH Sarabun New สำหรับการแสดงผลที่สวยงามและเป็นมืออาชีพ -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- นำเข้า Bootstrap เพื่อการจัดรูปแบบ UI แบบ Mobile-First (Responsive Design) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   
-  <!-- นำเข้าไลบรารีที่จำเป็น: Chart.js สำหรับกราฟ, SweetAlert2 สำหรับแจ้งเตือน, และ xlsx-js-style สำหรับสร้าง Excel แบบปรับแต่งได้ -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -34,33 +30,48 @@
     }
     .table th {
       background-color: #ecf0f1;
+      vertical-align: middle;
+    }
+    /* ปรับแต่งส่วนหัวตารางเพื่อแสดงวันที่ให้สวยงามในมือถือ */
+    .week-date {
+      font-size: 0.85em;
+      color: #7f8c8d;
+      display: block; /* ทำให้ขึ้นบรรทัดใหม่ */
+      font-weight: normal;
+      margin-top: 2px;
+    }
+    @media (max-width: 768px) {
+      .table th, .table td {
+        font-size: 0.9em;
+        padding: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container py-4">
-    <!-- ส่วนหัวเรื่อง (Header) -->
     <div class="text-center mb-4">
       <h2 class="header-title">สารสนเทศ การแก้ไขพฤติกรรมนักเรียน(บันทึกความดี)</h2>
-      <h4 class="text-secondary">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School</h4>
+      <h4 class="text-secondary">ระบบคะแนนพฤติกรรม E-Point เป็นส่วนหนึ่งของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School</h4>
+      <!-- จะถูกซ่อนไว้จนกว่าจะดึงข้อมูลเทอมและปีสำเร็จ -->
+      <h5 id="termYearDisplay" class="text-muted" style="display: none;">กำลังดึงข้อมูล...</h5>
     </div>
 
-    <!-- ส่วนที่ 1: ตารางความถี่ภาพรวม (โหลดทันทีเมื่อเปิดหน้าเว็บ) -->
+    <!-- ส่วนที่ 1: ตารางความถี่ภาพรวม -->
     <div class="card">
       <div class="card-body">
-        <h5 class="card-title">ความถี่การทำความดีแยกตามสัปดาห์ (ภาพรวม)</h5>
+        <h5 class="card-title">ความถี่การทำความดีแยกตามสัปดาห์</h5>
         <div class="table-responsive" id="summaryContainer">
-          <!-- ข้อมูลตารางจะถูกแทรกที่นี่โดย JavaScript -->
+          <!-- ข้อมูลตารางจะถูกแทรกที่นี่โดย JS -->
         </div>
       </div>
     </div>
 
-    <!-- ส่วนที่ 2: กราฟกระจายคะแนน (โหลดแบบ Lazy Loading เมื่อผู้ใช้เลือก) -->
+    <!-- ส่วนที่ 2: กราฟกระจายคะแนน -->
     <div class="card">
       <div class="card-body">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
           <h5 class="card-title mb-2 mb-md-0">กระจายคะแนนพฤติกรรม (สีเขียว >= 50, สีแดง < 50)</h5>
-          <!-- Dropdown สำหรับเลือกดึงข้อมูลเฉพาะระดับชั้น (Trigger การทำ Lazy Load) -->
           <select id="levelFilter" class="form-select w-auto" onchange="loadDetailAndRenderChart()">
             <option value="">-- เลือกระดับชั้นเพื่อดูข้อมูล --</option>
             <option value="1">ม.1</option>
@@ -75,23 +86,24 @@
       </div>
     </div>
 
-    <!-- ส่วนที่ 3: ปุ่มสำหรับดาวน์โหลด Excel -->
+    <!-- ส่วนที่ 3: ปุ่มดาวน์โหลด Excel -->
     <div class="card">
       <div class="card-body text-center">
         <button class="btn btn-success px-4 py-2" onclick="generateExcel()">ดาวน์โหลดรายงาน (Excel)บันทึกความดี</button>
       </div>
     </div>
   </div>
-
+<marquee>...งานส่งเสริมดูแลแก้ไขพฤติกรรมนักเรียน กลุ่มบริหารงานบุคคล โรงเรียนบัวใหญ่...</marquee>
   <script>
-    // กำหนด API_URL เป็น Endpoint ของ Google Apps Script ของคุณ
+    // ตั้งค่า URL ของ API (Google Apps Script) ของคุณ
     const API_URL = "https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec";
+    
     let overviewData = [];
     let chartInstance = null;
+    let currentTerm = 1;
+    let currentYear = new Date().getFullYear() + 543;
 
-    // ทำงานทันทีเมื่อหน้าเว็บโหลดเสร็จ (Phase 1: Initial Load)
     window.onload = function() {
-      // 1. แสดงกล่องข้อความแจ้งเตือนผู้ใช้งานอย่างชัดเจนว่ากำลังประมวลผล
       Swal.fire({
         title: 'กำลังดึงข้อมูลภาพรวม',
         text: 'อาจใช้เวลา 2-3 นาที โปรดรอสักครู่...',
@@ -99,13 +111,24 @@
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // 2. เรียก API พร้อมพารามิเตอร์ action=overview
       fetch(API_URL + "?action=overview")
         .then(res => res.json())
         .then(data => {
           if (data.status === 'success') {
             overviewData = data.goodDeeds;
-            renderOverviewTable(); // สร้างตารางเมื่อได้ข้อมูล
+            
+            // หาเทอมและปีล่าสุดจากข้อมูลที่ดึงมา เพื่อใช้คำนวณช่วงวันที่
+            if (overviewData.length > 0) {
+              let latestRecord = overviewData[overviewData.length - 1];
+              currentTerm = latestRecord.term;
+              currentYear = latestRecord.year;
+              
+              let termDisplay = document.getElementById('termYearDisplay');
+              termDisplay.innerText = `[ภาคเรียนที่ ${currentTerm}][ปีการศึกษา ${currentYear}]`;
+              termDisplay.style.display = 'block';
+            }
+            
+            renderOverviewTable();
             Swal.close();
             Swal.fire({ icon: 'success', title: 'โหลดข้อมูลสำเร็จ', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
           } else {
@@ -114,53 +137,86 @@
         }).catch(err => Swal.fire('ข้อผิดพลาดในการเชื่อมต่อ', err.message, 'error'));
     };
 
-    // ฟังก์ชันสร้างตารางภาพรวม (ประมวลผลข้อมูลที่ได้จากฝั่ง Client)
+    // ฟังก์ชันช่วยคำนวณช่วงวันที่ของแต่ละสัปดาห์ (อิงจากปฏิทินจริง)
+    function getWeekDateRangeStr(weekNum, term, academicYear) {
+      let startMonth, startDay, startYear;
+      
+      // แปลงปีการศึกษา (พ.ศ.) กลับเป็น ค.ศ. สำหรับใช้ในคลาส Date ของ JS
+      let gregorianYear = academicYear - 543;
+      
+      if (term === 1) {
+        startMonth = 4; // พฤษภาคม (เดือนใน JS เริ่มนับจาก 0)
+        startDay = 11;
+        startYear = gregorianYear;
+      } else {
+        startMonth = 9; // ตุลาคม (เดือนใน JS เริ่มนับจาก 0)
+        startDay = 25;
+        startYear = gregorianYear;
+      }
+      
+      let termStartDate = new Date(startYear, startMonth, startDay);
+      
+      // คำนวณวันเริ่มต้นและสิ้นสุดของสัปดาห์นั้นๆ (บวกเพิ่มทีละ 7 วัน)
+      let weekStartDate = new Date(termStartDate.getTime() + (weekNum - 1) * 7 * 24 * 60 * 60 * 1000);
+      let weekEndDate = new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+      
+      let sDateStr = weekStartDate.getDate() + " " + getMonthAbbr(weekStartDate.getMonth());
+      let eDateStr = weekEndDate.getDate() + " " + getMonthAbbr(weekEndDate.getMonth());
+      
+      return `(${sDateStr} - ${eDateStr})`;
+    }
+    
+    // ฟังก์ชันคืนค่าชื่อเดือนแบบย่อ
+    function getMonthAbbr(monthIndex) {
+      const abbrs = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      return abbrs[monthIndex];
+    }
+
+    // ฟังก์ชันสร้างตารางสรุปความถี่
     function renderOverviewTable() {
       let levels = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
       let matrix = {};
       
-      // เตรียมโครงสร้างอาเรย์ 12 สัปดาห์ ให้มีค่าเริ่มต้นเป็น 0
       levels.forEach(l => { matrix[l] = Array(12).fill(0); });
       
-      // นับความถี่
       overviewData.forEach(d => {
         if(levels.includes(d.level) && d.week <= 12) {
           matrix[d.level][d.week - 1]++;
         }
       });
 
-      // สร้างโครงสร้าง HTML สำหรับตาราง
       let html = `<table class="table table-bordered text-center align-middle">
                     <thead>
                       <tr class="bg-light">
-                        <th>ระดับชั้น</th>`;
+                        <th style="min-width: 80px;">ระดับชั้น</th>`;
+      
+      // สร้างหัวตาราง (Loop สัปดาห์) พร้อมแทรกช่วงวันที่ (ขึ้นบรรทัดใหม่ด้วย <span>)
       for(let i = 1; i <= 12; i++) {
-        html += `<th>สัปดาห์ ${i}</th>`;
+        let dateRange = getWeekDateRangeStr(i, currentTerm, currentYear);
+        html += `<th>สัปดาห์ ${i} <span class="week-date">${dateRange}</span></th>`;
       }
       html += `       </tr>
                     </thead>
                     <tbody>`;
       
-      // เติมข้อมูลลงตาราง
       levels.forEach(l => {
         html += `<tr><td class="fw-bold">${l}</td>`;
         for(let i = 0; i < 12; i++) {
-          html += `<td>${matrix[l][i] || '-'}</td>`;
+          // ถ้าความถี่เป็น 0 ให้แสดงขีด (-) เพื่อความสะอาดตา
+          html += `<td>${matrix[l][i] > 0 ? matrix[l][i] : '-'}</td>`;
         }
         html += `</tr>`;
       });
       html += `</tbody></table>`;
       
-      // นำ HTML ไปแสดงผลบนหน้าเว็บ
       document.getElementById('summaryContainer').innerHTML = html;
     }
 
-    // ทำงานเมื่อผู้ใช้เปลี่ยนตัวเลือกใน Dropdown (Phase 2: Lazy Load Detail)
+    // ฟังก์ชันสำหรับ Lazy Load ข้อมูลคะแนนและวาดกราฟ
     function loadDetailAndRenderChart() {
       let lvl = document.getElementById('levelFilter').value;
-      if(!lvl) return; // หากไม่ได้เลือก ให้หยุดการทำงาน
+      if(!lvl) return;
       
-      // แจ้งเตือนผู้ใช้ระหว่างรอข้อมูลรายห้อง
       Swal.fire({ 
         title: `กำลังดึงข้อมูล ม.${lvl}`, 
         text: 'กำลังสแกนข้อมูลจากชีตห้องเรียน...',
@@ -168,31 +224,28 @@
         didOpen: () => Swal.showLoading() 
       });
       
-      // เรียก API พร้อมพารามิเตอร์ action=detail
       fetch(API_URL + "?action=detail&level=" + lvl)
         .then(res => res.json())
         .then(data => {
           Swal.close();
           if(data.status === 'success') {
-            drawChart(data.behaviorScores); // วาดกราฟเมื่อได้ข้อมูล
+            drawChart(data.behaviorScores);
           } else {
             Swal.fire('ข้อผิดพลาด', data.message, 'error');
           }
         }).catch(err => Swal.fire('ข้อผิดพลาดในการเชื่อมต่อ', err.message, 'error'));
     }
 
-    // ฟังก์ชันวาดกราฟแบบ Scatter
+    // ฟังก์ชันวาดกราฟ (Chart.js)
     function drawChart(dataList) {
       const ctx = document.getElementById('behaviorChart').getContext('2d');
-      if(chartInstance) chartInstance.destroy(); // ล้างกราฟเก่าก่อนวาดใหม่
+      if(chartInstance) chartInstance.destroy();
 
       let chartData = [];
       let bgColors = [];
       
-      // จัดเตรียมข้อมูลสำหรับกราฟ
       dataList.forEach((b, i) => {
         chartData.push({ x: i, y: b.score, name: b.name, room: b.room });
-        // กำหนดเงื่อนไขสี: เขียวหาก >= 50, แดงหากน้อยกว่า
         bgColors.push(b.score >= 50 ? 'rgba(46, 204, 113, 0.9)' : 'rgba(231, 76, 60, 0.9)');
       });
 
@@ -212,7 +265,6 @@
           plugins: {
             tooltip: {
               callbacks: {
-                // ปรับแต่ง Tooltip ให้แสดงชื่อ ห้อง และคะแนน
                 label: function(ctx) {
                   let d = ctx.raw;
                   return `${d.name} (${d.room}): ${d.y} คะแนน`;
@@ -221,14 +273,14 @@
             }
           },
           scales: { 
-            x: { display: false }, // ซ่อนแกน x เพราะใช้เป็นเพียงลำดับ
+            x: { display: false }, 
             y: { beginAtZero: true, max: 100 } 
           } 
         }
       });
     }
 
-    // ทำงานเมื่อกดปุ่มดาวน์โหลด (Phase 3: Generate Custom Excel)
+    // ฟังก์ชันเรียก API สำหรับสร้างรายงาน Excel
     function generateExcel() {
       Swal.fire({ 
         title: 'กำลังเตรียมไฟล์ Excel...', 
@@ -237,12 +289,11 @@
         didOpen: () => Swal.showLoading() 
       });
       
-      // เรียก API พารามิเตอร์ action=excel เพื่อดึงข้อมูลทั้งหมดมาทำตาราง
       fetch(API_URL + "?action=excel")
         .then(res => res.json())
         .then(data => {
           if(data.status === 'success') {
-            buildExcelFile(data.goodDeeds); // สร้างไฟล์
+            buildExcelFile(data.goodDeeds);
             Swal.close();
           } else {
              Swal.fire('ข้อผิดพลาด', data.message, 'error');
@@ -250,11 +301,10 @@
         }).catch(err => Swal.fire('ข้อผิดพลาดในการเชื่อมต่อ', err.message, 'error'));
     }
 
-    // ลอจิกการสร้างไฟล์ Excel ด้วย xlsx-js-style
+    // ฟังก์ชันจัดหน้าและดาวน์โหลดไฟล์ Excel (xlsx-js-style)
     function buildExcelFile(rawDeeds) {
       let wb = XLSX.utils.book_new();
       
-      // การตั้งค่าสไตล์ (ตามหลักการพัฒนาเอกสารแบบมืออาชีพ)
       const HEADER_TEXT = "สารสนเทศการแก้ไขพฤติกรรม (บันทึกความดี) ของระบบคะแนนพฤติกรรม E-Point ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School โรงเรียนบัวใหญ่";
       const fontBase = { name: "TH Sarabun New", sz: 16 };
       const fontHeader = { name: "TH Sarabun New", sz: 18, bold: true };
@@ -267,18 +317,18 @@
       // ชีตที่ 1: สารสนเทศ (Overview)
       // ==========================================
       let sheet1Data = [];
-      // แถวที่ 1: หัวเรื่อง (จะทำการ Merge ทีหลัง)
       sheet1Data.push([{ v: HEADER_TEXT, s: { font: fontHeader, alignment: { horizontal: "center" } } }]);
-      sheet1Data.push([]); // แถวที่ 2: ว่าง
+      sheet1Data.push([]);
       
-      // แถวที่ 3: Header ของตาราง
-      let headerRow1 = [{v: "ระดับชั้น", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}];
+      // สร้าง Header ตารางใน Excel พร้อมแทรกช่วงวันที่ (ใช้อักขระ \n เพื่อขึ้นบรรทัดใหม่)
+      let headerRow1 = [{v: "ระดับชั้น", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center", wrapText: true }}}];
       for(let i = 1; i <= 12; i++) {
-        headerRow1.push({v: "สัปดาห์ " + i, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}});
+        let dateRange = getWeekDateRangeStr(i, currentTerm, currentYear);
+        let headerText = "สัปดาห์ " + i + "\n" + dateRange; 
+        headerRow1.push({v: headerText, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center", wrapText: true }}});
       }
       sheet1Data.push(headerRow1);
 
-      // คำนวณความถี่เพื่อลงตาราง Excel
       let levels = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
       let matrix = {};
       levels.forEach(l => matrix[l] = Array(12).fill(0));
@@ -286,21 +336,23 @@
         if(levels.includes(d.level) && d.week <= 12) matrix[d.level][d.week-1]++; 
       });
 
-      // นำข้อมูลความถี่ใส่ในอาเรย์ของแถว
       levels.forEach(l => {
         let row = [{v: l, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}];
         for(let i = 0; i < 12; i++) {
-          row.push({v: matrix[l][i] || '-', s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}});
+          row.push({v: matrix[l][i] > 0 ? matrix[l][i] : '-', s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}});
         }
         sheet1Data.push(row);
       });
 
       let ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
-      ws1["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }]; // ผสานเซลล์หัวเรื่องยาว 13 คอลัมน์ (0 ถึง 12)
+      ws1["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }]; // ผสานเซลล์หัวเรื่อง (13 คอลัมน์)
       
-      // กำหนดความกว้างคอลัมน์
       ws1['!cols'] = [{wch: 15}];
-      for(let i=1; i<=12; i++) ws1['!cols'].push({wch: 12});
+      for(let i=1; i<=12; i++) ws1['!cols'].push({wch: 15}); // ขยายความกว้างคอลัมน์สัปดาห์
+      
+      // ปรับความสูงของแถว Header (แถวที่ 3) เพื่อให้แสดงข้อความที่ขึ้นบรรทัดใหม่ได้เต็มที่
+      ws1['!rows'] = [];
+      ws1['!rows'][2] = {hpt: 35}; 
 
       // ==========================================
       // ชีตที่ 2: รายละเอียด (Detail with Grouping)
@@ -316,13 +368,11 @@
         {v: "สัปดาห์", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}
       ]);
 
-      // จัดเรียงข้อมูล (Sorting) เรียงตาม ชั้น -> ห้อง -> ชื่อ เพื่อเตรียมจัดกลุ่ม
       rawDeeds.sort((a,b) => a.level.localeCompare(b.level) || a.room.localeCompare(b.room) || a.name.localeCompare(b.name));
       
-      let prevName = ""; // ตัวแปรสำหรับตรวจสอบชื่อที่ซ้ำกันในบรรทัดก่อนหน้า
+      let prevName = ""; 
       
       rawDeeds.forEach(d => {
-        // Data Transformation: หากชื่อซ้ำกับบรรทัดบน ให้แสดงค่าว่างแทน (Grouping)
         let displayLevel = (d.name === prevName) ? "" : d.level;
         let displayRoom = (d.name === prevName) ? "" : d.room;
         let displayName = (d.name === prevName) ? "" : d.name;
@@ -338,10 +388,9 @@
       });
 
       let ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
-      ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }]; // ผสานเซลล์หัวเรื่องยาว 5 คอลัมน์ (0 ถึง 4)
+      ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
       ws2['!cols'] = [{wch: 12}, {wch: 12}, {wch: 30}, {wch: 15}, {wch: 12}];
 
-      // สร้างและดาวน์โหลดไฟล์
       XLSX.utils.book_append_sheet(wb, ws1, "สารสนเทศ");
       XLSX.utils.book_append_sheet(wb, ws2, "รายละเอียด");
       XLSX.writeFile(wb, "รายงานบันทึกความดี_ร.ร.บัวใหญ่.xlsx");
