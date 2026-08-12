@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <title>Dashboard บันทึกความดี - โรงเรียนบัวใหญ่</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="[https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap)" rel="stylesheet">
-  <link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css)" rel="stylesheet">
-  <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
-  <script src="[https://cdn.jsdelivr.net/npm/sweetalert2@11](https://cdn.jsdelivr.net/npm/sweetalert2@11)"></script>
-  <script src="[https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js](https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js)"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Sarabun', sans-serif;
@@ -147,14 +147,14 @@
     </div>
   </div>
 
-  <script src="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const API_URL = "[https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec](https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec)";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec";
     let globalData = {};
     let chartInstance = null;
 
     window.onload = function() {
-      // 1. นำเสนอการโหลดข้อมูล
+      // แจ้งผู้ใช้ขณะกำลังเชื่อมต่อข้อมูล
       Swal.fire({
         title: 'กำลังเชื่อมต่อฐานข้อมูล',
         text: 'โปรดรอสักครู่...',
@@ -162,7 +162,7 @@
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // 2. เรียก API จาก Google Apps Script
+      // ใช้ Fetch API เรียกข้อมูลจาก GAS
       fetch(API_URL)
         .then(response => response.json())
         .then(data => initDashboard(data))
@@ -170,7 +170,7 @@
           Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อข้อมูลได้: ' + error.message, 'error');
         });
       
-      // 3. เตรียมตัวเลือกสัปดาห์ (1-20)
+      // เตรียมตัวเลือกสัปดาห์ (1-20)
       let weekSelect = document.getElementById('exportWeek');
       for(let i = 1; i <= 20; i++) {
         let opt = document.createElement('option');
@@ -188,7 +188,7 @@
       
       globalData = data;
       
-      // อัปเดตเทอมและปีการศึกษาจากข้อมูลบันทึกล่าสุด
+      // อัปเดตเทอมและปีการศึกษาบนหัวเรื่อง
       if(data.goodDeeds.length > 0) {
         let latest = data.goodDeeds[data.goodDeeds.length - 1];
         document.getElementById('termYearDisplay').innerText = `[ภาคเรียนที่ ${latest.term}][ปีการศึกษา ${latest.year}]`;
@@ -260,6 +260,7 @@
       globalData.behaviorScores.forEach((b, index) => {
         if(filterLvl === 'all' || b.level === filterLvl) {
           chartData.push({ x: index, y: b.score, name: b.name, room: b.room });
+          // กำหนดสี: >=50 เป็นสีเขียว, <50 เป็นสีแดง
           bgColors.push(b.score >= 50 ? 'rgba(46, 204, 113, 0.9)' : 'rgba(231, 76, 60, 0.9)');
         }
       });
