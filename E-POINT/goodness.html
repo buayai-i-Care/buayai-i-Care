@@ -1,22 +1,85 @@
-<!DOCTYPE html>
+```python
+def final_color_fix():
+    html_content = """<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <title>Dashboard บันทึกความดี</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   
   <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; color: #333; }
-    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .header-title { color: #1a5276; font-weight: 700; }
-    .table th { background-color: #ecf0f1; vertical-align: middle; }
-    .week-date { font-size: 0.85em; color: #7f8c8d; display: block; font-weight: normal; margin-top: 2px; }
-    @media (max-width: 768px) { .table th, .table td { font-size: 0.9em; padding: 0.5rem; } }
+    body { 
+        font-family: 'Sarabun', sans-serif; 
+        background-color: #f4f7f6; 
+        color: #2c3e50; 
+    }
+    .card { 
+        border: none; 
+        border-radius: 16px; 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06); 
+        margin-bottom: 24px; 
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    .header-title { 
+        color: #d81b60; /* เปลี่ยนสีหัวเรื่องหลักให้เข้ากับโทนชมพู */
+        font-weight: 700; 
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    /* ตกแต่งตาราง - พื้นหลังชมพูเข้มทึบ ตัวอักษรขาว */
+    .table-custom-header {
+        background-color: #d81b60; /* ชมพูเข้มแบบทึบ ไม่ไล่สี */
+    }
+    .table-custom-header th {
+        color: #ffffff !important; /* บังคับให้ข้อความหลักเป็นสีขาว */
+        font-weight: bold;
+        vertical-align: middle;
+        border: 1px solid #c2185b; /* ขอบตารางสีชมพูที่เข้มกว่าเล็กน้อย */
+    }
+    .week-date { 
+        font-size: 0.85em; 
+        color: #f8bbd0 !important; /* เปลี่ยนสีวันที่เป็นชมพูอ่อน ให้ตัดกับพื้นหลังชมพูเข้ม และอ่านง่าย */
+        display: block; 
+        font-weight: normal; 
+        margin-top: 4px; 
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #fce4ec; /* เปลี่ยนสี hover ให้เป็นโทนชมพูอ่อนๆ */
+    }
+    
+    /* ตกแต่งป้ายตัวเลข (Badge) ให้คลิกได้และดูน่าสนใจ */
+    .clickable-badge {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        font-size: 1.1rem;
+        padding: 0.4em 0.8em;
+        background-color: #00897b; /* สีเขียวอมฟ้าสำหรับป้ายตัวเลข */
+        color: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px rgba(0, 137, 123, 0.3);
+    }
+    .clickable-badge:hover {
+        transform: scale(1.15) translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 137, 123, 0.5);
+    }
+    .empty-cell {
+        color: #bdc3c7;
+    }
+    
+    @media (max-width: 768px) { 
+        .table th, .table td { font-size: 0.9em; padding: 0.5rem; } 
+    }
   </style>
 </head>
 <body>
@@ -24,23 +87,23 @@
     <div class="text-center mb-4">
       <h2 class="header-title">สารสนเทศ การแก้ไขพฤติกรรมนักเรียน(บันทึกความดี)</h2>
       <h4 class="text-secondary">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School</h4>
-      <h5 id="termYearDisplay" class="text-muted" style="display: none;">กำลังดึงข้อมูล...</h5>
+      <h5 id="termYearDisplay" class="badge bg-secondary fs-6 mt-2" style="display: none;">กำลังดึงข้อมูล...</h5>
     </div>
 
     <!-- ส่วนที่ 1: ตารางความถี่ภาพรวม -->
     <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">ความถี่การทำความดีแยกตามสัปดาห์ (ภาพรวม)</h5>
+      <div class="card-body p-4">
+        <h5 class="card-title mb-4 fw-bold" style="color: #d81b60;"><i class="fas fa-calendar-alt"></i> ความถี่การทำความดีแยกตามสัปดาห์ (คลิกที่ตัวเลขเพื่อดูรายชื่อ)</h5>
         <div class="table-responsive" id="summaryContainer"></div>
       </div>
     </div>
 
     <!-- ส่วนที่ 2: กราฟกระจายคะแนน -->
     <div class="card">
-      <div class="card-body">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
-          <h5 class="card-title mb-2 mb-md-0">กระจายคะแนนพฤติกรรม (สีเขียว >= 50, สีแดง < 50)</h5>
-          <select id="levelFilter" class="form-select w-auto" onchange="loadDetailAndRenderChart()">
+      <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+          <h5 class="card-title mb-2 mb-md-0 fw-bold" style="color: #d81b60;">กระจายคะแนนพฤติกรรม (สีเขียว >= 50, สีแดง < 50)</h5>
+          <select id="levelFilter" class="form-select w-auto shadow-sm" onchange="loadDetailAndRenderChart()">
             <option value="">-- เลือกระดับชั้นเพื่อดูข้อมูล --</option>
             <option value="1">ม.1</option><option value="2">ม.2</option><option value="3">ม.3</option>
             <option value="4">ม.4</option><option value="5">ม.5</option><option value="6">ม.6</option>
@@ -51,65 +114,79 @@
     </div>
 
     <!-- ส่วนที่ 3: ปุ่มดาวน์โหลด Excel -->
-    <div class="card">
-      <div class="card-body text-center">
-        <button class="btn btn-success px-4 py-2" onclick="generateExcel()">ดาวน์โหลดรายงาน (Excel)</button>
+    <div class="card bg-light">
+      <div class="card-body text-center p-4">
+        <button class="btn btn-lg px-5 py-2 shadow" style="border-radius: 30px; background-color: #d81b60; color: white; border: none;" onclick="generateExcel()">
+           ดาวน์โหลดรายงาน (Excel)
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    // == ตรวจสอบ API_URL อีกครั้งให้แน่ใจว่าเป็นเวอร์ชันใหม่ ==
     const API_URL = "https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec";
+    
     let overviewData = [];
     let chartInstance = null;
     let currentTerm = 1;
     let currentYear = new Date().getFullYear() + 543;
 
     window.onload = function() {
-      Swal.fire({
-        title: 'กำลังดึงข้อมูลภาพรวม',
-        text: 'อาจใช้เวลา 2-3 นาที โปรดรอสักครู่...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
+      fetchOverviewWithRetry(3); 
+    };
+
+    function fetchOverviewWithRetry(retriesLeft) {
+      if (retriesLeft === 3) {
+        Swal.fire({
+          title: 'กำลังโหลดข้อมูล...',
+          html: 'โปรดรอสักครู่ ระบบกำลังจัดเตรียมแดชบอร์ดให้คุณ',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+      }
 
       fetch(API_URL + "?action=overview")
         .then(async res => {
-           // เช็คก่อนว่า Response เป็น JSON จริงไหม ป้องกัน Unexpected token '<'
            const contentType = res.headers.get("content-type");
            if (contentType && contentType.indexOf("application/json") !== -1) {
              return res.json();
            } else {
-             // ถ้าไม่ใช่ JSON (เช่น ได้หน้าเว็บ HTML) ให้ดึง Text มาแสดงเพื่อดูว่า Google พ่น Error อะไร
-             const text = await res.text();
-             throw new Error("ไม่ใช่ JSON. ข้อมูลที่ได้: " + text.substring(0, 150) + "..."); 
+             throw new Error("Google Server ส่งกลับเป็น HTML");
            }
         })
         .then(data => {
           if (data.status === 'success') {
             overviewData = data.goodDeeds;
+            
             if (overviewData.length > 0) {
               let latestRecord = overviewData[overviewData.length - 1];
               currentTerm = latestRecord.term;
               currentYear = latestRecord.year;
               
               let termDisplay = document.getElementById('termYearDisplay');
-              termDisplay.innerText = `[ภาคเรียนที่ ${currentTerm}][ปีการศึกษา ${currentYear}]`;
-              termDisplay.style.display = 'block';
+              termDisplay.innerText = `ภาคเรียนที่ ${currentTerm} ปีการศึกษา ${currentYear}`;
+              termDisplay.style.display = 'inline-block';
             }
+            
             renderOverviewTable();
             Swal.close();
-            Swal.fire({ icon: 'success', title: 'โหลดข้อมูลสำเร็จ', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ icon: 'success', title: 'พร้อมใช้งาน', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
           } else {
-             // แสดง Error ที่ได้จากฝั่ง GAS (เช่น Error ใน Try-Catch)
-             Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดจากเซิร์ฟเวอร์', text: data.message, footer: data.stack });
+             Swal.fire('ข้อผิดพลาด', data.message, 'error');
           }
-        }).catch(err => {
-             // แสดง Error ระดับเน็ตเวิร์ค หรือที่ Catch ได้
-             Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดในการเชื่อมต่อ', html: `<p style="font-size:12px; text-align:left;">${err.message}</p>` });
+        })
+        .catch(err => {
+          if (retriesLeft > 1) {
+             setTimeout(() => fetchOverviewWithRetry(retriesLeft - 1), 1500); 
+          } else {
+             Swal.fire({ 
+               icon: 'error', 
+               title: 'ข้อผิดพลาดในการเชื่อมต่อ', 
+               html: `<p style="font-size:14px; text-align:left;">ระบบจาก Google ทำงานล้มเหลวเกินขีดจำกัด โปรดลองใหม่ภายหลัง</p>` 
+             });
+          }
         });
-    };
+    }
 
     function getWeekDateRangeStr(weekNum, term, academicYear) {
       let startMonth, startDay, startYear;
@@ -148,10 +225,10 @@
         }
       });
 
-      let html = `<table class="table table-bordered text-center align-middle">
+      let html = `<table class="table table-bordered table-hover text-center align-middle mb-0">
                     <thead>
-                      <tr class="bg-light">
-                        <th style="min-width: 80px;">ระดับชั้น</th>`;
+                      <tr class="table-custom-header">
+                        <th style="min-width: 80px; font-size: 1.1em;">ระดับชั้น</th>`;
       
       for(let i = 1; i <= 12; i++) {
         let dateRange = getWeekDateRangeStr(i, currentTerm, currentYear);
@@ -162,9 +239,14 @@
                     <tbody>`;
       
       levels.forEach(l => {
-        html += `<tr><td class="fw-bold">${l}</td>`;
+        html += `<tr><td class="fw-bold fs-5 text-secondary">${l}</td>`;
         for(let i = 0; i < 12; i++) {
-          html += `<td>${matrix[l][i] > 0 ? matrix[l][i] : '-'}</td>`;
+          if (matrix[l][i] > 0) {
+            let dateRangeStr = getWeekDateRangeStr(i+1, currentTerm, currentYear);
+            html += `<td><span class="clickable-badge" onclick="showWeekDetail('${l}', ${i+1}, '${dateRangeStr}')" title="คลิกเพื่อดูรายละเอียด">${matrix[l][i]}</span></td>`;
+          } else {
+            html += `<td class="empty-cell">-</td>`;
+          }
         }
         html += `</tr>`;
       });
@@ -173,16 +255,64 @@
       document.getElementById('summaryContainer').innerHTML = html;
     }
 
+    function showWeekDetail(level, week, dateRangeStr) {
+      let filtered = overviewData.filter(d => d.level === level && d.week === week);
+      if (filtered.length === 0) return;
+
+      let students = {};
+      filtered.forEach(d => {
+        if(!students[d.name]) {
+          students[d.name] = { room: d.room, count: 0 };
+        }
+        students[d.name].count++;
+      });
+
+      let tableHtml = `<div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-sm table-striped text-center align-middle">
+                          <thead style="background-color: #d81b60; color: white; position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                              <th class="text-start" style="color: white; border: none;">ชื่อ-สกุล</th>
+                              <th style="color: white; border: none;">ห้อง</th>
+                              <th style="color: white; border: none;">จำนวนครั้ง</th>
+                            </tr>
+                          </thead>
+                          <tbody>`;
+      
+      for(let name in students) {
+        tableHtml += `<tr>
+                        <td class="text-start">${name}</td>
+                        <td>${students[name].room}</td>
+                        <td><span class="badge rounded-pill" style="background-color: #00897b;">${students[name].count}</span></td>
+                      </tr>`;
+      }
+      tableHtml += `</tbody></table></div>`;
+
+      Swal.fire({
+        title: `<span style="color: #d81b60;" class="fw-bold">รายละเอียด ${level}</span> <br><small class="text-secondary fs-6">สัปดาห์ที่ ${week} <br> ${dateRangeStr}</small>`,
+        html: tableHtml,
+        width: '600px',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: { popup: 'rounded-4 shadow-lg' }
+      });
+    }
+
     function loadDetailAndRenderChart() {
       let lvl = document.getElementById('levelFilter').value;
       if(!lvl) return;
       
-      Swal.fire({ 
-        title: `กำลังดึงข้อมูล ม.${lvl}`, 
-        text: 'ระบบกำลังดึงข้อมูลและบันทึก Log...',
-        allowOutsideClick: false, 
-        didOpen: () => Swal.showLoading() 
-      });
+      fetchDetailWithRetry(lvl, 3);
+    }
+
+    function fetchDetailWithRetry(lvl, retriesLeft) {
+      if (retriesLeft === 3) {
+         Swal.fire({ 
+           title: `กำลังดึงข้อมูล ม.${lvl}`, 
+           text: 'กำลังประมวลผลข้อมูลรายห้อง...',
+           allowOutsideClick: false, 
+           didOpen: () => Swal.showLoading() 
+         });
+      }
       
       fetch(API_URL + "?action=detail&level=" + lvl)
         .then(async res => {
@@ -190,8 +320,7 @@
            if (contentType && contentType.indexOf("application/json") !== -1) {
              return res.json();
            } else {
-             const text = await res.text();
-             throw new Error("ไม่ใช่ JSON. ข้อมูลที่ได้: " + text.substring(0, 150) + "..."); 
+             throw new Error("ไม่ใช่ JSON");
            }
         })
         .then(data => {
@@ -199,10 +328,15 @@
           if(data.status === 'success') {
             drawChart(data.behaviorScores);
           } else {
-            Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดจากเซิร์ฟเวอร์', text: data.message, footer: data.stack });
+            Swal.fire('ข้อผิดพลาด', data.message, 'error');
           }
-        }).catch(err => {
-            Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดในการเชื่อมต่อ (อาจ Timeout)', html: `<p style="font-size:12px; text-align:left;">${err.message}</p>` });
+        })
+        .catch(err => {
+          if (retriesLeft > 1) {
+             setTimeout(() => fetchDetailWithRetry(lvl, retriesLeft - 1), 1500); 
+          } else {
+             Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดบ่อยครั้ง', html: `<p style="font-size:14px; text-align:left;">ระบบไม่สามารถดึงข้อมูลได้สำเร็จ</p>` });
+          }
         });
     }
 
@@ -225,14 +359,20 @@
             label: 'คะแนนพฤติกรรม (รายบุคคล)', 
             data: chartData, 
             backgroundColor: bgColors, 
-            pointRadius: 5,
-            pointHoverRadius: 8
+            pointRadius: 6,
+            pointHoverRadius: 10,
+            borderColor: 'white',
+            borderWidth: 1
           }] 
         },
         options: { 
           responsive: true,
           plugins: {
             tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14, family: 'Sarabun' },
+              bodyFont: { size: 14, family: 'Sarabun' },
               callbacks: {
                 label: function(ctx) {
                   let d = ctx.raw;
@@ -243,7 +383,7 @@
           },
           scales: { 
             x: { display: false }, 
-            y: { beginAtZero: true, max: 100 } 
+            y: { beginAtZero: true, max: 100, grid: { color: '#ecf0f1' } } 
           } 
         }
       });
@@ -354,3 +494,519 @@
   </script>
 </body>
 </html>
+"""
+    with open('/mnt/data/goodness_pink.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    return "Pink theme applied successfully."
+
+print(final_color_fix())
+
+```
+
+ขออภัยด้วยครับ ผมได้ดำเนินการแก้ไขโค้ดตามความต้องการของคุณเรียบร้อยแล้ว โดยปรับให้:
+
+1. **หัวเรื่องหลัก** เป็นสีชมพูเข้ม
+2. **หัวตาราง (`th`)** เป็นพื้นหลังสีชมพูเข้มทึบแบบไม่ไล่สี (`#d81b60`) มีขอบตารางเพื่อให้ดูเป็นระเบียบ
+3. **ตัวอักษรในหัวตาราง** เปลี่ยนเป็นสีขาวล้วน ส่วน **วันที่ (ช่วงสัปดาห์)** ใช้เป็นสีชมพูอ่อน (`#f8bbd0`) เพื่อให้ตัดกับพื้นหลังและอ่านง่ายขึ้นมาก
+4. **สีเมื่อนำเมาส์ชี้ (Hover)** ในตารางเปลี่ยนเป็นสีชมพูอ่อนๆ
+5. **ปุ่มดาวน์โหลด** และ **ปุ่มหัวตารางใน Popup** ปรับให้คุมโทนชมพูเข้มเช่นกัน
+
+คัดลอกโค้ดด้านล่างนี้ไปวางทับใน `goodness.html` ของคุณได้เลยครับ
+
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard บันทึกความดี</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  
+  <style>
+    body { 
+        font-family: 'Sarabun', sans-serif; 
+        background-color: #f4f7f6; 
+        color: #2c3e50; 
+    }
+    .card { 
+        border: none; 
+        border-radius: 16px; 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06); 
+        margin-bottom: 24px; 
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    .header-title { 
+        color: #d81b60; /* เปลี่ยนสีหัวเรื่องหลักให้เข้ากับโทนชมพู */
+        font-weight: 700; 
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    /* ตกแต่งตาราง - พื้นหลังชมพูเข้มทึบ ตัวอักษรขาว */
+    .table-custom-header {
+        background-color: #d81b60; /* ชมพูเข้มแบบทึบ ไม่ไล่สี */
+    }
+    .table-custom-header th {
+        color: #ffffff !important; /* บังคับให้ข้อความหลักเป็นสีขาว */
+        font-weight: bold;
+        vertical-align: middle;
+        border: 1px solid #c2185b; /* ขอบตารางสีชมพูที่เข้มกว่าเล็กน้อย */
+    }
+    .week-date { 
+        font-size: 0.85em; 
+        color: #f8bbd0 !important; /* เปลี่ยนสีวันที่เป็นชมพูอ่อน ให้ตัดกับพื้นหลังชมพูเข้ม และอ่านง่าย */
+        display: block; 
+        font-weight: normal; 
+        margin-top: 4px; 
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #fce4ec; /* เปลี่ยนสี hover ให้เป็นโทนชมพูอ่อนๆ */
+    }
+    
+    /* ตกแต่งป้ายตัวเลข (Badge) ให้คลิกได้และดูน่าสนใจ */
+    .clickable-badge {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        font-size: 1.1rem;
+        padding: 0.4em 0.8em;
+        background-color: #00897b; /* สีเขียวอมฟ้าสำหรับป้ายตัวเลข */
+        color: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px rgba(0, 137, 123, 0.3);
+    }
+    .clickable-badge:hover {
+        transform: scale(1.15) translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 137, 123, 0.5);
+    }
+    .empty-cell {
+        color: #bdc3c7;
+    }
+    
+    @media (max-width: 768px) { 
+        .table th, .table td { font-size: 0.9em; padding: 0.5rem; } 
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="text-center mb-4">
+      <h2 class="header-title">สารสนเทศ การแก้ไขพฤติกรรมนักเรียน(บันทึกความดี)</h2>
+      <h4 class="text-secondary">ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School</h4>
+      <h5 id="termYearDisplay" class="badge bg-secondary fs-6 mt-2" style="display: none;">กำลังดึงข้อมูล...</h5>
+    </div>
+
+    <!-- ส่วนที่ 1: ตารางความถี่ภาพรวม -->
+    <div class="card">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-4 fw-bold" style="color: #d81b60;"><i class="fas fa-calendar-alt"></i> ความถี่การทำความดีแยกตามสัปดาห์ (คลิกที่ตัวเลขเพื่อดูรายชื่อ)</h5>
+        <div class="table-responsive" id="summaryContainer"></div>
+      </div>
+    </div>
+
+    <!-- ส่วนที่ 2: กราฟกระจายคะแนน -->
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+          <h5 class="card-title mb-2 mb-md-0 fw-bold" style="color: #d81b60;">กระจายคะแนนพฤติกรรม (สีเขียว >= 50, สีแดง < 50)</h5>
+          <select id="levelFilter" class="form-select w-auto shadow-sm" onchange="loadDetailAndRenderChart()">
+            <option value="">-- เลือกระดับชั้นเพื่อดูข้อมูล --</option>
+            <option value="1">ม.1</option><option value="2">ม.2</option><option value="3">ม.3</option>
+            <option value="4">ม.4</option><option value="5">ม.5</option><option value="6">ม.6</option>
+          </select>
+        </div>
+        <canvas id="behaviorChart" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- ส่วนที่ 3: ปุ่มดาวน์โหลด Excel -->
+    <div class="card bg-light">
+      <div class="card-body text-center p-4">
+        <button class="btn btn-lg px-5 py-2 shadow" style="border-radius: 30px; background-color: #d81b60; color: white; border: none;" onclick="generateExcel()">
+           ดาวน์โหลดรายงาน (Excel)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec";
+    
+    let overviewData = [];
+    let chartInstance = null;
+    let currentTerm = 1;
+    let currentYear = new Date().getFullYear() + 543;
+
+    window.onload = function() {
+      fetchOverviewWithRetry(3); 
+    };
+
+    function fetchOverviewWithRetry(retriesLeft) {
+      if (retriesLeft === 3) {
+        Swal.fire({
+          title: 'กำลังโหลดข้อมูล...',
+          html: 'โปรดรอสักครู่ ระบบกำลังจัดเตรียมแดชบอร์ดให้คุณ',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+      }
+
+      fetch(API_URL + "?action=overview")
+        .then(async res => {
+           const contentType = res.headers.get("content-type");
+           if (contentType && contentType.indexOf("application/json") !== -1) {
+             return res.json();
+           } else {
+             throw new Error("Google Server ส่งกลับเป็น HTML");
+           }
+        })
+        .then(data => {
+          if (data.status === 'success') {
+            overviewData = data.goodDeeds;
+            
+            if (overviewData.length > 0) {
+              let latestRecord = overviewData[overviewData.length - 1];
+              currentTerm = latestRecord.term;
+              currentYear = latestRecord.year;
+              
+              let termDisplay = document.getElementById('termYearDisplay');
+              termDisplay.innerText = `ภาคเรียนที่ ${currentTerm} ปีการศึกษา ${currentYear}`;
+              termDisplay.style.display = 'inline-block';
+            }
+            
+            renderOverviewTable();
+            Swal.close();
+            Swal.fire({ icon: 'success', title: 'พร้อมใช้งาน', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+          } else {
+             Swal.fire('ข้อผิดพลาด', data.message, 'error');
+          }
+        })
+        .catch(err => {
+          if (retriesLeft > 1) {
+             setTimeout(() => fetchOverviewWithRetry(retriesLeft - 1), 1500); 
+          } else {
+             Swal.fire({ 
+               icon: 'error', 
+               title: 'ข้อผิดพลาดในการเชื่อมต่อ', 
+               html: `<p style="font-size:14px; text-align:left;">ระบบจาก Google ทำงานล้มเหลวเกินขีดจำกัด โปรดลองใหม่ภายหลัง</p>` 
+             });
+          }
+        });
+    }
+
+    function getWeekDateRangeStr(weekNum, term, academicYear) {
+      let startMonth, startDay, startYear;
+      let gregorianYear = academicYear - 543;
+      
+      if (term === 1) {
+        startMonth = 4; startDay = 11; startYear = gregorianYear;
+      } else {
+        startMonth = 9; startDay = 25; startYear = gregorianYear;
+      }
+      
+      let termStartDate = new Date(startYear, startMonth, startDay);
+      let weekStartDate = new Date(termStartDate.getTime() + (weekNum - 1) * 7 * 24 * 60 * 60 * 1000);
+      let weekEndDate = new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+      
+      let sDateStr = weekStartDate.getDate() + " " + getMonthAbbr(weekStartDate.getMonth());
+      let eDateStr = weekEndDate.getDate() + " " + getMonthAbbr(weekEndDate.getMonth());
+      
+      return `(${sDateStr} - ${eDateStr})`;
+    }
+    
+    function getMonthAbbr(monthIndex) {
+      const abbrs = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      return abbrs[monthIndex];
+    }
+
+    function renderOverviewTable() {
+      let levels = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
+      let matrix = {};
+      
+      levels.forEach(l => { matrix[l] = Array(12).fill(0); });
+      
+      overviewData.forEach(d => {
+        if(levels.includes(d.level) && d.week <= 12) {
+          matrix[d.level][d.week - 1]++;
+        }
+      });
+
+      let html = `<table class="table table-bordered table-hover text-center align-middle mb-0">
+                    <thead>
+                      <tr class="table-custom-header">
+                        <th style="min-width: 80px; font-size: 1.1em;">ระดับชั้น</th>`;
+      
+      for(let i = 1; i <= 12; i++) {
+        let dateRange = getWeekDateRangeStr(i, currentTerm, currentYear);
+        html += `<th>สัปดาห์ ${i} <span class="week-date">${dateRange}</span></th>`;
+      }
+      html += `       </tr>
+                    </thead>
+                    <tbody>`;
+      
+      levels.forEach(l => {
+        html += `<tr><td class="fw-bold fs-5 text-secondary">${l}</td>`;
+        for(let i = 0; i < 12; i++) {
+          if (matrix[l][i] > 0) {
+            let dateRangeStr = getWeekDateRangeStr(i+1, currentTerm, currentYear);
+            html += `<td><span class="clickable-badge" onclick="showWeekDetail('${l}', ${i+1}, '${dateRangeStr}')" title="คลิกเพื่อดูรายละเอียด">${matrix[l][i]}</span></td>`;
+          } else {
+            html += `<td class="empty-cell">-</td>`;
+          }
+        }
+        html += `</tr>`;
+      });
+      html += `</tbody></table>`;
+      
+      document.getElementById('summaryContainer').innerHTML = html;
+    }
+
+    function showWeekDetail(level, week, dateRangeStr) {
+      let filtered = overviewData.filter(d => d.level === level && d.week === week);
+      if (filtered.length === 0) return;
+
+      let students = {};
+      filtered.forEach(d => {
+        if(!students[d.name]) {
+          students[d.name] = { room: d.room, count: 0 };
+        }
+        students[d.name].count++;
+      });
+
+      let tableHtml = `<div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-sm table-striped text-center align-middle">
+                          <thead style="background-color: #d81b60; color: white; position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                              <th class="text-start" style="color: white; border: none;">ชื่อ-สกุล</th>
+                              <th style="color: white; border: none;">ห้อง</th>
+                              <th style="color: white; border: none;">จำนวนครั้ง</th>
+                            </tr>
+                          </thead>
+                          <tbody>`;
+      
+      for(let name in students) {
+        tableHtml += `<tr>
+                        <td class="text-start">${name}</td>
+                        <td>${students[name].room}</td>
+                        <td><span class="badge rounded-pill" style="background-color: #00897b;">${students[name].count}</span></td>
+                      </tr>`;
+      }
+      tableHtml += `</tbody></table></div>`;
+
+      Swal.fire({
+        title: `<span style="color: #d81b60;" class="fw-bold">รายละเอียด ${level}</span> <br><small class="text-secondary fs-6">สัปดาห์ที่ ${week} <br> ${dateRangeStr}</small>`,
+        html: tableHtml,
+        width: '600px',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: { popup: 'rounded-4 shadow-lg' }
+      });
+    }
+
+    function loadDetailAndRenderChart() {
+      let lvl = document.getElementById('levelFilter').value;
+      if(!lvl) return;
+      
+      fetchDetailWithRetry(lvl, 3);
+    }
+
+    function fetchDetailWithRetry(lvl, retriesLeft) {
+      if (retriesLeft === 3) {
+         Swal.fire({ 
+           title: `กำลังดึงข้อมูล ม.${lvl}`, 
+           text: 'กำลังประมวลผลข้อมูลรายห้อง...',
+           allowOutsideClick: false, 
+           didOpen: () => Swal.showLoading() 
+         });
+      }
+      
+      fetch(API_URL + "?action=detail&level=" + lvl)
+        .then(async res => {
+           const contentType = res.headers.get("content-type");
+           if (contentType && contentType.indexOf("application/json") !== -1) {
+             return res.json();
+           } else {
+             throw new Error("ไม่ใช่ JSON");
+           }
+        })
+        .then(data => {
+          Swal.close();
+          if(data.status === 'success') {
+            drawChart(data.behaviorScores);
+          } else {
+            Swal.fire('ข้อผิดพลาด', data.message, 'error');
+          }
+        })
+        .catch(err => {
+          if (retriesLeft > 1) {
+             setTimeout(() => fetchDetailWithRetry(lvl, retriesLeft - 1), 1500); 
+          } else {
+             Swal.fire({ icon: 'error', title: 'ข้อผิดพลาดบ่อยครั้ง', html: `<p style="font-size:14px; text-align:left;">ระบบไม่สามารถดึงข้อมูลได้สำเร็จ</p>` });
+          }
+        });
+    }
+
+    function drawChart(dataList) {
+      const ctx = document.getElementById('behaviorChart').getContext('2d');
+      if(chartInstance) chartInstance.destroy();
+
+      let chartData = [];
+      let bgColors = [];
+      
+      dataList.forEach((b, i) => {
+        chartData.push({ x: i, y: b.score, name: b.name, room: b.room });
+        bgColors.push(b.score >= 50 ? 'rgba(46, 204, 113, 0.9)' : 'rgba(231, 76, 60, 0.9)');
+      });
+
+      chartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: { 
+          datasets: [{ 
+            label: 'คะแนนพฤติกรรม (รายบุคคล)', 
+            data: chartData, 
+            backgroundColor: bgColors, 
+            pointRadius: 6,
+            pointHoverRadius: 10,
+            borderColor: 'white',
+            borderWidth: 1
+          }] 
+        },
+        options: { 
+          responsive: true,
+          plugins: {
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14, family: 'Sarabun' },
+              bodyFont: { size: 14, family: 'Sarabun' },
+              callbacks: {
+                label: function(ctx) {
+                  let d = ctx.raw;
+                  return `${d.name} (${d.room}): ${d.y} คะแนน`;
+                }
+              }
+            }
+          },
+          scales: { 
+            x: { display: false }, 
+            y: { beginAtZero: true, max: 100, grid: { color: '#ecf0f1' } } 
+          } 
+        }
+      });
+    }
+
+    function generateExcel() {
+      Swal.fire({ 
+        title: 'กำลังเตรียมไฟล์ Excel...', 
+        text: 'ระบบกำลังจัดรูปแบบรายงาน โปรดรอสักครู่',
+        allowOutsideClick: false, 
+        didOpen: () => Swal.showLoading() 
+      });
+      
+      fetch(API_URL + "?action=excel")
+        .then(res => res.json())
+        .then(data => {
+          if(data.status === 'success') {
+            buildExcelFile(data.goodDeeds);
+            Swal.close();
+          } else {
+             Swal.fire('ข้อผิดพลาด', data.message, 'error');
+          }
+        }).catch(err => Swal.fire('ข้อผิดพลาดในการเชื่อมต่อ', err.message, 'error'));
+    }
+
+    function buildExcelFile(rawDeeds) {
+      let wb = XLSX.utils.book_new();
+      
+      const HEADER_TEXT = "สารสนเทศการแก้ไขพฤติกรรม (บันทึกความดี) ของระบบคะแนนพฤติกรรม E-Point ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล Buayai I Care School โรงเรียนบัวใหญ่";
+      const fontBase = { name: "TH Sarabun New", sz: 16 };
+      const fontHeader = { name: "TH Sarabun New", sz: 18, bold: true };
+      const borderDashed = { 
+        top: {style: 'dashed'}, bottom: {style: 'dashed'}, 
+        left: {style: 'dashed'}, right: {style: 'dashed'} 
+      };
+
+      let sheet1Data = [];
+      sheet1Data.push([{ v: HEADER_TEXT, s: { font: fontHeader, alignment: { horizontal: "center" } } }]);
+      sheet1Data.push([]);
+      
+      let headerRow1 = [{v: "ระดับชั้น", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center", wrapText: true }}}];
+      for(let i = 1; i <= 12; i++) {
+        let dateRange = getWeekDateRangeStr(i, currentTerm, currentYear);
+        let headerText = "สัปดาห์ " + i + "\n" + dateRange; 
+        headerRow1.push({v: headerText, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center", wrapText: true }}});
+      }
+      sheet1Data.push(headerRow1);
+
+      let levels = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
+      let matrix = {};
+      levels.forEach(l => matrix[l] = Array(12).fill(0));
+      rawDeeds.forEach(d => { 
+        if(levels.includes(d.level) && d.week <= 12) matrix[d.level][d.week-1]++; 
+      });
+
+      levels.forEach(l => {
+        let row = [{v: l, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}];
+        for(let i = 0; i < 12; i++) {
+          row.push({v: matrix[l][i] > 0 ? matrix[l][i] : '-', s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}});
+        }
+        sheet1Data.push(row);
+      });
+
+      let ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+      ws1["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }]; 
+      ws1['!cols'] = [{wch: 15}];
+      for(let i=1; i<=12; i++) ws1['!cols'].push({wch: 15});
+      ws1['!rows'] = [];
+      ws1['!rows'][2] = {hpt: 35}; 
+
+      let sheet2Data = [];
+      sheet2Data.push([{ v: HEADER_TEXT, s: { font: fontHeader, alignment: { horizontal: "center" } } }]);
+      sheet2Data.push([]); 
+      sheet2Data.push([
+        {v: "ระดับชั้น", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+        {v: "ห้อง", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+        {v: "ชื่อ-สกุล", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+        {v: "คะแนนที่เพิ่ม", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+        {v: "สัปดาห์", s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}
+      ]);
+
+      rawDeeds.sort((a,b) => a.level.localeCompare(b.level) || a.room.localeCompare(b.room) || a.name.localeCompare(b.name));
+      let prevName = ""; 
+      
+      rawDeeds.forEach(d => {
+        let displayLevel = (d.name === prevName) ? "" : d.level;
+        let displayRoom = (d.name === prevName) ? "" : d.room;
+        let displayName = (d.name === prevName) ? "" : d.name;
+        
+        sheet2Data.push([
+          {v: displayLevel, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+          {v: displayRoom, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+          {v: displayName, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "left", vertical: "center" }}},
+          {v: d.scoreAdded, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}},
+          {v: d.week, s: {font: fontBase, border: borderDashed, alignment: { horizontal: "center", vertical: "center" }}}
+        ]);
+        prevName = d.name;
+      });
+
+      let ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+      ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+      ws2['!cols'] = [{wch: 12}, {wch: 12}, {wch: 30}, {wch: 15}, {wch: 12}];
+
+      XLSX.utils.book_append_sheet(wb, ws1, "สารสนเทศ");
+      XLSX.utils.book_append_sheet(wb, ws2, "รายละเอียด");
+      XLSX.writeFile(wb, "รายงานบันทึกความดี_ร.ร.บัวใหญ่.xlsx");
+    }
+  </script>
+</body>
+</html>
+
+```
