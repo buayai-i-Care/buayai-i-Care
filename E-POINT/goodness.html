@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard บันทึกความดี - โรงเรียนบัวใหญ่</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="[https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap)" rel="stylesheet">
+  <link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css)" rel="stylesheet">
+  <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
+  <script src="[https://cdn.jsdelivr.net/npm/sweetalert2@11](https://cdn.jsdelivr.net/npm/sweetalert2@11)"></script>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js](https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js)"></script>
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .header-title {
+      color: #1a5276;
+      font-weight: 700;
+    }
+    .table th { background-color: #ecf0f1; }
+    /* ปรับแต่ง UI ให้เหมาะสมกับมือถือ */
+    @media (max-width: 768px) {
+      h2 { font-size: 1.5rem; }
+      h4 { font-size: 1.1rem; }
+      .card-body { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <!-- ส่วนหัวเรื่อง -->
+    <div class="text-center mb-4">
+      <h2 class="header-title">สารสนเทศ การแก้ไขพฤติกรรมนักเรียน(บันทึกความดี)</h2>
+      <h4 class="text-secondary">งานส่งเสริม ดูแลแก้ไขพฤติกรรมนักเรียน โรงเรียนบัวใหญ่</h4>
+      <h5 id="termYearDisplay" class="text-muted">กำลังดึงข้อมูล...</h5>
+    </div>
+
+    <!-- ตารางความถี่ -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">ความถี่การทำความดี (แยกตามระดับชั้น)</h5>
+            <div class="table-responsive">
+              <table class="table table-hover text-center" id="summaryTable">
+                <thead>
+                  <tr>
+                    <th>ระดับชั้น</th>
+                    <th>ความถี่รวม (ครั้ง)</th>
+                    <th>ดูรายละเอียด</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- กราฟคะแนนพฤติกรรม -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">กระจายคะแนนพฤติกรรม (สีเขียว >= 50, สีแดง < 50)</h5>
+              <select id="levelFilter" class="form-select w-auto" onchange="renderChart()">
+                <option value="all">ทุกระดับชั้น</option>
+                <option value="ม.1">ม.1</option>
+                <option value="ม.2">ม.2</option>
+                <option value="ม.3">ม.3</option>
+                <option value="ม.4">ม.4</option>
+                <option value="ม.5">ม.5</option>
+                <option value="ม.6">ม.6</option>
+              </select>
+            </div>
+            <canvas id="behaviorChart" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ตัวกรองดาวน์โหลด Excel -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card bg-white">
+          <div class="card-body text-center">
+            <h5 class="card-title mb-3">ดาวน์โหลดรายงาน (Excel)</h5>
+            <div class="row justify-content-center g-3 mb-3">
+              <div class="col-auto">
+                <select id="exportWeek" class="form-select">
+                  <option value="all">ทุกสัปดาห์</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <select id="exportLevel" class="form-select">
+                  <option value="all">ทุกระดับชั้น</option>
+                  <option value="ม.1">ม.1</option>
+                  <option value="ม.2">ม.2</option>
+                  <option value="ม.3">ม.3</option>
+                  <option value="ม.4">ม.4</option>
+                  <option value="ม.5">ม.5</option>
+                  <option value="ม.6">ม.6</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-success px-4 py-2 shadow-sm" onclick="downloadExcel()">ดาวน์โหลด Excel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับแสดงรายละเอียด -->
+  <div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="detailModalLabel">รายละเอียดนักเรียน</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm text-center" id="detailTable">
+              <thead>
+                <tr>
+                  <th>ชื่อ-สกุล</th>
+                  <th>ห้อง</th>
+                  <th>ความถี่</th>
+                  <th>คะแนนรวม</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js)"></script>
+  <script>
+    const API_URL = "[https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec](https://script.google.com/macros/s/AKfycbzEEd2zC0oegSeNQdcM_qhCeIlcCX2jkODKLOKB91YI0o1ibp6xTfa98vzhlUVEko-U/exec)";
+    let globalData = {};
+    let chartInstance = null;
+
+    window.onload = function() {
+      // 1. นำเสนอการโหลดข้อมูล
+      Swal.fire({
+        title: 'กำลังเชื่อมต่อฐานข้อมูล',
+        text: 'โปรดรอสักครู่...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // 2. เรียก API จาก Google Apps Script
+      fetch(API_URL)
+        .then(response => response.json())
+        .then(data => initDashboard(data))
+        .catch(error => {
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อข้อมูลได้: ' + error.message, 'error');
+        });
+      
+      // 3. เตรียมตัวเลือกสัปดาห์ (1-20)
+      let weekSelect = document.getElementById('exportWeek');
+      for(let i = 1; i <= 20; i++) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.text = 'สัปดาห์ที่ ' + i;
+        weekSelect.appendChild(opt);
+      }
+    };
+
+    function initDashboard(data) {
+      if(data.status === 'error') {
+        Swal.fire('ข้อผิดพลาดจากเซิร์ฟเวอร์', data.message, 'error');
+        return;
+      }
+      
+      globalData = data;
+      
+      // อัปเดตเทอมและปีการศึกษาจากข้อมูลบันทึกล่าสุด
+      if(data.goodDeeds.length > 0) {
+        let latest = data.goodDeeds[data.goodDeeds.length - 1];
+        document.getElementById('termYearDisplay').innerText = `[ภาคเรียนที่ ${latest.term}][ปีการศึกษา ${latest.year}]`;
+      }
+
+      renderSummaryTable();
+      renderChart();
+      
+      Swal.close();
+      Swal.fire({ icon: 'success', title: 'โหลดข้อมูลสำเร็จ', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+    }
+
+    function renderSummaryTable() {
+      let tbody = document.querySelector('#summaryTable tbody');
+      tbody.innerHTML = '';
+      
+      let summary = {};
+      globalData.goodDeeds.forEach(d => {
+        let lvl = d.level;
+        if(lvl) { summary[lvl] = (summary[lvl] || 0) + 1; }
+      });
+
+      let levels = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+      levels.forEach(lvl => {
+        let count = summary[lvl] || 0;
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="fw-bold">${lvl}</td>
+          <td>${count}</td>
+          <td><button class="btn btn-sm btn-outline-primary" onclick="showDetail('${lvl}')">ดูรายละเอียด</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showDetail(level) {
+      document.getElementById('detailModalLabel').innerText = `รายละเอียดระดับชั้น: ${level}`;
+      let tbody = document.querySelector('#detailTable tbody');
+      tbody.innerHTML = '';
+
+      let students = {};
+      globalData.goodDeeds.filter(d => d.level === level).forEach(d => {
+        if(!students[d.name]) {
+          students[d.name] = { room: d.room, count: 0, score: 0 };
+        }
+        students[d.name].count += 1;
+        students[d.name].score += (d.scoreAdded || 0);
+      });
+
+      for(let name in students) {
+        let st = students[name];
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td class="text-start">${name}</td><td>${st.room}</td><td>${st.count}</td><td>${st.score}</td>`;
+        tbody.appendChild(tr);
+      }
+
+      new bootstrap.Modal(document.getElementById('detailModal')).show();
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById('behaviorChart').getContext('2d');
+      const filterLvl = document.getElementById('levelFilter').value;
+      
+      if(chartInstance) chartInstance.destroy();
+
+      let chartData = [];
+      let bgColors = [];
+
+      globalData.behaviorScores.forEach((b, index) => {
+        if(filterLvl === 'all' || b.level === filterLvl) {
+          chartData.push({ x: index, y: b.score, name: b.name, room: b.room });
+          bgColors.push(b.score >= 50 ? 'rgba(46, 204, 113, 0.9)' : 'rgba(231, 76, 60, 0.9)');
+        }
+      });
+
+      chartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{ label: 'คะแนนพฤติกรรมนักเรียน', data: chartData, backgroundColor: bgColors, pointRadius: 5 }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  let d = ctx.raw;
+                  return `${d.name} (${d.room}): ${d.y} คะแนน`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { display: false }, 
+            y: { beginAtZero: true, max: 100, title: { display: true, text: 'คะแนนพฤติกรรม' } }
+          }
+        }
+      });
+    }
+
+    function downloadExcel() {
+      let selWeek = document.getElementById('exportWeek').value;
+      let selLvl = document.getElementById('exportLevel').value;
+      
+      let filteredData = globalData.goodDeeds.filter(d => {
+        let passWeek = (selWeek === 'all') || (d.week.toString() === selWeek);
+        let passLvl = (selLvl === 'all') || (d.level === selLvl);
+        return passWeek && passLvl;
+      });
+
+      let sumRoom = {};
+      filteredData.forEach(d => {
+        sumRoom[d.room] = (sumRoom[d.room] || 0) + 1;
+      });
+      
+      let sheet1Data = [["ห้อง", "ความถี่รวม (ครั้ง)"]];
+      for(let r in sumRoom) { sheet1Data.push([r, sumRoom[r]]); }
+
+      let sheet2Data = [["ชื่อ-สกุล", "ห้อง", "วันที่ทำความดี", "คะแนนที่เพิ่ม", "สัปดาห์ที่"]];
+      filteredData.forEach(d => {
+        let dateStr = new Date(d.date).toLocaleDateString('th-TH');
+        sheet2Data.push([d.name, d.room, dateStr, d.scoreAdded, d.week]);
+      });
+
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet1Data), "สารสนเทศ");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet2Data), "รายละเอียด");
+      
+      XLSX.writeFile(wb, "รายงานบันทึกความดี_ร.ร.บัวใหญ่.xlsx");
+    }
+  </script>
+</body>
+</html>
