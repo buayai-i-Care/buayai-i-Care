@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - เพิ่มข้อมูลใบหน้านักเรียน</title>
+    <!-- เรียกใช้ไลบรารี face-api.js (ต้องมีไฟล์นี้ในโฟลเดอร์ js) -->
+    <script defer src="js/face-api.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 8px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; font-size: 16px;}
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        #status { margin-top: 20px; font-weight: bold; color: blue; }
+        #preview { max-width: 200px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>ระบบจัดการฐานข้อมูลใบหน้า (Admin)</h2>
+    
+    <div class="form-group">
+        <label>รหัสนักเรียน (ห้ามซ้ำ):</label>
+        <input type="text" id="studentId" placeholder="เช่น 63001">
+    </div>
+    <div class="form-group">
+        <label>ชื่อ-นามสกุล:</label>
+        <input type="text" id="studentName" placeholder="เช่น สมชาย รักเรียน">
+    </div>
+    <div class="form-group">
+        <label>อัปโหลดรูปถ่ายหน้าตรง:</label>
+        <input type="file" id="imageUpload" accept="image/jpeg, image/png">
+        <img id="preview" alt="Image Preview">
+    </div>
+
+    <button id="submitBtn" disabled>กำลังโหลด AI...</button>
+    <div id="status">สถานะ: กำลังเตรียมความพร้อมระบบ...</div>
+
+    <!-- ส่วนของ JavaScript สำหรับจัดการ AI และ Firebase -->
+    <script type="module">
+        // 1. นำเข้า Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // === นำ Firebase Config ของคุณมาวางตรงนี้ ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-xxxxxxxxxxxxxxx",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 2. โหลดโมเดล AI ของ face-api.js
+        const statusDiv = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+        let uploadedImage;
+
+        Promise.all([
+            faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('./models')
+        ]).then(() => {
+            statusDiv.innerText = "สถานะ: AI พร้อมใช้งานแล้ว! กรุณากรอกข้อมูลและเลือกรูปภาพ";
+            statusDiv.style.color = "green";
+            submitBtn.innerText = "บันทึกข้อมูลเข้า Firebase";
+            submitBtn.disabled = false;
+        }).catch(err => {
+            statusDiv.innerText = "เกิดข้อผิดพลาดในการโหลดโมเดล AI ตรวจสอบโฟลเดอร์ /models";
+            statusDiv.style.color = "red";
+            console.error(err);
+        });
+
+        // 3. แสดงรูปภาพตัวอย่างตอนเลือกไฟล์
+        document.getElementById('imageUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                uploadedImage = await faceapi.bufferToImage(file);
+                const preview = document.getElementById('preview');
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+            }
+        });
+
+        // 4. เมื่อกดปุ่มบันทึก
+        submitBtn.addEventListener('click', async () => {
+            const studentId = document.getElementById('studentId').value;
+            const studentName = document.getElementById('studentName').value;
+
+            if(!studentId || !studentName || !uploadedImage) {
+                alert("กรุณากรอกข้อมูลและเลือกรูปภาพให้ครบถ้วน");
+                return;
+            }
+
+            statusDiv.innerText = "สถานะ: กำลังวิเคราะห์ใบหน้า...";
+            submitBtn.disabled = true;
+
+            try {
+                // ให้ AI สแกนหน้าจากรูปภาพ
+                const detection = await faceapi.detectSingleFace(uploadedImage).withFaceLandmarks().withFaceDescriptor();
+                
+                if(!detection) {
+                    alert("ตรวจไม่พบใบหน้าในรูปภาพ กรุณาใช้รูปหน้าตรงที่ชัดเจนกว่านี้");
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                statusDiv.innerText = "สถานะ: แปลงใบหน้าสำเร็จ กำลังบันทึกลง Firebase...";
+
+                // แปลง Float32Array เป็น Array ธรรมดา เพื่อให้ Firebase บันทึกได้
+                const descriptorArray = Array.from(detection.descriptor);
+
+                // บันทึกข้อมูลลง Firestore ใน Collection 'students'
+                await setDoc(doc(db, "students", studentId), {
+                    student_id: studentId,
+                    name: studentName,
+                    faceDescriptor: descriptorArray
+                });
+
+                statusDiv.innerText = `สถานะ: บันทึกข้อมูลของ ${studentName} (รหัส ${studentId}) สำเร็จ!`;
+                alert("บันทึกข้อมูลเสร็จสิ้น สามารถทำคนต่อไปได้เลย");
+                
+                // ล้างฟอร์ม
+                document.getElementById('studentId').value = '';
+                document.getElementById('studentName').value = '';
+                document.getElementById('imageUpload').value = '';
+                document.getElementById('preview').style.display = 'none';
+                uploadedImage = null;
+
+            } catch (error) {
+                console.error("Error writing document: ", error);
+                statusDiv.innerText = "สถานะ: เกิดข้อผิดพลาดในการบันทึกข้อมูล";
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
