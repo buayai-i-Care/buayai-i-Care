@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 10px; }
+        .camera-container { position: relative; display: inline-block; width: 100%; max-width: 640px; }
+        video { width: 100%; height: auto; border-radius: 8px; transform: scaleX(-1); /* Mirror camera */ }
+        canvas { position: absolute; top: 0; left: 0; }
+        .status-box { margin-top: 15px; padding: 15px; border-radius: 8px; font-size: 1.2rem; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .gate-selector { margin-bottom: 15px; font-size: 1rem; padding: 8px; }
+    </style>
+</head>
+<body>
+
+    <h2>School Attendance Scanner</h2>
+
+    <!-- Entry Point Selection -->
+    <label for="gateSelect"><strong>Select Entry Point:</strong> </label>
+    <select id="gateSelect" class="gate-selector">
+        <option value="Gate 1">Gate 1</option>
+        <option value="Gate 2">Gate 2</option>
+        <option value="Gate 3">Gate 3</option>
+        <option value="Gate 4">Gate 4</option>
+    </select>
+
+    <div class="camera-container">
+        <video id="video" autoplay muted playsinline></video>
+    </div>
+
+    <div id="statusBox" class="status-box">Loading AI & Student Data...</div>
+
+    <!-- Load face-api.js -->
+    <script src="./js/face-api.min.js"></script>
+
+    <!-- Load Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // 1. Firebase Configuration (Use your existing config)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const video = document.getElementById('video');
+        const statusBox = document.getElementById('statusBox');
+        let faceMatcher = null;
+        let recentScans = {}; // Cooldown cache to prevent duplicate scans
+
+        // 2. Start Video Stream (Rear camera for mobile)
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                statusBox.innerHTML = "❌ Camera Error: " + err.message;
+            }
+        }
+
+        // 3. Load AI Models & Fetch All Student Descriptors from Firestore
+        async function initScanner() {
+            try {
+                // Load Models
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('./models')
+                ]);
+
+                statusBox.innerHTML = "Downloading student face database...";
+
+                // Fetch students from Firestore
+                const snapshot = await db.collection("students").get();
+                const labeledDescriptors = [];
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.descriptor) {
+                        const floatArray = new Float32Array(data.descriptor);
+                        const label = `${data.studentId} - ${data.fullName}`;
+                        labeledDescriptors.push(
+                            new faceapi.LabeledFaceDescriptors(label, [floatArray])
+                        );
+                    }
+                });
+
+                if (labeledDescriptors.length === 0) {
+                    statusBox.innerHTML = "⚠️ No student profiles found in database!";
+                    return;
+                }
+
+                // Initialize FaceMatcher (0.55 distance threshold)
+                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+
+                statusBox.innerHTML = `✅ Ready! Loaded ${labeledDescriptors.length} students. Scan face now.`;
+                startCamera();
+
+            } catch (err) {
+                statusBox.innerHTML = "❌ Init Error: " + err.message;
+            }
+        }
+
+        // 4. Real-time Face Detection & Recognition Loop
+        video.addEventListener('play', () => {
+            const canvas = faceapi.createCanvasFromMedia(video);
+            document.querySelector('.camera-container').append(canvas);
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            setInterval(async () => {
+                if (!faceMatcher) return;
+
+                const detections = await faceapi.detectAllFaces(video)
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+                resizedDetections.forEach(async (detection) => {
+                    const match = faceMatcher.findBestMatch(detection.descriptor);
+                    
+                    if (match.label !== 'unknown') {
+                        const [studentId, fullName] = match.label.split(' - ');
+                        recordAttendance(studentId, fullName);
+                    }
+                });
+            }, 500); // Check every 0.5 seconds
+        });
+
+        // 5. Record Attendance to Firestore with 5-minute Cooldown
+        async function recordAttendance(studentId, fullName) {
+            const now = Date.now();
+            const cooldownTime = 5 * 60 * 1000; // 5 minutes
+
+            // Prevent rapid repeated logging for the same student
+            if (recentScans[studentId] && (now - recentScans[studentId] < cooldownTime)) {
+                return; 
+            }
+
+            recentScans[studentId] = now;
+            const gate = document.getElementById('gateSelect').value;
+            const today = new Date().toISOString().split('T')[0];
+
+            try {
+                await db.collection("attendance").add({
+                    studentId: studentId,
+                    fullName: fullName,
+                    date: today,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    gate: gate,
+                    status: "PRESENT"
+                });
+
+                // Display success banner
+                statusBox.className = "status-box success";
+                statusBox.innerHTML = `✅ Checked in: <strong>${fullName}</strong> (${studentId}) at ${gate}`;
+
+                // Play audio beep (optional)
+                const beep = new Audio('https://media.geeksforgeeks.org/wp-content/uploads/20190531135120/beep.mp3');
+                beep.play();
+
+            } catch (err) {
+                console.error("Attendance log error:", err);
+            }
+        }
+
+        // Start initialization
+        initScanner();
+    </script>
+</body>
+</html>
