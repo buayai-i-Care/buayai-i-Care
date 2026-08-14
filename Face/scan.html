@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบสแกนใบหน้าลงเวลาเรียน โรงเรียนบัวใหญ่</title>
+    <title>ระบบสแกนใบหน้าลงเวลาเรียน</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -29,7 +29,7 @@
             width: 100%; 
             height: auto; 
             display: block;
-            transform: scaleX(-1); /* สลับเป็นโหมดกระจกเงา */
+            transform: scaleX(-1); /* Mirror camera feed */
         }
         canvas { 
             position: absolute; 
@@ -65,9 +65,9 @@
 <body>
 
     <div class="container">
-        <h2>ระบบสแกนใบหน้าลงเวลาเรียน</h2>
+        <h2>ระบบสแกนใบหน้าลงเวลาเรียน.โรงเรียนบัวใหญ่</h2>
 
-        <!-- จุดคัดกรอง/ประตู -->
+        <!-- Entry Point Gate Selection -->
         <div>
             <label for="gateSelect"><strong>ระบุจุดสแกน (Gate):</strong> </label>
             <select id="gateSelect" class="gate-selector">
@@ -85,15 +85,15 @@
         <div id="statusBox" class="status-box">กำลังโหลดระบบ AI และฐานข้อมูลนักเรียน...</div>
     </div>
 
-    <!-- โหลด face-api.js -->
+    <!-- Load face-api.js -->
     <script src="./js/face-api.min.js"></script>
 
-    <!-- โหลด Firebase SDK -->
+    <!-- Load Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // 1. กำหนดค่า Firebase ของคุณ
+        // 1. Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
             authDomain: "by-school-fscan.firebaseapp.com",
@@ -108,9 +108,9 @@
         const video = document.getElementById('video');
         const statusBox = document.getElementById('statusBox');
         let faceMatcher = null;
-        let recentScans = {}; // ป้องกันการสแกนซ้ำในระยะเวลาสั้นๆ
+        let recentScans = {}; // Cooldown cache to prevent multiple scans within short time
 
-        // 2. เปิดใช้งานกล้อง (ใช้กล้องหลัง/กล้องหลักของอุปกรณ์)
+        // 2. Start Video Camera (Uses rear camera on mobile devices)
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -122,10 +122,10 @@
             }
         }
 
-        // 3. โหลดโมเดล AI และดึงชุดข้อมูลใบหน้านักเรียนจาก Firebase
+        // 3. Load AI Models and Fetch Student Descriptors from Firestore
         async function initScanner() {
             try {
-                // โหลด AI Models
+                // Load AI Models
                 await Promise.all([
                     faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
                     faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
@@ -134,15 +134,21 @@
 
                 statusBox.innerHTML = "กำลังดาวน์โหลดฐานข้อมูลใบหน้านักเรียน...";
 
-                // ดึงรายชื่อนักเรียนจาก Firestore
+                // Fetch student records from Firestore
                 const snapshot = await db.collection("students").get();
                 const labeledDescriptors = [];
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.descriptor) {
-                        const floatArray = new Float32Array(data.descriptor);
-                        const label = `${data.studentId} - ${data.fullName}`;
+                    
+                    // Support both naming conventions (faceDescriptor / descriptor, name / fullName, student_id / studentId)
+                    const descriptor = data.faceDescriptor || data.descriptor;
+                    const studentId = data.student_id || data.studentId || doc.id;
+                    const fullName = data.name || data.fullName || '';
+
+                    if (descriptor && descriptor.length === 128) {
+                        const floatArray = new Float32Array(descriptor);
+                        const label = `${studentId} - ${fullName}`;
                         labeledDescriptors.push(
                             new faceapi.LabeledFaceDescriptors(label, [floatArray])
                         );
@@ -150,11 +156,11 @@
                 });
 
                 if (labeledDescriptors.length === 0) {
-                    statusBox.innerHTML = "⚠️ ไม่พบข้อมูลนักเรียนในฐานข้อมูล (กรุณาลงทะเบียนผ่าน admin.html ก่อน)";
+                    statusBox.innerHTML = "⚠️ ไม่พบข้อมูลใบหน้านักเรียนในฐานข้อมูล";
                     return;
                 }
 
-                // สร้าง FaceMatcher (ตั้งค่าความแม่นยำ Threshold ไว้ที่ 0.55)
+                // Create FaceMatcher with 0.55 distance threshold
                 faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
 
                 statusBox.innerHTML = `✅ พร้อมใช้งาน! โหลดข้อมูลนักเรียนสำเร็จ ${labeledDescriptors.length} คน`;
@@ -165,7 +171,7 @@
             }
         }
 
-        // 4. ตรวจจับและเปรียบเทียบใบหน้าแบบ Real-time
+        // 4. Real-time Face Detection & Recognition Loop
         video.addEventListener('play', () => {
             const canvas = faceapi.createCanvasFromMedia(video);
             document.querySelector('.camera-container').append(canvas);
@@ -190,13 +196,13 @@
                         recordAttendance(studentId, fullName);
                     }
                 });
-            }, 500); // ทำการตรวจจับทุกๆ 0.5 วินาที
+            }, 500); // Check every 0.5 seconds
         });
 
-        // 5. บันทึกเวลาเรียนลง Firestore (ป้องกันการสแกนซ้ำภายใน 5 นาที)
+        // 5. Save Attendance Record to Firestore (5-minute cooldown per student)
         async function recordAttendance(studentId, fullName) {
             const now = Date.now();
-            const cooldownTime = 5 * 60 * 1000; // Cooldown 5 นาที
+            const cooldownTime = 5 * 60 * 1000; // 5 minutes
 
             if (recentScans[studentId] && (now - recentScans[studentId] < cooldownTime)) {
                 return; 
@@ -216,11 +222,11 @@
                     status: "PRESENT"
                 });
 
-                // แสดงข้อความสแกนสำเร็จ
+                // Display success status
                 statusBox.className = "status-box success";
                 statusBox.innerHTML = `🎉 ลงเวลาสำเร็จ: <strong>${fullName}</strong> (${studentId}) [${gate}]`;
 
-                // เสียงแจ้งเตือน (Beep)
+                // Play audio beep
                 const beep = new Audio('https://media.geeksforgeeks.org/wp-content/uploads/20190531135120/beep.mp3');
                 beep.play();
 
@@ -229,7 +235,7 @@
             }
         }
 
-        // เริ่มทำงานเมื่อเปิดหน้าเว็บ
+        // Initialize scanner on page load
         initScanner();
     </script>
 </body>
