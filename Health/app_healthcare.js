@@ -11,7 +11,7 @@ const toast = document.getElementById('toast');
 // --- 1. Login System ---
 document.getElementById('login-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const password = document.getElementById('password').value;
+    const password = document.getElementById('password').value.trim().toLowerCase();
     
     if (password === 'kkssbbyy') {
         document.getElementById('login-screen').classList.remove('active');
