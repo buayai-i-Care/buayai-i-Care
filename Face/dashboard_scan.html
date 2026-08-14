@@ -2,321 +2,646 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดสรุปการลงเวลาเรียน โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา (Real-time)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบรายงานการลงเวลาเรียน -โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</title>
+    <!-- Google Font: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { box-sizing: border-box; }
+        :root {
+            --bg-body: #F8FAFC;
+            --surface: #FFFFFF;
+            --primary-blue: #1E40AF;
+            --primary-gradient: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+            --pink-accent: #EC4899;
+            --pink-gradient: linear-gradient(135deg, #EC4899 0%, #F43F5E 100%);
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --success-green: #10B981;
+            --warning-amber: #F59E0B;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 4px 20px rgba(30, 58, 138, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f4f6f9; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333;
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main);
+            padding-bottom: 40px;
+            -webkit-tap-highlight-color: transparent;
         }
-        .container { max-width: 1100px; margin: 0 auto; }
-        
-        h2 { text-align: center; color: #1a252f; margin-bottom: 20px; }
 
-        /* Summary Cards */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+        /* Top Header */
+        .header {
+            background: var(--primary-gradient);
+            color: #FFFFFF;
+            padding: 24px 16px 32px 16px;
+            border-radius: 0 0 24px 24px;
+            box-shadow: var(--shadow-md);
+            position: relative;
         }
-        .card {
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            text-align: center;
-            border-bottom: 4px solid #007bff;
-        }
-        .card.total { border-color: #28a745; }
-        .card.g1 { border-color: #17a2b8; }
-        .card.g2 { border-color: #ffc107; }
-        .card.g3 { border-color: #fd7e14; }
-        .card.g4 { border-color: #6f42c1; }
-        
-        .card h4 { margin: 0; color: #6c757d; font-size: 0.9rem; }
-        .card .number { font-size: 1.8rem; font-weight: bold; margin-top: 5px; color: #212529; }
 
-        /* Controls Section */
-        .controls {
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            color: #93C5FD;
+            margin-top: 2px;
+            font-weight: 300;
+        }
+
+        .live-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #34D399;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+            animation: pulse 1.6s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1000px;
+            margin: -16px auto 0 auto;
+            padding: 0 16px;
+        }
+
+        /* Stat Cards Horizontal Scroll / Grid for Mobile */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-bottom: 20px;
         }
-        .filter-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        input[type="date"], select, input[type="text"] {
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        .btn-export {
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-export:hover { background-color: #218838; }
 
-        /* Data Table */
-        .table-container {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            overflow-x: auto;
+        .stat-card {
+            background: var(--surface);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
         }
-        table {
+
+        .stat-card.total-card {
+            grid-column: span 2;
+            background: #FFFFFF;
+            border-left: 5px solid var(--pink-accent);
+        }
+
+        .stat-card.gate-card {
+            border-top: 3px solid var(--primary-blue);
+        }
+
+        .stat-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        .total-card .stat-value {
+            font-size: 2.1rem;
+            color: var(--primary-blue);
+        }
+
+        .stat-sub {
+            font-size: 0.72rem;
+            color: var(--pink-accent);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* Controls Section */
+        .controls-card {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input[type="date"], select, input[type="text"] {
             width: 100%;
-            border-collapse: collapse;
-            text-align: left;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: #FAF5FF; /* Subtle soft background */
+            transition: all 0.2s;
+            outline: none;
         }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; }
-        th { background-color: #f8f9fa; color: #495057; font-weight: 600; }
-        tr:hover { background-color: #f1f3f5; }
-        
+
+        input[type="date"]:focus, select:focus, input[type="text"]:focus {
+            border-color: var(--primary-blue);
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .btn-export {
+            background: var(--pink-gradient);
+            color: #FFFFFF;
+            border: none;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+            width: 100%;
+        }
+
+        .btn-export:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* List View for Mobile */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .record-card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .record-card:active {
+            border-color: var(--primary-blue);
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .student-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .student-meta {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
+        .record-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .scan-time {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Badges */
         .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
         }
-        .badge-success { background-color: #d4edda; color: #155724; }
-        .badge-gate { background-color: #e2e3e5; color: #383d41; }
+
+        .badge-gate { background-color: #EFF6FF; color: var(--primary-blue); border: 1px solid #BFDBFE; }
+        .badge-warning { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+        .badge-success { background-color: #ECFDF5; color: #047857; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--border-color);
+        }
+
+        /* Desktop Table View overrides */
+        .desktop-table-container { display: none; }
+
+        @media (min-width: 768px) {
+            .header { padding: 32px 24px 48px 24px; }
+            .header h1 { font-size: 1.75rem; }
+            .stats-grid { grid-template-columns: repeat(5, 1fr); gap: 16px; }
+            .stat-card.total-card { grid-column: span 1; border-left: none; border-top: 3px solid var(--pink-accent); }
+            
+            .controls-card { padding: 20px; }
+            .control-row { flex-direction: row; align-items: flex-end; }
+            .btn-export { width: auto; padding: 12px 24px; }
+
+            /* Switch from cards to Desktop Table */
+            .list-container { display: none; }
+            .desktop-table-container {
+                display: block;
+                background: var(--surface);
+                border-radius: var(--radius-lg);
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                overflow: hidden;
+            }
+
+            table { width: 100%; border-collapse: collapse; text-align: left; }
+            th { background: #F1F5F9; color: var(--text-muted); padding: 14px 18px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+            td { padding: 14px 18px; border-top: 1px solid var(--border-color); font-size: 0.9rem; }
+            tr:hover { background-color: #F8FAFC; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📊 แดชบอร์ดสรุปการลงเวลาเรียน  โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา </h2>
-
-    <!-- การ์ดสรุปยอด -->
-    <div class="card-grid">
-        <div class="card total">
-            <h4>มาเรียนวันนี้ทั้งหมด</h4>
-            <div class="number" id="countTotal">0</div>
+    <!-- Header Bar -->
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>รายงานการลงเวลาเรียน  โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา</h1>
+                <p>ระบบบันทึกเวลาเรียนและสแกนใบหน้าอัตโนมัติ ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล  Buayai I Care School</p>
+            </div>
+            <div class="live-badge">
+                <div class="pulse-dot"></div>
+                <span>LIVE</span>
+            </div>
         </div>
-        <div class="card g1">
-            <h4>ประตู 1</h4>
-            <div class="number" id="countG1">0</div>
-        </div>
-        <div class="card g2">
-            <h4>ประตู 2</h4>
-            <div class="number" id="countG2">0</div>
-        </div>
-        <div class="card g3">
-            <h4>ประตู 3</h4>
-            <div class="number" id="countG3">0</div>
-        </div>
-        <div class="card g4">
-            <h4>ประตู 4</h4>
-            <div class="number" id="countG4">0</div>
-        </div>
-    </div>
+    </header>
 
-    <!-- ตัวกรองข้อมูล -->
-    <div class="controls">
-        <div class="filter-group">
-            <label><strong>วันที่:</strong></label>
-            <input type="date" id="dateFilter">
+    <!-- Main Content Container -->
+    <main class="container">
+        
+        <!-- Stat Cards -->
+        <section class="stats-grid">
+            <div class="stat-card total-card">
+                <div class="stat-title">นักเรียนมาเรียนวันนี้</div>
+                <div class="stat-value" id="countTotal">0</div>
+                <div class="stat-sub" id="rawScanTotal">สแกนทั้งหมด: 0 ครั้ง</div>
+            </div>
+            <div class="stat-card gate-card">
+                <div class="stat-title">ประตู 1</div>
+                <div class="stat-value" id="countG1">0</div>
+            </div>
+            <div class="stat-card gate-card">
+                <div class="stat-title">ประตู 2</div>
+                <div class="stat-value" id="countG2">0</div>
+            </div>
+            <div class="stat-card gate-card">
+                <div class="stat-title">ประตู 3</div>
+                <div class="stat-value" id="countG3">0</div>
+            </div>
+            <div class="stat-card gate-card">
+                <div class="stat-title">ประตู 4</div>
+                <div class="stat-value" id="countG4">0</div>
+            </div>
+        </section>
 
-            <select id="gateFilter">
-                <option value="ALL">ทุกประตู (Gate All)</option>
-                <option value="Gate 1">ประตู 1</option>
-                <option value="Gate 2">ประตู 2</option>
-                <option value="Gate 3">ประตู 3</option>
-                <option value="Gate 4">ประตู 4</option>
-            </select>
+        <!-- Controls / Filters -->
+        <section class="controls-card">
+            <div class="control-row">
+                <div class="input-group">
+                    <label>เลือกวันที่</label>
+                    <input type="date" id="dateFilter">
+                </div>
+                <div class="input-group">
+                    <label>จุดสแกน (Gate)</label>
+                    <select id="gateFilter">
+                        <option value="ALL">ทุกประตู (Gate All)</option>
+                        <option value="Gate 1">ประตู 1</option>
+                        <option value="Gate 2">ประตู 2</option>
+                        <option value="Gate 3">ประตู 3</option>
+                        <option value="Gate 4">ประตู 4</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>ค้นหานักเรียน</label>
+                    <input type="text" id="searchInput" placeholder="รหัส หรือชื่อ-นามสกุล...">
+                </div>
+            </div>
+            <button class="btn-export" onclick="exportToCSV()">
+                <span>📥 Export Excel (CSV)</span>
+            </button>
+        </section>
 
-            <input type="text" id="searchInput" placeholder="ค้นหารหัส หรือชื่อนักเรียน...">
-        </div>
+        <!-- Mobile List View (<768px) -->
+        <section class="list-container" id="mobileListView">
+            <div class="empty-state">กำลังดึงและประมวลผลข้อมูล...</div>
+        </section>
 
-        <button class="btn-export" onclick="exportToCSV()">📥 Export Excel (CSV)</button>
-    </div>
+        <!-- Desktop Table View (>=768px) -->
+        <section class="desktop-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>เวลาสแกนครั้งแรก</th>
+                        <th>รหัสนักเรียน</th>
+                        <th>ชื่อ - นามสกุล</th>
+                        <th>จุดสแกน</th>
+                        <th>จำนวนสแกน</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody id="desktopTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #888; padding: 30px;">กำลังโหลดข้อมูล...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
-    <!-- ตารางแสดงรายการ -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>เวลาสแกน</th>
-                    <th>รหัสนักเรียน</th>
-                    <th>ชื่อ - นามสกุล</th>
-                    <th>จุดสแกน</th>
-                    <th>สถานะ</th>
-                </tr>
-            </thead>
-            <tbody id="attendanceTable">
-                <tr>
-                    <td colspan="6" style="text-align: center; color: #888;">กำลังโหลดข้อมูล...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+    </main>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<script>
-    // 1. Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
-        authDomain: "by-school-fscan.firebaseapp.com",
-        projectId: "by-school-fscan",
-        storageBucket: "by-school-fscan.firebasestorage.app",
-        messagingSenderId: "577646754945",
-        appId: "1:577646754945:web:32aa72f9f66fd40d512180"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    <script>
+        // 1. Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
+            authDomain: "by-school-fscan.firebaseapp.com",
+            projectId: "by-school-fscan",
+            storageBucket: "by-school-fscan.firebasestorage.app",
+            messagingSenderId: "577646754945",
+            appId: "1:577646754945:web:32aa72f9f66fd40d512180"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-    // DOM Elements
-    const dateFilter = document.getElementById('dateFilter');
-    const gateFilter = document.getElementById('gateFilter');
-    const searchInput = document.getElementById('searchInput');
-    const attendanceTable = document.getElementById('attendanceTable');
+        // DOM Elements
+        const dateFilter = document.getElementById('dateFilter');
+        const gateFilter = document.getElementById('gateFilter');
+        const searchInput = document.getElementById('searchInput');
+        const mobileListView = document.getElementById('mobileListView');
+        const desktopTableBody = document.getElementById('desktopTableBody');
 
-    let allRecords = []; // เก็บข้อมูลดิบประจำวัน
-    let unsubscribe = null; // สำหรับยกเลิก Real-time listener เดิมเมื่อเปลี่ยนวันที่
+        let uniqueRecords = []; // ข้อมูลที่ Deduplicate แล้ว
+        let totalRawScans = 0;  // จำนวนสแกนรวมทั้งหมด
+        let unsubscribe = null;
 
-    // ตั้งค่าวันที่เริ่มต้นเป็น "วันนี้"
-    const todayStr = new Date().toISOString().split('T')[0];
-    dateFilter.value = todayStr;
+        // กำหนดวันที่เริ่มต้นเป็น "วันนี้"
+        const todayStr = new Date().toISOString().split('T')[0];
+        dateFilter.value = todayStr;
 
-    // 2. ฟังข้อมูลการลงเวลาแบบ Real-time (onSnapshot)
-    function listenAttendance(date) {
-        if (unsubscribe) unsubscribe(); // ยกเลิกการดึงข้อมูลของวันก่อนหน้า
+        // 2. ดึงข้อมูล Real-time และทำ Deduplication
+        function listenAttendance(date) {
+            if (unsubscribe) unsubscribe();
 
-        attendanceTable.innerHTML = '<tr><td colspan="6" style="text-align: center;">กำลังดึงข้อมูล...</td></tr>';
+            mobileListView.innerHTML = '<div class="empty-state">กำลังดึงและประมวลผลข้อมูล...</div>';
+            desktopTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px;">กำลังดึงและประมวลผลข้อมูล...</td></tr>';
 
-        unsubscribe = db.collection("attendance")
-            .where("date", "==", date)
-            .onSnapshot(snapshot => {
-                allRecords = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    
-                    // แปลง Timestamp เป็นรูปแบบเวลา (HH:mm:ss)
-                    let timeStr = "-";
-                    if (data.timestamp) {
-                        const dateObj = data.timestamp.toDate();
-                        timeStr = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    }
+            unsubscribe = db.collection("attendance")
+                .where("date", "==", date)
+                .onSnapshot(snapshot => {
+                    const studentMap = new Map();
+                    totalRawScans = snapshot.size;
 
-                    allRecords.push({
-                        id: doc.id,
-                        studentId: data.studentId || '-',
-                        fullName: data.fullName || '-',
-                        gate: data.gate || 'Gate 1',
-                        status: data.status || 'PRESENT',
-                        timeStr: timeStr,
-                        rawTimestamp: data.timestamp ? data.timestamp.toMillis() : 0
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const studentId = data.studentId || '-';
+
+                        let rawTimestamp = 0;
+                        let timeStr = "-";
+                        if (data.timestamp) {
+                            const dateObj = data.timestamp.toDate();
+                            rawTimestamp = data.timestamp.toMillis();
+                            timeStr = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        }
+
+                        const record = {
+                            id: doc.id,
+                            studentId: studentId,
+                            fullName: data.fullName || '-',
+                            gate: data.gate || 'Gate 1',
+                            status: data.status || 'PRESENT',
+                            timeStr: timeStr,
+                            rawTimestamp: rawTimestamp,
+                            scanCount: 1
+                        };
+
+                        // 🧠 ดึงเวลาสแกนเข้าเรียนที่เร็วที่สุดของวัน (Earliest Check-in)
+                        if (!studentMap.has(studentId)) {
+                            studentMap.set(studentId, record);
+                        } else {
+                            const existing = studentMap.get(studentId);
+                            if (rawTimestamp > 0 && (existing.rawTimestamp === 0 || rawTimestamp < existing.rawTimestamp)) {
+                                studentMap.set(studentId, {
+                                    ...record,
+                                    scanCount: existing.scanCount + 1
+                                });
+                            } else {
+                                existing.scanCount += 1;
+                            }
+                        }
                     });
+
+                    // แปลง Map กลับเป็น Array
+                    uniqueRecords = Array.from(studentMap.values());
+
+                    // เรียงลำดับเอาคนที่สแกนล่าสุดขึ้นก่อน
+                    uniqueRecords.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+
+                    updateCounters();
+                    renderViews();
+                }, err => {
+                    console.error("Error fetching data:", err);
+                    mobileListView.innerHTML = `<div class="empty-state" style="color:red;">เกิดข้อผิดพลาด: ${err.message}</div>`;
                 });
+        }
 
-                // เรียงลำดับเอาคนที่สแกนล่าสุดขึ้นก่อน
-                allRecords.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+        // 3. คำนวณยอดการ์ดสรุปผล
+        function updateCounters() {
+            document.getElementById('countTotal').innerText = uniqueRecords.length.toLocaleString();
+            document.getElementById('rawScanTotal').innerText = `สแกนทั้งหมด: ${totalRawScans.toLocaleString()} ครั้ง`;
 
-                // อัปเดตการ์ดสรุปยอด และตาราง
-                updateCounters();
-                renderTable();
-            }, err => {
-                console.error("Error listening to attendance:", err);
-                attendanceTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+            document.getElementById('countG1').innerText = uniqueRecords.filter(r => r.gate === 'Gate 1').length;
+            document.getElementById('countG2').innerText = uniqueRecords.filter(r => r.gate === 'Gate 2').length;
+            document.getElementById('countG3').innerText = uniqueRecords.filter(r => r.gate === 'Gate 3').length;
+            document.getElementById('countG4').innerText = uniqueRecords.filter(r => r.gate === 'Gate 4').length;
+        }
+
+        // 4. แสดงผลทั้ง Mobile Card View และ Desktop Table View
+        function renderViews() {
+            const selectedGate = gateFilter.value;
+            const searchKeyword = searchInput.value.toLowerCase().trim();
+
+            const filtered = uniqueRecords.filter(record => {
+                const matchGate = (selectedGate === 'ALL') || (record.gate === selectedGate);
+                const matchSearch = record.studentId.toLowerCase().includes(searchKeyword) || 
+                                    record.fullName.toLowerCase().includes(searchKeyword);
+                return matchGate && matchSearch;
             });
-    }
 
-    // 3. คำนวณยอดการ์ดสรุปผล
-    function updateCounters() {
-        document.getElementById('countTotal').innerText = allRecords.length;
-        document.getElementById('countG1').innerText = allRecords.filter(r => r.gate === 'Gate 1').length;
-        document.getElementById('countG2').innerText = allRecords.filter(r => r.gate === 'Gate 2').length;
-        document.getElementById('countG3').innerText = allRecords.filter(r => r.gate === 'Gate 3').length;
-        document.getElementById('countG4').innerText = allRecords.filter(r => r.gate === 'Gate 4').length;
-    }
+            if (filtered.length === 0) {
+                mobileListView.innerHTML = '<div class="empty-state">ไม่พบข้อมูลการสแกนในเงื่อนไขนี้</div>';
+                desktopTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #888; padding: 30px;">ไม่พบข้อมูลการสแกน</td></tr>';
+                return;
+            }
 
-    // 4. แสดงผลตารางตาม Filter & Search
-    function renderTable() {
-        const selectedGate = gateFilter.value;
-        const searchKeyword = searchInput.value.toLowerCase().trim();
+            // Render Mobile List
+            let mobileHtml = '';
+            // Render Desktop Table
+            let desktopHtml = '';
 
-        const filtered = allRecords.filter(record => {
-            const matchGate = (selectedGate === 'ALL') || (record.gate === selectedGate);
-            const matchSearch = record.studentId.toLowerCase().includes(searchKeyword) || 
-                                record.fullName.toLowerCase().includes(searchKeyword);
-            return matchGate && matchSearch;
-        });
+            filtered.forEach((rec, index) => {
+                const scanBadgeText = rec.scanCount > 1 ? `${rec.scanCount} ครั้ง` : '1 ครั้ง';
+                const scanBadgeClass = rec.scanCount > 1 ? 'badge-warning' : 'badge-gate';
 
-        if (filtered.length === 0) {
-            attendanceTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">ไม่พบข้อมูลการสแกน</td></tr>';
-            return;
+                // Mobile Card Template
+                mobileHtml += `
+                    <div class="record-card">
+                        <div class="student-info">
+                            <div class="student-name">${rec.fullName}</div>
+                            <div class="student-meta">
+                                <span>รหัส: ${rec.studentId}</span>
+                                <span>•</span>
+                                <span class="badge badge-gate">${rec.gate}</span>
+                            </div>
+                        </div>
+                        <div class="record-side">
+                            <div class="scan-time">${rec.timeStr}</div>
+                            <span class="badge ${scanBadgeClass}">${scanBadgeText}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Desktop Table Row Template
+                desktopHtml += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${rec.timeStr}</strong></td>
+                        <td>${rec.studentId}</td>
+                        <td>${rec.fullName}</td>
+                        <td><span class="badge badge-gate">${rec.gate}</span></td>
+                        <td><span class="badge ${scanBadgeClass}">${scanBadgeText}</span></td>
+                        <td><span class="badge badge-success">มาเรียน</span></td>
+                    </tr>
+                `;
+            });
+
+            mobileListView.innerHTML = mobileHtml;
+            desktopTableBody.innerHTML = desktopHtml;
         }
 
-        let html = '';
-        filtered.forEach((rec, index) => {
-            html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${rec.timeStr}</strong></td>
-                    <td>${rec.studentId}</td>
-                    <td>${rec.fullName}</td>
-                    <td><span class="badge badge-gate">${rec.gate}</span></td>
-                    <td><span class="badge badge-success">มาเรียน</span></td>
-                </tr>
-            `;
-        });
-        attendanceTable.innerHTML = html;
-    }
+        // 5. ส่งออกไฟล์ Excel (CSV) สรุปภาษาไทย
+        function exportToCSV() {
+            if (uniqueRecords.length === 0) {
+                alert("ไม่มีข้อมูลสำหรับส่งออก");
+                return;
+            }
 
-    // 5. ส่งออกไฟล์ Excel (CSV)
-    function exportToCSV() {
-        if (allRecords.length === 0) {
-            alert("ไม่มีข้อมูลสำหรับส่งออก");
-            return;
+            let csvContent = "\uFEFFลำดับ,เวลาสแกนครั้งแรก,รหัสนักเรียน,ชื่อ-นามสกุล,จุดสแกน,จำนวนครั้งที่สแกน,สถานะ\n";
+
+            uniqueRecords.forEach((rec, index) => {
+                csvContent += `"${index + 1}","${rec.timeStr}","${rec.studentId}","${rec.fullName}","${rec.gate}","${rec.scanCount}","${rec.status}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `รายงานสแกนเข้าเรียน_${dateFilter.value}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // ใส่ \uFEFF ด้านหน้าเพื่อให้ Excel เปิดภาษาไทยได้อย่างถูกต้องไม่เป็นตัวต่างดาว
-        let csvContent = "\uFEFFลำดับ,เวลาสแกน,รหัสนักเรียน,ชื่อ-นามสกุล,จุดสแกน,สถานะ\n";
+        // Event Listeners
+        dateFilter.addEventListener('change', (e) => listenAttendance(e.target.value));
+        gateFilter.addEventListener('change', renderViews);
+        searchInput.addEventListener('input', renderViews);
 
-        allRecords.forEach((rec, index) => {
-            csvContent += `"${index + 1}","${rec.timeStr}","${rec.studentId}","${rec.fullName}","${rec.gate}","${rec.status}"\n`;
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `รายงานการเข้าเรียน_${dateFilter.value}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // Event Listeners สำหรับ Filters
-    dateFilter.addEventListener('change', (e) => listenAttendance(e.target.value));
-    gateFilter.addEventListener('change', renderTable);
-    searchInput.addEventListener('input', renderTable);
-
-    // เริ่มต้นดึงข้อมูลของวันปัจจุบัน
-    listenAttendance(todayStr);
-</script>
-
+        // เริ่มต้นฟังข้อมูล
+        listenAttendance(todayStr);
+    </script>
 </body>
 </html>
