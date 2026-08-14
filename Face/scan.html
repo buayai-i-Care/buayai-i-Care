@@ -21,41 +21,71 @@
             display: inline-block; 
             width: 100%; 
             background-color: #000;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         video { 
             width: 100%; 
             height: auto; 
             display: block;
-            transform: scaleX(-1); /* Mirror camera feed */
+            transform: scaleX(-1); /* สลับเป็นโหมดกระจกเงา */
         }
         canvas { 
             position: absolute; 
             top: 0; 
             left: 0; 
+            z-index: 10;
         }
+
+        /* 🟢 กรอบจัดตำแหน่งใบหน้า (Overlay Guide) */
+        .scan-guide-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 240px;
+            height: 300px;
+            border: 3px dashed rgba(255, 255, 255, 0.7);
+            border-radius: 50%; /* วงรีสำหรับวางใบหน้า */
+            pointer-events: none;
+            z-index: 5;
+            transition: all 0.2s ease;
+        }
+
+        /* 🟢 เอฟเฟกต์เมื่อสแกนผ่าน: กรอบสีเขียวกระพริบ */
+        .scan-guide-box.success-blink {
+            border: 6px solid #28a745 !important;
+            box-shadow: 0 0 30px #28a745 !important;
+            animation: greenFlash 0.3s infinite alternate;
+        }
+
+        @keyframes greenFlash {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.03); }
+        }
+
         .status-box { 
             margin-top: 15px; 
             padding: 15px; 
-            border-radius: 8px; 
+            border-radius: 12px; 
             font-size: 1.1rem; 
             font-weight: bold;
             background-color: #ffffff; 
             box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
             color: #333;
+            transition: all 0.3s ease;
         }
         .success { 
             background-color: #d4edda !important; 
             color: #155724 !important; 
-            border: 1px solid #c3e6cb; 
+            border: 2px solid #28a745; 
         }
         .gate-selector { 
             margin-bottom: 15px; 
             font-size: 1rem; 
             padding: 10px; 
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid #ccc;
             width: 100%;
             max-width: 300px;
@@ -65,9 +95,9 @@
 <body>
 
     <div class="container">
-        <h2>ระบบสแกนใบหน้าลงเวลาเรียน.โรงเรียนบัวใหญ่</h2>
+        <h2>ระบบสแกนใบหน้าลงเวลาเรียน</h2>
 
-        <!-- Entry Point Gate Selection -->
+        <!-- จุดคัดกรอง/ประตู -->
         <div>
             <label for="gateSelect"><strong>ระบุจุดสแกน (Gate):</strong> </label>
             <select id="gateSelect" class="gate-selector">
@@ -78,17 +108,19 @@
             </select>
         </div>
 
-        <div class="camera-container">
+        <div class="camera-container" id="cameraContainer">
             <video id="video" autoplay muted playsinline></video>
+            <!-- วงสแกนจัดตำแหน่งใบหน้า -->
+            <div id="guideBox" class="scan-guide-box"></div>
         </div>
 
         <div id="statusBox" class="status-box">กำลังโหลดระบบ AI และฐานข้อมูลนักเรียน...</div>
     </div>
 
-    <!-- Load face-api.js -->
+    <!-- โหลด face-api.js -->
     <script src="./js/face-api.min.js"></script>
 
-    <!-- Load Firebase SDK -->
+    <!-- โหลด Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -107,10 +139,12 @@
 
         const video = document.getElementById('video');
         const statusBox = document.getElementById('statusBox');
+        const guideBox = document.getElementById('guideBox');
         let faceMatcher = null;
-        let recentScans = {}; // Cooldown cache to prevent multiple scans within short time
+        let recentScans = {}; // Cooldown
+        let flashTimeout = null;
 
-        // 2. Start Video Camera (Uses rear camera on mobile devices)
+        // 2. เปิดใช้งานกล้อง
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -122,10 +156,9 @@
             }
         }
 
-        // 3. Load AI Models and Fetch Student Descriptors from Firestore
+        // 3. โหลด AI Models และดึงข้อมูลนักเรียน
         async function initScanner() {
             try {
-                // Load AI Models
                 await Promise.all([
                     faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
                     faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
@@ -134,14 +167,11 @@
 
                 statusBox.innerHTML = "กำลังดาวน์โหลดฐานข้อมูลใบหน้านักเรียน...";
 
-                // Fetch student records from Firestore
                 const snapshot = await db.collection("students").get();
                 const labeledDescriptors = [];
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    
-                    // Support both naming conventions (faceDescriptor / descriptor, name / fullName, student_id / studentId)
                     const descriptor = data.faceDescriptor || data.descriptor;
                     const studentId = data.student_id || data.studentId || doc.id;
                     const fullName = data.name || data.fullName || '';
@@ -160,9 +190,7 @@
                     return;
                 }
 
-                // Create FaceMatcher with 0.55 distance threshold
                 faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
-
                 statusBox.innerHTML = `✅ พร้อมใช้งาน! โหลดข้อมูลนักเรียนสำเร็จ ${labeledDescriptors.length} คน`;
                 startCamera();
 
@@ -171,12 +199,14 @@
             }
         }
 
-        // 4. Real-time Face Detection & Recognition Loop
+        // 4. ตรวจจับใบหน้า และวาดกรอบสแกนบน Canvas
         video.addEventListener('play', () => {
             const canvas = faceapi.createCanvasFromMedia(video);
-            document.querySelector('.camera-container').append(canvas);
+            document.getElementById('cameraContainer').append(canvas);
             const displaySize = { width: video.clientWidth, height: video.clientHeight };
             faceapi.matchDimensions(canvas, displaySize);
+
+            const ctx = canvas.getContext('2d');
 
             setInterval(async () => {
                 if (!faceMatcher) return;
@@ -186,23 +216,45 @@
                     .withFaceDescriptors();
 
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                resizedDetections.forEach(async (detection) => {
+                resizedDetections.forEach((detection) => {
                     const match = faceMatcher.findBestMatch(detection.descriptor);
-                    
+                    const box = detection.detection.box;
+
+                    // สลับแกน X ของ Canvas ให้ตรงกับวิดีโอที่เป็นโหมดกระจกเงา
+                    const mirroredX = displaySize.width - box.x - box.width;
+
                     if (match.label !== 'unknown') {
                         const [studentId, fullName] = match.label.split(' - ');
+                        
+                        // วาดกรอบสีเขียวรอบใบหน้าที่ตรวจพบ
+                        ctx.strokeStyle = '#28a745';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(mirroredX, box.y, box.width, box.height);
+
+                        // แสดงป้ายชื่อบนหัว
+                        ctx.fillStyle = '#28a745';
+                        ctx.fillRect(mirroredX, box.y - 30, box.width, 30);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '16px Arial';
+                        ctx.fillText(`✅ ${fullName}`, mirroredX + 5, box.y - 8);
+
                         recordAttendance(studentId, fullName);
+                    } else {
+                        // ใบหน้าที่ยังไม่รู้จัก/กำลังประมวลผล (กรอบสีขาว)
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(mirroredX, box.y, box.width, box.height);
                     }
                 });
-            }, 500); // Check every 0.5 seconds
+            }, 300); // อัปเดตทุกๆ 0.3 วินาที
         });
 
-        // 5. Save Attendance Record to Firestore (5-minute cooldown per student)
+        // 5. บันทึกเวลาเรียนลง Firestore และแสดงเอฟเฟกต์กระพริบสีเขียว
         async function recordAttendance(studentId, fullName) {
             const now = Date.now();
-            const cooldownTime = 5 * 60 * 1000; // 5 minutes
+            const cooldownTime = 5 * 60 * 1000; // Cooldown 5 นาที
 
             if (recentScans[studentId] && (now - recentScans[studentId] < cooldownTime)) {
                 return; 
@@ -211,6 +263,9 @@
             recentScans[studentId] = now;
             const gate = document.getElementById('gateSelect').value;
             const today = new Date().toISOString().split('T')[0];
+
+            // 🟢 เปิดเอฟเฟกต์กรอบวงรีกระพริบสีเขียว 1.5 วินาที
+            triggerGreenFlash();
 
             try {
                 await db.collection("attendance").add({
@@ -222,11 +277,11 @@
                     status: "PRESENT"
                 });
 
-                // Display success status
+                // แสดงข้อความสแกนสำเร็จ
                 statusBox.className = "status-box success";
                 statusBox.innerHTML = `🎉 ลงเวลาสำเร็จ: <strong>${fullName}</strong> (${studentId}) [${gate}]`;
 
-                // Play audio beep
+                // เล่นเสียง Beep แจ้งเตือน
                 const beep = new Audio('https://media.geeksforgeeks.org/wp-content/uploads/20190531135120/beep.mp3');
                 beep.play();
 
@@ -235,7 +290,16 @@
             }
         }
 
-        // Initialize scanner on page load
+        // ฟังก์ชันสั่งให้กรอบสแกนกระพริบสีเขียว
+        function triggerGreenFlash() {
+            guideBox.classList.add('success-blink');
+            if (flashTimeout) clearTimeout(flashTimeout);
+            flashTimeout = setTimeout(() => {
+                guideBox.classList.remove('success-blink');
+            }, 1500); // กระพริบสว่างนาน 1.5 วินาที
+        }
+
+        // เริ่มทำงานเมื่อเปิดหน้าเว็บ
         initScanner();
     </script>
 </body>
