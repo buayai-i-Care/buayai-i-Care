@@ -21,26 +21,8 @@
     <!-- Toast Notification -->
     <div id="toast" class="hidden">Message</div>
 
-    <!-- 1. Login Screen -->
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <div class="logo-area">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <h1>ByHealthCare</h1>
-                <p>ระบบบันทึกประวัติห้องพยาบาล</p>
-            </div>
-            <form id="login-form">
-                <div class="input-group">
-                    <label for="password">รหัสผ่าน (6 หลัก)</label>
-                    <input type="password" id="password" maxlength="8" placeholder="กรุณาใส่รหัสผ่าน" required autocomplete="off">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main App Container (Hidden initially) -->
-    <div id="app-container" class="hidden">
+    <!-- Main App Container -->
+    <div id="app-container">
         
         <!-- Navbar / Hamburger -->
         <nav class="navbar">
@@ -62,7 +44,6 @@
                 <li><a href="#" data-target="home-screen" class="active"><i class="fa-solid fa-house-medical"></i> บันทึกการรักษา</a></li>
                 <li><a href="#" data-target="search-screen"><i class="fa-solid fa-magnifying-glass"></i> ค้นหาประวัติ</a></li>
                 <li><a href="#" data-target="reports-screen"><i class="fa-solid fa-chart-pie"></i> รายงาน / สถิติ</a></li>
-                <li><a href="#" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</a></li>
             </ul>
         </div>
         <div class="sidebar-overlay" id="sidebar-overlay"></div>

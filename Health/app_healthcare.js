@@ -8,26 +8,7 @@ let currentReportsData = [];
 const loadingOverlay = document.getElementById('loading-overlay');
 const toast = document.getElementById('toast');
 
-// --- 1. Login System ---
-document.getElementById('login-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const password = document.getElementById('password').value.trim().toLowerCase();
-    
-    if (password === 'kkssbbyy') {
-        document.getElementById('login-screen').classList.remove('active');
-        document.getElementById('app-container').classList.remove('hidden');
-        document.getElementById('password').value = '';
-    } else {
-        showToast('รหัสผ่านไม่ถูกต้อง', 'error');
-    }
-});
-
-document.getElementById('logout-btn').addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('app-container').classList.add('hidden');
-    document.getElementById('login-screen').classList.add('active');
-    closeSidebar();
-});
+// --- Login System Removed ---
 
 // --- 2. Navigation & Sidebar ---
 const hamburger = document.getElementById('hamburger');
