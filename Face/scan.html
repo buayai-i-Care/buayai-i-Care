@@ -1,64 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Recognition Attendance Scanner</title>
+    <title>ระบบสแกนใบหน้าลงเวลาเรียน โรงเรียนบัวใหญ่</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 10px; }
-        .camera-container { position: relative; display: inline-block; width: 100%; max-width: 640px; }
-        video { width: 100%; height: auto; border-radius: 8px; transform: scaleX(-1); /* Mirror camera */ }
-        canvas { position: absolute; top: 0; left: 0; }
-        .status-box { margin-top: 15px; padding: 15px; border-radius: 8px; font-size: 1.2rem; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .gate-selector { margin-bottom: 15px; font-size: 1rem; padding: 8px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 15px; 
+        }
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .camera-container { 
+            position: relative; 
+            display: inline-block; 
+            width: 100%; 
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        video { 
+            width: 100%; 
+            height: auto; 
+            display: block;
+            transform: scaleX(-1); /* สลับเป็นโหมดกระจกเงา */
+        }
+        canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+        }
+        .status-box { 
+            margin-top: 15px; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            background-color: #ffffff; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+            color: #333;
+        }
+        .success { 
+            background-color: #d4edda !important; 
+            color: #155724 !important; 
+            border: 1px solid #c3e6cb; 
+        }
+        .gate-selector { 
+            margin-bottom: 15px; 
+            font-size: 1rem; 
+            padding: 10px; 
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>School Attendance Scanner</h2>
+    <div class="container">
+        <h2>ระบบสแกนใบหน้าลงเวลาเรียน</h2>
 
-    <!-- Entry Point Selection -->
-    <label for="gateSelect"><strong>Select Entry Point:</strong> </label>
-    <select id="gateSelect" class="gate-selector">
-        <option value="Gate 1">Gate 1</option>
-        <option value="Gate 2">Gate 2</option>
-        <option value="Gate 3">Gate 3</option>
-        <option value="Gate 4">Gate 4</option>
-    </select>
+        <!-- จุดคัดกรอง/ประตู -->
+        <div>
+            <label for="gateSelect"><strong>ระบุจุดสแกน (Gate):</strong> </label>
+            <select id="gateSelect" class="gate-selector">
+                <option value="Gate 1">ประตู 1</option>
+                <option value="Gate 2">ประตู 2</option>
+                <option value="Gate 3">ประตู 3</option>
+                <option value="Gate 4">ประตู 4</option>
+            </select>
+        </div>
 
-    <div class="camera-container">
-        <video id="video" autoplay muted playsinline></video>
+        <div class="camera-container">
+            <video id="video" autoplay muted playsinline></video>
+        </div>
+
+        <div id="statusBox" class="status-box">กำลังโหลดระบบ AI และฐานข้อมูลนักเรียน...</div>
     </div>
 
-    <div id="statusBox" class="status-box">Loading AI & Student Data...</div>
-
-    <!-- Load face-api.js -->
+    <!-- โหลด face-api.js -->
     <script src="./js/face-api.min.js"></script>
 
-    <!-- Load Firebase SDK -->
+    <!-- โหลด Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // 1. Firebase Configuration (Use your existing config)
-const firebaseConfig = {
-  apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
-  authDomain: "by-school-fscan.firebaseapp.com",
-  projectId: "by-school-fscan",
-  storageBucket: "by-school-fscan.firebasestorage.app",
-  messagingSenderId: "577646754945",
-  appId: "1:577646754945:web:32aa72f9f66fd40d512180"
-};
+        // 1. กำหนดค่า Firebase ของคุณ
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
+            authDomain: "by-school-fscan.firebaseapp.com",
+            projectId: "by-school-fscan",
+            storageBucket: "by-school-fscan.firebasestorage.app",
+            messagingSenderId: "577646754945",
+            appId: "1:577646754945:web:32aa72f9f66fd40d512180"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         const video = document.getElementById('video');
         const statusBox = document.getElementById('statusBox');
         let faceMatcher = null;
-        let recentScans = {}; // Cooldown cache to prevent duplicate scans
+        let recentScans = {}; // ป้องกันการสแกนซ้ำในระยะเวลาสั้นๆ
 
-        // 2. Start Video Stream (Rear camera for mobile)
+        // 2. เปิดใช้งานกล้อง (ใช้กล้องหลัง/กล้องหลักของอุปกรณ์)
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -66,23 +118,23 @@ const firebaseConfig = {
                 });
                 video.srcObject = stream;
             } catch (err) {
-                statusBox.innerHTML = "❌ Camera Error: " + err.message;
+                statusBox.innerHTML = "❌ ไม่สามารถเปิดกล้องได้: " + err.message;
             }
         }
 
-        // 3. Load AI Models & Fetch All Student Descriptors from Firestore
+        // 3. โหลดโมเดล AI และดึงชุดข้อมูลใบหน้านักเรียนจาก Firebase
         async function initScanner() {
             try {
-                // Load Models
+                // โหลด AI Models
                 await Promise.all([
                     faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
                     faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
                     faceapi.nets.faceRecognitionNet.loadFromUri('./models')
                 ]);
 
-                statusBox.innerHTML = "Downloading student face database...";
+                statusBox.innerHTML = "กำลังดาวน์โหลดฐานข้อมูลใบหน้านักเรียน...";
 
-                // Fetch students from Firestore
+                // ดึงรายชื่อนักเรียนจาก Firestore
                 const snapshot = await db.collection("students").get();
                 const labeledDescriptors = [];
 
@@ -98,22 +150,22 @@ const firebaseConfig = {
                 });
 
                 if (labeledDescriptors.length === 0) {
-                    statusBox.innerHTML = "⚠️ No student profiles found in database!";
+                    statusBox.innerHTML = "⚠️ ไม่พบข้อมูลนักเรียนในฐานข้อมูล (กรุณาลงทะเบียนผ่าน admin.html ก่อน)";
                     return;
                 }
 
-                // Initialize FaceMatcher (0.55 distance threshold)
+                // สร้าง FaceMatcher (ตั้งค่าความแม่นยำ Threshold ไว้ที่ 0.55)
                 faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
 
-                statusBox.innerHTML = `✅ Ready! Loaded ${labeledDescriptors.length} students. Scan face now.`;
+                statusBox.innerHTML = `✅ พร้อมใช้งาน! โหลดข้อมูลนักเรียนสำเร็จ ${labeledDescriptors.length} คน`;
                 startCamera();
 
             } catch (err) {
-                statusBox.innerHTML = "❌ Init Error: " + err.message;
+                statusBox.innerHTML = "❌ เกิดข้อผิดพลาด: " + err.message;
             }
         }
 
-        // 4. Real-time Face Detection & Recognition Loop
+        // 4. ตรวจจับและเปรียบเทียบใบหน้าแบบ Real-time
         video.addEventListener('play', () => {
             const canvas = faceapi.createCanvasFromMedia(video);
             document.querySelector('.camera-container').append(canvas);
@@ -138,15 +190,14 @@ const firebaseConfig = {
                         recordAttendance(studentId, fullName);
                     }
                 });
-            }, 500); // Check every 0.5 seconds
+            }, 500); // ทำการตรวจจับทุกๆ 0.5 วินาที
         });
 
-        // 5. Record Attendance to Firestore with 5-minute Cooldown
+        // 5. บันทึกเวลาเรียนลง Firestore (ป้องกันการสแกนซ้ำภายใน 5 นาที)
         async function recordAttendance(studentId, fullName) {
             const now = Date.now();
-            const cooldownTime = 5 * 60 * 1000; // 5 minutes
+            const cooldownTime = 5 * 60 * 1000; // Cooldown 5 นาที
 
-            // Prevent rapid repeated logging for the same student
             if (recentScans[studentId] && (now - recentScans[studentId] < cooldownTime)) {
                 return; 
             }
@@ -165,20 +216,20 @@ const firebaseConfig = {
                     status: "PRESENT"
                 });
 
-                // Display success banner
+                // แสดงข้อความสแกนสำเร็จ
                 statusBox.className = "status-box success";
-                statusBox.innerHTML = `✅ Checked in: <strong>${fullName}</strong> (${studentId}) at ${gate}`;
+                statusBox.innerHTML = `🎉 ลงเวลาสำเร็จ: <strong>${fullName}</strong> (${studentId}) [${gate}]`;
 
-                // Play audio beep (optional)
+                // เสียงแจ้งเตือน (Beep)
                 const beep = new Audio('https://media.geeksforgeeks.org/wp-content/uploads/20190531135120/beep.mp3');
                 beep.play();
 
             } catch (err) {
-                console.error("Attendance log error:", err);
+                console.error("บันทึกข้อมูลไม่สำเร็จ:", err);
             }
         }
 
-        // Start initialization
+        // เริ่มทำงานเมื่อเปิดหน้าเว็บ
         initScanner();
     </script>
 </body>
