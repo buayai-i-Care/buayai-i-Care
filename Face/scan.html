@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกการเข้าสถานศึกษาอัตโนมัติ ฺBuayai SmartID  - ของระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</title>
+    <title>ระบบบันทึกการเข้าสถานศึกษาอัตโนมัติ Buayai SmartID (Face Scan AI)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,8 +12,8 @@
     <!-- Google Fonts: Kanit -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- MediaPipe Tasks Vision -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm/vision_bundle.js" crossorigin="anonymous"></script>
+    <!-- face-api.js สำหรับ AI สแกนใบหน้า -->
+    <script defer src="./js/face-api.min.js"></script>
     
     <!-- Firebase Compatibility Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -54,6 +54,12 @@
             50% { box-shadow: 0 0 0 16px rgba(56, 189, 248, 0.6); }
             100% { box-shadow: 0 0 0 0px rgba(56, 189, 248, 0); }
         }
+        canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden select-none bg-slate-950 text-slate-100">
@@ -62,7 +68,6 @@
     <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-lg">
         <!-- Quick Nav & Logo -->
         <div class="flex items-center space-x-3">
-            <!-- Navigation Shortcut Buttons -->
             <div class="flex items-center space-x-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
                 <a href="register.html" title="หน้าลงทะเบียนนักเรียน (Register)" 
                    class="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold rounded text-sm transition shadow">
@@ -76,37 +81,39 @@
 
             <div class="h-8 w-[1px] bg-slate-700 mx-1"></div>
 
-            <!-- School Title -->
             <div class="flex flex-col">
                 <h1 class="text-lg md:text-xl font-extrabold text-amber-400 tracking-wide leading-tight">
                     โรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมา
                 </h1>
                 <p class="text-xs text-slate-400 font-medium">
-                    ระบบบันทึกการเข้าสถานศึกษาอัตโนมัติ ฺBuayai SmartID
+                    ระบบบันทึกการเข้าสถานศึกษาด้วยใบหน้า (Face Scan AI)
                 </p>
             </div>
         </div>
 
-        <!-- High-Visibility Real-Time Clock & Firebase Sync Badge -->
+        <!-- System Status & Clock -->
         <div class="flex items-center space-x-4 bg-slate-950 px-4 py-1.5 rounded-xl border border-slate-800 shadow-inner">
-            <div class="text-right">
-                <div id="dateDisplay" class="text-xs text-slate-400 font-medium">วันพฤหัสบดีที่ 15 สิงหาคม 2569</div>
+            <div class="text-right flex flex-col justify-center">
                 <div id="dbStatusBadge" class="text-xs font-semibold text-amber-400">🔥 กำลังเชื่อมต่อ Firebase...</div>
+                <div id="aiStatusBadge" class="text-xs font-semibold text-amber-400 mt-0.5">🤖 กำลังโหลด AI Model...</div>
             </div>
             <div class="h-9 w-[2px] bg-slate-800"></div>
-            <div id="clockDisplay" class="text-3xl md:text-4xl font-black text-white tracking-widest font-mono text-amber-400 drop-shadow-md">
-                00:00:00
+            <div class="text-right">
+                <div id="dateDisplay" class="text-xs text-slate-400 font-medium"></div>
+                <div id="clockDisplay" class="text-2xl font-black text-amber-400 tracking-widest font-mono drop-shadow-md">
+                    00:00:00
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- MAIN SCANNER GRID (DUAL CAMERA SPLIT SCREEN) -->
-    <main class="flex-1 p-3 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 overflow-hidden">
+    <!-- MAIN SCANNER GRID (DUAL CAMERA) -->
+    <main class="flex-1 p-3 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 overflow-hidden relative">
         
         <!-- =================ประตู 1 (ฝั่งซ้าย)================= -->
         <div id="doorCard-1" class="relative glass-panel rounded-2xl p-3 flex flex-col justify-between border-2 border-slate-800 transition-all duration-300">
             <!-- Header Bar Door 1 -->
-            <div class="flex items-center justify-between mb-2 bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-2 bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800 z-20">
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span class="font-bold text-base text-emerald-400">🚪 ประตู 1 (Gate 1)</span>
@@ -114,45 +121,45 @@
                 <!-- Camera Switcher 1 -->
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-video text-slate-400 text-xs"></i>
-                    <select id="camSelect-1" onchange="changeCamera(0, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
-                        <option value="">กำลังค้นหากล้อง 1...</option>
+                    <select id="camSelect-1" onchange="changeCamera(1, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
+                        <option value="">กำลังค้นหากล้อง...</option>
                     </select>
                 </div>
             </div>
 
             <!-- Video Viewport Door 1 -->
             <div class="relative flex-1 bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
-                <video id="webcam-1" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
-                <canvas id="canvas-1" class="absolute inset-0 w-full h-full pointer-events-none transform -scale-x-100"></canvas>
+                <video id="webcam-1" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100 absolute inset-0"></video>
+                <canvas id="canvas-1" class="w-full h-full transform -scale-x-100 pointer-events-none"></canvas>
                 
                 <!-- Target Overlay Frame -->
-                <div class="absolute inset-0 border-4 border-dashed border-slate-600/30 rounded-xl pointer-events-none flex items-center justify-center">
-                    <div class="w-64 h-80 border-2 border-amber-400/40 rounded-3xl flex items-center justify-center">
+                <div class="absolute inset-0 border-4 border-dashed border-slate-600/30 rounded-xl pointer-events-none flex items-center justify-center z-10">
+                    <div class="w-64 h-80 border-2 border-amber-400/40 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(251,191,36,0.15)]">
                         <span class="text-xs text-amber-300/60 bg-slate-900/80 px-2 py-1 rounded">วางใบหน้าในกรอบ</span>
                     </div>
                 </div>
 
-                <!-- Feedback Popup Overlay Door 1 (Shows on Scan Success) -->
-                <div id="feedback-1" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md p-4 flex flex-col items-center justify-center text-center z-20 animate-fade-in border-4 border-emerald-500 rounded-xl">
+                <!-- Feedback Popup Overlay Door 1 -->
+                <div id="feedback-1" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md p-4 flex flex-col items-center justify-center text-center z-30 animate-fade-in border-4 border-emerald-500 rounded-xl">
                     <div id="feedbackIcon-1" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-black mb-2 border-2 border-emerald-500 shadow-lg">
                         ✓
                     </div>
                     <div id="feedbackStatus-1" class="text-emerald-400 font-bold text-lg mb-2">เช็กอินสำเร็จ!</div>
                     
                     <div class="flex items-center space-x-4 bg-slate-900/90 p-3 rounded-xl border border-slate-800 w-full max-w-sm text-left">
-                        <img id="feedbackImg-1" src="https://placehold.co/100x120/1e293b/94a3b8?text=Student" class="w-20 h-24 object-cover rounded-lg border-2 border-emerald-500 shadow">
+                        <img id="feedbackImg-1" src="" class="w-20 h-24 object-cover rounded-lg border-2 border-emerald-500 shadow">
                         <div class="flex-1 min-w-0">
-                            <h3 id="feedbackName-1" class="text-xl font-extrabold text-white truncate">สุมา**  ใจ**</h3>
-                            <p id="feedbackId-1" class="text-sm text-amber-400 font-medium">รหัส: 33210</p>
-                            <p id="feedbackClass-1" class="text-xs text-slate-300">จุดสแกน: Gate 1</p>
-                            <p id="feedbackTime-1" class="text-xs text-emerald-400 mt-1 font-mono">เวลาเข้า: 07:15:22 น.</p>
+                            <h3 id="feedbackName-1" class="text-xl font-extrabold text-white truncate"></h3>
+                            <p id="feedbackId-1" class="text-sm text-amber-400 font-medium"></p>
+                            <p id="feedbackClass-1" class="text-xs text-slate-300"></p>
+                            <p id="feedbackTime-1" class="text-xs text-emerald-400 mt-1 font-mono"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Door 1 Bottom Action Bar -->
-            <div class="mt-2 flex items-center justify-between">
+            <div class="mt-2 flex items-center justify-between z-20">
                 <div class="text-xs text-slate-400">
                     เช็กอินวันนี้: <span id="count-1" class="text-amber-400 font-bold text-sm">0</span> คน
                 </div>
@@ -166,7 +173,7 @@
         <!-- =================ประตู 2 (ฝั่งขวา)================= -->
         <div id="doorCard-2" class="relative glass-panel rounded-2xl p-3 flex flex-col justify-between border-2 border-slate-800 transition-all duration-300">
             <!-- Header Bar Door 2 -->
-            <div class="flex items-center justify-between mb-2 bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-2 bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800 z-20">
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span class="font-bold text-base text-emerald-400">🚪 ประตู 2 (Gate 2)</span>
@@ -174,45 +181,45 @@
                 <!-- Camera Switcher 2 -->
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-video text-slate-400 text-xs"></i>
-                    <select id="camSelect-2" onchange="changeCamera(1, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
-                        <option value="">กำลังค้นหากล้อง 2...</option>
+                    <select id="camSelect-2" onchange="changeCamera(2, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
+                        <option value="">กำลังค้นหากล้อง...</option>
                     </select>
                 </div>
             </div>
 
             <!-- Video Viewport Door 2 -->
             <div class="relative flex-1 bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
-                <video id="webcam-2" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
-                <canvas id="canvas-2" class="absolute inset-0 w-full h-full pointer-events-none transform -scale-x-100"></canvas>
+                <video id="webcam-2" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100 absolute inset-0"></video>
+                <canvas id="canvas-2" class="w-full h-full transform -scale-x-100 pointer-events-none"></canvas>
                 
                 <!-- Target Overlay Frame -->
-                <div class="absolute inset-0 border-4 border-dashed border-slate-600/30 rounded-xl pointer-events-none flex items-center justify-center">
-                    <div class="w-64 h-80 border-2 border-amber-400/40 rounded-3xl flex items-center justify-center">
+                <div class="absolute inset-0 border-4 border-dashed border-slate-600/30 rounded-xl pointer-events-none flex items-center justify-center z-10">
+                    <div class="w-64 h-80 border-2 border-amber-400/40 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(251,191,36,0.15)]">
                         <span class="text-xs text-amber-300/60 bg-slate-900/80 px-2 py-1 rounded">วางใบหน้าในกรอบ</span>
                     </div>
                 </div>
 
-                <!-- Feedback Popup Overlay Door 2 (Shows on Scan Success) -->
-                <div id="feedback-2" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md p-4 flex flex-col items-center justify-center text-center z-20 animate-fade-in border-4 border-emerald-500 rounded-xl">
+                <!-- Feedback Popup Overlay Door 2 -->
+                <div id="feedback-2" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md p-4 flex flex-col items-center justify-center text-center z-30 animate-fade-in border-4 border-emerald-500 rounded-xl">
                     <div id="feedbackIcon-2" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-black mb-2 border-2 border-emerald-500 shadow-lg">
                         ✓
                     </div>
                     <div id="feedbackStatus-2" class="text-emerald-400 font-bold text-lg mb-2">เช็กอินสำเร็จ!</div>
                     
                     <div class="flex items-center space-x-4 bg-slate-900/90 p-3 rounded-xl border border-slate-800 w-full max-w-sm text-left">
-                        <img id="feedbackImg-2" src="https://placehold.co/100x120/1e293b/94a3b8?text=Student" class="w-20 h-24 object-cover rounded-lg border-2 border-emerald-500 shadow">
+                        <img id="feedbackImg-2" src="" class="w-20 h-24 object-cover rounded-lg border-2 border-emerald-500 shadow">
                         <div class="flex-1 min-w-0">
-                            <h3 id="feedbackName-2" class="text-xl font-extrabold text-white truncate">สม**  ใจ**</h3>
-                            <p id="feedbackId-2" class="text-sm text-amber-400 font-medium">รหัส: 33211</p>
-                            <p id="feedbackClass-2" class="text-xs text-slate-300">จุดสแกน: Gate 2</p>
-                            <p id="feedbackTime-2" class="text-xs text-emerald-400 mt-1 font-mono">เวลาเข้า: 07:15:25 น.</p>
+                            <h3 id="feedbackName-2" class="text-xl font-extrabold text-white truncate"></h3>
+                            <p id="feedbackId-2" class="text-sm text-amber-400 font-medium"></p>
+                            <p id="feedbackClass-2" class="text-xs text-slate-300"></p>
+                            <p id="feedbackTime-2" class="text-xs text-emerald-400 mt-1 font-mono"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Door 2 Bottom Action Bar -->
-            <div class="mt-2 flex items-center justify-between">
+            <div class="mt-2 flex items-center justify-between z-20">
                 <div class="text-xs text-slate-400">
                     เช็กอินวันนี้: <span id="count-2" class="text-amber-400 font-bold text-sm">0</span> คน
                 </div>
@@ -261,7 +268,7 @@
 
     <script>
         /* -------------------------------------------------------------
-         * 1. FIREBASE INTEGRATION (Integrated with legacy project config)
+         * 1. FIREBASE INTEGRATION
          * ------------------------------------------------------------- */
         const firebaseConfig = {
             apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
@@ -275,32 +282,73 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let dbStudents = []; // Cache from Firestore `students` collection
+        let dbStudents = []; 
+        let faceMatcher = null;
 
-        async function loadFirestoreStudents() {
-            const badge = document.getElementById('dbStatusBadge');
+        /* -------------------------------------------------------------
+         * 2. AI & FACE-API INIT
+         * ------------------------------------------------------------- */
+        async function initAIAndFirebase() {
+            const aiBadge = document.getElementById('aiStatusBadge');
+            const dbBadge = document.getElementById('dbStatusBadge');
+            
             try {
+                // โหลดโมเดล
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('./models')
+                ]);
+                aiBadge.innerText = "🤖 AI: โหลดโมเดลสำเร็จ";
+                aiBadge.className = "text-xs font-semibold text-emerald-400 mt-0.5";
+
+                // ดึงข้อมูล Firebase
                 const snapshot = await db.collection("students").get();
-                dbStudents = [];
+                const labeledDescriptors = [];
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const studentId = data.student_id || data.studentId || doc.id;
                     const fullName = data.name || data.fullName || '';
                     const descriptor = data.faceDescriptor || data.descriptor;
-                    dbStudents.push({
+                    
+                    const studentObj = {
                         id: studentId,
                         name: fullName,
-                        class: 'ลงทะเบียนแล้ว',
-                        photo: 'https://placehold.co/150x180/0284c7/ffffff?text=' + encodeURIComponent(studentId),
-                        descriptor: descriptor
-                    });
+                        class: 'ทั่วไป',
+                        photo: 'https://placehold.co/150x180/0284c7/ffffff?text=' + encodeURIComponent(studentId)
+                    };
+                    dbStudents.push(studentObj);
+
+                    if (descriptor && descriptor.length === 128) {
+                        const floatArray = new Float32Array(descriptor);
+                        // ใช้ ID เป็น Label เพื่อให้หาเจอง่ายๆ
+                        labeledDescriptors.push(
+                            new faceapi.LabeledFaceDescriptors(studentId, [floatArray])
+                        );
+                    }
                 });
-                badge.className = "text-xs font-semibold text-emerald-400";
-                badge.innerText = `🟢 Firebase: ออนไลน์ (${dbStudents.length} คน)`;
+
+                if (labeledDescriptors.length > 0) {
+                    faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+                    aiBadge.innerText = `🤖 AI: พร้อมทำงาน (${labeledDescriptors.length} ใบหน้า)`;
+                } else {
+                    aiBadge.innerText = "⚠️ AI: ไม่พบข้อมูลใบหน้า";
+                    aiBadge.className = "text-xs font-semibold text-warning-400 mt-0.5";
+                }
+
+                dbBadge.innerText = `🟢 Firebase: ออนไลน์ (${dbStudents.length} คน)`;
+                dbBadge.className = "text-xs font-semibold text-emerald-400";
+                
+                // เริ่มทำงานกล้อง
+                initWebcams();
+
             } catch (err) {
-                console.warn("Firestore Student Load Error / Standby Mode:", err);
-                badge.className = "text-xs font-semibold text-sky-400";
-                badge.innerText = `🟡 โหมดสแตนด์ออฟไลน์ (ใช้ Mock Data)`;
+                console.error("Initialization error: ", err);
+                aiBadge.innerText = "❌ AI: เกิดข้อผิดพลาด";
+                aiBadge.className = "text-xs font-semibold text-rose-500 mt-0.5";
+                dbBadge.innerText = "❌ Firebase: ออฟไลน์";
+                dbBadge.className = "text-xs font-semibold text-rose-500";
             }
         }
 
@@ -315,122 +363,80 @@
                     gate: gateName,
                     status: "PRESENT"
                 });
-                console.log(`✅ Saved attendance for ${student.name} to Firestore`);
             } catch (err) {
-                console.error("❌ Failed to save attendance to Firestore:", err);
+                console.error("Failed to save attendance:", err);
             }
         }
 
         /* -------------------------------------------------------------
          * GLOBAL CONFIG & STATE MANAGEMENT
          * ------------------------------------------------------------- */
-        const COOLDOWN_MS = 10000;       // 10 seconds anti-duplicate
+        const COOLDOWN_MS = 60000; // 1 minute cooldown per student
         let activeDoorForManual = 1;
         let cooldownMap = {};
         let checkinCounts = { 1: 0, 2: 0 };
-        
-        // Fallback local students in case DB is empty
-        let localStudents = [
-            { id: '33210', name: 'สมชาย ใจดี', class: 'ม.4/1', photo: 'https://placehold.co/150x180/0284c7/ffffff?text=Somchai' },
-            { id: '33211', name: 'สุมาลี มีสุข', class: 'ม.4/1', photo: 'https://placehold.co/150x180/e11d48/ffffff?text=Sumalee' },
-            { id: '33212', name: 'กิตติศักดิ์ เรียนดี', class: 'ม.1/2', photo: 'https://placehold.co/150x180/16a34a/ffffff?text=Kittisak' }
-        ];
+        let activeStreams = { 1: null, 2: null };
+        let processingIntervals = { 1: null, 2: null };
 
-        /* -------------------------------------------------------------
-         * PRIVACY HELPER FUNCTION (NAME MASKING & PREFIX STRIPPING)
-         * ------------------------------------------------------------- */
         function formatPrivacyName(fullName) {
             if (!fullName) return "ไม่ระบุชื่อ";
-            let clean = fullName
-                .replace(/^(นาย|นางสาว|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|นาง|คุณ)\s*/g, '')
-                .trim();
-
+            let clean = fullName.replace(/^(นาย|นางสาว|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|นาง|คุณ)\s*/g, '').trim();
             let parts = clean.split(/\s+/);
             if (parts.length >= 2) {
-                let firstName = parts[0];
-                let lastName = parts[1];
-                let maskedFirst = firstName.length > 2 ? firstName.substring(0, 2) + '**' : firstName + '*';
-                let maskedLast = lastName.length > 2 ? lastName.substring(0, 2) + '**' : lastName + '*';
-                return `${maskedFirst}  ${maskedLast}`;
+                let first = parts[0];
+                let last = parts[1];
+                return `${first.length > 2 ? first.substring(0,2) + '**' : first + '*'}  ${last.length > 2 ? last.substring(0,2) + '**' : last + '*'}`;
             } else if (parts.length === 1) {
-                let name = parts[0];
-                return name.length > 2 ? name.substring(0, 2) + '**' : name + '*';
+                return parts[0].length > 2 ? parts[0].substring(0,2) + '**' : parts[0] + '*';
             }
             return clean;
         }
 
         /* -------------------------------------------------------------
-         * AUDIO FEEDBACK SYSTEM (Web Audio API Beep & TTS)
+         * AUDIO FEEDBACK
          * ------------------------------------------------------------- */
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playSuccessBeep() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-
-            osc1.type = 'sine';
-            osc2.type = 'sine';
-
+            osc1.type = 'sine'; osc2.type = 'sine';
             osc1.frequency.setValueAtTime(880, audioCtx.currentTime); 
             osc2.frequency.setValueAtTime(1760, audioCtx.currentTime + 0.08); 
-
             gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-
-            osc1.connect(gain);
-            osc2.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc1.start();
-            osc1.stop(audioCtx.currentTime + 0.08);
-            osc2.start(audioCtx.currentTime + 0.08);
-            osc2.stop(audioCtx.currentTime + 0.25);
+            osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+            osc1.start(); osc1.stop(audioCtx.currentTime + 0.08);
+            osc2.start(audioCtx.currentTime + 0.08); osc2.stop(audioCtx.currentTime + 0.25);
         }
 
         function speakStudentName(nameStr) {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
-            
             const cleanName = nameStr.replace(/^(นาย|นางสาว|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.)\s*/g, '');
             const utterance = new SpeechSynthesisUtterance(`${cleanName} เช็กอินแล้วค่ะ`);
             utterance.lang = 'th-TH';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
             window.speechSynthesis.speak(utterance);
         }
 
         /* -------------------------------------------------------------
-         * LIVE CLOCK & DATE RENDERER
+         * CLOCK
          * ------------------------------------------------------------- */
         function updateClock() {
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const mins = String(now.getMinutes()).padStart(2, '0');
-            const secs = String(now.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('clockDisplay').innerText = `${hours}:${mins}:${secs}`;
-
+            document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('th-TH');
             const thaiDays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
-            const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตูลากร', 'พฤศจิกายน', 'ธันวาคม'];
-            
-            const dayName = thaiDays[now.getDay()];
-            const dayNum = now.getDate();
-            const monthName = thaiMonths[now.getMonth()];
-            const yearThai = now.getFullYear() + 543;
-
-            document.getElementById('dateDisplay').innerText = `วัน${dayName}ที่ ${dayNum} ${monthName} ${yearThai}`;
+            const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            document.getElementById('dateDisplay').innerText = `วัน${thaiDays[now.getDay()]}ที่ ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
         /* -------------------------------------------------------------
-         * CAMERA MANAGEMENT & MEDIA STREAMING
+         * WEBCAM & FACE DETECTION
          * ------------------------------------------------------------- */
-        let activeStreams = { 0: null, 1: null };
-
         async function initWebcams() {
             try {
                 const devices = await navigator.mediaDevices.enumerateDevices();
@@ -438,96 +444,128 @@
                 
                 const select1 = document.getElementById('camSelect-1');
                 const select2 = document.getElementById('camSelect-2');
-
-                select1.innerHTML = '';
-                select2.innerHTML = '';
+                select1.innerHTML = ''; select2.innerHTML = '';
 
                 videoDevices.forEach((device, idx) => {
                     const opt1 = document.createElement('option');
-                    opt1.value = device.deviceId;
-                    opt1.text = device.label || `กล้อง USB ${idx + 1}`;
+                    opt1.value = device.deviceId; opt1.text = device.label || `กล้อง ${idx + 1}`;
                     if (idx === 0) opt1.selected = true;
                     select1.appendChild(opt1);
 
                     const opt2 = document.createElement('option');
-                    opt2.value = device.deviceId;
-                    opt2.text = device.label || `กล้อง USB ${idx + 1}`;
+                    opt2.value = device.deviceId; opt2.text = device.label || `กล้อง ${idx + 1}`;
                     if (idx === 1 || (videoDevices.length === 1 && idx === 0)) opt2.selected = true;
                     select2.appendChild(opt2);
                 });
 
-                if (videoDevices.length > 0) {
-                    startStream(0, videoDevices[0].deviceId, 'webcam-1');
-                }
-                if (videoDevices.length > 1) {
-                    startStream(1, videoDevices[1].deviceId, 'webcam-2');
-                } else if (videoDevices.length === 1) {
-                    startStream(1, videoDevices[0].deviceId, 'webcam-2');
-                }
+                if (videoDevices.length > 0) startStream(1, videoDevices[0].deviceId);
+                if (videoDevices.length > 1) startStream(2, videoDevices[1].deviceId);
+                else if (videoDevices.length === 1) startStream(2, videoDevices[0].deviceId);
             } catch (err) {
                 console.error("Camera access error:", err);
             }
         }
 
-        async function startStream(doorIndex, deviceId, videoElemId) {
+        async function startStream(doorIndex, deviceId) {
             if (activeStreams[doorIndex]) {
                 activeStreams[doorIndex].getTracks().forEach(track => track.stop());
+            }
+            if (processingIntervals[doorIndex]) {
+                clearInterval(processingIntervals[doorIndex]);
             }
 
             try {
                 const constraints = {
                     video: {
                         deviceId: deviceId ? { exact: deviceId } : undefined,
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 30 }
+                        width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15 } // ลดเฟรมเรตเพื่อประหยัดทรัพยากร
                     }
                 };
-
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 activeStreams[doorIndex] = stream;
-                const videoElem = document.getElementById(videoElemId);
-                videoElem.srcObject = stream;
+                
+                const video = document.getElementById(`webcam-${doorIndex}`);
+                video.srcObject = stream;
+                
+                // รอให้วิดีโอเล่นก่อนเปิด AI Scan
+                video.onloadedmetadata = () => {
+                    video.play();
+                    startFaceDetection(doorIndex, video);
+                };
             } catch (err) {
-                console.warn(`Failed to start camera for Door ${doorIndex + 1}:`, err);
+                console.warn(`Failed to start camera for Door ${doorIndex}:`, err);
             }
         }
 
         function changeCamera(doorIndex, deviceId) {
-            const videoElemId = doorIndex === 0 ? 'webcam-1' : 'webcam-2';
-            startStream(doorIndex, deviceId, videoElemId);
+            startStream(doorIndex, deviceId);
+        }
+
+        function startFaceDetection(doorIndex, video) {
+            const canvas = document.getElementById(`canvas-${doorIndex}`);
+            // ปรับขนาดแคนวาสให้เท่ากับวิดีโอ
+            const displaySize = { width: video.clientWidth, height: video.clientHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+            const ctx = canvas.getContext('2d');
+
+            processingIntervals[doorIndex] = setInterval(async () => {
+                if (!faceMatcher || video.paused || video.ended) return;
+
+                const detections = await faceapi.detectAllFaces(video)
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                resizedDetections.forEach(detection => {
+                    const match = faceMatcher.findBestMatch(detection.descriptor);
+                    const box = detection.detection.box;
+                    
+                    // กลับแกน X เพราะเรามี class -scale-x-100 ที่ canvas และ video
+                    // face-api คืนค่าตำแหน่ง box มาจากภาพต้นฉบับ
+                    
+                    if (match.label !== 'unknown' && match.distance < 0.55) {
+                        ctx.strokeStyle = '#10b981';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+                        const student = dbStudents.find(s => s.id === match.label);
+                        if (student) {
+                            triggerCheckin(doorIndex, student);
+                        }
+                    } else {
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+                    }
+                });
+            }, 600); // Process every 600ms per camera
         }
 
         /* -------------------------------------------------------------
-         * CHECK-IN PROCESSOR & VISUAL FEEDBACK
+         * CHECKIN & UI FEEDBACK
          * ------------------------------------------------------------- */
         function triggerCheckin(doorNum, student) {
             const now = Date.now();
             const timeStr = new Date().toLocaleTimeString('th-TH');
             const gateName = `Gate ${doorNum}`;
 
-            // Anti-duplicate cooldown check (10s)
             if (cooldownMap[student.id] && (now - cooldownMap[student.id]) < COOLDOWN_MS) {
-                showCooldownWarning(doorNum, student);
+                // อยู่ในช่วง Cooldown, สามารถเปิดบรรทัดล่างถ้าต้องการให้แจ้งเตือนซ้ำ
+                // showCooldownWarning(doorNum, student);
                 return;
             }
 
-            // Update Cooldown Timestamp
             cooldownMap[student.id] = now;
             checkinCounts[doorNum]++;
             document.getElementById(`count-${doorNum}`).innerText = checkinCounts[doorNum];
 
-            // Save record live to Firebase Firestore
             saveAttendanceToFirebase(student, gateName);
-
-            // 1. Play Audio & Speech
             playSuccessBeep();
             speakStudentName(student.name);
 
-            // 2. Format Privacy Name
             const maskedName = formatPrivacyName(student.name);
-
-            // 3. UI Pop-up Feedback
             const popup = document.getElementById(`feedback-${doorNum}`);
             const card = document.getElementById(`doorCard-${doorNum}`);
             
@@ -535,42 +573,37 @@
             document.getElementById(`feedbackStatus-${doorNum}`).className = "text-emerald-400 font-bold text-lg mb-2";
             document.getElementById(`feedbackIcon-${doorNum}`).innerHTML = "✓";
             document.getElementById(`feedbackIcon-${doorNum}`).className = "w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl font-black mb-2 border-2 border-emerald-500 shadow-lg";
-
             document.getElementById(`feedbackName-${doorNum}`).innerText = maskedName;
             document.getElementById(`feedbackId-${doorNum}`).innerText = `รหัส: ${student.id}`;
             document.getElementById(`feedbackClass-${doorNum}`).innerText = `จุดสแกน: ${gateName}`;
             document.getElementById(`feedbackTime-${doorNum}`).innerText = `เวลาเข้า: ${timeStr} น.`;
-            document.getElementById(`feedbackImg-${doorNum}`).src = student.photo || 'https://placehold.co/100x120/1e293b/94a3b8?text=Student';
+            document.getElementById(`feedbackImg-${doorNum}`).src = student.photo;
 
-            // Card Green Flash
             card.classList.add('flash-success');
             popup.classList.remove('hidden');
 
             setTimeout(() => {
                 popup.classList.add('hidden');
                 card.classList.remove('flash-success');
-            }, 2200);
+            }, 2500);
         }
 
         function showCooldownWarning(doorNum, student) {
             const popup = document.getElementById(`feedback-${doorNum}`);
             const card = document.getElementById(`doorCard-${doorNum}`);
-            const maskedName = formatPrivacyName(student.name);
-
-            document.getElementById(`feedbackStatus-${doorNum}`).innerText = "สแกนเรียบร้อยแล้ว (Cooldown)";
+            
+            document.getElementById(`feedbackStatus-${doorNum}`).innerText = "สแกนไปแล้ว";
             document.getElementById(`feedbackStatus-${doorNum}`).className = "text-sky-400 font-bold text-lg mb-2";
             document.getElementById(`feedbackIcon-${doorNum}`).innerHTML = "ℹ";
             document.getElementById(`feedbackIcon-${doorNum}`).className = "w-16 h-16 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-3xl font-black mb-2 border-2 border-sky-500 shadow-lg";
-
-            document.getElementById(`feedbackName-${doorNum}`).innerText = maskedName;
+            document.getElementById(`feedbackName-${doorNum}`).innerText = formatPrivacyName(student.name);
             document.getElementById(`feedbackId-${doorNum}`).innerText = `รหัส: ${student.id}`;
             document.getElementById(`feedbackClass-${doorNum}`).innerText = `จุดสแกน: Gate ${doorNum}`;
             document.getElementById(`feedbackTime-${doorNum}`).innerText = `ลงเวลาแล้วก่อนหน้านี้`;
-            document.getElementById(`feedbackImg-${doorNum}`).src = student.photo || 'https://placehold.co/100x120/1e293b/94a3b8?text=Student';
+            document.getElementById(`feedbackImg-${doorNum}`).src = student.photo;
 
             card.classList.add('flash-cooldown');
             popup.classList.remove('hidden');
-
             setTimeout(() => {
                 popup.classList.add('hidden');
                 card.classList.remove('flash-cooldown');
@@ -587,66 +620,28 @@
             document.getElementById('manualModal').classList.remove('hidden');
             document.getElementById('studentIdInput').focus();
         }
-
-        function closeManualInput() {
-            document.getElementById('manualModal').classList.add('hidden');
-        }
-
+        function closeManualInput() { document.getElementById('manualModal').classList.add('hidden'); }
         function appendNum(num) {
             const input = document.getElementById('studentIdInput');
-            if (input.value.length < 10) {
-                input.value += num;
-            }
+            if (input.value.length < 10) input.value += num;
         }
-
-        function clearNum() {
-            document.getElementById('studentIdInput').value = '';
-        }
-
+        function clearNum() { document.getElementById('studentIdInput').value = ''; }
         function backspaceNum() {
             const input = document.getElementById('studentIdInput');
             input.value = input.value.slice(0, -1);
         }
-
         function submitManualCheckin() {
             const id = document.getElementById('studentIdInput').value.trim();
-            if (!id) {
-                alert('กรุณาป้อนรหัสนักเรียน');
-                return;
-            }
+            if (!id) return alert('กรุณาป้อนรหัสนักเรียน');
 
-            // Search in DB students first, then fallback local students
             const foundInDb = dbStudents.find(s => s.id === id);
-            const foundInLocal = localStudents.find(s => s.id === id);
-
-            const student = foundInDb || foundInLocal || {
-                id: id,
-                name: `นักเรียน ${id}`,
-                class: 'ทั่วไป',
-                photo: 'https://placehold.co/150x180/0284c7/ffffff?text=' + id
-            };
+            const student = foundInDb || { id: id, name: `นักเรียน ${id}`, class: 'ทั่วไป', photo: 'https://placehold.co/150x180/0284c7/ffffff?text=' + id };
 
             closeManualInput();
             triggerCheckin(activeDoorForManual, student);
         }
 
-        /* -------------------------------------------------------------
-         * INITIALIZATION ON WINDOW LOAD
-         * ------------------------------------------------------------- */
-        window.onload = function() {
-            initWebcams();
-            loadFirestoreStudents();
-
-            // Keyboard shortcut test: Press '1' or '2'
-            window.addEventListener('keydown', (e) => {
-                if (document.getElementById('manualModal').classList.contains('hidden')) {
-                    const sample = dbStudents.length > 0 ? dbStudents[0] : localStudents[0];
-                    const sample2 = dbStudents.length > 1 ? dbStudents[1] : localStudents[1];
-                    if (e.key === '1') triggerCheckin(1, sample);
-                    if (e.key === '2') triggerCheckin(2, sample2);
-                }
-            });
-        };
+        window.onload = initAIAndFirebase;
     </script>
 </body>
 </html>
