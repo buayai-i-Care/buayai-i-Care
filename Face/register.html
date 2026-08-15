@@ -1,6 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนนักเรียน - Buayai SmartID</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- face-api.js สำหรับ AI สแกนใบหน้า -->
+    <script defer src="./js/face-api.min.js"></script>
+    
+    <!-- Firebase Compatibility Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Kanit', 'sans-serif'] },
+                    colors: {
+                        brand: { blue: '#0284c7', dark: '#0f172a', panel: '#1e293b', accent: '#10b981', warning: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-950 text-slate-100 select-none">
+
+    <!-- HEADER SECTION -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-lg shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
+                <a href="facescan.html" title="หน้าสแกนใบหน้า (Scanner)" 
+                   class="w-8 h-8 flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-sm transition shadow">
+                   <i class="fa-solid fa-camera"></i>
+                </a>
+                <a href="dashboard-scan.html" title="หน้าสรุปผล (Dashboard)" 
+                   class="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold rounded text-sm transition shadow">
+                   D
+                </a>
+            </div>
+
+            <div class="h-8 w-[1px] bg-slate-700 mx-1"></div>
+
+            <div class="flex flex-col">
+                <h1 class="text-lg md:text-xl font-extrabold text-amber-400 tracking-wide leading-tight">
+                    ระบบลงทะเบียนฐานข้อมูลใบหน้า
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">Buayai SmartID (Admin Registration)</p>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="flex items-center space-x-4 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 shadow-inner">
+            <div id="aiStatusBadge" class="text-sm font-semibold text-amber-400 flex items-center space-x-2">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>กำลังเตรียมโมเดล AI...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto no-scrollbar p-4 md:p-6 lg:p-8 flex justify-center">
+        
+        <div class="w-full max-w-4xl glass-panel rounded-2xl border-2 border-slate-800 p-1 flex flex-col">
+            
+            <!-- TABS -->
+            <div class="flex space-x-1 bg-slate-900 p-2 rounded-t-xl border-b border-slate-800 shrink-0">
+                <button onclick="switchTab('single')" id="tab-single" class="flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md">
+                    <i class="fa-solid fa-user-plus mr-2"></i> เพิ่มรายบุคคล
+                </button>
+                <button onclick="switchTab('batch')" id="tab-batch" class="flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-users mr-2"></i> อัปโหลดแบบกลุ่ม (Batch)
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8 flex-1 overflow-y-auto no-scrollbar">
+                
+                <!-- ================= TAB 1: SINGLE UPLOAD ================= -->
+                <div id="content-single" class="block animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <!-- Form Data -->
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-1">รหัสนักเรียน (ห้ามซ้ำ)</label>
+                                <input type="text" id="single-id" placeholder="เช่น 33210" 
+                                       class="w-full bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-1">ชื่อ - นามสกุล</label>
+                                <input type="text" id="single-name" placeholder="เช่น สมชาย ใจดี" 
+                                       class="w-full bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-1">อัปโหลดรูปถ่ายหน้าตรง</label>
+                                <input type="file" id="single-file" accept="image/jpeg, image/png, image/jpg" 
+                                       class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700 transition">
+                            </div>
+                            
+                            <button id="btn-single-submit" onclick="processSingle()" disabled class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>ตรวจสอบภาพและบันทึก</span>
+                            </button>
+                        </div>
+
+                        <!-- Preview & Status -->
+                        <div class="flex flex-col items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 p-6">
+                            <div class="relative w-48 h-64 bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl overflow-hidden flex items-center justify-center mb-4">
+                                <img id="single-preview" class="hidden absolute inset-0 w-full h-full object-cover">
+                                <i id="single-placeholder" class="fa-solid fa-image text-4xl text-slate-700"></i>
+                                <!-- วงกลม Loading ตอนสแกน -->
+                                <div id="single-loading" class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center backdrop-blur-sm z-10">
+                                    <i class="fa-solid fa-spinner fa-spin text-3xl text-amber-400"></i>
+                                </div>
+                            </div>
+                            <div id="single-status" class="text-center text-sm text-slate-400">
+                                รอรับรูปภาพ...
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- ================= TAB 2: BATCH UPLOAD ================= -->
+                <div id="content-batch" class="hidden animate-fade-in">
+                    
+                    <div class="bg-sky-900/20 border border-sky-800 rounded-xl p-4 mb-6 flex space-x-4">
+                        <i class="fa-solid fa-check-double text-sky-400 text-xl mt-0.5"></i>
+                        <div>
+                            <h4 class="text-sky-400 font-bold">เกณฑ์คุณภาพของรูปภาพ</h4>
+                            <ul class="text-sm text-sky-200/80 mt-1 list-disc list-inside">
+                                <li>ตั้งชื่อไฟล์เป็นรหัสนักเรียน (เช่น <span class="font-mono text-amber-300">33210.jpg</span>)</li>
+                                <li>ขนาดไฟล์ไม่เกิน <b>5MB</b> และความละเอียดภาพต้องไม่ต่ำกว่า <b>300x300 px</b></li>
+                                <li>ต้องเป็นรูปเดี่ยว <b>หันหน้าตรง</b> ไม่ใส่แว่นตาดำหรือแมสก์ปิดบังใบหน้า</li>
+                                <li>ความคมชัดแสงสว่างเพียงพอ (ระบบ AI จะประเมินค่าความมั่นใจที่ 85% ขึ้นไป)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <input type="file" id="batch-files" multiple accept="image/jpeg, image/png, image/jpg" 
+                               class="hidden" onchange="handleBatchSelect()">
+                        
+                        <label for="batch-files" class="cursor-pointer w-full max-w-md flex flex-col items-center justify-center py-10 px-6 border-2 border-dashed border-slate-600 rounded-2xl bg-slate-900/50 hover:bg-slate-800 transition group">
+                            <div class="w-16 h-16 bg-slate-800 group-hover:bg-brand-blue rounded-full flex items-center justify-center transition">
+                                <i class="fa-solid fa-images text-2xl text-slate-400 group-hover:text-white transition"></i>
+                            </div>
+                            <span class="mt-4 font-bold text-slate-300">คลิกเพื่อเลือกรูปภาพ (หรือลากมาวาง)</span>
+                            <span class="mt-1 text-sm text-slate-500">เลือกได้หลายไฟล์พร้อมกัน (Multiple)</span>
+                        </label>
+                        
+                        <div id="batch-summary" class="hidden mt-6 text-center">
+                            <p class="text-lg font-semibold text-amber-400">เลือกรูปภาพทั้งหมด <span id="batch-count" class="text-white text-2xl mx-1">0</span> รูป</p>
+                            
+                            <button id="btn-batch-submit" onclick="processBatch()" class="mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-filter"></i>
+                                <span>เริ่มตรวจสอบและบันทึก</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Area -->
+                    <div id="batch-progress-area" class="hidden mt-8 border-t border-slate-800 pt-6">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-sm font-semibold text-slate-300">ความคืบหน้า</span>
+                            <span id="batch-progress-text" class="text-sm font-bold text-emerald-400">0 / 0 (0%)</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3 mb-6 overflow-hidden">
+                            <div id="batch-progress-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Log Console -->
+                        <div class="bg-slate-900 rounded-xl border border-slate-800 h-64 overflow-y-auto no-scrollbar p-3 font-mono text-xs space-y-1.5" id="batch-log">
+                            <!-- Logs will append here -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // -------------------------------------------------------------
+        // FIREBASE CONFIG
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
+            authDomain: "by-school-fscan.firebaseapp.com",
+            projectId: "by-school-fscan",
+            storageBucket: "by-school-fscan.firebasestorage.app",
+            messagingSenderId: "577646754945",
+            appId: "1:577646754945:web:32aa72f9f66fd40d512180"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let aiReady = false;
+
+        // -------------------------------------------------------------
+        // QUALITY VALIDATION PARAMETERS
+        // -------------------------------------------------------------
+        const QUALITY = {
+            MAX_FILE_SIZE_MB: 5,
+            MIN_RESOLUTION: 300,
+            MIN_CONFIDENCE_SCORE: 0.85
+        };
+
+        // -------------------------------------------------------------
+        // INITIALIZE AI MODELS
+        // -------------------------------------------------------------
+        async function loadModels() {
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('./models')
+                ]);
+                aiReady = true;
+                const badge = document.getElementById('aiStatusBadge');
+                badge.className = "text-sm font-semibold text-emerald-400 flex items-center space-x-2";
+                badge.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>AI พร้อมใช้งานแล้ว</span>`;
+                
+                document.getElementById('btn-single-submit').disabled = false;
+            } catch (err) {
+                console.error("AI Load Error:", err);
+                const badge = document.getElementById('aiStatusBadge');
+                badge.className = "text-sm font-semibold text-rose-500 flex items-center space-x-2";
+                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>โหลดโมเดล AI ล้มเหลว ตรวจสอบโฟลเดอร์ /models</span>`;
+            }
+        }
+        window.onload = loadModels;
+
+        // -------------------------------------------------------------
+        // TAB SWITCHING
+        // -------------------------------------------------------------
+        function switchTab(tab) {
+            const btnSingle = document.getElementById('tab-single');
+            const btnBatch = document.getElementById('tab-batch');
+            const cntSingle = document.getElementById('content-single');
+            const cntBatch = document.getElementById('content-batch');
+
+            if(tab === 'single') {
+                btnSingle.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md";
+                btnBatch.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
+                cntSingle.classList.remove('hidden');
+                cntBatch.classList.add('hidden');
+            } else {
+                btnBatch.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md";
+                btnSingle.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
+                cntBatch.classList.remove('hidden');
+                cntSingle.classList.add('hidden');
+            }
+        }
+
+        // -------------------------------------------------------------
+        // CENTRAL IMAGE VALIDATION LOGIC
+        // -------------------------------------------------------------
+        async function validateImageQuality(file) {
+            // 1. Check file size
+            if (file.size > QUALITY.MAX_FILE_SIZE_MB * 1024 * 1024) {
+                return { valid: false, message: `ขนาดไฟล์เกิน ${QUALITY.MAX_FILE_SIZE_MB}MB` };
+            }
+
+            // Convert file to Image
+            let img;
+            try {
+                img = await faceapi.bufferToImage(file);
+            } catch (e) {
+                return { valid: false, message: `ไฟล์ไม่ใช่รูปภาพ หรือไฟล์เสีย` };
+            }
+
+            // 2. Check resolution
+            if (img.width < QUALITY.MIN_RESOLUTION || img.height < QUALITY.MIN_RESOLUTION) {
+                return { valid: false, message: `ความละเอียดต่ำเกินไป (${img.width}x${img.height} ต้องการขั้นต่ำ ${QUALITY.MIN_RESOLUTION}x${QUALITY.MIN_RESOLUTION}px)` };
+            }
+
+            // 3. Detect faces
+            const detections = await faceapi.detectAllFaces(img).withFaceLandmarks().withFaceDescriptors();
+            
+            // 4. Check number of faces
+            if (detections.length === 0) {
+                return { valid: false, message: `ไม่พบใบหน้า หรือหน้าอาจถูกบดบัง` };
+            }
+            if (detections.length > 1) {
+                return { valid: false, message: `ตรวจพบหลายใบหน้าในรูปเดียว (${detections.length} คน) ต้องเป็นรูปเดี่ยว` };
+            }
+
+            // 5. Check confidence score
+            const score = detections[0].detection.score;
+            if (score < QUALITY.MIN_CONFIDENCE_SCORE) {
+                return { valid: false, message: `คุณภาพใบหน้าไม่ชัดเจน (ความมั่นใจ AI ${(score*100).toFixed(0)}% ต้องการ ${(QUALITY.MIN_CONFIDENCE_SCORE*100).toFixed(0)}%) แสงน้อยหรือภาพเบลอ` };
+            }
+
+            return { 
+                valid: true, 
+                descriptor: Array.from(detections[0].descriptor)
+            };
+        }
+
+        // -------------------------------------------------------------
+        // SINGLE UPLOAD LOGIC
+        // -------------------------------------------------------------
+        const singleFileInput = document.getElementById('single-file');
+        const singlePreview = document.getElementById('single-preview');
+        const singlePlaceholder = document.getElementById('single-placeholder');
+
+        singleFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                singlePreview.src = URL.createObjectURL(file);
+                singlePreview.classList.remove('hidden');
+                singlePlaceholder.classList.add('hidden');
+                document.getElementById('single-status').innerText = "โหลดรูปภาพพร้อมตรวจสอบ";
+            }
+        });
+
+        async function processSingle() {
+            if(!aiReady) return alert("กรุณารอ AI โหลดให้เสร็จสิ้นก่อน");
+
+            const studentId = document.getElementById('single-id').value.trim();
+            const studentName = document.getElementById('single-name').value.trim();
+            const file = singleFileInput.files[0];
+
+            if(!studentId || !studentName || !file) {
+                return alert("กรุณากรอกรหัส ชื่อ และเลือกรูปภาพให้ครบถ้วน");
+            }
+
+            const btn = document.getElementById('btn-single-submit');
+            const statusDiv = document.getElementById('single-status');
+            const loading = document.getElementById('single-loading');
+
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            statusDiv.innerHTML = `<span class="text-amber-400">กำลังตรวจสอบคุณภาพรูปภาพ...</span>`;
+
+            try {
+                const validation = await validateImageQuality(file);
+
+                if(!validation.valid) {
+                    statusDiv.innerHTML = `<span class="text-rose-500 font-bold">❌ ไม่ผ่านเกณฑ์: </span><span class="text-rose-400">${validation.message}</span>`;
+                    btn.disabled = false;
+                    loading.classList.add('hidden');
+                    return;
+                }
+
+                statusDiv.innerHTML = `<span class="text-emerald-400">ภาพผ่านเกณฑ์ กำลังบันทึกลงฐานข้อมูล...</span>`;
+                
+                await db.collection("students").doc(studentId).set({
+                    student_id: studentId,
+                    name: studentName,
+                    faceDescriptor: validation.descriptor,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                statusDiv.innerHTML = `<span class="text-emerald-400 font-bold">✅ บันทึกข้อมูล ${studentName} สำเร็จ!</span>`;
+                
+                // Clear form
+                setTimeout(() => {
+                    document.getElementById('single-id').value = '';
+                    document.getElementById('single-name').value = '';
+                    singleFileInput.value = '';
+                    singlePreview.classList.add('hidden');
+                    singlePlaceholder.classList.remove('hidden');
+                    statusDiv.innerHTML = "รอรับรูปภาพคนต่อไป...";
+                    btn.disabled = false;
+                }, 3000);
+
+            } catch (error) {
+                console.error("Single Process Error: ", error);
+                statusDiv.innerHTML = `<span class="text-rose-500">❌ ระบบขัดข้อง: ตรวจสอบรูปภาพไม่ได้</span>`;
+                btn.disabled = false;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // -------------------------------------------------------------
+        // BATCH UPLOAD LOGIC
+        // -------------------------------------------------------------
+        let batchFilesArray = [];
+
+        function handleBatchSelect() {
+            const files = document.getElementById('batch-files').files;
+            if(files.length > 0) {
+                batchFilesArray = Array.from(files);
+                document.getElementById('batch-summary').classList.remove('hidden');
+                document.getElementById('batch-count').innerText = batchFilesArray.length;
+                
+                // Reset progress UI
+                document.getElementById('batch-progress-area').classList.add('hidden');
+                document.getElementById('batch-log').innerHTML = '';
+            }
+        }
+
+        function appendLog(msg, type='info') {
+            const logBox = document.getElementById('batch-log');
+            const div = document.createElement('div');
+            const time = new Date().toLocaleTimeString('th-TH');
+            
+            let color = 'text-slate-300';
+            let icon = '•';
+            if(type === 'success') { color = 'text-emerald-400'; icon = '✓'; }
+            if(type === 'error') { color = 'text-rose-400'; icon = '✗'; }
+            if(type === 'warning') { color = 'text-amber-400'; icon = '⚠'; }
+
+            div.className = `flex space-x-2 ${color}`;
+            div.innerHTML = `<span class="text-slate-500 min-w-[60px]">[${time}]</span> <span class="w-4">${icon}</span> <span class="flex-1">${msg}</span>`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function processBatch() {
+            if(!aiReady) return alert("กรุณารอ AI โหลดให้เสร็จสิ้นก่อน");
+            if(batchFilesArray.length === 0) return;
+
+            const btn = document.getElementById('btn-batch-submit');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...`;
+            
+            document.getElementById('batch-progress-area').classList.remove('hidden');
+            document.getElementById('batch-log').innerHTML = '';
+            appendLog(`เริ่มต้นตรวจสอบทั้งหมด ${batchFilesArray.length} รูปภาพ...`);
+
+            let successCount = 0;
+            let errorCount = 0;
+            let total = batchFilesArray.length;
+
+            for (let i = 0; i < total; i++) {
+                const file = batchFilesArray[i];
+                const studentId = file.name.split('.').slice(0, -1).join('.').trim();
+
                 appendLog(`ตรวจสอบรูป: ${file.name} (รหัส: ${studentId})`, 'info');
+
                 try {
                     const validation = await validateImageQuality(file);
+
                     if (!validation.valid) {
                         appendLog(`<b>ปฏิเสธภาพ ${file.name}:</b> ${validation.message}`, 'error');
                         errorCount++;
@@ -11,6 +462,7 @@
                             faceDescriptor: validation.descriptor,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+
                         appendLog(`<b>บันทึกสำเร็จ:</b> รหัส ${studentId} ผ่านเกณฑ์`, 'success');
                         successCount++;
                     }
@@ -19,11 +471,13 @@
                     appendLog(`<b>ข้อผิดพลาดระบบ:</b> ไม่สามารถอ่านไฟล์ ${file.name}`, 'error');
                     errorCount++;
                 }
+
                 // Update Progress UI
                 const percent = Math.round(((i + 1) / total) * 100);
                 document.getElementById('batch-progress-bar').style.width = `${percent}%`;
                 document.getElementById('batch-progress-text').innerText = `${i + 1} / ${total} (${percent}%)`;
             }
+
             // Summary
             appendLog(`----------------------------------------`);
             appendLog(`<b>เสร็จสิ้นกระบวนการทั้งหมด!</b> รูปผ่าน: ${successCount} คน, ไม่ผ่าน: ${errorCount} รูป`, errorCount === 0 ? 'success' : 'warning');
