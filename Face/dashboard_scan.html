@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สรุปผล - Buayai SmartID (Admin)</title>
+    <title>สรุปผลรายวัน - Buayai SmartID (Admin)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,35 +27,97 @@
     <div class="w-full max-w-5xl space-y-6">
         
         <!-- Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center space-x-3">
                 <div class="flex items-center space-x-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700 shadow-inner">
-                    <a href="scan.html" title="หน้าสแกนใบหน้า (Scan)" 
-                       class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-bold rounded text-sm transition">S</a>
-                    <a href="register.html" title="หน้าลงทะเบียน (Register)" 
-                       class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-bold rounded text-sm transition">R</a>
+                    <a href="scan.html" title="หน้าสแกนใบหน้า (Scan)" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-bold rounded text-sm transition">S</a>
+                    <a href="register.html" title="หน้าลงทะเบียน (Register)" class="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white font-bold rounded text-sm transition">R</a>
                 </div>
                 <div class="h-8 w-[1px] bg-slate-700 mx-1"></div>
                 <div>
                     <h1 class="text-xl font-extrabold text-blue-400 tracking-wide">หน้าสรุปผล (Dashboard)</h1>
-                    <p class="text-xs text-slate-400">อยู่ระหว่างการพัฒนาฟีเจอร์รายงานผล</p>
+                    <p id="lastUpdateLabel" class="text-xs text-slate-400">🕒 ข้อมูลล่าสุด: กำลังโหลด...</p>
                 </div>
             </div>
 
-            <button onclick="logoutAdmin()" class="bg-rose-900/50 hover:bg-rose-800 text-rose-300 hover:text-white px-3 py-2 rounded-lg border border-rose-800/50 transition flex items-center space-x-2 text-sm">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                <span class="hidden md:inline">ออก</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="forceSyncWithPassword()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg font-semibold text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> ดึงข้อมูลใหม่
+                </button>
+                <button onclick="logoutAdmin()" class="bg-rose-900/50 hover:bg-rose-800 text-rose-300 hover:text-white px-3 py-2 rounded-lg border border-rose-800/50 transition flex items-center space-x-2 text-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden md:inline">ออก</span>
+                </button>
+            </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-8 text-center border border-slate-800 shadow-2xl mt-8">
-            <i class="fa-solid fa-chart-line text-6xl text-slate-700 mb-4"></i>
-            <h2 class="text-xl font-bold text-slate-300">ฟีเจอร์รายงานผล (Dashboard) กำลังจะมาเร็วๆ นี้</h2>
-            <p class="text-sm text-slate-500 mt-2">หน้าที่สำหรับดูสถิติการสแกนและส่งออกไฟล์</p>
+        <!-- Filters -->
+        <div class="glass-panel p-4 rounded-xl flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">วันที่ต้องการดูสถิติ</label>
+                <input type="date" id="datePicker" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" onchange="loadDataForDate()">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">ห้องเรียน</label>
+                <select id="classSelect" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 min-w-[150px]" onchange="renderStatsForClass()">
+                    <option value="">กำลังโหลด...</option>
+                </select>
+            </div>
+            <div id="loadingIndicator" class="hidden items-center gap-2 text-amber-400 font-semibold text-sm ml-auto">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> กำลังประมวลผล...
+            </div>
         </div>
+
+        <!-- Dashboard Stats -->
+        <div id="statsContainer" class="hidden">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-blue-500">
+                    <p class="text-xs text-slate-400">นักเรียนทั้งหมด</p>
+                    <p id="statTotal" class="text-3xl font-black text-white mt-1">-</p>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-emerald-500">
+                    <p class="text-xs text-slate-400">มาเรียน</p>
+                    <p id="statPresent" class="text-3xl font-black text-emerald-400 mt-1">-</p>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-rose-500">
+                    <p class="text-xs text-slate-400">ขาดเรียน</p>
+                    <p id="statAbsent" class="text-3xl font-black text-rose-400 mt-1">-</p>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-amber-500">
+                    <p class="text-xs text-slate-400">มาเช้าที่สุด</p>
+                    <p id="statEarliest" class="text-lg font-bold text-amber-400 mt-1 truncate">-</p>
+                    <p id="statEarliestTime" class="text-xs text-slate-400 mt-0.5">-</p>
+                </div>
+            </div>
+
+            <!-- Absent List Table -->
+            <div class="glass-panel rounded-xl overflow-hidden border border-slate-800">
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-bold text-rose-400"><i class="fa-solid fa-user-xmark mr-2"></i> รายชื่อนักเรียนที่ขาดเรียน (ยังไม่สแกน)</h3>
+                    <span id="absentBadge" class="bg-rose-900/50 text-rose-400 text-xs py-1 px-2 rounded font-bold">0 คน</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-slate-400 text-xs uppercase">
+                            <tr>
+                                <th class="px-4 py-2 font-medium w-16 text-center">เลขที่</th>
+                                <th class="px-4 py-2 font-medium">รหัสประจำตัว</th>
+                                <th class="px-4 py-2 font-medium">ชื่อ-สกุล</th>
+                            </tr>
+                        </thead>
+                        <tbody id="absentTableBody" class="divide-y divide-slate-800/50 text-slate-300">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzAdYQUf_6aRWzPgd6kSlxeyN5sbX9Xij4sOMP1_XyEcLBs8djSjv9ktPYraVKRl1I8Qg/exec";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyDdwhcIqbbSkK0MmGcVpyrzR8bW3TBLSMM",
             authDomain: "by-school-fscan.firebaseapp.com",
@@ -66,16 +128,297 @@
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let masterStudents = [];
+        let classesList = [];
+        let summariesByClass = {}; 
+        let lastSyncTimestamp = null;
+        const SYNC_TIMES = ["10:00", "16:00", "23:59"]; // Auto sync checkpoints
+
+        // Helper: Get Today YYYY-MM-DD local
+        function getTodayStr() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
 
         auth.onAuthStateChanged((user) => {
             if (!user) window.location.replace("login_scan.html");
+            else initDashboard();
         });
 
         function logoutAdmin() {
-            auth.signOut().then(() => {
-                window.location.replace("login_scan.html");
+            auth.signOut().then(() => window.location.replace("login_scan.html"));
+        }
+
+        async function initDashboard() {
+            document.getElementById('datePicker').value = getTodayStr();
+            showLoading(true);
+            try {
+                // 1. Fetch Master Students from GAS Cache
+                const res = await fetch(`${GAS_URL}?action=getStudents`);
+                const json = await res.json();
+                if(json.success) {
+                    masterStudents = json.data;
+                    extractClasses();
+                } else {
+                    alert("ดึงข้อมูลนักเรียนล้มเหลว: " + json.message);
+                }
+                
+                // 2. Load data for selected date (Today)
+                await loadDataForDate();
+                
+            } catch (err) {
+                console.error(err);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
+            }
+            showLoading(false);
+        }
+
+        function extractClasses() {
+            const classSet = new Set();
+            masterStudents.forEach(s => {
+                if (s.className && s.className.trim() !== "") {
+                    classSet.add(s.className.trim());
+                }
+            });
+            classesList = Array.from(classSet).sort();
+            
+            const select = document.getElementById('classSelect');
+            select.innerHTML = '';
+            classesList.forEach((c, i) => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.text = c;
+                select.appendChild(opt);
             });
         }
+
+        async function loadDataForDate() {
+            const selectedDate = document.getElementById('datePicker').value;
+            const isToday = selectedDate === getTodayStr();
+            showLoading(true);
+            
+            try {
+                // Fetch cached summary from GAS
+                const res = await fetch(`${GAS_URL}?action=getSummary&date=${selectedDate}`);
+                const json = await res.json();
+                summariesByClass = {};
+                
+                let gasHasData = false;
+                if (json.success && json.data && json.data.length > 0) {
+                    gasHasData = true;
+                    json.data.forEach(sum => {
+                        summariesByClass[sum.className] = sum;
+                        if (!lastSyncTimestamp || sum.syncTimestamp > lastSyncTimestamp) {
+                            lastSyncTimestamp = sum.syncTimestamp;
+                        }
+                    });
+                }
+
+                if (isToday) {
+                    // Check if we need Auto-Sync
+                    if (!gasHasData || shouldAutoSync()) {
+                        await syncFromFirebase(selectedDate);
+                    } else {
+                        updateLastSyncUI();
+                        renderStatsForClass();
+                    }
+                } else {
+                    // For past dates, just show what GAS has
+                    if (!gasHasData) {
+                        alert(`ไม่มีข้อมูลสรุปของวันที่ ${selectedDate} ในระบบ`);
+                        document.getElementById('statsContainer').classList.add('hidden');
+                    } else {
+                        updateLastSyncUI();
+                        renderStatsForClass();
+                    }
+                }
+            } catch (e) {
+                console.error("Load Data Error:", e);
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+            }
+            
+            showLoading(false);
+        }
+
+        function shouldAutoSync() {
+            if (!lastSyncTimestamp) return true;
+            
+            const now = new Date();
+            const lastSync = new Date(lastSyncTimestamp);
+            
+            // Check checkpoints (10:00, 16:00)
+            const currentHour = now.getHours();
+            const lastSyncHour = lastSync.getHours();
+            
+            if (currentHour >= 10 && lastSyncHour < 10) return true;
+            if (currentHour >= 16 && lastSyncHour < 16) return true;
+            return false;
+        }
+
+        async function forceSyncWithPassword() {
+            const pwd = prompt("ระบุรหัสผ่านเพื่อดึงข้อมูลจาก Firebase:");
+            if (pwd !== "kkss") {
+                if (pwd !== null) alert("รหัสผ่านไม่ถูกต้อง");
+                return;
+            }
+            
+            const selectedDate = document.getElementById('datePicker').value;
+            showLoading(true);
+            await syncFromFirebase(selectedDate);
+            showLoading(false);
+        }
+
+        // ==========================================
+        // สมองกล (Client-side Orchestrator)
+        // ==========================================
+        async function syncFromFirebase(targetDateStr) {
+            document.getElementById('lastUpdateLabel').innerText = `🕒 กำลังดึงข้อมูลจาก Firebase...`;
+            try {
+                // 1. Fetch raw logs from Firebase for the target date
+                const snapshot = await db.collection("attendance")
+                                       .where("date", "==", targetDateStr)
+                                       .get();
+                
+                const rawLogs = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    rawLogs.push(data);
+                });
+
+                // 2. Compute Summaries per Class
+                const syncTimestamp = new Date().toISOString();
+                lastSyncTimestamp = syncTimestamp;
+                
+                for (const className of classesList) {
+                    // Get students belonging to this class
+                    const classStudents = masterStudents.filter(s => s.className.trim() === className);
+                    const totalCount = classStudents.length;
+                    
+                    if (totalCount === 0) continue;
+
+                    let presentCount = 0;
+                    let absentStudents = [];
+                    let earliestScan = null;
+
+                    classStudents.forEach(stu => {
+                        // Find if this student scanned today
+                        const stuLogs = rawLogs.filter(log => log.studentId === stu.id);
+                        if (stuLogs.length > 0) {
+                            presentCount++;
+                            // Check earliest
+                            stuLogs.forEach(l => {
+                                if (!l.timestamp) return; // ignore pending writes
+                                const scanTime = l.timestamp.toDate();
+                                if (!earliestScan || scanTime < earliestScan.time) {
+                                    earliestScan = { name: stu.name, time: scanTime };
+                                }
+                            });
+                        } else {
+                            absentStudents.push({
+                                number: stu.number,
+                                id: stu.id,
+                                name: stu.name
+                            });
+                        }
+                    });
+
+                    // Sort absentees by number
+                    absentStudents.sort((a, b) => parseInt(a.number || "0") - parseInt(b.number || "0"));
+
+                    const summaryData = {
+                        className: className,
+                        total: totalCount,
+                        present: presentCount,
+                        absent: totalCount - presentCount,
+                        absentList: absentStudents,
+                        earliestName: earliestScan ? earliestScan.name : "-",
+                        earliestTimeStr: earliestScan ? earliestScan.time.toLocaleTimeString('th-TH') : "-",
+                        syncTimestamp: syncTimestamp
+                    };
+
+                    summariesByClass[className] = summaryData;
+
+                    // 3. POST Summary to GAS (Fire and forget, don't await all)
+                    fetch(GAS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: "saveSummary",
+                            date: targetDateStr,
+                            className: className,
+                            summaryData: summaryData
+                        })
+                    }).catch(e => console.error("Save Summary to GAS failed", e));
+                }
+
+                updateLastSyncUI();
+                renderStatsForClass();
+                alert(`ดึงข้อมูลจาก Firebase สำเร็จ! (${rawLogs.length} รายการ)`);
+
+            } catch (err) {
+                console.error("Firebase Sync Error:", err);
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูล Firebase: " + err.message);
+                document.getElementById('lastUpdateLabel').innerText = `🕒 อัปเดตล้มเหลว`;
+            }
+        }
+
+        function updateLastSyncUI() {
+            if (lastSyncTimestamp) {
+                const dt = new Date(lastSyncTimestamp);
+                document.getElementById('lastUpdateLabel').innerText = `🕒 ข้อมูลล่าสุด: ${dt.toLocaleTimeString('th-TH')}`;
+            } else {
+                document.getElementById('lastUpdateLabel').innerText = `🕒 ยังไม่มีข้อมูล`;
+            }
+        }
+
+        function renderStatsForClass() {
+            const className = document.getElementById('classSelect').value;
+            if (!className || !summariesByClass[className]) {
+                document.getElementById('statsContainer').classList.add('hidden');
+                return;
+            }
+
+            const data = summariesByClass[className];
+            document.getElementById('statsContainer').classList.remove('hidden');
+
+            // Render Cards
+            document.getElementById('statTotal').innerText = data.total;
+            document.getElementById('statPresent').innerText = data.present;
+            document.getElementById('statAbsent').innerText = data.absent;
+            document.getElementById('statEarliest').innerText = data.earliestName;
+            document.getElementById('statEarliestTime').innerText = (data.earliestTimeStr !== "-") ? `เวลา ${data.earliestTimeStr} น.` : "-";
+
+            // Render Absent Table
+            const tbody = document.getElementById('absentTableBody');
+            document.getElementById('absentBadge').innerText = `${data.absent} คน`;
+            
+            if (data.absentList && data.absentList.length > 0) {
+                tbody.innerHTML = data.absentList.map(s => `
+                    <tr class="hover:bg-slate-800/80 transition">
+                        <td class="px-4 py-3 text-center text-slate-400">${s.number || "-"}</td>
+                        <td class="px-4 py-3 font-mono text-amber-400">${s.id}</td>
+                        <td class="px-4 py-3 font-medium text-white">${s.name}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-8 text-center text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-2"></i>มาครบทุกคนยอดเยี่ยมมาก!</td></tr>`;
+            }
+        }
+
+        function showLoading(show) {
+            const ind = document.getElementById('loadingIndicator');
+            if(show) ind.classList.remove('hidden');
+            else ind.classList.add('hidden');
+            document.getElementById('datePicker').disabled = show;
+            document.getElementById('classSelect').disabled = show;
+        }
+
     </script>
 </body>
 </html>
