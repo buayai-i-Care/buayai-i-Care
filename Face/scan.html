@@ -17,6 +17,7 @@
     
     <!-- Firebase Compatibility Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
@@ -92,18 +93,33 @@
         </div>
 
         <!-- System Status & Clock -->
-        <div class="flex items-center space-x-4 bg-slate-950 px-4 py-1.5 rounded-xl border border-slate-800 shadow-inner">
-            <div class="text-right flex flex-col justify-center">
-                <div id="dbStatusBadge" class="text-xs font-semibold text-amber-400">🔥 กำลังเชื่อมต่อ Firebase...</div>
-                <div id="aiStatusBadge" class="text-xs font-semibold text-amber-400 mt-0.5">🤖 กำลังโหลด AI Model...</div>
-            </div>
-            <div class="h-9 w-[2px] bg-slate-800"></div>
-            <div class="text-right">
-                <div id="dateDisplay" class="text-xs text-slate-400 font-medium"></div>
-                <div id="clockDisplay" class="text-2xl font-black text-amber-400 tracking-widest font-mono drop-shadow-md">
-                    00:00:00
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4 bg-slate-950 px-4 py-1.5 rounded-xl border border-slate-800 shadow-inner hidden md:flex">
+                <div class="text-right flex flex-col justify-center">
+                    <div id="dbStatusBadge" class="text-xs font-semibold text-amber-400">🔥 กำลังเชื่อมต่อ Firebase...</div>
+                    <div id="aiStatusBadge" class="text-xs font-semibold text-amber-400 mt-0.5">🤖 กำลังโหลด AI Model...</div>
+                </div>
+                <div class="h-9 w-[2px] bg-slate-800"></div>
+                <div class="text-right">
+                    <div id="dateDisplay" class="text-xs text-slate-400 font-medium"></div>
+                    <div id="clockDisplay" class="text-2xl font-black text-amber-400 tracking-widest font-mono drop-shadow-md">
+                        00:00:00
+                    </div>
                 </div>
             </div>
+            
+            <button onclick="openHelpModal()" class="bg-blue-900/50 hover:bg-blue-800 text-blue-300 hover:text-white px-3 py-2 rounded-lg border border-blue-800/50 transition flex items-center space-x-2 text-sm" title="คู่มือการใช้งาน">
+                <i class="fa-solid fa-circle-question text-lg"></i>
+                <span class="hidden md:inline">คู่มือ AI</span>
+            </button>
+            <button onclick="openSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-gear"></i>
+                <span class="hidden md:inline">ตั้งค่า</span>
+            </button>
+            <button onclick="logoutAdmin()" class="bg-rose-900/50 hover:bg-rose-800 text-rose-300 hover:text-white px-3 py-2 rounded-lg border border-rose-800/50 transition flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span class="hidden md:inline">ออก</span>
+            </button>
         </div>
     </header>
 
@@ -270,6 +286,131 @@
         </div>
     </div>
 
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-md rounded-2xl p-5 border border-slate-700 shadow-2xl">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                <h3 class="text-base font-bold text-amber-400"><i class="fa-solid fa-gear mr-2"></i> ตั้งค่าการสแกน (System Settings)</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Toggle Voice -->
+                <div class="flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div>
+                        <h4 class="font-semibold text-slate-200 text-sm">เสียงพูดชื่อนักเรียน</h4>
+                        <p class="text-xs text-slate-400">ปิดเพื่อลดอาการหน่วงเวลาคนเยอะ</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="settingVoice" class="sr-only peer" checked onchange="saveSettings()">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <!-- Toggle Privacy Name -->
+                <div class="flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div>
+                        <h4 class="font-semibold text-slate-200 text-sm">ซ่อนชื่อเพื่อความเป็นส่วนตัว</h4>
+                        <p class="text-xs text-slate-400">แสดงผลแบบ มาลี** จง****</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="settingPrivacy" class="sr-only peer" checked onchange="saveSettings()">
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <!-- Threshold Slider -->
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between mb-1">
+                        <h4 class="font-semibold text-slate-200 text-sm">ความแม่นยำ AI (Confidence)</h4>
+                        <span id="valThreshold" class="text-amber-400 text-sm font-bold">0.55</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-2">ค่าน้อย = สแกนติดง่ายแต่เสี่ยงผิดคน (แนะนำ 0.50 - 0.60)</p>
+                    <input type="range" id="settingThreshold" min="0.40" max="0.70" step="0.01" value="0.55" class="w-full accent-amber-500" oninput="document.getElementById('valThreshold').innerText=this.value" onchange="saveSettings()">
+                </div>
+                
+                <!-- Interval Slider -->
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between mb-1">
+                        <h4 class="font-semibold text-slate-200 text-sm">ความถี่ในการประมวลผล</h4>
+                        <span id="valInterval" class="text-amber-400 text-sm font-bold">600 ms</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-2">ค่าน้อย = สแกนเร็วแต่กินสเปคคอมพิวเตอร์ (แนะนำ 600ms)</p>
+                    <input type="range" id="settingInterval" min="200" max="1000" step="100" value="600" class="w-full accent-amber-500" oninput="document.getElementById('valInterval').innerText=this.value + ' ms'" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <button onclick="closeSettingsModal()" class="w-full mt-5 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl shadow-lg text-sm">
+                บันทึกการตั้งค่า
+            </button>
+        </div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-3">
+                <h3 class="text-xl font-extrabold text-blue-400 flex items-center">
+                    <i class="fa-solid fa-circle-question text-3xl mr-3 text-blue-500"></i>
+                    คู่มือการปรับแต่งระบบ AI
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Section 1 -->
+                <div class="bg-gradient-to-r from-slate-800 to-slate-800/40 p-4 rounded-xl border-l-4 border-emerald-500">
+                    <h4 class="text-lg font-bold text-emerald-400 mb-2"><i class="fa-solid fa-volume-high mr-2"></i> เสียงพูดชื่อนักเรียน (Voice Feedback)</h4>
+                    <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                        <li><span class="text-amber-300 font-semibold">ข้อแนะนำ:</span> เบราว์เซอร์รุ่นใหม่จำเป็นต้องให้ผู้ใช้คลิกบนหน้าจออย่างน้อย 1 ครั้ง เสียงถึงจะทำงาน</li>
+                        <li>หากมีนักเรียนเดินผ่านจำนวนมากพร้อมกัน แนะนำให้ <span class="text-rose-400 font-bold">ปิด</span> ฟีเจอร์นี้ เพื่อลดอาการหน่วงหรือเสียงพูดซ้อนกัน</li>
+                    </ul>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="bg-gradient-to-r from-slate-800 to-slate-800/40 p-4 rounded-xl border-l-4 border-sky-500">
+                    <h4 class="text-lg font-bold text-sky-400 mb-2"><i class="fa-solid fa-mask mr-2"></i> โหมดความเป็นส่วนตัว (Privacy Mode)</h4>
+                    <p class="text-sm text-slate-300 mb-2">เมื่อ <b>เปิด</b> ระบบจะตัดคำนำหน้าออก และเซ็นเซอร์ชื่อบางส่วนเพื่อป้องกันข้อมูลส่วนบุคคล</p>
+                    <div class="bg-slate-900 p-2 rounded text-xs font-mono text-slate-400">ตัวอย่าง: <span class="text-sky-300">มาลี** จง****</span></div>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="bg-gradient-to-r from-slate-800 to-slate-800/40 p-4 rounded-xl border-l-4 border-amber-500">
+                    <h4 class="text-lg font-bold text-amber-400 mb-2"><i class="fa-solid fa-bullseye mr-2"></i> ความแม่นยำ AI (Confidence Threshold)</h4>
+                    <p class="text-sm text-slate-300 mb-2">ตัวกำหนดว่า AI ต้องมั่นใจกี่เปอร์เซ็นต์ ถึงจะให้เช็กอินผ่าน (ค่าเริ่มต้น <b>0.55</b> หรือ 55%)</p>
+                    <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                        <li><span class="text-rose-400 font-semibold">ปรับลดลง (เช่น 0.50):</span> สแกนติดง่ายขึ้น เร็วขึ้น แต่อาจมีโอกาสจำคนผิด</li>
+                        <li><span class="text-emerald-400 font-semibold">ปรับเพิ่มขึ้น (เช่น 0.60):</span> แม่นยำขึ้น ลดการจำคนผิด แต่อาจต้องยืนจ้องกล้องนานขึ้น</li>
+                    </ul>
+                </div>
+
+                <!-- Section 4 -->
+                <div class="bg-gradient-to-r from-slate-800 to-slate-800/40 p-4 rounded-xl border-l-4 border-purple-500">
+                    <h4 class="text-lg font-bold text-purple-400 mb-2"><i class="fa-solid fa-microchip mr-2"></i> ความถี่ในการประมวลผล (Processing Interval)</h4>
+                    <p class="text-sm text-slate-300 mb-2">ความเร็วที่ AI ใช้จับภาพมาตรวจสอบ (ค่าเริ่มต้น <b>600 ms</b>)</p>
+                    <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                        <li><span class="text-emerald-400 font-semibold">สำหรับคอมพิวเตอร์สเปคแรง:</span> ปรับลดลงเป็น <b>300-400 ms</b> ทำให้สแกนได้เร็วระดับเดินผ่านก็ติดทันที</li>
+                        <li><span class="text-warning-400 font-semibold">สำหรับคอมพิวเตอร์ทั่วไป:</span> ใช้ค่าเริ่มต้น <b>600-800 ms</b> เพื่อป้องกันกล้องกระตุกหรือคอมพิวเตอร์ค้าง</li>
+                    </ul>
+                </div>
+
+                <!-- Section 5 -->
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                    <h4 class="text-sm font-bold text-slate-200 mb-2"><i class="fa-solid fa-lightbulb text-amber-400 mr-2"></i> เคล็ดลับเพิ่มเติมสำหรับการสแกนหน้า</h4>
+                    <ul class="list-disc list-inside text-xs text-slate-400 space-y-1">
+                        <li>แสงสว่างในบริเวณจุดสแกนควรเพียงพอ และไม่ควรย้อนแสง</li>
+                        <li>ไม่ควรให้นักเรียนสวมหน้ากากอนามัยขณะสแกน</li>
+                        <li>สามารถเปิดใช้งานกล้อง 2 ตัวพร้อมกันเพื่อระบายความแออัดได้</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeHelpModal()" class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                เข้าใจแล้ว
+            </button>
+        </div>
+    </div>
+
     <script>
         /* -------------------------------------------------------------
          * 1. FIREBASE INTEGRATION
@@ -285,9 +426,16 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         let dbStudents = []; 
         let faceMatcher = null;
+
+        function logoutAdmin() {
+            auth.signOut().then(() => {
+                window.location.replace("login_scan.html");
+            });
+        }
 
         /* -------------------------------------------------------------
          * 2. AI & FACE-API INIT
@@ -295,8 +443,16 @@
         async function initAIAndFirebase() {
             const aiBadge = document.getElementById('aiStatusBadge');
             const dbBadge = document.getElementById('dbStatusBadge');
-            
-            try {
+
+            // Authentication Guard
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    window.location.replace("login_scan.html");
+                    return;
+                }
+                
+                // User is authenticated, proceed with loading
+                try {
                 // โหลดโมเดล
                 await Promise.all([
                     faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
@@ -354,6 +510,7 @@
                 dbBadge.innerText = "❌ Firebase: ออฟไลน์";
                 dbBadge.className = "text-xs font-semibold text-rose-500";
             }
+            });
         }
 
         async function saveAttendanceToFirebase(student, gateName) {
@@ -382,10 +539,20 @@
         let activeStreams = { 1: null, 2: null };
         let processingIntervals = { 1: null, 2: null };
         let cameraEnabled = { 1: true, 2: true };
+        
+        // Settings State
+        let SYS_SETTINGS = {
+            voiceEnabled: true,
+            privacyMode: true,
+            aiThreshold: 0.55,
+            aiIntervalMs: 600
+        };
 
         function formatPrivacyName(fullName) {
             if (!fullName) return "ไม่ระบุชื่อ";
             let clean = fullName.replace(/^(นาย|นางสาว|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|นาง|คุณ)\s*/g, '').trim();
+            if (!SYS_SETTINGS.privacyMode) return clean; // If privacy is off, return full clean name
+            
             let parts = clean.split(/\s+/);
             if (parts.length >= 2) {
                 let first = parts[0];
@@ -418,6 +585,7 @@
         }
 
         function speakStudentName(nameStr) {
+            if (!SYS_SETTINGS.voiceEnabled) return; // check setting
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
             const cleanName = nameStr.replace(/^(นาย|นางสาว|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.)\s*/g, '');
@@ -562,13 +730,15 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 resizedDetections.forEach(detection => {
+                    // Update threshold dynamically based on settings
+                    if (faceMatcher) faceMatcher.distanceThreshold = SYS_SETTINGS.aiThreshold;
                     const match = faceMatcher.findBestMatch(detection.descriptor);
                     const box = detection.detection.box;
                     
                     // กลับแกน X เพราะเรามี class -scale-x-100 ที่ canvas และ video
                     // face-api คืนค่าตำแหน่ง box มาจากภาพต้นฉบับ
                     
-                    if (match.label !== 'unknown' && match.distance < 0.55) {
+                    if (match.label !== 'unknown' && match.distance < SYS_SETTINGS.aiThreshold) {
                         ctx.strokeStyle = '#10b981';
                         ctx.lineWidth = 4;
                         ctx.strokeRect(box.x, box.y, box.width, box.height);
@@ -583,7 +753,7 @@
                         ctx.strokeRect(box.x, box.y, box.width, box.height);
                     }
                 });
-            }, 600); // Process every 600ms per camera
+            }, SYS_SETTINGS.aiIntervalMs); // Use setting
         }
 
         /* -------------------------------------------------------------
@@ -682,6 +852,35 @@
 
             closeManualInput();
             triggerCheckin(activeDoorForManual, student);
+        }
+
+        /* -------------------------------------------------------------
+         * SETTINGS MODAL LOGIC
+         * ------------------------------------------------------------- */
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.remove('hidden');
+        }
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.add('hidden');
+        }
+        function saveSettings() {
+            SYS_SETTINGS.voiceEnabled = document.getElementById('settingVoice').checked;
+            SYS_SETTINGS.privacyMode = document.getElementById('settingPrivacy').checked;
+            SYS_SETTINGS.aiThreshold = parseFloat(document.getElementById('settingThreshold').value);
+            
+            const newInterval = parseInt(document.getElementById('settingInterval').value);
+            if (newInterval !== SYS_SETTINGS.aiIntervalMs) {
+                SYS_SETTINGS.aiIntervalMs = newInterval;
+                // Restart intervals if changed
+                if (cameraEnabled[1]) { clearInterval(processingIntervals[1]); startFaceDetection(1, document.getElementById('webcam-1')); }
+                if (cameraEnabled[2]) { clearInterval(processingIntervals[2]); startFaceDetection(2, document.getElementById('webcam-2')); }
+            }
         }
 
         window.onload = initAIAndFirebase;
