@@ -87,7 +87,10 @@
                     <i class="fa-solid fa-user-plus mr-2"></i> เพิ่มรายบุคคล
                 </button>
                 <button onclick="switchTab('batch')" id="tab-batch" class="flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
-                    <i class="fa-solid fa-robot mr-2"></i> อัปโหลดและจับคู่อัตโนมัติ (Auto-Match)
+                    <i class="fa-solid fa-robot mr-2"></i> จับคู่อัตโนมัติ (Batch)
+                </button>
+                <button onclick="switchTab('cleanup')" id="tab-cleanup" class="flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-broom mr-2"></i> จัดการขยะ
                 </button>
             </div>
 
@@ -95,7 +98,6 @@
                 
                 <!-- ================= TAB 1: SINGLE UPLOAD ================= -->
                 <div id="content-single" class="block animate-fade-in">
-                    <!-- โค้ดเดิมแท็บรายบุคคล -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-5">
                             <div>
@@ -147,7 +149,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Step 1: Upload Excel -->
                         <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl">
                             <label class="block text-sm font-semibold text-slate-300 mb-2">
                                 1. อัปโหลดไฟล์รายชื่อ (Excel .xlsx)
@@ -157,7 +158,6 @@
                             <div id="excel-status" class="mt-3 text-sm text-slate-500">รอไฟล์ Excel... (ควรรองรับหัวข้อ 'เลขประจำตัว' และ 'ชื่อ สกุล')</div>
                         </div>
 
-                        <!-- Step 2: Upload Images -->
                         <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl flex flex-col justify-center items-center relative overflow-hidden group">
                             <input type="file" id="batch-files" multiple accept="image/jpeg, image/png, image/jpg" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleBatchSelect()">
                             <i class="fa-solid fa-images text-3xl text-slate-500 group-hover:text-amber-400 transition mb-2"></i>
@@ -186,6 +186,46 @@
 
                         <!-- Log Console -->
                         <div class="bg-slate-900 rounded-xl border border-slate-800 h-64 overflow-y-auto no-scrollbar p-3 font-mono text-xs space-y-1.5" id="batch-log">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 3: CLEANUP UTILITY ================= -->
+                <div id="content-cleanup" class="hidden animate-fade-in space-y-6">
+                    
+                    <!-- Section 1: Individual Delete -->
+                    <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <i class="fa-solid fa-user-xmark text-2xl text-rose-400"></i>
+                            <div>
+                                <h4 class="text-slate-200 font-bold text-lg">ลบข้อมูลรายบุคคล (กรณีนักเรียนย้ายออก/แก้ไขทีละคน)</h4>
+                                <p class="text-sm text-slate-400">ระบุรหัสนักเรียนเพื่อลบฐานข้อมูลใบหน้าออกจากระบบ (จะไม่สามารถสแกนเข้าได้อีก)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <input type="text" id="delete-id" placeholder="กรอกรหัสนักเรียน (เช่น 33268)" 
+                                   class="flex-1 bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition">
+                            <button onclick="deleteStudentById()" class="bg-rose-700 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition whitespace-nowrap">
+                                <i class="fa-solid fa-magnifying-glass mr-2"></i> ค้นหาและลบ
+                            </button>
+                        </div>
+                        <div id="delete-individual-log" class="mt-3 text-sm"></div>
+                    </div>
+
+                    <!-- Section 2: Garbage Cleanup -->
+                    <div class="bg-rose-900/20 border border-rose-900/50 rounded-xl p-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <i class="fa-solid fa-broom text-2xl text-rose-500"></i>
+                            <div>
+                                <h4 class="text-rose-400 font-bold text-lg">ล้างข้อมูลขยะทั้งหมด (ระบบอัตโนมัติ)</h4>
+                                <p class="text-sm text-rose-200/80">ลบข้อมูลที่รหัสไม่ใช่ตัวเลขล้วน (เช่น ชื่อไฟล์รูปภาพที่ติดไป) ออกจากระบบทั้งหมดในคลิกเดียว</p>
+                            </div>
+                        </div>
+                        <button onclick="cleanupBadData()" class="w-full md:w-auto bg-rose-900 hover:bg-rose-800 text-rose-100 font-bold py-2.5 px-6 rounded-xl border border-rose-700 shadow-lg transition">
+                            <i class="fa-solid fa-trash-can mr-2"></i> สแกนและลบข้อมูลที่ผิดพลาด
+                        </button>
+                        
+                        <div id="cleanup-log" class="mt-4 text-sm font-mono text-slate-300 text-left h-40 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-rose-900/50 hidden shadow-inner space-y-2">
                         </div>
                     </div>
 
@@ -218,9 +258,6 @@
             MIN_CONFIDENCE_SCORE: 0.85
         };
 
-        // -------------------------------------------------------------
-        // INITIALIZE AI MODELS
-        // -------------------------------------------------------------
         async function loadModels() {
             try {
                 await Promise.all([
@@ -232,7 +269,6 @@
                 const badge = document.getElementById('aiStatusBadge');
                 badge.className = "text-sm font-semibold text-emerald-400 flex items-center space-x-2";
                 badge.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>AI พร้อมใช้งานแล้ว</span>`;
-                
                 document.getElementById('btn-single-submit').disabled = false;
             } catch (err) {
                 console.error("AI Load Error:", err);
@@ -241,33 +277,29 @@
         window.onload = loadModels;
 
         function switchTab(tab) {
-            const btnSingle = document.getElementById('tab-single');
-            const btnBatch = document.getElementById('tab-batch');
-            const cntSingle = document.getElementById('content-single');
-            const cntBatch = document.getElementById('content-batch');
-
-            if(tab === 'single') {
-                btnSingle.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md";
-                btnBatch.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
-                cntSingle.classList.remove('hidden');
-                cntBatch.classList.add('hidden');
-            } else {
-                btnBatch.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md";
-                btnSingle.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
-                cntBatch.classList.remove('hidden');
-                cntSingle.classList.add('hidden');
-            }
+            const tabs = ['single', 'batch', 'cleanup'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const cnt = document.getElementById(`content-${t}`);
+                if(t === tab) {
+                    btn.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 bg-brand-blue text-white shadow-md";
+                    cnt.classList.remove('hidden');
+                } else {
+                    btn.className = "flex-1 py-3 text-center rounded-lg font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
+                    cnt.classList.add('hidden');
+                }
+            });
         }
 
         async function validateImageQuality(file) {
-            if (file.size > QUALITY.MAX_FILE_SIZE_MB * 1024 * 1024) return { valid: false, message: `ขนาดไฟล์เกิน` };
+            if (file.size > QUALITY.MAX_FILE_SIZE_MB * 1024 * 1024) return { valid: false, message: `ขนาดไฟล์เกิน 5MB` };
             let img;
             try { img = await faceapi.bufferToImage(file); } catch (e) { return { valid: false, message: `ไฟล์ไม่ใช่รูปภาพ` }; }
             if (img.width < QUALITY.MIN_RESOLUTION || img.height < QUALITY.MIN_RESOLUTION) return { valid: false, message: `ความละเอียดต่ำเกินไป` };
             
             const detections = await faceapi.detectAllFaces(img).withFaceLandmarks().withFaceDescriptors();
-            if (detections.length === 0) return { valid: false, message: `ไม่พบใบหน้า` };
-            if (detections.length > 1) return { valid: false, message: `พบหลายใบหน้า` };
+            if (detections.length === 0) return { valid: false, message: `ไม่พบใบหน้าในรูปภาพ` };
+            if (detections.length > 1) return { valid: false, message: `พบหลายใบหน้าในรูปเดียว` };
             
             const score = detections[0].detection.score;
             if (score < QUALITY.MIN_CONFIDENCE_SCORE) return { valid: false, message: `ใบหน้าไม่ชัดเจน (AI มั่นใจ ${(score*100).toFixed(0)}%)` };
@@ -275,7 +307,7 @@
             return { valid: true, descriptor: Array.from(detections[0].descriptor) };
         }
 
-        // ================= SINGLE MODE (Omitting detailed implementation to save space) =================
+        // ================= SINGLE MODE =================
         const singleFileInput = document.getElementById('single-file');
         const singlePreview = document.getElementById('single-preview');
         const singlePlaceholder = document.getElementById('single-placeholder');
@@ -289,11 +321,50 @@
             }
         });
 
-        async function processSingle() { /* Existing code */ }
+        async function processSingle() {
+            if(!aiReady) return alert("กรุณารอ AI โหลดให้เสร็จสิ้นก่อน");
+            const studentId = document.getElementById('single-id').value.trim();
+            const studentName = document.getElementById('single-name').value.trim();
+            const file = singleFileInput.files[0];
+            if(!studentId || !studentName || !file) return alert("กรุณากรอกรหัส ชื่อ และเลือกรูปภาพให้ครบถ้วน");
+
+            const btn = document.getElementById('btn-single-submit');
+            const statusDiv = document.getElementById('single-status');
+            const loading = document.getElementById('single-loading');
+
+            btn.disabled = true; loading.classList.remove('hidden');
+            statusDiv.innerHTML = `<span class="text-amber-400">กำลังตรวจสอบคุณภาพรูปภาพ...</span>`;
+
+            try {
+                const validation = await validateImageQuality(file);
+                if(!validation.valid) {
+                    statusDiv.innerHTML = `<span class="text-rose-500 font-bold">❌ ไม่ผ่านเกณฑ์: </span><span class="text-rose-400">${validation.message}</span>`;
+                    btn.disabled = false; loading.classList.add('hidden'); return;
+                }
+                statusDiv.innerHTML = `<span class="text-emerald-400">ภาพผ่านเกณฑ์ กำลังบันทึกลงฐานข้อมูล...</span>`;
+                
+                await db.collection("students").doc(studentId).set({
+                    student_id: studentId, name: studentName,
+                    faceDescriptor: validation.descriptor,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                statusDiv.innerHTML = `<span class="text-emerald-400 font-bold">✅ บันทึกข้อมูล ${studentName} สำเร็จ!</span>`;
+                
+                setTimeout(() => {
+                    document.getElementById('single-id').value = ''; document.getElementById('single-name').value = '';
+                    singleFileInput.value = ''; singlePreview.classList.add('hidden'); singlePlaceholder.classList.remove('hidden');
+                    statusDiv.innerHTML = "รอรับรูปภาพคนต่อไป..."; btn.disabled = false;
+                }, 3000);
+            } catch (error) {
+                statusDiv.innerHTML = `<span class="text-rose-500">❌ ระบบขัดข้อง: ตรวจสอบรูปภาพไม่ได้</span>`;
+                btn.disabled = false;
+            } finally { loading.classList.add('hidden'); }
+        }
 
         // ================= BATCH AUTO-MATCH MODE =================
         let batchFilesArray = [];
         let excelDataArray = [];
+        window.failedTextToCopy = ""; // Global variable for copy button
 
         function handleBatchSelect() {
             const files = document.getElementById('batch-files').files;
@@ -319,7 +390,6 @@
                 excelDataArray = [];
                 let idIdx = -1, nameIdx = -1;
 
-                // ค้นหาคอลัมน์จากแถวต้นๆ
                 for(let r=0; r<Math.min(10, json.length); r++) {
                     const row = json[r];
                     if(!row) continue;
@@ -374,27 +444,30 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // Fuzzy String Matching (Dice Coefficient Bigrams) สำหรับภาษาไทย
         function stringSimilarity(str1, str2) {
-            // ลบคำนำหน้า ตัวเลข และเว้นวรรค
             const clean = (s) => s.replace(/เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|นาย|นางสาว|เด็กชา|[0-9_]/g, '').replace(/\s+/g, '');
             const c1 = clean(str1); const c2 = clean(str2);
-            
             if (c1 === c2) return 1.0;
             if (c1.length < 2 || c2.length < 2) return 0.0;
-            
             const bg1 = new Set(); for(let i=0; i<c1.length-1; i++) bg1.add(c1.substring(i, i+2));
             const bg2 = new Set(); for(let i=0; i<c2.length-1; i++) bg2.add(c2.substring(i, i+2));
-            
             let intersection = 0;
             for (let bg of bg1) { if (bg2.has(bg)) intersection++; }
-            
             return (2.0 * intersection) / (bg1.size + bg2.size);
         }
 
+        window.copyFailedList = function() {
+            if (!window.failedTextToCopy) return;
+            navigator.clipboard.writeText(window.failedTextToCopy).then(() => {
+                alert("คัดลอกรายชื่อรูปภาพที่ไม่สำเร็จแล้ว!\nคุณสามารถนำไปวางใน Notepad เพื่อเป็นเช็คลิสต์ในการตามแก้ไขได้เลยครับ");
+            }).catch(err => {
+                console.error("Copy failed", err);
+                alert("เบราว์เซอร์ไม่รองรับการคัดลอกอัตโนมัติ กรุณาลากคลุมใน Log เพื่อคัดลอกแทนครับ");
+            });
+        };
+
         async function processBatch() {
             if(!aiReady) return alert("รอ AI ก่อนครับ");
-            
             if (excelDataArray.length === 0) {
                 const proceed = confirm("ยังไม่ได้อัปโหลด Excel (หรืออ่านข้อมูลไม่ได้) ต้องการใช้ชื่อไฟล์เป็นรหัสชั่วคราวต่อไปหรือไม่?");
                 if (!proceed) return;
@@ -410,10 +483,10 @@
 
             let successCount = 0; let errorCount = 0;
             let total = batchFilesArray.length;
+            let failedListArray = []; 
 
             for (let i = 0; i < total; i++) {
                 const file = batchFilesArray[i];
-                // ดึงชื่อไฟล์ เช่น "1_1_เด็กชายกรกฤทธิ์ กรวยสวัสดิ์"
                 const originalFileName = file.name.split('.').slice(0, -1).join('.').trim();
 
                 try {
@@ -421,20 +494,17 @@
                     if (!validation.valid) {
                         appendLog(`<b>ปฏิเสธภาพ ${file.name}:</b> ${validation.message}`, 'error');
                         errorCount++;
+                        failedListArray.push(`${file.name} (สาเหตุ: ${validation.message})`);
                         continue;
                     } 
 
-                    // กระบวนการจับคู่ (Fuzzy Match)
                     let bestMatch = null;
                     let maxScore = 0;
 
                     if (excelDataArray.length > 0) {
                         for (let s of excelDataArray) {
                             let score = stringSimilarity(originalFileName, s.name);
-                            if (score > maxScore) {
-                                maxScore = score;
-                                bestMatch = s;
-                            }
+                            if (score > maxScore) { maxScore = score; bestMatch = s; }
                         }
                     }
 
@@ -449,32 +519,30 @@
                         if (scorePct >= 95) {
                             appendLog(`จับคู่แม่นยำ: <b>${originalFileName}</b> ➡️ ได้รหัส <b>${finalId}</b> (${finalName})`, 'success');
                         } else {
-                            // เตือนสีเหลืองกรณีคล้าย 60-94%
                             appendLog(`จับคู่ (คล้าย ${scorePct}%): <b>${originalFileName}</b> ➡️ ได้รหัส <b>${finalId}</b> (${finalName})`, 'warning');
                         }
                     } else if (excelDataArray.length > 0) {
-                        // มี Excel แต่หาคนใกล้เคียงไม่เจอ (ต่ำกว่า 60%)
-                        finalName = "ไม่พบชื่อใน Excel ที่ตรงกัน";
-                        appendLog(`<b>ไม่พบคนคล้าย:</b> รูป ${originalFileName} (คล้ายสุดแค่ ${Math.round(maxScore*100)}%) ใช้รหัสชั่วคราว`, 'error');
+                        appendLog(`<b>ไม่พบคนคล้าย:</b> รูป ${originalFileName} (คล้ายสุดแค่ ${Math.round(maxScore*100)}%) ปฏิเสธการบันทึก`, 'error');
+                        failedListArray.push(`${file.name} (สาเหตุ: หาชื่อใน Excel ไม่พบ/คล้ายน้อยกว่า 60%)`);
+                        errorCount++;
+                        continue;
                     }
 
-                    // บันทึกลง Firebase
                     await db.collection("students").doc(finalId).set({
                         student_id: finalId,
                         name: finalName,
                         faceDescriptor: validation.descriptor,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    
                     successCount++;
                     
                 } catch (err) {
                     console.error("Batch Error", err);
                     appendLog(`<b>ข้อผิดพลาดระบบ:</b> ไฟล์ ${file.name}`, 'error');
                     errorCount++;
+                    failedListArray.push(`${file.name} (สาเหตุ: ไฟล์ขัดข้อง)`);
                 }
 
-                // Update Progress UI
                 const percent = Math.round(((i + 1) / total) * 100);
                 document.getElementById('batch-progress-bar').style.width = `${percent}%`;
                 document.getElementById('batch-progress-text').innerText = `${i + 1} / ${total} (${percent}%)`;
@@ -483,8 +551,93 @@
             appendLog(`----------------------------------------`);
             appendLog(`<b>สรุปผล:</b> บันทึกสำเร็จ: ${successCount} คน, ตกหล่น/มีปัญหา: ${errorCount} รูป`, errorCount === 0 ? 'success' : 'warning');
             
+            if (failedListArray.length > 0) {
+                window.failedTextToCopy = "รายชื่อภาพที่ไม่ผ่านการบันทึก (ต้องแก้ไข):\n" + failedListArray.join("\n");
+                const btnHtml = `<button onclick="copyFailedList()" class="mt-3 mb-1 bg-rose-900/60 hover:bg-rose-800 text-rose-200 text-xs font-bold py-2 px-4 rounded-lg border border-rose-700 transition shadow"><i class="fa-solid fa-copy mr-1"></i> คัดลอกรายชื่อที่ไม่สำเร็จ (${failedListArray.length} รายการ)</button>`;
+                appendLog(btnHtml, 'warning');
+            }
+            
             btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ทำงานเสร็จสิ้น`;
             btn.className = "mx-auto mt-4 bg-slate-700 text-slate-300 font-bold py-3 px-8 rounded-xl shadow cursor-not-allowed flex items-center justify-center";
+        }
+
+        // ================= CLEANUP MODE =================
+        async function deleteStudentById() {
+            const id = document.getElementById('delete-id').value.trim();
+            const logBox = document.getElementById('delete-individual-log');
+            if(!id) {
+                logBox.innerHTML = `<span class="text-amber-400">กรุณากรอกรหัสนักเรียนก่อนครับ</span>`;
+                return;
+            }
+            
+            logBox.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาข้อมูลรหัส ${id}...</span>`;
+            
+            try {
+                const doc = await db.collection("students").doc(id).get();
+                if (!doc.exists) {
+                    logBox.innerHTML = `<span class="text-rose-400">❌ ไม่พบข้อมูลนักเรียนรหัส ${id} ในระบบฐานข้อมูลใบหน้า</span>`;
+                    return;
+                }
+                
+                const studentName = doc.data().name || "ไม่ทราบชื่อ";
+                if(confirm(`พบข้อมูล:\nรหัส: ${id}\nชื่อ: ${studentName}\n\nคุณต้องการลบข้อมูลใบหน้าของนักเรียนคนนี้ออกอย่างถาวรใช่หรือไม่? (เพื่อไม่ให้สแกนได้อีก)`)) {
+                    await db.collection("students").doc(id).delete();
+                    logBox.innerHTML = `<span class="text-emerald-400 font-bold">✅ ลบข้อมูลใบหน้าของ ${studentName} (รหัส ${id}) ออกจากระบบสำเร็จ!</span>`;
+                    document.getElementById('delete-id').value = '';
+                } else {
+                    logBox.innerHTML = `<span class="text-slate-400">ยกเลิกการลบข้อมูล</span>`;
+                }
+            } catch (err) {
+                logBox.innerHTML = `<span class="text-rose-500">❌ เกิดข้อผิดพลาด: ${err.message}</span>`;
+            }
+        }
+
+        async function cleanupBadData() {
+            if(!confirm('คำเตือน: ระบบจะค้นหารหัสนักเรียนที่มีตัวอักษรผสมอยู่ และลบทิ้งถาวร! ดำเนินการต่อหรือไม่?')) return;
+            
+            const logBox = document.getElementById('cleanup-log');
+            logBox.classList.remove('hidden');
+            logBox.innerHTML = '<div><i class="fa-solid fa-spinner fa-spin text-amber-400"></i> กำลังค้นหาข้อมูลขยะใน Firebase...</div>';
+            
+            try {
+                // 1. Clean Students Collection
+                const snapshot = await db.collection("students").get();
+                let deletedCount = 0;
+                
+                for (let doc of snapshot.docs) {
+                    const id = doc.id;
+                    // ถ้ารหัสมีตัวอักษรผสมอยู่ (ไม่ใช่ตัวเลข 0-9 ล้วนๆ) ให้ลบทิ้ง
+                    if (!/^\d+$/.test(id)) {
+                        logBox.innerHTML += `<div><span class="text-rose-400">ลบข้อมูลนักเรียน:</span> ${id}</div>`;
+                        await db.collection("students").doc(id).delete();
+                        deletedCount++;
+                    }
+                }
+                
+                // 2. Clean Attendance Collection
+                logBox.innerHTML += `<div class="mt-2 text-amber-400"><i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาประวัติการสแกน (Dashboard) ที่เป็นขยะ...</div>`;
+                const attSnapshot = await db.collection("attendance").get();
+                let attDeleted = 0;
+                
+                for (let doc of attSnapshot.docs) {
+                    const data = doc.data();
+                    if(data.studentId && !/^\d+$/.test(data.studentId)) {
+                        logBox.innerHTML += `<div><span class="text-rose-400">ลบประวัติเข้าเรียนของ:</span> ${data.studentId}</div>`;
+                        await db.collection("attendance").doc(doc.id).delete();
+                        attDeleted++;
+                    }
+                }
+
+                if (deletedCount > 0 || attDeleted > 0) {
+                    logBox.innerHTML += `<div class="text-emerald-400 font-bold mt-2">✅ ทำความสะอาดเสร็จสิ้น! ลบหน้านักเรียน ${deletedCount} รายการ, ลบประวัติสแกน ${attDeleted} รายการ</div>`;
+                } else {
+                    logBox.innerHTML += `<div class="text-emerald-400 font-bold mt-2">🎉 ฐานข้อมูลสะอาดอยู่แล้ว! ไม่พบรหัสที่มีตัวอักษรผสมอยู่ครับ</div>`;
+                }
+                
+            } catch (err) {
+                logBox.innerHTML += `<div class="text-rose-500 mt-2">❌ เกิดข้อผิดพลาด: ${err.message}</div>`;
+            }
+            logBox.scrollTop = logBox.scrollHeight;
         }
     </script>
 </body>

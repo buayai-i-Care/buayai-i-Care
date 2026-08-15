@@ -120,8 +120,10 @@
                 </div>
                 <!-- Camera Switcher 1 -->
                 <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-video text-slate-400 text-xs"></i>
-                    <select id="camSelect-1" onchange="changeCamera(1, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
+                    <button id="btn-toggle-cam-1" onclick="toggleCamera(1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-600 hover:bg-emerald-500 text-white transition shadow" title="เปิด/ปิดกล้อง">
+                        <i class="fa-solid fa-video"></i>
+                    </button>
+                    <select id="camSelect-1" onchange="changeCamera(1, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400 max-w-[120px] truncate">
                         <option value="">กำลังค้นหากล้อง...</option>
                     </select>
                 </div>
@@ -180,8 +182,10 @@
                 </div>
                 <!-- Camera Switcher 2 -->
                 <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-video text-slate-400 text-xs"></i>
-                    <select id="camSelect-2" onchange="changeCamera(2, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400">
+                    <button id="btn-toggle-cam-2" onclick="toggleCamera(2)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-600 hover:bg-emerald-500 text-white transition shadow" title="เปิด/ปิดกล้อง">
+                        <i class="fa-solid fa-video"></i>
+                    </button>
+                    <select id="camSelect-2" onchange="changeCamera(2, this.value)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-400 max-w-[120px] truncate">
                         <option value="">กำลังค้นหากล้อง...</option>
                     </select>
                 </div>
@@ -377,6 +381,7 @@
         let checkinCounts = { 1: 0, 2: 0 };
         let activeStreams = { 1: null, 2: null };
         let processingIntervals = { 1: null, 2: null };
+        let cameraEnabled = { 1: true, 2: true };
 
         function formatPrivacyName(fullName) {
             if (!fullName) return "ไม่ระบุชื่อ";
@@ -458,15 +463,52 @@
                     select2.appendChild(opt2);
                 });
 
-                if (videoDevices.length > 0) startStream(1, videoDevices[0].deviceId);
-                if (videoDevices.length > 1) startStream(2, videoDevices[1].deviceId);
-                else if (videoDevices.length === 1) startStream(2, videoDevices[0].deviceId);
+                if (videoDevices.length > 0 && cameraEnabled[1]) startStream(1, videoDevices[0].deviceId);
+                if (videoDevices.length > 1 && cameraEnabled[2]) startStream(2, videoDevices[1].deviceId);
+                else if (videoDevices.length === 1 && cameraEnabled[2]) startStream(2, videoDevices[0].deviceId);
             } catch (err) {
                 console.error("Camera access error:", err);
             }
         }
 
+        function toggleCamera(doorIndex) {
+            cameraEnabled[doorIndex] = !cameraEnabled[doorIndex];
+            const btn = document.getElementById(`btn-toggle-cam-${doorIndex}`);
+            const select = document.getElementById(`camSelect-${doorIndex}`);
+            
+            if (cameraEnabled[doorIndex]) {
+                btn.className = "w-7 h-7 flex items-center justify-center rounded bg-emerald-600 hover:bg-emerald-500 text-white transition shadow";
+                btn.innerHTML = '<i class="fa-solid fa-video"></i>';
+                select.disabled = false;
+                select.classList.remove('opacity-50');
+                changeCamera(doorIndex, select.value);
+            } else {
+                btn.className = "w-7 h-7 flex items-center justify-center rounded bg-rose-600 hover:bg-rose-500 text-white transition shadow";
+                btn.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
+                select.disabled = true;
+                select.classList.add('opacity-50');
+                
+                // Stop camera stream and AI interval
+                if (activeStreams[doorIndex]) {
+                    activeStreams[doorIndex].getTracks().forEach(track => track.stop());
+                    activeStreams[doorIndex] = null;
+                }
+                if (processingIntervals[doorIndex]) {
+                    clearInterval(processingIntervals[doorIndex]);
+                    processingIntervals[doorIndex] = null;
+                }
+                const video = document.getElementById(`webcam-${doorIndex}`);
+                video.srcObject = null;
+                
+                // Clear canvas
+                const canvas = document.getElementById(`canvas-${doorIndex}`);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
         async function startStream(doorIndex, deviceId) {
+            if (!cameraEnabled[doorIndex]) return;
             if (activeStreams[doorIndex]) {
                 activeStreams[doorIndex].getTracks().forEach(track => track.stop());
             }
@@ -498,6 +540,7 @@
         }
 
         function changeCamera(doorIndex, deviceId) {
+            if (!cameraEnabled[doorIndex]) return;
             startStream(doorIndex, deviceId);
         }
 
