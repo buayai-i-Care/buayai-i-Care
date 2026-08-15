@@ -389,21 +389,46 @@
                 
                 excelDataArray = [];
                 let idIdx = -1, nameIdx = -1;
+                let prefixIdx = -1, fnameIdx = -1, lnameIdx = -1;
 
-                for(let r=0; r<Math.min(10, json.length); r++) {
+                for(let r=0; r<Math.min(15, json.length); r++) {
                     const row = json[r];
                     if(!row) continue;
                     for(let c=0; c<row.length; c++) {
                         const val = String(row[c] || '').trim().replace(/\s+/g, '');
                         if (val.includes("เลขประจำตัว") || val.includes("รหัส")) idIdx = c;
-                        if (val.includes("ชื่อสกุล") || val.includes("ชื่อ-สกุล") || val === "ชื่อสกุล") nameIdx = c;
+                        
+                        // คอลัมน์เดียวรวมกัน
+                        if (val === "ชื่อสกุล" || val.includes("ชื่อ-สกุล") || val === "ชื่อ-สกุล") nameIdx = c;
+                        
+                        // กรณีแบ่งเป็น 3 คอลัมน์
+                        if (val.includes("คำนำหน้า")) prefixIdx = c;
+                        if (val === "ชื่อ" || val === "ชื่อนักเรียน" || val === "ชื่อจริง") fnameIdx = c;
+                        if (val.includes("นามสกุล") || val === "สกุล") lnameIdx = c;
                     }
-                    if (idIdx !== -1 && nameIdx !== -1) {
+                    
+                    // ถ้ารู้รหัส และรู้ชื่อ (แบบคอลัมน์เดียว หรือ แยกคอลัมน์ ก็ได้)
+                    if (idIdx !== -1 && (nameIdx !== -1 || (fnameIdx !== -1 && lnameIdx !== -1))) {
                         for(let i=r+1; i<json.length; i++) {
-                            if (json[i] && json[i][idIdx] && json[i][nameIdx]) {
+                            const rowData = json[i];
+                            if(!rowData) continue;
+                            const idVal = rowData[idIdx];
+                            if(!idVal) continue;
+                            
+                            let finalName = "";
+                            if (nameIdx !== -1 && rowData[nameIdx]) {
+                                finalName = String(rowData[nameIdx]).trim();
+                            } else if (fnameIdx !== -1 && lnameIdx !== -1 && rowData[fnameIdx]) {
+                                const prefix = (prefixIdx !== -1 && rowData[prefixIdx]) ? String(rowData[prefixIdx]).trim() : "";
+                                const fname = String(rowData[fnameIdx]).trim();
+                                const lname = rowData[lnameIdx] ? String(rowData[lnameIdx]).trim() : "";
+                                finalName = `${prefix}${fname} ${lname}`.trim();
+                            }
+
+                            if (finalName) {
                                 excelDataArray.push({
-                                    id: String(json[i][idIdx]).trim(),
-                                    name: String(json[i][nameIdx]).trim()
+                                    id: String(idVal).trim(),
+                                    name: finalName
                                 });
                             }
                         }
@@ -415,7 +440,7 @@
                 if (excelDataArray.length > 0) {
                     statusEl.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check"></i> ดึงรายชื่อได้ ${excelDataArray.length} คน</span>`;
                 } else {
-                    statusEl.innerHTML = `<span class="text-rose-400"><i class="fa-solid fa-xmark"></i> ไม่พบหัวข้อ "เลขประจำตัว" และ "ชื่อ สกุล"</span>`;
+                    statusEl.innerHTML = `<span class="text-rose-400"><i class="fa-solid fa-xmark"></i> รูปแบบไฟล์ไม่ถูกต้อง (ไม่พบคอลัมน์ รหัส และ ชื่อ)</span>`;
                 }
                 checkReadyToBatch();
             };
@@ -503,6 +528,13 @@
 
                     if (excelDataArray.length > 0) {
                         for (let s of excelDataArray) {
+                            // เช็คว่าถ้าชื่อไฟล์เป็น "รหัสนักเรียน" ตรงๆ หรือมีรหัสซ่อนอยู่
+                            if (originalFileName === s.id || originalFileName.includes(s.id)) {
+                                bestMatch = s;
+                                maxScore = 1.0; // ถือว่าแม่นยำ 100%
+                                break;
+                            }
+                            // ถ้าไม่ตรง ให้เช็คความคล้ายของ "ชื่อ-สกุล" แทน
                             let score = stringSimilarity(originalFileName, s.name);
                             if (score > maxScore) { maxScore = score; bestMatch = s; }
                         }
