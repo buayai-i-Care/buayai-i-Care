@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Firebase Compatibility Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -68,6 +69,20 @@
             </div>
         </div>
 
+        <!-- School Overview Charts -->
+        <div id="overviewContainer" class="hidden glass-panel rounded-xl p-4">
+            <h2 class="font-bold text-white mb-4"><i class="fa-solid fa-chart-pie mr-2 text-blue-400"></i> ภาพรวมระดับชั้น (ม.1 - ม.6)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-800">
+                    <canvas id="presentChart" style="max-height: 250px;"></canvas>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-800 relative cursor-pointer">
+                    <canvas id="absentChart" style="max-height: 250px;"></canvas>
+                    <p class="text-[10px] text-slate-500 text-center mt-1"><i class="fa-solid fa-hand-pointer mr-1"></i> คลิกที่แท่งกราฟเพื่อดูรายชื่อคนขาด</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Dashboard Stats -->
         <div id="statsContainer" class="hidden">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -115,6 +130,19 @@
 
     </div>
 
+    <!-- Absent Modal -->
+    <div id="absentModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                <h3 id="absentModalTitle" class="text-base font-bold text-rose-400">รายชื่อนักเรียนขาดเรียน</h3>
+                <button onclick="closeAbsentModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <ul id="absentModalList" class="space-y-2 text-sm text-slate-300"></ul>
+            </div>
+        </div>
+    </div>
+
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzAdYQUf_6aRWzPgd6kSlxeyN5sbX9Xij4sOMP1_XyEcLBs8djSjv9ktPYraVKRl1I8Qg/exec";
         
@@ -135,6 +163,10 @@
         let summariesByClass = {}; 
         let lastSyncTimestamp = null;
         const SYNC_TIMES = ["10:00", "16:00", "23:59"]; // Auto sync checkpoints
+        
+        let presentChartInstance = null;
+        let absentChartInstance = null;
+        let gradeStatsData = {}; // Cache for modal
 
         // Helper: Get Today YYYY-MM-DD local
         function getTodayStr() {
@@ -225,15 +257,18 @@
                         await syncFromFirebase(selectedDate);
                     } else {
                         updateLastSyncUI();
+                        renderOverviewCharts();
                         renderStatsForClass();
                     }
                 } else {
                     // For past dates, just show what GAS has
                     if (!gasHasData) {
                         alert(`ไม่มีข้อมูลสรุปของวันที่ ${selectedDate} ในระบบ`);
+                        document.getElementById('overviewContainer').classList.add('hidden');
                         document.getElementById('statsContainer').classList.add('hidden');
                     } else {
                         updateLastSyncUI();
+                        renderOverviewCharts();
                         renderStatsForClass();
                     }
                 }
@@ -358,6 +393,7 @@
                 }
 
                 updateLastSyncUI();
+                renderOverviewCharts();
                 renderStatsForClass();
                 alert(`ดึงข้อมูลจาก Firebase สำเร็จ! (${rawLogs.length} รายการ)`);
 
@@ -409,6 +445,136 @@
             } else {
                 tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-8 text-center text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-2"></i>มาครบทุกคนยอดเยี่ยมมาก!</td></tr>`;
             }
+        }
+
+        // ==========================================
+        // Charts & Overview UI
+        // ==========================================
+        function renderOverviewCharts() {
+            document.getElementById('overviewContainer').classList.remove('hidden');
+
+            const grades = ["ม.1", "ม.2", "ม.3", "ม.4", "ม.5", "ม.6"];
+            gradeStatsData = {
+                "ม.1": { present: 0, absent: 0, absentList: [] },
+                "ม.2": { present: 0, absent: 0, absentList: [] },
+                "ม.3": { present: 0, absent: 0, absentList: [] },
+                "ม.4": { present: 0, absent: 0, absentList: [] },
+                "ม.5": { present: 0, absent: 0, absentList: [] },
+                "ม.6": { present: 0, absent: 0, absentList: [] }
+            };
+
+            // Aggregate data
+            for (const [className, data] of Object.entries(summariesByClass)) {
+                const match = className.match(/ม\.(\d)/);
+                if (match) {
+                    const gradeKey = `ม.${match[1]}`;
+                    if (gradeStatsData[gradeKey]) {
+                        gradeStatsData[gradeKey].present += data.present;
+                        gradeStatsData[gradeKey].absent += data.absent;
+                        if (data.absentList) {
+                            // append class name to each student
+                            const listWithClass = data.absentList.map(s => ({...s, className: className}));
+                            gradeStatsData[gradeKey].absentList.push(...listWithClass);
+                        }
+                    }
+                }
+            }
+
+            const presentData = grades.map(g => gradeStatsData[g].present);
+            const absentData = grades.map(g => gradeStatsData[g].absent);
+
+            // Chart 1: Line Chart (Present)
+            const ctx1 = document.getElementById('presentChart').getContext('2d');
+            if (presentChartInstance) presentChartInstance.destroy();
+            presentChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: grades,
+                    datasets: [{
+                        label: 'สถิติมาเรียน',
+                        data: presentData,
+                        borderColor: '#10b981', // emerald
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8' } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+
+            // Chart 2: Bar Chart (Absent)
+            const ctx2 = document.getElementById('absentChart').getContext('2d');
+            if (absentChartInstance) absentChartInstance.destroy();
+            absentChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: grades,
+                    datasets: [{
+                        label: 'สถิติขาดเรียน',
+                        data: absentData,
+                        backgroundColor: '#f43f5e', // rose
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const dataIndex = elements[0].index;
+                            const clickedGrade = grades[dataIndex];
+                            openAbsentModal(clickedGrade);
+                        }
+                    },
+                    plugins: { legend: { labels: { color: '#94a3b8' } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function openAbsentModal(grade) {
+            const data = gradeStatsData[grade];
+            if (!data || data.absentList.length === 0) {
+                alert(`${grade} มาครบทุกคนครับ!`);
+                return;
+            }
+            document.getElementById('absentModalTitle').innerText = `รายชื่อนักเรียนขาดเรียน (${grade})`;
+            const ul = document.getElementById('absentModalList');
+            
+            // Sort by class then number
+            const sorted = [...data.absentList].sort((a,b) => {
+                if (a.className !== b.className) return a.className.localeCompare(b.className);
+                return parseInt(a.number||"0") - parseInt(b.number||"0");
+            });
+
+            ul.innerHTML = sorted.map(s => `
+                <li class="bg-slate-800 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                    <div>
+                        <span class="font-bold text-white">${s.name}</span>
+                        <p class="text-xs text-slate-400 mt-0.5">รหัส: ${s.id} | เลขที่ ${s.number||'-'}</p>
+                    </div>
+                    <span class="bg-rose-900/50 text-rose-300 text-xs px-2 py-1 rounded font-bold border border-rose-800/50">${s.className}</span>
+                </li>
+            `).join('');
+
+            document.getElementById('absentModal').classList.remove('hidden');
+        }
+
+        function closeAbsentModal() {
+            document.getElementById('absentModal').classList.add('hidden');
         }
 
         function showLoading(show) {
