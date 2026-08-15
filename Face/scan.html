@@ -108,6 +108,10 @@
                 </div>
             </div>
             
+            <button onclick="openUndoModal()" class="bg-warning-900/50 hover:bg-warning-800 text-warning-400 hover:text-white px-3 py-2 rounded-lg border border-warning-800/50 transition flex items-center space-x-2 text-sm" title="จัดการสแกนผิดพลาด">
+                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                <span class="hidden md:inline">จัดการสแกนผิด</span>
+            </button>
             <button onclick="openHelpModal()" class="bg-blue-900/50 hover:bg-blue-800 text-blue-300 hover:text-white px-3 py-2 rounded-lg border border-blue-800/50 transition flex items-center space-x-2 text-sm" title="คู่มือการใช้งาน">
                 <i class="fa-solid fa-circle-question text-lg"></i>
                 <span class="hidden md:inline">คู่มือ AI</span>
@@ -411,6 +415,20 @@
         </div>
     </div>
 
+    <!-- UNDO MODAL -->
+    <div id="undoModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-2">
+                <h3 class="text-base font-bold text-amber-400">⚠️ จัดการคิวการสแกนล่าสุด (30 คิว)</h3>
+                <button onclick="closeUndoModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto space-y-2 pr-2" id="undoListContainer">
+                <!-- List will be rendered here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         /* -------------------------------------------------------------
          * 1. FIREBASE INTEGRATION
@@ -516,7 +534,7 @@
         async function saveAttendanceToFirebase(student, gateName) {
             const today = new Date().toISOString().split('T')[0];
             try {
-                await db.collection("attendance").add({
+                const docRef = await db.collection("attendance").add({
                     studentId: student.id,
                     fullName: student.name,
                     date: today,
@@ -524,8 +542,10 @@
                     gate: gateName,
                     status: "PRESENT"
                 });
+                return docRef.id;
             } catch (err) {
                 console.error("Failed to save attendance:", err);
+                return null;
             }
         }
 
@@ -539,6 +559,9 @@
         let activeStreams = { 1: null, 2: null };
         let processingIntervals = { 1: null, 2: null };
         let cameraEnabled = { 1: true, 2: true };
+        
+        let recentScans = [];
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzAdYQUf_6aRWzPgd6kSlxeyN5sbX9Xij4sOMP1_XyEcLBs8djSjv9ktPYraVKRl1I8Qg/exec";
         
         // Settings State
         let SYS_SETTINGS = {
@@ -745,7 +768,7 @@
 
                         const student = dbStudents.find(s => s.id === match.label);
                         if (student) {
-                            triggerCheckin(doorIndex, student);
+                            triggerCheckin(doorIndex, student, match.distance, box);
                         }
                     } else {
                         ctx.strokeStyle = '#ffffff';
@@ -759,7 +782,7 @@
         /* -------------------------------------------------------------
          * CHECKIN & UI FEEDBACK
          * ------------------------------------------------------------- */
-        function triggerCheckin(doorNum, student) {
+        async function triggerCheckin(doorNum, student, distance = 0, box = null) {
             const now = Date.now();
             const timeStr = new Date().toLocaleTimeString('th-TH');
             const gateName = `Gate ${doorNum}`;
@@ -774,7 +797,21 @@
             checkinCounts[doorNum]++;
             document.getElementById(`count-${doorNum}`).innerText = checkinCounts[doorNum];
 
-            saveAttendanceToFirebase(student, gateName);
+            const docId = await saveAttendanceToFirebase(student, gateName);
+            if (docId) {
+                // Add to Undo List
+                recentScans.unshift({
+                    docId,
+                    studentId: student.id,
+                    studentName: student.name,
+                    distance: typeof distance === 'number' ? distance.toFixed(3) : distance,
+                    box: box ? `x:${Math.round(box.x)},y:${Math.round(box.y)},w:${Math.round(box.width)},h:${Math.round(box.height)}` : "N/A",
+                    time: timeStr,
+                    gateName
+                });
+                if (recentScans.length > 30) recentScans.pop();
+            }
+
             playSuccessBeep();
             speakStudentName(student.name);
 
@@ -869,6 +906,73 @@
         function closeHelpModal() {
             document.getElementById('helpModal').classList.add('hidden');
         }
+        function openUndoModal() {
+            renderUndoList();
+            document.getElementById('undoModal').classList.remove('hidden');
+        }
+        function closeUndoModal() { document.getElementById('undoModal').classList.add('hidden'); }
+        
+        function renderUndoList() {
+            const container = document.getElementById('undoListContainer');
+            if (recentScans.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-500 my-10">ยังไม่มีข้อมูลการสแกนล่าสุด (นับตั้งแต่เปิดหน้านี้)</p>';
+                return;
+            }
+
+            container.innerHTML = recentScans.map((scan, index) => `
+                <div class="flex items-center justify-between bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <div class="min-w-0 pr-4">
+                        <p class="text-sm font-bold text-slate-200 truncate">${scan.time} - ${scan.studentName}</p>
+                        <p class="text-xs text-slate-400">รหัส: <span class="text-amber-400">${scan.studentId}</span> | แม่นยำ: ${scan.distance} | ${scan.gateName}</p>
+                    </div>
+                    <button onclick="undoScan(${index})" class="shrink-0 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg shadow transition">
+                        ยกเลิกคิวนี้
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function undoScan(index) {
+            const scan = recentScans[index];
+            const expectedId = prompt(`[ ⚠️ ยกเลิกการเช็กอินของ ${scan.studentName} ]\n\nโปรดระบุ "รหัสนักเรียนที่ถูกต้อง" ของเด็กคนนี้ \n(เพื่อเก็บข้อมูลส่งให้ AI นำไปวิเคราะห์ข้อผิดพลาด):`);
+            if (expectedId === null) return; // User cancelled
+
+            const suggestion = prompt(`คำแนะนำเพิ่มเติม:\n(เช่น "หน้ามืดไป", "ใส่แมสก์", "ลบหน้าคนเก่าในระบบออก")`, "AI ประมวลผลผิดพลาด แนะนำให้ถ่ายรูปใหม่ในหน้าลงทะเบียน");
+
+            // 1. Delete from Firebase
+            try {
+                await db.collection("attendance").doc(scan.docId).delete();
+                alert(`ลบประวัติการเช็กอินของ ${scan.studentName} เรียบร้อยแล้ว`);
+                
+                // Remove from local list
+                recentScans.splice(index, 1);
+                renderUndoList();
+
+                // Remove cooldown so they can scan again immediately
+                delete cooldownMap[scan.studentId];
+
+                // 2. Send to Google Sheets Error Log
+                fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: "logError",
+                        timestamp: scan.time,
+                        expectedId: expectedId || "ไม่ได้ระบุ",
+                        detectedId: scan.studentId,
+                        name: scan.studentName,
+                        confidence: scan.distance,
+                        suggestion: suggestion || "ไม่มีคำแนะนำ",
+                        details: `Gate: ${scan.gateName}, Box: ${scan.box}`
+                    })
+                }).catch(e => console.log("Failed to send ErrorLog:", e));
+
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดในการลบข้อมูล: " + err.message);
+            }
+        }
+
         function saveSettings() {
             SYS_SETTINGS.voiceEnabled = document.getElementById('settingVoice').checked;
             SYS_SETTINGS.privacyMode = document.getElementById('settingPrivacy').checked;
