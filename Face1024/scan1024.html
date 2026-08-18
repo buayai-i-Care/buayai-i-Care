@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแสกนการเข้าโรงเรียนบัวใหญ่</title>
+    
+    <!-- นำเข้าฟอนต์ TH Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --header-bg: #1a252f;
+            --text-main: #2c3e50;
+            --text-light: #ffffff;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --btn-blue: #2980b9;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+
+        /* ----- ระบบ Authentication Overlay ----- */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .auth-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .auth-box input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 22px;
+            font-family: 'Sarabun', sans-serif;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .auth-box button {
+            width: 100%;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* ----- โครงสร้างหลัก (Main Layout) ----- */
+        .main-content {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+            display: none; /* ซ่อนไว้จนกว่าจะล็อกอินผ่าน */
+        }
+
+        /* ฝั่งซ้าย: กล้องและปุ่มควบคุม */
+        .left-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header-section {
+            background-color: var(--header-bg);
+            color: var(--text-light);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .header-subtitle {
+            font-size: 24px;
+            margin: 5px 0 0 0;
+            color: #bdc3c7;
+        }
+        .datetime {
+            font-size: 28px;
+            font-weight: 600;
+            margin-top: 10px;
+            color: #f1c40f;
+        }
+
+        .camera-container {
+            position: relative;
+            flex-grow: 1;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #video-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* กลับซ้ายขวาให้เหมือนกระจก */
+        }
+        /* กรอบแสดงตำแหน่งใบหน้า (Guide Frame) */
+        .guide-frame {
+            position: absolute;
+            width: 60%;
+            height: 70%;
+            border: 6px dashed rgba(46, 204, 113, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        .guide-text {
+            position: absolute;
+            bottom: 20px;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+
+        .controls-section {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn-control {
+            flex: 1;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Sarabun', sans-serif;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: opacity 0.2s;
+        }
+        .btn-control:active { transform: scale(0.98); }
+        .btn-manage { background-color: var(--warning-color); color: #000; }
+        .btn-settings { background-color: var(--text-main); }
+        .btn-dashboard { background-color: var(--btn-blue); flex: 0.5; }
+
+        /* ฝั่งขวา: รายชื่อที่สแกน (Scan Results) */
+        .right-panel {
+            flex: 1;
+            background-color: white;
+            border-left: 2px solid #e0e0e0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            box-shadow: -4px 0 15px rgba(0,0,0,0.05);
+        }
+        .result-header {
+            font-size: 30px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--success-color);
+        }
+        
+        .scan-list {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        .scan-item {
+            background: var(--success-color);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 48px; /* ตัวอักษรใหญ่ชัดเจนในที่แจ้ง */
+            font-weight: bold;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            /* แอนิเมชันดันขึ้นและจางหาย */
+            animation: slideIn 0.4s ease-out forwards;
+            transition: all 0.5s ease;
+        }
+
+        /* สถานะการค่อยๆ จางหายไป */
+        .scan-item.fade-out {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+            margin-top: -100px; 
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ระบบ Authentication (จำลองการรับรหัสผ่าน Firebase) -->
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <h2>ลงชื่อเข้าใช้ระบบ</h2>
+            <p>กรุณากรอกรหัสผ่านเพื่อเริ่มใช้งาน</p>
+            <input type="password" id="adminPassword" placeholder="รหัสผ่าน...">
+            <button onclick="checkAuth()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+
+    <!-- โครงสร้างหลักของระบบแสกน -->
+    <div class="main-content" id="mainApp">
+        
+        <!-- แผงควบคุมด้านซ้าย -->
+        <div class="left-panel">
+            <div class="header-section">
+                <h1 class="header-title">ระบบแสกนการเข้าโรงเรียนบัวใหญ่</h1>
+                <h2 class="header-subtitle">Buayai I Care School</h2>
+                <div class="datetime" id="currentDateTime">กำลังโหลดเวลา...</div>
+            </div>
+
+            <div class="camera-container">
+                <!-- วิดีโอจำลองการเปิดกล้อง -->
+                <video id="video-feed" autoplay muted playsinline style="background: #333;"></video>
+                <div class="guide-frame"></div>
+                <div class="guide-text">กรุณายืนให้ใบหน้าอยู่ในกรอบ</div>
+            </div>
+
+            <div class="controls-section">
+                <button class="btn-control btn-manage" onclick="manageLogs()">จัดการ (ลบข้อมูล/ดู Log)</button>
+                <button class="btn-control btn-settings" onclick="openSettings()">ตั้งค่า</button>
+                <button class="btn-control btn-dashboard" onclick="window.location.href='dashboard1024.html'">D</button>
+            </div>
+        </div>
+
+        <!-- แผงแสดงผลลัพธ์ด้านขวา -->
+        <div class="right-panel">
+            <div class="result-header">รายการสแกนล่าสุด</div>
+            <div class="scan-list" id="scanList">
+                <!-- รายการจะถูกเพิ่มตรงนี้ผ่าน JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // วาง Firebase Config ของท่านที่นี่
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
+            authDomain: "by-fscan.firebaseapp.com",
+            projectId: "by-fscan",
+            storageBucket: "by-fscan.firebasestorage.app",
+            messagingSenderId: "557564109653",
+            appId: "1:557564109653:web:3459229f1b539cf25285dc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ระบบนาฬิกา
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('currentDateTime').innerText = now.toLocaleDateString('th-TH', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ฟังก์ชันตรวจสอบ Auth (เบื้องต้น)
+        window.checkAuth = function() {
+            const pass = document.getElementById('adminPassword').value;
+            // หมายเหตุ: ในการผลิตจริงควรใช้ Firebase Authentication (Email/Password)
+            // โค้ดนี้จำลองการเข้าถึงเพื่อความรวดเร็วในการทดสอบ UI
+            if(pass !== '') {
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+                startCamera(); // เปิดกล้องเมื่อล็อกอินผ่าน
+            } else {
+                Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'กรุณากรอกรหัสผ่าน' });
+            }
+        };
+
+        // ฟังก์ชันเปิดกล้องเว็บแคม
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+                document.getElementById('video-feed').srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing webcam: ", err);
+                Swal.fire({ icon: 'error', title: 'ไม่พบกล้อง', text: 'กรุณาอนุญาตการเข้าถึงกล้องเว็บแคม' });
+            }
+        }
+
+        // ระบบคิวแสดงผลการสแกน (ลบรายการเก่าออกเมื่อเกิน 5)
+        let scanQueue = [];
+        
+        window.simulateScan = function(studentId) {
+            const listContainer = document.getElementById('scanList');
+            
+            // สร้าง Element ใหม่
+            const newItem = document.createElement('div');
+            newItem.className = 'scan-item';
+            newItem.innerText = studentId;
+
+            // นำเข้าแทรกด้านบนสุด
+            listContainer.insertBefore(newItem, listContainer.firstChild);
+            scanQueue.unshift(newItem);
+
+            // หากเกิน 5 รายการ ให้เฟดรายการสุดท้ายออก
+            if (scanQueue.length > 5) {
+                const oldestItem = scanQueue.pop();
+                oldestItem.classList.add('fade-out');
+                // ลบออกจาก DOM หลังแอนิเมชันจบ (500ms)
+                setTimeout(() => {
+                    if(oldestItem.parentNode) oldestItem.parentNode.removeChild(oldestItem);
+                }, 500);
+            }
+        };
+
+        // ปุ่มควบคุม (เชื่อมโยง UI)
+        window.manageLogs = function() {
+            Swal.fire({
+                title: 'จัดการข้อมูล / Log',
+                text: 'หน้าต่างสำหรับยกเลิกการสแกน 30 รายการล่าสุด และดูค่า FRR',
+                icon: 'info'
+            });
+        };
+
+        window.openSettings = function() {
+            Swal.fire({
+                title: 'ตั้งค่าระบบ',
+                text: 'หน้าต่างสำหรับปรับ Threshold และการอัปเดตแม่แบบภาพ',
+                icon: 'question'
+            });
+        };
+
+        // *สำหรับทดสอบ: จำลองการสแกนอัตโนมัติทุกๆ 3 วินาที
+        // ปิดคอมเมนต์ด้านล่างเพื่อดูแอนิเมชันเลื่อนใบหน้า
+        /*
+        setInterval(() => {
+            const randomId = "65" + Math.floor(100 + Math.random() * 900);
+            simulateScan(randomId);
+        }, 3000);
+        */
+    </script>
+</body>
+</html>
