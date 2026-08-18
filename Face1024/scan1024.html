@@ -7,6 +7,7 @@
     
     <!-- นำเข้าฟอนต์ TH Sarabun -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- นำเข้า SweetAlert2 สำหรับแจ้งเตือน -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -51,10 +52,11 @@
             max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
+        .auth-box h2 { margin-top: 0; }
         .auth-box input {
             width: 100%;
             padding: 15px;
-            margin: 15px 0;
+            margin: 10px 0;
             font-size: 22px;
             font-family: 'Sarabun', sans-serif;
             border: 2px solid #bdc3c7;
@@ -65,14 +67,18 @@
         .auth-box button {
             width: 100%;
             padding: 15px;
+            margin-top: 15px;
             font-size: 24px;
             font-weight: bold;
+            font-family: 'Sarabun', sans-serif;
             background-color: var(--success-color);
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
+        .auth-box button:hover { background-color: #219a52; }
 
         /* ----- โครงสร้างหลัก (Main Layout) ----- */
         .main-content {
@@ -172,7 +178,7 @@
             border-radius: 8px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: opacity 0.2s;
+            transition: transform 0.2s;
         }
         .btn-control:active { transform: scale(0.98); }
         .btn-manage { background-color: var(--warning-color); color: #000; }
@@ -214,10 +220,10 @@
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            font-size: 48px; /* ตัวอักษรใหญ่ชัดเจนในที่แจ้ง */
+            font-size: 48px;
             font-weight: bold;
             box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-            /* แอนิเมชันดันขึ้นและจางหาย */
+            /* แอนิเมชันดันขึ้น */
             animation: slideIn 0.4s ease-out forwards;
             transition: all 0.5s ease;
         }
@@ -233,18 +239,19 @@
             from { opacity: 0; transform: translateY(50px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
     </style>
 </head>
 <body>
 
-    <!-- ระบบ Authentication (จำลองการรับรหัสผ่าน Firebase) -->
+    <!-- ระบบ Authentication เชื่อมต่อ Firebase -->
     <div id="auth-overlay">
         <div class="auth-box">
             <h2>ลงชื่อเข้าใช้ระบบ</h2>
-            <p>กรุณากรอกรหัสผ่านเพื่อเริ่มใช้งาน</p>
-            <input type="password" id="adminPassword" placeholder="รหัสผ่าน...">
-            <button onclick="checkAuth()">เข้าสู่ระบบ</button>
+            <p style="font-size: 20px; margin-bottom: 20px;">กรุณากรอกข้อมูลผู้ดูแลระบบเพื่อเริ่มใช้งาน</p>
+            <input type="email" id="adminEmail" placeholder="อีเมลผู้ดูแลระบบ..." required>
+            <input type="password" id="adminPassword" placeholder="รหัสผ่าน..." required>
+            <!-- เรียกใช้ฟังก์ชันจากไฟล์ app.js ผ่าน window object -->
+            <button onclick="window.checkAuth()">เข้าสู่ระบบ</button>
         </div>
     </div>
 
@@ -260,15 +267,14 @@
             </div>
 
             <div class="camera-container">
-                <!-- วิดีโอจำลองการเปิดกล้อง -->
-                <video id="video-feed" autoplay muted playsinline style="background: #333;"></video>
+                <video id="video-feed" autoplay muted playsinline></video>
                 <div class="guide-frame"></div>
                 <div class="guide-text">กรุณายืนให้ใบหน้าอยู่ในกรอบ</div>
             </div>
 
             <div class="controls-section">
-                <button class="btn-control btn-manage" onclick="manageLogs()">จัดการ (ลบข้อมูล/ดู Log)</button>
-                <button class="btn-control btn-settings" onclick="openSettings()">ตั้งค่า</button>
+                <button class="btn-control btn-manage" onclick="window.manageLogs()">จัดการข้อมูล / Log</button>
+                <button class="btn-control btn-settings" onclick="window.openSettings()">ตั้งค่าระบบ</button>
                 <button class="btn-control btn-dashboard" onclick="window.location.href='dashboard1024.html'">D</button>
             </div>
         </div>
@@ -283,110 +289,7 @@
 
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        // วาง Firebase Config ของท่านที่นี่
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
-            authDomain: "by-fscan.firebaseapp.com",
-            projectId: "by-fscan",
-            storageBucket: "by-fscan.firebasestorage.app",
-            messagingSenderId: "557564109653",
-            appId: "1:557564109653:web:3459229f1b539cf25285dc"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // ระบบนาฬิกา
-        function updateClock() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            document.getElementById('currentDateTime').innerText = now.toLocaleDateString('th-TH', options);
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // ฟังก์ชันตรวจสอบ Auth (เบื้องต้น)
-        window.checkAuth = function() {
-            const pass = document.getElementById('adminPassword').value;
-            // หมายเหตุ: ในการผลิตจริงควรใช้ Firebase Authentication (Email/Password)
-            // โค้ดนี้จำลองการเข้าถึงเพื่อความรวดเร็วในการทดสอบ UI
-            if(pass !== '') {
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'flex';
-                startCamera(); // เปิดกล้องเมื่อล็อกอินผ่าน
-            } else {
-                Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'กรุณากรอกรหัสผ่าน' });
-            }
-        };
-
-        // ฟังก์ชันเปิดกล้องเว็บแคม
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-                document.getElementById('video-feed').srcObject = stream;
-            } catch (err) {
-                console.error("Error accessing webcam: ", err);
-                Swal.fire({ icon: 'error', title: 'ไม่พบกล้อง', text: 'กรุณาอนุญาตการเข้าถึงกล้องเว็บแคม' });
-            }
-        }
-
-        // ระบบคิวแสดงผลการสแกน (ลบรายการเก่าออกเมื่อเกิน 5)
-        let scanQueue = [];
-        
-        window.simulateScan = function(studentId) {
-            const listContainer = document.getElementById('scanList');
-            
-            // สร้าง Element ใหม่
-            const newItem = document.createElement('div');
-            newItem.className = 'scan-item';
-            newItem.innerText = studentId;
-
-            // นำเข้าแทรกด้านบนสุด
-            listContainer.insertBefore(newItem, listContainer.firstChild);
-            scanQueue.unshift(newItem);
-
-            // หากเกิน 5 รายการ ให้เฟดรายการสุดท้ายออก
-            if (scanQueue.length > 5) {
-                const oldestItem = scanQueue.pop();
-                oldestItem.classList.add('fade-out');
-                // ลบออกจาก DOM หลังแอนิเมชันจบ (500ms)
-                setTimeout(() => {
-                    if(oldestItem.parentNode) oldestItem.parentNode.removeChild(oldestItem);
-                }, 500);
-            }
-        };
-
-        // ปุ่มควบคุม (เชื่อมโยง UI)
-        window.manageLogs = function() {
-            Swal.fire({
-                title: 'จัดการข้อมูล / Log',
-                text: 'หน้าต่างสำหรับยกเลิกการสแกน 30 รายการล่าสุด และดูค่า FRR',
-                icon: 'info'
-            });
-        };
-
-        window.openSettings = function() {
-            Swal.fire({
-                title: 'ตั้งค่าระบบ',
-                text: 'หน้าต่างสำหรับปรับ Threshold และการอัปเดตแม่แบบภาพ',
-                icon: 'question'
-            });
-        };
-
-        // *สำหรับทดสอบ: จำลองการสแกนอัตโนมัติทุกๆ 3 วินาที
-        // ปิดคอมเมนต์ด้านล่างเพื่อดูแอนิเมชันเลื่อนใบหน้า
-        /*
-        setInterval(() => {
-            const randomId = "65" + Math.floor(100 + Math.random() * 900);
-            simulateScan(randomId);
-        }, 3000);
-        */
-    </script>
+    <!-- เรียกใช้งานไฟล์ JavaScript หลักที่แยกไว้ -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
