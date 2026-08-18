@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงทะเบียนอัตลักษณ์ใบหน้า - Buayai I Care</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/human/dist/human.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --bg-color: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-size: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+        }
+
+        .header h1 { margin: 0; font-size: 32px; color: var(--primary-color); }
+        .header p { margin: 5px 0 0 0; color: #7f8c8d; }
+
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .camera-section {
+            flex: 1;
+            min-width: 300px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 4/3;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label { font-weight: 600; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 22px;
+            font-family: 'Sarabun', sans-serif;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 22px;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 600;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+
+        .btn-extract { background-color: var(--accent-color); }
+        .btn-save { background-color: var(--success-color); }
+
+        .status-box {
+            background: #e8f8f5;
+            border-left: 4px solid var(--success-color);
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 18px;
+            display: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .nav-btn {
+            background-color: #7f8c8d;
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>ระบบลงทะเบียนอัตลักษณ์นักเรียน (Enrollment)</h1>
+            <p>บันทึกเวกเตอร์ใบหน้าความละเอียด 1024 มิติ</p>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- ฝั่งซ้าย: กล้อง -->
+            <div class="camera-section">
+                <video id="video-feed" autoplay muted playsinline></video>
+            </div>
+
+            <!-- ฝั่งขวา: ฟอร์มจัดการ -->
+            <div class="form-section">
+                <div>
+                    <label for="studentId">รหัสประจำตัวนักเรียน:</label>
+                    <input type="text" id="studentId" placeholder="เช่น 65001" autocomplete="off">
+                </div>
+
+                <button class="btn-extract" id="btnExtract" onclick="extractFaceFeature()">1. สกัดคุณลักษณะใบหน้า</button>
+                
+                <div class="status-box" id="statusBox">
+                    ✅ สกัดเวกเตอร์สำเร็จพร้อมบันทึก
+                </div>
+
+                <button class="btn-save" id="btnSave" onclick="saveToFirebase()" disabled>2. บันทึกลงฐานข้อมูล</button>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="window.location.href='scan1024.html'">← กลับไปหน้าสแกน</button>
+            <button class="nav-btn" onclick="window.location.href='dashboard1024.html'">ไปหน้า Dashboard →</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // 1. ตั้งค่า Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
+            authDomain: "by-fscan.firebaseapp.com",
+            projectId: "by-fscan",
+            storageBucket: "by-fscan.firebasestorage.app",
+            messagingSenderId: "557564109653",
+            appId: "1:557564109653:web:3459229f1b539cf25285dc"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ตัวแปรเก็บเวกเตอร์ชั่วคราวก่อนบันทึก
+        let currentFaceVector = null;
+        let human = null;
+        const videoElement = document.getElementById('video-feed');
+
+        // 2. การตั้งค่า Human (เหมือนหน้า Scan)
+        const humanConfig = {
+            backend: 'wasm', 
+            modelBasePath: './models/', 
+            filter: { equalization: true },
+            face: {
+                enabled: true,
+                detector: { rotation: false, return: true },
+                mesh: { enabled: true },
+                iris: { enabled: true },
+                description: { enabled: true }, 
+                emotion: { enabled: false }
+            },
+            body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
+        };
+
+        // 3. เริ่มต้นระบบ AI และกล้องทันทีที่เปิดหน้านี้
+        async function initEnrollmentSystem() {
+            Swal.fire({ title: 'กำลังเปิดกล้องและ AI...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            
+            try {
+                human = new Human.Human(humanConfig);
+                await human.load();
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+                videoElement.srcObject = stream;
+                
+                videoElement.onloadeddata = () => {
+                    videoElement.play();
+                    Swal.close();
+                };
+            } catch (err) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อกล้องหรือ AI ได้', 'error');
+                console.error(err);
+            }
+        }
+
+        // 4. ฟังก์ชันสกัดเวกเตอร์ 1024 มิติ
+        window.extractFaceFeature = async function() {
+            if (!human) return;
+            
+            const studentId = document.getElementById('studentId').value.trim();
+            if (!studentId) {
+                Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักเรียนก่อนสกัดเวกเตอร์', 'warning');
+                return;
+            }
+
+            Swal.fire({ title: 'กำลังวิเคราะห์ใบหน้า...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            // ประมวลผลจากเฟรมปัจจุบัน 1 ครั้ง
+            const result = await human.detect(videoElement);
+
+            if (result.face && result.face.length > 0) {
+                const face = result.face[0];
+                if (face.embedding) {
+                    currentFaceVector = Array.from(face.embedding); // แปลงเป็น Array มาตรฐาน
+                    
+                    document.getElementById('statusBox').style.display = 'block';
+                    document.getElementById('btnSave').disabled = false;
+                    document.getElementById('studentId').disabled = true; // ล็อกช่องกรอกชั่วคราว
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สกัดคุณลักษณะสำเร็จ!',
+                        text: 'ระบบดึงข้อมูลเวกเตอร์ 1024 จุดเรียบร้อยแล้ว กรุณากดบันทึก',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            } else {
+                Swal.fire('ไม่พบใบหน้า', 'กรุณาให้นักเรียนมองกล้องให้ชัดเจน แล้วกดใหม่อีกครั้ง', 'error');
+            }
+        };
+
+        // 5. ฟังก์ชันบันทึกลง Firebase
+        window.saveToFirebase = async function() {
+            if (!currentFaceVector) return;
+
+            const studentId = document.getElementById('studentId').value.trim();
+
+            Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            try {
+                // บันทึก Document ลง Collection 'students' โดยใช้รหัสนักเรียนเป็น ID
+                await setDoc(doc(db, "students", studentId), {
+                    studentId: studentId,
+                    faceVector: currentFaceVector,
+                    updatedAt: new Date().toISOString(),
+                    isActive: true
+                });
+
+                Swal.fire('บันทึกสำเร็จ!', `ข้อมูลเวกเตอร์ของรหัส ${studentId} ถูกเก็บลงฐานข้อมูลแล้ว`, 'success');
+                
+                // รีเซ็ตค่าฟอร์มเพื่อเตรียมสแกนคนต่อไป
+                document.getElementById('studentId').value = '';
+                document.getElementById('studentId').disabled = false;
+                document.getElementById('statusBox').style.display = 'none';
+                document.getElementById('btnSave').disabled = true;
+                currentFaceVector = null;
+                
+                document.getElementById('studentId').focus();
+
+            } catch (error) {
+                console.error("Firebase Error: ", error);
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+            }
+        };
+
+        // เรียกใช้ฟังก์ชันตอนเปิดหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', initEnrollmentSystem);
+    </script>
+</body>
+</html>
