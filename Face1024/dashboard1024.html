@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ระบบสแกนใบหน้า</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ส่วนหัว (Header) */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h1 { margin: 0; font-size: 32px; }
+        .nav-buttons button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        .nav-buttons button:hover { background: white; color: var(--primary); }
+
+        /* การ์ดสรุปผล (Summary Cards) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 22px; font-weight: 400; }
+        .card .value { font-size: 48px; font-weight: 700; color: var(--primary); margin: 0; }
+        .card .value.success { color: var(--success); }
+
+        /* ตารางข้อมูล (Data Table) */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .table-header h2 { margin: 0; font-size: 28px; }
+        .btn-sync {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 22px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        tr:hover { background-color: #f1f2f6; }
+        .status-badge {
+            background: #e8f8f5;
+            color: var(--success);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .nav-buttons button { margin: 5px; }
+            table { font-size: 18px; }
+            th, td { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ส่วนหัว -->
+        <div class="header">
+            <div>
+                <h1>📊 แผงควบคุม (Dashboard)</h1>
+                <div style="font-size: 20px; margin-top: 5px; color: #ecf0f1;">ระบบสแกนการเข้าโรงเรียนบัวใหญ่</div>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="window.location.href='scan1024.html'">หน้าสแกน (Scan)</button>
+                <button onclick="window.location.href='input1024.html'">ลงทะเบียน (Enroll)</button>
+            </div>
+        </div>
+
+        <!-- สรุปสถิติเบื้องต้น -->
+        <div class="summary-grid">
+            <div class="card">
+                <h3>จำนวนนักเรียนที่สแกนวันนี้</h3>
+                <p class="value success" id="todayCount">0</p>
+            </div>
+            <div class="card">
+                <h3>ฐานข้อมูลอัตลักษณ์ (คน)</h3>
+                <p class="value" id="totalStudents">0</p>
+            </div>
+        </div>
+
+        <!-- ตารางแสดงประวัติ -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>ประวัติการสแกนล่าสุด (Real-time Log)</h2>
+                <!-- เตรียมปุ่มสำหรับเชื่อมกับ Google Apps Script ในอนาคต -->
+                <button class="btn-sync" onclick="syncToGoogleSheet()">ส่งออกข้อมูลไป Google Sheet</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>รหัสนักเรียน</th>
+                        <th>เวลาที่สแกน (Timestamp)</th>
+                        <th>ความแม่นยำ (Score)</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">กำลังโหลดข้อมูล...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- สคริปต์เชื่อมต่อ Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ตั้งค่า Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
+            authDomain: "by-fscan.firebaseapp.com",
+            projectId: "by-fscan",
+            storageBucket: "by-fscan.firebasestorage.app",
+            messagingSenderId: "557564109653",
+            appId: "1:557564109653:web:3459229f1b539cf25285dc"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. ดึงจำนวนนักเรียนทั้งหมดในฐานข้อมูล
+        async function loadTotalStudents() {
+            try {
+                const snapshot = await getDocs(collection(db, "students"));
+                document.getElementById('totalStudents').innerText = snapshot.size;
+            } catch (error) {
+                console.error("Error loading students count:", error);
+            }
+        }
+
+        // 2. ดึงประวัติการสแกนแบบ Real-time (ดึง 20 รายการล่าสุด)
+        function listenToScanLogs() {
+            const logsRef = collection(db, "scan_logs");
+            const q = query(logsRef, orderBy("timestamp", "desc"), limit(20));
+
+            // onSnapshot จะทำงานอัตโนมัติเมื่อมีคนสแกนหน้าผ่าน
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('logTableBody');
+                tbody.innerHTML = ''; // ล้างข้อมูลเดิม
+
+                let count = 1;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // แปลง Timestamp ของ Firebase เป็นเวลาปกติ
+                    let timeString = "-";
+                    if (data.timestamp) {
+                        const date = data.timestamp.toDate();
+                        timeString = date.toLocaleTimeString('th-TH') + ' (' + date.toLocaleDateString('th-TH') + ')';
+                    }
+
+                    // แปลงความแม่นยำเป็นเปอร์เซ็นต์
+                    const accuracy = data.similarity ? (data.similarity * 100).toFixed(2) + '%' : '-';
+
+                    const row = `
+                        <tr>
+                            <td>${count++}</td>
+                            <td style="font-weight: bold; color: var(--primary);">${data.studentId}</td>
+                            <td>${timeString}</td>
+                            <td>${accuracy}</td>
+                            <td><span class="status-badge">สำเร็จ</span></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                // อัปเดตตัวเลขจำนวนการสแกน (อย่างง่าย)
+                document.getElementById('todayCount').innerText = snapshot.size;
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">ยังไม่มีข้อมูลการสแกนในระบบ</td></tr>';
+                }
+            }, (error) => {
+                console.error("Error listening to logs:", error);
+                document.getElementById('logTableBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            });
+        }
+
+        // 3. ฟังก์ชันจำลองการส่งออกไป Google Sheet (เตรียมไว้ต่อยอด)
+        window.syncToGoogleSheet = function() {
+            Swal.fire({
+                title: 'เตรียมการเชื่อมต่อ',
+                text: 'ฟังก์ชันนี้เตรียมไว้สำหรับเรียกใช้ Google Apps Script (Web App URL) เพื่อส่งข้อมูลกลับไปยังระบบฐานข้อมูลพฤติกรรมเดิมของโรงเรียน',
+                icon: 'info'
+            });
+            // โค้ดอนาคต: fetch('YOUR_GAS_WEB_APP_URL', { method: 'POST', body: ... })
+        };
+
+        // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTotalStudents();
+            listenToScanLogs();
+        });
+    </script>
+</body>
+</html>
