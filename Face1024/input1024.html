@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบลงทะเบียนด้วยการอัปโหลดรูปภาพ - Buayai I Care</title>
+    <title>ระบบลงทะเบียนอัตลักษณ์นักเรียน - Buayai I Care</title>
     
+    <!-- ฟอนต์ TH Sarabun สำหรับการแสดงผลที่สบายตา -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/human/dist/human.js"></script>
@@ -14,6 +15,7 @@
             --primary-color: #2c3e50;
             --accent-color: #3498db;
             --success-color: #27ae60;
+            --danger-color: #e74c3c;
             --bg-color: #f8f9fa;
         }
 
@@ -22,24 +24,25 @@
             background-color: var(--bg-color);
             color: var(--primary-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            font-size: 20px;
+            font-size: 22px;
         }
 
         .container {
             background: #ffffff;
             width: 100%;
             max-width: 800px;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             gap: 20px;
+            margin-top: 20px;
         }
 
         .header {
@@ -48,8 +51,19 @@
             padding-bottom: 15px;
         }
 
-        .header h1 { margin: 0; font-size: 32px; color: var(--primary-color); }
-        .header p { margin: 5px 0 0 0; color: #7f8c8d; }
+        .header h1 { margin: 0; font-size: 36px; color: var(--primary-color); }
+        .header p { margin: 10px 0 0 0; color: #7f8c8d; font-size: 22px; }
+
+        /* ส่วนแสดงสถานะล็อกอิน */
+        #authStatus {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 22px;
+            background-color: #fdf2e9;
+            color: #d35400;
+        }
 
         .upload-section {
             border: 3px dashed #bdc3c7;
@@ -70,7 +84,7 @@
         }
         #imagePreview {
             max-width: 100%;
-            max-height: 300px;
+            max-height: 350px;
             border-radius: 8px;
             display: none;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -80,7 +94,7 @@
             background: #e8f8f5;
             padding: 15px;
             border-radius: 8px;
-            font-size: 22px;
+            font-size: 26px;
             font-weight: bold;
             text-align: center;
             color: var(--success-color);
@@ -89,7 +103,7 @@
 
         button {
             padding: 15px;
-            font-size: 22px;
+            font-size: 26px;
             font-family: 'Sarabun', sans-serif;
             font-weight: 600;
             color: white;
@@ -97,22 +111,30 @@
             border-radius: 8px;
             cursor: pointer;
             transition: opacity 0.3s;
+            width: 100%;
         }
         button:hover { opacity: 0.9; }
         button:disabled { background-color: #95a5a6; cursor: not-allowed; }
 
-        .btn-process { background-color: var(--accent-color); }
+        .btn-process { background-color: var(--accent-color); margin-bottom: 10px; }
         .btn-save { background-color: var(--success-color); }
 
         .nav-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
+            gap: 10px;
         }
         .nav-btn {
             background-color: #7f8c8d;
-            font-size: 18px;
-            padding: 10px 20px;
+            font-size: 22px;
+            padding: 12px;
+            width: 48%;
+        }
+
+        @media (max-width: 600px) {
+            .nav-buttons { flex-direction: column; }
+            .nav-btn { width: 100%; margin-bottom: 10px; }
         }
     </style>
 </head>
@@ -120,30 +142,34 @@
 
     <div class="container">
         <div class="header">
-            <h1>ระบบลงทะเบียนด้วยการอัปโหลดรูปภาพ</h1>
-            <p>ตั้งชื่อไฟล์ภาพเป็นรหัสนักเรียน (เช่น 33831.jpg) ระบบจะอ่านรหัสและสกัดเวกเตอร์อัตโนมัติ</p>
+            <h1>ระบบลงทะเบียนอัตลักษณ์นักเรียน</h1>
+            <p>ตั้งชื่อไฟล์ภาพเป็นรหัสนักเรียน (เช่น 33831.jpg) เพื่อสกัดเวกเตอร์</p>
         </div>
+
+        <!-- แถบแสดงสถานะเข้าสู่ระบบ -->
+        <div id="authStatus">กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</div>
 
         <!-- ส่วนอัปโหลดไฟล์ -->
         <div class="upload-section" onclick="document.getElementById('fileInput').click()">
-            <p style="margin: 0; font-size: 24px; font-weight: bold; color: #2980b9;">📁 คลิกเพื่อเลือกไฟล์รูปภาพนักเรียน</p>
-            <p style="margin: 5px 0 0 0; color: #7f8c8d;">รองรับไฟล์ .jpg, .png</p>
+            <p style="margin: 0; font-size: 28px; font-weight: bold; color: #2980b9;">📁 คลิกเพื่อเลือกไฟล์รูปภาพ</p>
+            <p style="margin: 10px 0 0 0; color: #7f8c8d;">รองรับไฟล์ .jpg, .png</p>
             <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
         </div>
 
         <!-- แสดงตัวอย่างภาพ -->
         <div class="preview-container">
-            <img id="imagePreview" alt="Preview">
+            <img id="imagePreview" alt="ภาพนักเรียน">
         </div>
 
         <!-- แสดงรหัสที่แกะจากชื่อไฟล์ -->
         <div class="info-box" id="infoBox">
-            รหัสนักเรียนจากชื่อไฟล์: <span id="detectedId" style="color: #2c3e50;">-</span>
+            รหัสนักเรียน: <span id="detectedId" style="color: #2c3e50;">-</span>
         </div>
 
-        <button class="btn-process" id="btnProcess" onclick="extractFaceFeature()" disabled>1. สกัดเวกเตอร์ 1024 มิติ</button>
-        <button class="btn-save" id="btnSave" onclick="saveToFirebase()" disabled>2. บันทึกลง Firebase</button>
+        <button class="btn-process" id="btnProcess" onclick="extractFaceFeature()" disabled>1. สกัดคุณลักษณะใบหน้า</button>
+        <button class="btn-save" id="btnSave" onclick="saveToFirebase()" disabled>2. บันทึกลงฐานข้อมูล</button>
 
+        <!-- ปุ่มนำทาง -->
         <div class="nav-buttons">
             <button class="nav-btn" onclick="window.location.href='scan1024.html'">← กลับไปหน้าสแกน</button>
             <button class="nav-btn" onclick="window.location.href='dashboard1024.html'">ไปหน้า Dashboard →</button>
@@ -153,8 +179,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // 1. ตั้งค่า Firebase
+        // ตั้งค่า Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
             authDomain: "by-fscan.firebaseapp.com",
@@ -165,13 +192,39 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); 
 
         let human = null;
         let currentFaceVector = null;
         let extractedStudentId = "";
+        let isUserLoggedIn = false;
         const imgElement = document.getElementById('imagePreview');
+        const authStatusElement = document.getElementById('authStatus');
 
-        // 2. ตั้งค่า Human (ดึงผ่าน CDN เพื่อความเสถียรสูงสุดตามที่คุยกันก่อนหน้า)
+        // ตรวจสอบสถานะการล็อกอิน
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isUserLoggedIn = true;
+                authStatusElement.style.backgroundColor = '#e8f8f5';
+                authStatusElement.style.color = '#27ae60';
+                authStatusElement.innerText = `เข้าสู่ระบบในชื่อ: ${user.email}`;
+            } else {
+                isUserLoggedIn = false;
+                authStatusElement.style.backgroundColor = '#fadbd8';
+                authStatusElement.style.color = '#e74c3c';
+                authStatusElement.innerText = "ท่านยังไม่ได้เข้าสู่ระบบ จะไม่สามารถบันทึกข้อมูลได้";
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'แจ้งเตือนระบบ',
+                    text: 'กรุณาเข้าสู่ระบบผ่านหน้าสแกนก่อนทำการบันทึกข้อมูล',
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#3498db'
+                });
+            }
+        });
+
+        // ตั้งค่า AI
         const humanConfig = {
             backend: 'wasm', 
             modelBasePath: 'https://vladmandic.github.io/human/models/', 
@@ -187,32 +240,28 @@
             body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
         };
 
-        // โหลด AI เมื่อเปิดหน้าเว็บ
         async function initAI() {
-            Swal.fire({ title: 'กำลังโหลดโมเดล AI...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
                 human = new Human.Human(humanConfig);
                 await human.load();
-                Swal.close();
             } catch (err) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดโมเดล AI ได้', 'error');
+                console.error("AI Load Error:", err);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดระบบ AI ได้', 'error');
             }
         }
         window.addEventListener('DOMContentLoaded', initAI);
 
-        // 3. เมื่อผู้ใช้เลือกไฟล์ภาพ
+        // จัดการเมื่อเลือกไฟล์รูปภาพ
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // ดึงชื่อไฟล์มาตัดนามสกุลออกเพื่อใช้เป็นรหัสนักเรียน (เช่น "33831.jpg" -> "33831")
             const fileName = file.name;
             extractedStudentId = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
 
             document.getElementById('detectedId').innerText = extractedStudentId;
             document.getElementById('infoBox').style.display = 'block';
 
-            // แสดงรูปภาพตัวอย่าง
             const reader = new FileReader();
             reader.onload = function(e) {
                 imgElement.src = e.target.result;
@@ -224,46 +273,61 @@
             reader.readAsDataURL(file);
         };
 
-        // 4. สกัดเวกเตอร์จากรูปภาพที่อัปโหลด
+        // สกัดเวกเตอร์ใบหน้า
         window.extractFaceFeature = async function() {
             if (!human || !imgElement.src) return;
 
-            Swal.fire({ title: 'กำลังประมวลผลภาพ...', text: 'กำลังสกัดเวกเตอร์ 1024 มิติ', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ 
+                title: 'กำลังสกัดใบหน้า...', 
+                text: 'กรุณารอสักครู่', 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading(); } 
+            });
 
             try {
-                // ให้ Human วิเคราะห์ภาพถ่ายจาก Element <img>
                 const result = await human.detect(imgElement);
 
                 if (result.face && result.face.length > 0) {
                     const face = result.face[0];
                     if (face.embedding) {
                         currentFaceVector = Array.from(face.embedding);
-                        document.getElementById('btnSave').disabled = false;
+                        
+                        if (isUserLoggedIn) {
+                            document.getElementById('btnSave').disabled = false;
+                        }
                         
                         Swal.fire({
                             icon: 'success',
-                            title: 'สกัดคุณลักษณะสำเร็จ!',
-                            text: `พบใบหน้าของรหัส ${extractedStudentId} เรียบร้อยแล้ว`,
-                            timer: 2000,
+                            title: 'วิเคราะห์สำเร็จ',
+                            text: `พร้อมบันทึกข้อมูลนักเรียนรหัส ${extractedStudentId}`,
+                            timer: 2500,
                             showConfirmButton: false
                         });
                     } else {
-                        throw new Error('ไม่พบข้อมูล Embedding');
+                        throw new Error('ไม่พบข้อมูล Vector');
                     }
                 } else {
-                    Swal.fire('ไม่พบใบหน้าในภาพ', 'กรุณาเลือกรูปภาพที่เห็นใบหน้าชัดเจนและตรงตรง', 'warning');
+                    Swal.fire('ไม่พบใบหน้า', 'ระบบมองไม่เห็นใบหน้าในรูปภาพนี้ กรุณาเลือกรูปใหม่', 'warning');
                 }
             } catch (err) {
                 console.error(err);
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสกัดเวกเตอร์จากภาพนี้ได้', 'error');
+                Swal.fire('ข้อผิดพลาด', 'เกิดปัญหาในการประมวลผลภาพ', 'error');
             }
         };
 
-        // 5. บันทึกลง Firebase
+        // บันทึกข้อมูลลง Firebase
         window.saveToFirebase = async function() {
+            if (!isUserLoggedIn) {
+                Swal.fire('ปฏิเสธการเข้าถึง', 'กรุณาเข้าสู่ระบบก่อนทำการบันทึก', 'error');
+                return;
+            }
             if (!currentFaceVector || !extractedStudentId) return;
 
-            Swal.fire({ title: 'กำลังบันทึกลง Firebase...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ 
+                title: 'กำลังบันทึกข้อมูล...', 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading(); } 
+            });
 
             try {
                 await setDoc(doc(db, "students", extractedStudentId), {
@@ -273,9 +337,15 @@
                     isActive: true
                 });
 
-                Swal.fire('บันทึกสำเร็จ!', `ข้อมูลนักเรียนรหัส ${extractedStudentId} ถูกจัดเก็บเรียบร้อยแล้ว`, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกเรียบร้อย',
+                    text: `ข้อมูลอัตลักษณ์รหัส ${extractedStudentId} ถูกบันทึกลงฐานข้อมูลแล้ว`,
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#27ae60'
+                });
                 
-                // รีเซ็ตฟอร์ม
+                // ล้างฟอร์ม
                 document.getElementById('fileInput').value = '';
                 imgElement.style.display = 'none';
                 document.getElementById('infoBox').style.display = 'none';
@@ -285,7 +355,7 @@
 
             } catch (error) {
                 console.error(error);
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้', 'error');
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลลง Firebase ได้', 'error');
             }
         };
     </script>
