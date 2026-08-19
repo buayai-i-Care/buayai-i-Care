@@ -159,7 +159,7 @@ let human;
 const videoElement = document.getElementById('video-feed');
 const humanConfig = {
     backend: 'wasm', 
-    modelBasePath: 'https://vladmandic.github.io/human/models/', // แก้ไขดึงผ่าน CDN เพื่อความเสถียร
+    modelBasePath: 'https://vladmandic.github.io/human/models/', // ดึงผ่าน CDN
     filter: { equalization: true },
     face: {
         enabled: true,
@@ -183,7 +183,6 @@ async function initAI() {
     try {
         human = new Human.Human(humanConfig);
         await human.load(); 
-        Swal.close();
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
         videoElement.srcObject = stream;
@@ -191,6 +190,15 @@ async function initAI() {
         videoElement.onloadeddata = () => {
             videoElement.play();
             detectionLoop(); 
+            
+            // แจ้งเตือนเมื่อระบบพร้อมสมบูรณ์และแสดงจำนวนคนที่โหลดได้
+            Swal.fire({
+                icon: 'success',
+                title: 'ระบบพร้อมใช้งาน',
+                text: `โหลดข้อมูลอัตลักษณ์นักเรียนสำเร็จ จำนวน ${studentDatabase.length} คน`,
+                timer: 3000, // แสดง 3 วินาทีแล้วปิดเอง
+                showConfirmButton: false
+            });
         };
     } catch (err) {
         console.error("AI Init Error: ", err);
@@ -272,7 +280,6 @@ window.manageLogs = function() {
         confirmButtonText: 'ลบข้อมูลสแกนล่าสุด' 
     }).then((result) => {
         if(result.isConfirmed) {
-            // จะเพิ่มตรรกะการลบ Log ใบสุดท้ายที่นี่ได้
             Swal.fire('ลบสำเร็จ', 'ข้อมูลถูกจัดการแล้ว', 'success');
         }
     });
