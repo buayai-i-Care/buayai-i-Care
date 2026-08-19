@@ -159,7 +159,7 @@ let human;
 const videoElement = document.getElementById('video-feed');
 const humanConfig = {
     backend: 'wasm', 
-    modelBasePath: './models/', 
+    modelBasePath: 'https://vladmandic.github.io/human/models/', // แก้ไขดึงผ่าน CDN เพื่อความเสถียร
     filter: { equalization: true },
     face: {
         enabled: true,
