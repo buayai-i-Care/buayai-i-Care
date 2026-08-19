@@ -99,32 +99,61 @@
             box-sizing: border-box;
         }
 
+        /* ----- แถบปุ่มเมนูด้านบนซ้าย (ประหยัดพื้นที่) ----- */
+        .compact-controls {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .btn-mini {
+            padding: 6px 14px;
+            font-size: 20px; /* ขนาดฟอนต์อ่านง่ายสำหรับผู้ใหญ่ */
+            font-weight: bold;
+            font-family: 'Sarabun', sans-serif;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-mini:hover { opacity: 0.9; }
+        .btn-mini:active { transform: scale(0.95); }
+        .btn-register { background-color: var(--success-color); }
+        .btn-manage { background-color: var(--warning-color); color: #000; }
+        .btn-settings { background-color: #34495e; }
+        .btn-dashboard { background-color: var(--btn-blue); }
+
+        /* ----- ส่วนหัว (Header) ----- */
         .header-section {
             background-color: var(--header-bg);
             color: var(--text-light);
-            padding: 20px;
+            padding: 15px; /* ลดพื้นที่ Padding ลงเล็กน้อย */
             border-radius: 12px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .header-title {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
             margin: 0;
         }
         .header-subtitle {
-            font-size: 24px;
-            margin: 5px 0 0 0;
+            font-size: 22px;
+            margin: 2px 0 0 0;
             color: #bdc3c7;
         }
         .datetime {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 5px;
             color: #f1c40f;
         }
 
+        /* ----- ส่วนกล้อง (Camera) ----- */
         .camera-container {
             position: relative;
             flex-grow: 1;
@@ -141,7 +170,6 @@
             object-fit: cover;
             transform: scaleX(-1); /* กลับซ้ายขวาให้เหมือนกระจก */
         }
-        /* กรอบแสดงตำแหน่งใบหน้า (Guide Frame) */
         .guide-frame {
             position: absolute;
             width: 60%;
@@ -155,38 +183,14 @@
             position: absolute;
             bottom: 20px;
             color: white;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             background: rgba(0,0,0,0.6);
-            padding: 10px 20px;
+            padding: 8px 20px;
             border-radius: 30px;
         }
 
-        .controls-section {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .btn-control {
-            flex: 1;
-            padding: 15px;
-            font-size: 24px;
-            font-weight: bold;
-            font-family: 'Sarabun', sans-serif;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .btn-control:active { transform: scale(0.98); }
-        .btn-manage { background-color: var(--warning-color); color: #000; }
-        .btn-settings { background-color: var(--text-main); }
-        .btn-dashboard { background-color: var(--btn-blue); flex: 0.5; }
-
-        /* ฝั่งขวา: รายชื่อที่สแกน (Scan Results) */
+        /* ----- ฝั่งขวา: รายชื่อที่สแกน (Scan Results) ----- */
         .right-panel {
             flex: 1;
             background-color: white;
@@ -198,7 +202,7 @@
             box-shadow: -4px 0 15px rgba(0,0,0,0.05);
         }
         .result-header {
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 700;
             text-align: center;
             margin-bottom: 20px;
@@ -211,29 +215,27 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            gap: 15px;
+            gap: 12px;
             overflow: hidden;
         }
 
         .scan-item {
             background: var(--success-color);
             color: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
             text-align: center;
-            font-size: 48px;
+            font-size: 42px;
             font-weight: bold;
-            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-            /* แอนิเมชันดันขึ้น */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             animation: slideIn 0.4s ease-out forwards;
             transition: all 0.5s ease;
         }
 
-        /* สถานะการค่อยๆ จางหายไป */
         .scan-item.fade-out {
             opacity: 0;
             transform: translateY(-50px) scale(0.9);
-            margin-top: -100px; 
+            margin-top: -80px; 
         }
 
         @keyframes slideIn {
@@ -261,25 +263,29 @@
         
         <!-- แผงควบคุมด้านซ้าย -->
         <div class="left-panel">
+            
+            <!-- แถบปุ่มควบคุมขนาดเล็ก ย้ายมาด้านบนซ้ายสุด -->
+            <div class="compact-controls">
+                <button class="btn-mini btn-register" onclick="window.location.href='input1024.html'">➕ ลงทะเบียน</button>
+                <button class="btn-mini btn-manage" onclick="window.manageLogs()">📋 จัดการข้อมูล / Log</button>
+                <button class="btn-mini btn-settings" onclick="window.openSettings()">⚙️ ตั้งค่าระบบ</button>
+                <button class="btn-mini btn-dashboard" onclick="window.location.href='dashboard1024.html'">📊 D</button>
+            </div>
+
+            <!-- ส่วนหัวแสดงเวลา -->
             <div class="header-section">
                 <h1 class="header-title">ระบบแสกนการเข้าโรงเรียนบัวใหญ่</h1>
                 <h2 class="header-subtitle">Buayai I Care School</h2>
                 <div class="datetime" id="currentDateTime">กำลังโหลดเวลา...</div>
             </div>
 
+            <!-- พื้นที่กล้องขยายเต็มสัดส่วนที่เหลือ -->
             <div class="camera-container">
                 <video id="video-feed" autoplay muted playsinline></video>
                 <div class="guide-frame"></div>
                 <div class="guide-text">กรุณายืนให้ใบหน้าอยู่ในกรอบ</div>
             </div>
 
-            <div class="controls-section">
-                <!-- เพิ่มปุ่มลงทะเบียน -->
-                <button class="btn-control" style="background-color: var(--success-color);" onclick="window.location.href='input1024.html'">➕ ลงทะเบียน</button>
-                <button class="btn-control btn-manage" onclick="window.manageLogs()">จัดการข้อมูล / Log</button>
-                <button class="btn-control btn-settings" onclick="window.openSettings()">ตั้งค่าระบบ</button>
-                <button class="btn-control btn-dashboard" onclick="window.location.href='dashboard1024.html'">D</button>
-            </div>
         </div>
 
         <!-- แผงแสดงผลลัพธ์ด้านขวา -->
