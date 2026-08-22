@@ -3,15 +3,15 @@ import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/fir
 import { getFirestore, collection, addDoc, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
-// 1. Firebase Configuration (by-fscan2)
+// 1. Firebase Configuration (เปลี่ยนเป็น by-fscan โปรเจกต์หลัก)
 // ==========================================
 const firebaseConfig = {
-    apiKey: "AIzaSyBFITWlnJnXLPNIgJiSa_bMy4H-k-vck_U",
-    authDomain: "by-fscan2.firebaseapp.com",
-    projectId: "by-fscan2",
-    storageBucket: "by-fscan2.firebasestorage.app",
-    messagingSenderId: "882321659182",
-    appId: "1:882321659182:web:e07eafc8301b28a9a696bf"
+    apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
+    authDomain: "by-fscan.firebaseapp.com",
+    projectId: "by-fscan",
+    storageBucket: "by-fscan.firebasestorage.app",
+    messagingSenderId: "557564109653",
+    appId: "1:557564109653:web:3459229f1b539cf25285dc"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -22,27 +22,22 @@ const db = getFirestore(app);
 enableIndexedDbPersistence(db).catch(console.warn);
 
 // ==========================================
-// 2. Global State (ตัวแปรสถานะระบบ)
+// 2. Global State & Math Function
 // ==========================================
 let allStudents = [];
-// activeStudents ถูกตัดออกไปตามตรรกะใหม่ เพื่อให้ค้นหาจากฐานข้อมูลหลักเสมอ
 const scannedSet = new Set();
 const MATCH_THRESHOLD = 0.75; 
 let unrecognizedFrames = 0; 
 
-// ==========================================
-// 3. Mathematical Operations (เปรียบเทียบใบหน้า)
-// ==========================================
-function cosineSimilarity(vecA, vecB) {
-    if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
-    let dotProduct = 0, normA = 0, normB = 0;
-    for (let i = 0; i < vecA.length; i++) {
-        dotProduct += vecA[i] * vecB[i];
-        normA += vecA[i] ** 2;
-        normB += vecB[i] ** 2;
-    }
-    if (normA === 0 || normB === 0) return 0;
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+// ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1 (เคล็ดลับเพิ่มความเร็ว)
+function normalizeVector(vec) {
+    let norm = 0;
+    for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
+    norm = Math.sqrt(norm);
+    if (norm === 0) return vec;
+    let normalized = new Array(vec.length);
+    for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
+    return normalized;
 }
 
 // ==========================================
@@ -78,6 +73,7 @@ async function loadStudentData() {
         request.onsuccess = async () => {
             const localData = request.result;
             if (localData && localData.length > 0) {
+                // ข้อมูลใน LocalDB ถูกปรับเป็น 1 มาแล้วตอนโหลดครั้งแรก
                 allStudents = localData;
                 resolve(true);
             } else {
@@ -102,14 +98,22 @@ async function fetchAndCacheFromStorage() {
             return false;
         }
 
-        const students = data;
         const localDB = await openLocalDB();
         const tx = localDB.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
         store.clear(); 
-        students.forEach(student => store.put(student)); 
+        
+        // **ปรับแต่งเวกเตอร์ทุกคนให้เป็น 1 ก่อนบันทึกลงเครื่องสแกน (เพื่อรองรับข้อมูลเก่าที่ยังไม่ได้แปลง)**
+        const preparedStudents = data.map(student => {
+            if(student.faceVector) {
+                student.faceVector = normalizeVector(student.faceVector);
+            }
+            return student;
+        });
 
-        allStudents = students;
+        preparedStudents.forEach(student => store.put(student)); 
+
+        allStudents = preparedStudents;
         scannedSet.clear(); 
 
         return true;
@@ -165,8 +169,8 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 let ctx; 
 
 const humanConfig = {
-    backend: 'wasm', 
-    modelBasePath: 'https://vladmandic.github.io/human/models/',
+    backend: 'wasm', // หากเครื่องไหนมีการ์ดจอแยก แนะนำให้เปลี่ยนเป็น 'webgl' จะลื่นขึ้นมากครับ
+    modelBasePath: './models/', // เปลี่ยนมาใช้ไฟล์ที่อัปโหลดไว้ในโฟลเดอร์ GitHub
     filter: { equalization: true },
     face: { 
         enabled: true, 
@@ -210,7 +214,7 @@ async function initAI() {
 }
 
 // ==========================================
-// 8. Core Detection Loop (ลูปประมวลผลกล้องแบบกันค้าง 100%)
+// 8. Core Detection Loop (ลูปประมวลผลกล้องแบบเร็วปรู๊ด)
 // ==========================================
 let isDetecting = false;
 let lastDetectTime = 0;
@@ -227,7 +231,6 @@ async function detectionLoop() {
     lastDetectTime = now;
 
     try {
-        // อัปเดตขนาด Canvas เพื่อแก้บั๊ก iPad
         if (canvasOverlay && videoElement.videoWidth > 0) {
             if (canvasOverlay.width !== videoElement.videoWidth) {
                 canvasOverlay.width = videoElement.videoWidth;
@@ -245,14 +248,21 @@ async function detectionLoop() {
             const face = result.face[0]; 
             
             if (face.score > 0.70 && face.embedding) {
+                // 1. แปลงเวกเตอร์จากกล้องให้ความยาวเป็น 1 (ทำครั้งเดียวต่อเฟรม)
+                const normCameraEmbedding = normalizeVector(face.embedding);
+                
                 let bestMatch = null;
                 let highestSimilarity = -1;
 
-                // ค้นหาจากนักเรียนทั้งหมดเสมอ
+                // 2. ค้นหาจากฐานข้อมูล 2,100 คน โดยใช้แค่การคูณ (Dot Product)
                 for (const student of allStudents) {
-                    const similarity = cosineSimilarity(face.embedding, student.faceVector);
-                    if (similarity > highestSimilarity) {
-                        highestSimilarity = similarity;
+                    if(!student.faceVector) continue;
+                    let dotProduct = 0;
+                    for (let i = 0; i < normCameraEmbedding.length; i++) {
+                        dotProduct += normCameraEmbedding[i] * student.faceVector[i];
+                    }
+                    if (dotProduct > highestSimilarity) {
+                        highestSimilarity = dotProduct;
                         bestMatch = student;
                     }
                 }
@@ -264,7 +274,6 @@ async function detectionLoop() {
                     const sid = bestMatch.studentId;
                     
                     if (!scannedSet.has(sid)) {
-                        // สแกนครั้งแรก
                         scannedSet.add(sid); 
                         updateScanUI(sid);
                         logScanRecord(sid, highestSimilarity);
@@ -273,13 +282,11 @@ async function detectionLoop() {
                         statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
                         unrecognizedFrames = 0;
                     } else {
-                        // สแกนซ้ำ
                         boxColor = '#2980b9'; 
                         statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
                         unrecognizedFrames = 0;
                     }
                 } else {
-                    // ไม่พบใบหน้านี้ในฐานข้อมูล
                     unrecognizedFrames++;
                     if (unrecognizedFrames >= 15) {
                         boxColor = '#c0392b'; 
@@ -296,7 +303,7 @@ async function detectionLoop() {
                     }
                 }
 
-                // วาดกรอบสี่เหลี่ยมพร้อมตัวอักษร 
+                // วาดกรอบสี่เหลี่ยม
                 if (ctx && face.box) {
                     const [x, y, width, height] = face.box;
                     const mirroredX = canvasOverlay.width - x - width;
@@ -329,7 +336,7 @@ async function detectionLoop() {
 }
 
 // ==========================================
-// 9. UI Controls (จัดการหน้าจอ)
+// 9. UI Controls
 // ==========================================
 let scanQueue = [];
 function updateScanUI(studentId) {
@@ -372,7 +379,7 @@ window.openSettings = function() {
 };
 
 // ==========================================
-// 10. Real-time Clock (นาฬิกา)
+// 10. Real-time Clock
 // ==========================================
 function updateDateTime() {
     const timeElement = document.getElementById('currentDateTime');
