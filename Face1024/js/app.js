@@ -172,9 +172,9 @@ const humanConfig = {
     filter: { equalization: true },
     face: { 
         enabled: true, 
-        detector: { rotation: false, return: true, minConfidence: 0.70 }, // กรองมือหรือสิ่งรบกวน
-        mesh: { enabled: false }, // ปิดตาข่ายเพื่อความเร็ว
-        iris: { enabled: false }, // ปิดตาดำเพื่อความเร็ว
+        detector: { rotation: false, return: true, minConfidence: 0.70 }, // กรองสิ่งรบกวน
+        mesh: { enabled: false }, // ปิดตาข่ายหน้า
+        iris: { enabled: false }, // ปิดโฟกัสตา
         description: { enabled: true } 
     },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
@@ -212,100 +212,119 @@ async function initAI() {
 }
 
 // ==========================================
-// 8. Core Detection Loop (ลูปประมวลผลกล้อง)
+// 8. Core Detection Loop (ลูปประมวลผลกล้องแบบกันค้าง 100%)
 // ==========================================
+let isDetecting = false;
 let lastDetectTime = 0;
+
 async function detectionLoop() {
-    if (!videoElement.paused && !videoElement.ended) {
-        const now = Date.now();
-        if (now - lastDetectTime >= 300) { 
-            lastDetectTime = now;
-            const result = await human.detect(videoElement);
+    requestAnimationFrame(detectionLoop);
 
-            if (ctx) ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+    if (videoElement.paused || videoElement.ended || isDetecting) return;
 
-            if (result.face && result.face.length > 0 && allStudents.length > 0) {
-                const face = result.face[0]; 
-                
-                if (face.score > 0.70 && face.embedding) {
-                    let bestMatch = null;
-                    let highestSimilarity = -1;
+    const now = Date.now();
+    if (now - lastDetectTime < 300) return; 
 
-                    for (const student of allStudents) {
-                        const similarity = cosineSimilarity(face.embedding, student.faceVector);
-                        if (similarity > highestSimilarity) {
-                            highestSimilarity = similarity;
-                            bestMatch = student;
-                        }
+    isDetecting = true;
+    lastDetectTime = now;
+
+    try {
+        // อัปเดตขนาด Canvas ตลอดเวลา (แก้บั๊ก iPad)
+        if (canvasOverlay && videoElement.videoWidth > 0) {
+            if (canvasOverlay.width !== videoElement.videoWidth) {
+                canvasOverlay.width = videoElement.videoWidth;
+                canvasOverlay.height = videoElement.videoHeight;
+            }
+        }
+
+        const result = await human.detect(videoElement);
+
+        // เคลียร์กระดานเก่าเสมอ
+        if (ctx && canvasOverlay.width > 0) {
+            ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+        }
+
+        if (result.face && result.face.length > 0 && allStudents.length > 0) {
+            const face = result.face[0]; 
+            
+            if (face.score > 0.70 && face.embedding) {
+                let bestMatch = null;
+                let highestSimilarity = -1;
+
+                for (const student of allStudents) {
+                    const similarity = cosineSimilarity(face.embedding, student.faceVector);
+                    if (similarity > highestSimilarity) {
+                        highestSimilarity = similarity;
+                        bestMatch = student;
                     }
-
-                    let boxColor = '#f39c12'; // สีส้ม
-                    let statusText = `กำลังวิเคราะห์ (${Math.round(face.score * 100)}%)`;
-
-                    if (highestSimilarity >= MATCH_THRESHOLD) {
-                        const sid = bestMatch.studentId;
-                        
-                        if (!scannedSet.has(sid)) {
-                            scannedSet.add(sid); 
-                            activeStudents = allStudents.filter(s => !scannedSet.has(s.studentId));
-                            updateScanUI(sid);
-                            logScanRecord(sid, highestSimilarity);
-                            
-                            boxColor = '#27ae60'; // สีเขียว
-                            statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
-                            unrecognizedFrames = 0;
-                        } else {
-                            boxColor = '#2980b9'; // สีน้ำเงิน
-                            statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
-                            unrecognizedFrames = 0;
-                        }
-                    } else {
-                        unrecognizedFrames++;
-                        if (unrecognizedFrames >= 15) {
-                            boxColor = '#c0392b'; // สีแดง
-                            statusText = '❌ ไม่พบข้อมูลนักเรียน';
-                            
-                            Swal.fire({
-                                toast: true, position: 'top-end', icon: 'warning',
-                                title: 'ไม่พบข้อมูล / สแกนไม่ผ่าน',
-                                text: 'กรุณาแจ้ง Admin ให้อัปเดตข้อมูลนักเรียนใหม่',
-                                showConfirmButton: false, timer: 3000,
-                                background: '#fff3cd', color: '#856404'
-                            });
-                            unrecognizedFrames = 0; 
-                        }
-                    }
-
-                    // --- การวาดกรอบอัจฉริยะ (แก้ปัญหา Mirror) ---
-                    if (ctx && face.box) {
-                        const [x, y, width, height] = face.box;
-                        
-                        // สมการพลิกพิกัด X ให้ตัวหนังสืออ่านออกปกติ
-                        const mirroredX = canvasOverlay.width - x - width;
-
-                        ctx.lineWidth = 4;
-                        ctx.strokeStyle = boxColor;
-                        ctx.strokeRect(mirroredX, y, width, height);
-
-                        ctx.fillStyle = boxColor;
-                        ctx.fillRect(mirroredX, y - 40, width, 40);
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 24px "Sarabun", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(statusText, mirroredX + (width / 2), y - 20);
-                    }
-                    
-                } else {
-                    unrecognizedFrames = 0; 
                 }
+
+                let boxColor = '#f39c12'; 
+                let statusText = `กำลังวิเคราะห์ (${Math.round(face.score * 100)}%)`;
+
+                if (highestSimilarity >= MATCH_THRESHOLD) {
+                    const sid = bestMatch.studentId;
+                    
+                    if (!scannedSet.has(sid)) {
+                        scannedSet.add(sid); 
+                        activeStudents = allStudents.filter(s => !scannedSet.has(s.studentId));
+                        updateScanUI(sid);
+                        logScanRecord(sid, highestSimilarity);
+                        
+                        boxColor = '#27ae60'; 
+                        statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
+                        unrecognizedFrames = 0;
+                    } else {
+                        boxColor = '#2980b9'; 
+                        statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
+                        unrecognizedFrames = 0;
+                    }
+                } else {
+                    unrecognizedFrames++;
+                    if (unrecognizedFrames >= 15) {
+                        boxColor = '#c0392b'; 
+                        statusText = '❌ ไม่พบข้อมูลนักเรียน';
+                        
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'warning',
+                            title: 'ไม่พบข้อมูล / สแกนไม่ผ่าน',
+                            text: 'กรุณาแจ้ง Admin ให้อัปเดตข้อมูลนักเรียนใหม่',
+                            showConfirmButton: false, timer: 3000,
+                            background: '#fff3cd', color: '#856404'
+                        });
+                        unrecognizedFrames = 0; 
+                    }
+                }
+
+                if (ctx && face.box) {
+                    const [x, y, width, height] = face.box;
+                    const mirroredX = canvasOverlay.width - x - width;
+
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = boxColor;
+                    ctx.strokeRect(mirroredX, y, width, height);
+
+                    ctx.fillStyle = boxColor;
+                    ctx.fillRect(mirroredX, y - 40, width, 40);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 24px "Sarabun", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(statusText, mirroredX + (width / 2), y - 20);
+                }
+                
             } else {
                 unrecognizedFrames = 0; 
             }
+        } else {
+            unrecognizedFrames = 0; 
         }
+    } catch (err) {
+        console.error("AI Detection Error:", err);
+    } finally {
+        isDetecting = false; // ปลดล็อกลูป
     }
-    requestAnimationFrame(detectionLoop);
 }
 
 // ==========================================
