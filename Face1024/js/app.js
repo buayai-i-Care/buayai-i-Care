@@ -329,3 +329,30 @@ window.openSettings = function() {
         icon: 'info' 
     });
 };
+
+
+// ==========================================
+// ระบบแสดงเวลาปัจจุบัน (Real-time Clock)
+// ==========================================
+function updateDateTime() {
+    const timeElement = document.getElementById('currentDateTime');
+    if (timeElement) {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: false // ใช้แบบ 24 ชั่วโมง
+        };
+        // แสดงผลเป็นภาษาไทย
+        timeElement.innerText = now.toLocaleDateString('th-TH', options);
+    }
+}
+
+// อัปเดตเวลาทันทีที่โหลด และให้วิ่งเรื่อยๆ ทุก 1 วินาที
+updateDateTime();
+setInterval(updateDateTime, 1000);
