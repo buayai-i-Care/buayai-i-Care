@@ -25,7 +25,7 @@ enableIndexedDbPersistence(db).catch(console.warn);
 // 2. Global State (ตัวแปรสถานะระบบ)
 // ==========================================
 let allStudents = [];
-let activeStudents = [];
+// activeStudents ถูกตัดออกไปตามตรรกะใหม่ เพื่อให้ค้นหาจากฐานข้อมูลหลักเสมอ
 const scannedSet = new Set();
 const MATCH_THRESHOLD = 0.75; 
 let unrecognizedFrames = 0; 
@@ -79,7 +79,6 @@ async function loadStudentData() {
             const localData = request.result;
             if (localData && localData.length > 0) {
                 allStudents = localData;
-                activeStudents = [...allStudents];
                 resolve(true);
             } else {
                 resolve(await fetchAndCacheFromStorage());
@@ -111,7 +110,6 @@ async function fetchAndCacheFromStorage() {
         students.forEach(student => store.put(student)); 
 
         allStudents = students;
-        activeStudents = [...allStudents];
         scannedSet.clear(); 
 
         return true;
@@ -121,7 +119,7 @@ async function fetchAndCacheFromStorage() {
     }
 }
 
-// บันทึก Log การสแกน
+// บันทึก Log การสแกนเข้า Firebase
 async function logScanRecord(studentId, similarityScore) {
     try {
         await addDoc(collection(db, "scan_logs"), {
@@ -172,9 +170,9 @@ const humanConfig = {
     filter: { equalization: true },
     face: { 
         enabled: true, 
-        detector: { rotation: false, return: true, minConfidence: 0.70 }, // กรองสิ่งรบกวน
-        mesh: { enabled: false }, // ปิดตาข่ายหน้า
-        iris: { enabled: false }, // ปิดโฟกัสตา
+        detector: { rotation: false, return: true, minConfidence: 0.70 }, 
+        mesh: { enabled: false }, 
+        iris: { enabled: false }, 
         description: { enabled: true } 
     },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
@@ -201,7 +199,7 @@ async function initAI() {
             Swal.fire({ 
                 icon: 'success', 
                 title: 'ระบบพร้อมใช้งาน', 
-                html: `ดึงข้อมูลจากในเครื่องแล้ว จำนวน <b>${activeStudents.length}</b> คน<br><br><span style="color: #27ae60; font-weight: bold; font-size: 0.9em;">✔️ ท่านสามารถใช้งานได้แม้ไม่มีอินเทอร์เน็ต</span>`, 
+                html: `ดึงข้อมูลจากในเครื่องแล้ว จำนวน <b>${allStudents.length}</b> คน<br><br><span style="color: #27ae60; font-weight: bold; font-size: 0.9em;">✔️ ท่านสามารถใช้งานได้แม้ไม่มีอินเทอร์เน็ต</span>`, 
                 timer: 4500, 
                 showConfirmButton: false 
             });
@@ -229,7 +227,7 @@ async function detectionLoop() {
     lastDetectTime = now;
 
     try {
-        // อัปเดตขนาด Canvas ตลอดเวลา (แก้บั๊ก iPad)
+        // อัปเดตขนาด Canvas เพื่อแก้บั๊ก iPad
         if (canvasOverlay && videoElement.videoWidth > 0) {
             if (canvasOverlay.width !== videoElement.videoWidth) {
                 canvasOverlay.width = videoElement.videoWidth;
@@ -239,7 +237,6 @@ async function detectionLoop() {
 
         const result = await human.detect(videoElement);
 
-        // เคลียร์กระดานเก่าเสมอ
         if (ctx && canvasOverlay.width > 0) {
             ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
         }
@@ -251,6 +248,7 @@ async function detectionLoop() {
                 let bestMatch = null;
                 let highestSimilarity = -1;
 
+                // ค้นหาจากนักเรียนทั้งหมดเสมอ
                 for (const student of allStudents) {
                     const similarity = cosineSimilarity(face.embedding, student.faceVector);
                     if (similarity > highestSimilarity) {
@@ -266,8 +264,8 @@ async function detectionLoop() {
                     const sid = bestMatch.studentId;
                     
                     if (!scannedSet.has(sid)) {
+                        // สแกนครั้งแรก
                         scannedSet.add(sid); 
-                        activeStudents = allStudents.filter(s => !scannedSet.has(s.studentId));
                         updateScanUI(sid);
                         logScanRecord(sid, highestSimilarity);
                         
@@ -275,11 +273,13 @@ async function detectionLoop() {
                         statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
                         unrecognizedFrames = 0;
                     } else {
+                        // สแกนซ้ำ
                         boxColor = '#2980b9'; 
                         statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
                         unrecognizedFrames = 0;
                     }
                 } else {
+                    // ไม่พบใบหน้านี้ในฐานข้อมูล
                     unrecognizedFrames++;
                     if (unrecognizedFrames >= 15) {
                         boxColor = '#c0392b'; 
@@ -296,6 +296,7 @@ async function detectionLoop() {
                     }
                 }
 
+                // วาดกรอบสี่เหลี่ยมพร้อมตัวอักษร 
                 if (ctx && face.box) {
                     const [x, y, width, height] = face.box;
                     const mirroredX = canvasOverlay.width - x - width;
@@ -323,7 +324,7 @@ async function detectionLoop() {
     } catch (err) {
         console.error("AI Detection Error:", err);
     } finally {
-        isDetecting = false; // ปลดล็อกลูป
+        isDetecting = false; 
     }
 }
 
@@ -365,7 +366,7 @@ window.manageLogs = function() {
 window.openSettings = function() {
     Swal.fire({ 
         title: 'สถานะระบบสแกน', 
-        html: `ระบบกำลังรอสแกน: <b>${activeStudents.length}</b> คน<br>นักเรียนสแกนผ่านแล้ว: <b style="color:green;">${scannedSet.size}</b> คน`, 
+        html: `จำนวนนักเรียนในระบบ: <b>${allStudents.length}</b> คน<br>นักเรียนสแกนผ่านแล้ว: <b style="color:green;">${scannedSet.size}</b> คน`, 
         icon: 'info' 
     });
 };
