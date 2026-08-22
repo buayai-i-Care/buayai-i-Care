@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบลงทะเบียนอัตลักษณ์นักเรียน - Buayai I Care</title>
     
-    <!-- ฟอนต์ TH Sarabun สำหรับการแสดงผลที่สบายตา -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/human/dist/human.js"></script>
@@ -54,7 +53,6 @@
         .header h1 { margin: 0; font-size: 36px; color: var(--primary-color); }
         .header p { margin: 10px 0 0 0; color: #7f8c8d; font-size: 22px; }
 
-        /* ส่วนแสดงสถานะล็อกอิน */
         #authStatus {
             text-align: center;
             padding: 15px;
@@ -146,30 +144,37 @@
             <p>ตั้งชื่อไฟล์ภาพเป็นรหัสนักเรียน (เช่น 33831.jpg) เพื่อสกัดเวกเตอร์</p>
         </div>
 
-        <!-- แถบแสดงสถานะเข้าสู่ระบบ -->
         <div id="authStatus">กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</div>
 
-        <!-- ส่วนอัปโหลดไฟล์ -->
         <div class="upload-section" onclick="document.getElementById('fileInput').click()">
             <p style="margin: 0; font-size: 28px; font-weight: bold; color: #2980b9;">📁 คลิกเพื่อเลือกไฟล์รูปภาพ</p>
             <p style="margin: 10px 0 0 0; color: #7f8c8d;">รองรับไฟล์ .jpg, .png</p>
             <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
         </div>
 
-        <!-- แสดงตัวอย่างภาพ -->
         <div class="preview-container">
             <img id="imagePreview" alt="ภาพนักเรียน">
         </div>
 
-        <!-- แสดงรหัสที่แกะจากชื่อไฟล์ -->
         <div class="info-box" id="infoBox">
             รหัสนักเรียน: <span id="detectedId" style="color: #2c3e50;">-</span>
+        </div>
+
+        <!-- ส่วนสำหรับเลือกมุมหน้าของนักเรียน -->
+        <div style="text-align: center; margin: 15px 0; font-size: 24px;">
+            <label style="cursor: pointer; margin-right: 20px;">
+                <input type="radio" name="angleType" value="normal" checked style="transform: scale(1.5); margin-right: 8px;"> 
+                หน้าตรง (ปกติ)
+            </label>
+            <label style="cursor: pointer;">
+                <input type="radio" name="angleType" value="lookup" style="transform: scale(1.5); margin-right: 8px;"> 
+                หน้าเงย (เผื่อกล้องมุมสูง)
+            </label>
         </div>
 
         <button class="btn-process" id="btnProcess" onclick="extractFaceFeature()" disabled>1. สกัดคุณลักษณะใบหน้า</button>
         <button class="btn-save" id="btnSave" onclick="saveToFirebase()" disabled>2. บันทึกลงฐานข้อมูล</button>
 
-        <!-- ปุ่มนำทาง -->
         <div class="nav-buttons">
             <button class="nav-btn" onclick="window.location.href='scan1024.html'">← กลับไปหน้าสแกน</button>
             <button class="nav-btn" onclick="window.location.href='dashboard1024.html'">ไปหน้า Dashboard →</button>
@@ -181,7 +186,7 @@
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // ตั้งค่า Firebase
+        // ตั้งค่า Firebase โปรเจกต์หลัก (by-fscan)
         const firebaseConfig = {
             apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
             authDomain: "by-fscan.firebaseapp.com",
@@ -201,7 +206,6 @@
         const imgElement = document.getElementById('imagePreview');
         const authStatusElement = document.getElementById('authStatus');
 
-        // ตรวจสอบสถานะการล็อกอิน
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 isUserLoggedIn = true;
@@ -224,10 +228,10 @@
             }
         });
 
-        // ตั้งค่า AI
+        // ดึงไฟล์โมเดลจาก Local Folder ใน GitHub
         const humanConfig = {
             backend: 'wasm', 
-            modelBasePath: 'https://vladmandic.github.io/human/models/', 
+            modelBasePath: './models/', 
             filter: { equalization: true },
             face: {
                 enabled: true,
@@ -251,7 +255,6 @@
         }
         window.addEventListener('DOMContentLoaded', initAI);
 
-        // จัดการเมื่อเลือกไฟล์รูปภาพ
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -273,7 +276,17 @@
             reader.readAsDataURL(file);
         };
 
-        // สกัดเวกเตอร์ใบหน้า
+        // ฟังก์ชันหัวใจสำคัญ: แปลงเวกเตอร์ให้เป็น 1 ก่อนส่งขึ้นฐานข้อมูล
+        function normalizeVector(vec) {
+            let norm = 0;
+            for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
+            norm = Math.sqrt(norm);
+            if (norm === 0) return Array.from(vec);
+            let normalized = new Array(vec.length);
+            for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
+            return normalized;
+        }
+
         window.extractFaceFeature = async function() {
             if (!human || !imgElement.src) return;
 
@@ -290,7 +303,9 @@
                 if (result.face && result.face.length > 0) {
                     const face = result.face[0];
                     if (face.embedding) {
-                        currentFaceVector = Array.from(face.embedding);
+                        
+                        // ** ทำการ Normalize ข้อมูลให้เป็น 1 ตรงนี้ทันที **
+                        currentFaceVector = normalizeVector(face.embedding);
                         
                         if (isUserLoggedIn) {
                             document.getElementById('btnSave').disabled = false;
@@ -315,7 +330,6 @@
             }
         };
 
-        // บันทึกข้อมูลลง Firebase
         window.saveToFirebase = async function() {
             if (!isUserLoggedIn) {
                 Swal.fire('ปฏิเสธการเข้าถึง', 'กรุณาเข้าสู่ระบบก่อนทำการบันทึก', 'error');
@@ -330,22 +344,31 @@
             });
 
             try {
-                await setDoc(doc(db, "students", extractedStudentId), {
+                const angleType = document.querySelector('input[name="angleType"]:checked').value;
+                const updateData = {
                     studentId: extractedStudentId,
-                    faceVector: currentFaceVector,
                     updatedAt: new Date().toISOString(),
                     isActive: true
-                });
+                };
+
+                // แยกเก็บตามมุมกล้องที่เลือกไว้
+                if (angleType === "normal") {
+                    updateData.faceVector = currentFaceVector;
+                } else {
+                    updateData.faceVectorUp = currentFaceVector;
+                }
+
+                // merge: true ทำให้หน้าตรงและหน้าเงยอยู่ร่วมกันใน ID เดียวกันได้โดยไม่ลบทับกัน
+                await setDoc(doc(db, "students", extractedStudentId), updateData, { merge: true });
 
                 Swal.fire({
                     icon: 'success',
                     title: 'บันทึกเรียบร้อย',
-                    text: `ข้อมูลอัตลักษณ์รหัส ${extractedStudentId} ถูกบันทึกลงฐานข้อมูลแล้ว`,
+                    text: `ข้อมูลอัตลักษณ์ (${angleType === 'normal' ? 'หน้าตรง' : 'หน้าเงย'}) รหัส ${extractedStudentId} ถูกบันทึกแล้ว`,
                     confirmButtonText: 'ตกลง',
                     confirmButtonColor: '#27ae60'
                 });
                 
-                // ล้างฟอร์ม
                 document.getElementById('fileInput').value = '';
                 imgElement.style.display = 'none';
                 document.getElementById('infoBox').style.display = 'none';
