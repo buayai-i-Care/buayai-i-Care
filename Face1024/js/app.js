@@ -1,31 +1,32 @@
-// นำเข้าโมดูลของ Firebase อย่างครบถ้วน
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
-// 1. ตั้งค่า Firebase
+// *** เปลี่ยนตรงนี้เป็น Config ของโปรเจกต์ใหม่ ***
 const firebaseConfig = {
-    apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
-    authDomain: "by-fscan.firebaseapp.com",
-    projectId: "by-fscan",
-    storageBucket: "by-fscan.firebasestorage.app",
-    messagingSenderId: "557564109653",
-    appId: "1:557564109653:web:3459229f1b539cf25285dc"
+    apiKey: "YOUR_NEW_API_KEY",
+    authDomain: "YOUR_NEW_DOMAIN",
+    projectId: "YOUR_NEW_PROJECT_ID",
+    storageBucket: "YOUR_NEW_BUCKET",
+    messagingSenderId: "...",
+    appId: "..."
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-// ตัวแปรเก็บฐานข้อมูลเวกเตอร์ใน RAM และระบบ Cooldown
-let studentDatabase = [];
-const scanCooldowns = {}; 
-const COOLDOWN_TIME = 5000; // หน่วงเวลา 5 วินาทีต่อคน เพื่อไม่ให้แสกนซ้ำรัวๆ
-const MATCH_THRESHOLD = 0.65; // เกณฑ์การยอมรับ (Threshold) ปรับจูนได้
+// เปิดใช้งานโหมด Offline (ซิงค์ Log อัตโนมัติเมื่อเน็ตมา)
+enableIndexedDbPersistence(db).catch(console.warn);
 
-// ==========================================
-// ระบบคณิตศาสตร์เปรียบเทียบอัตลักษณ์ (Cosine Similarity)
-// ==========================================
+let allStudents = [];
+let activeStudents = [];
+const scannedSet = new Set();
+const MATCH_THRESHOLD = 0.75; 
+let unrecognizedFrames = 0; // ตัวนับเฟรมสำหรับคนที่สแกนไม่ติด
+
 function cosineSimilarity(vecA, vecB) {
     if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
     let dotProduct = 0, normA = 0, normB = 0;
@@ -38,9 +39,6 @@ function cosineSimilarity(vecA, vecB) {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// ==========================================
-// ระบบ IndexedDB (Offline Database)
-// ==========================================
 const dbName = "FaceScanDB";
 const storeName = "students";
 
@@ -58,48 +56,62 @@ function openLocalDB() {
     });
 }
 
-async function syncDatabase() {
-    Swal.fire({
-        title: 'กำลังซิงค์ฐานข้อมูล...',
-        text: 'กำลังดาวน์โหลดข้อมูลอัตลักษณ์นักเรียน กรุณารอสักครู่',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
+// ----------------------------------------------------
+// ระบบโหลดข้อมูล: อ่านจาก IndexedDB ก่อน ถ้าไม่มีค่อยโหลดจาก Storage
+// ----------------------------------------------------
+async function loadStudentData() {
+    const localDB = await openLocalDB();
+    const tx = localDB.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const request = store.getAll();
 
-    try {
-        const querySnapshot = await getDocs(collection(db, "students"));
-        const students = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.faceVector && data.studentId) {
-                students.push(data);
+    return new Promise((resolve) => {
+        request.onsuccess = async () => {
+            const localData = request.result;
+            if (localData && localData.length > 0) {
+                allStudents = localData;
+                activeStudents = [...allStudents];
+                console.log(`(Offline Cache) โหลดข้อมูลสำเร็จ ${allStudents.length} คน | ใช้โควตา Read = 0`);
+                resolve(true);
+            } else {
+                resolve(await fetchAndCacheFromStorage());
             }
-        });
+        };
+    });
+}
+
+// ----------------------------------------------------
+// ดาวน์โหลด JSON ก้อนใหญ่จาก Storage (ใช้โควตา Read = 0 ของ Firestore)
+// ----------------------------------------------------
+async function fetchAndCacheFromStorage() {
+    Swal.fire({ title: 'กำลังดึงฐานข้อมูลส่วนกลาง...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    
+    try {
+        const jsonRef = ref(storage, 'students.json');
+        const url = await getDownloadURL(jsonRef);
+        
+        const response = await fetch(url);
+        const students = await response.json();
 
         const localDB = await openLocalDB();
         const tx = localDB.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
-        
         store.clear(); 
         students.forEach(student => store.put(student)); 
 
-        return new Promise((resolve) => {
-            tx.oncomplete = () => {
-                studentDatabase = students;
-                console.log(`โหลดข้อมูลสำเร็จจำนวน ${studentDatabase.length} คน`);
-                resolve(true);
-            };
-        });
+        allStudents = students;
+        activeStudents = [...allStudents];
+        scannedSet.clear();
+
+        console.log(`(Storage) ดึงข้อมูลอัปเดตล่าสุดสำเร็จ ${students.length} คน`);
+        return true;
     } catch (error) {
-        console.error("Error syncing data: ", error);
-        Swal.fire({ icon: 'error', title: 'ซิงค์ข้อมูลล้มเหลว', text: 'ไม่สามารถดึงข้อมูลจากเซิร์ฟเวอร์ได้' });
+        console.error("Error fetching Storage JSON: ", error);
+        Swal.fire('ข้อผิดพลาด', 'ไม่พบไฟล์ฐานข้อมูล หรือไม่ได้เชื่อมต่ออินเทอร์เน็ต', 'error');
         return false;
     }
 }
 
-// ==========================================
-// การบันทึกประวัติ (Log) ลง Firebase
-// ==========================================
 async function logScanRecord(studentId, similarityScore) {
     try {
         await addDoc(collection(db, "scan_logs"), {
@@ -108,160 +120,122 @@ async function logScanRecord(studentId, similarityScore) {
             timestamp: serverTimestamp(),
             status: "success"
         });
-        console.log(`บันทึก Log ของ ${studentId} เรียบร้อยแล้ว`);
     } catch (error) {
         console.error("Error saving log: ", error);
     }
 }
 
-// ==========================================
-// ระบบแสดงผล (UI) และการทำงานหลัก
-// ==========================================
-function updateClock() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-    const clockElement = document.getElementById('currentDateTime');
-    if (clockElement) clockElement.innerText = now.toLocaleDateString('th-TH', options);
-}
-setInterval(updateClock, 1000);
-updateClock();
-
 window.checkAuth = function() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPassword').value;
 
-    if(email === '' || pass === '') {
-        Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกอีเมลและรหัสผ่าน' });
-        return;
-    }
+    if(email === '' || pass === '') return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูล', 'warning');
 
-    Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    Swal.fire({ title: 'ตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     signInWithEmailAndPassword(auth, email, pass)
-        .then(async (userCredential) => {
-            const isSynced = await syncDatabase();
-            if (isSynced) {
+        .then(async () => {
+            const isLoaded = await loadStudentData();
+            if (isLoaded) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'flex';
                 initAI(); 
             }
         })
-        .catch((error) => {
-            console.error("Auth Error:", error.code, error.message);
-            Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบล้มเหลว', text: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
-        });
+        .catch(() => Swal.fire('ล้มเหลว', 'ข้อมูลเข้าระบบไม่ถูกต้อง', 'error'));
 };
 
-// ==========================================
-// ระบบ Computer Vision & AI 
-// ==========================================
 let human;
 const videoElement = document.getElementById('video-feed');
 const humanConfig = {
-    backend: 'wasm', 
-    modelBasePath: 'https://vladmandic.github.io/human/models/', // ดึงผ่าน CDN
+    backend: 'wasm', modelBasePath: 'https://vladmandic.github.io/human/models/',
     filter: { equalization: true },
-    face: {
-        enabled: true,
-        detector: { rotation: false, return: true },
-        mesh: { enabled: true },
-        iris: { enabled: true },
-        description: { enabled: true }, 
-        emotion: { enabled: false }
-    },
+    face: { enabled: true, detector: { rotation: false, return: true }, mesh: { enabled: true }, iris: { enabled: true }, description: { enabled: true } },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
 };
 
 async function initAI() {
-    Swal.fire({
-        title: 'กำลังโหลดโมเดล AI...',
-        text: 'อาจใช้เวลาสักครู่ในครั้งแรก',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
-
     try {
         human = new Human.Human(humanConfig);
         await human.load(); 
-
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
         videoElement.srcObject = stream;
-        
-        videoElement.onloadeddata = () => {
-            videoElement.play();
-            detectionLoop(); 
-            
-            // แจ้งเตือนเมื่อระบบพร้อมสมบูรณ์และแสดงจำนวนคนที่โหลดได้
-            Swal.fire({
-                icon: 'success',
-                title: 'ระบบพร้อมใช้งาน',
-                text: `โหลดข้อมูลอัตลักษณ์นักเรียนสำเร็จ จำนวน ${studentDatabase.length} คน`,
-                timer: 3000, // แสดง 3 วินาทีแล้วปิดเอง
-                showConfirmButton: false
-            });
-        };
+        videoElement.onloadeddata = () => { videoElement.play(); detectionLoop(); };
     } catch (err) {
-        console.error("AI Init Error: ", err);
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถโหลด AI หรือเปิดกล้องได้' });
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้', 'error');
     }
 }
 
-// ลูปประมวลผลเฟรมต่อเฟรม
+let lastDetectTime = 0;
 async function detectionLoop() {
     if (!videoElement.paused && !videoElement.ended) {
-        const result = await human.detect(videoElement);
+        const now = Date.now();
+        if (now - lastDetectTime >= 300) {
+            lastDetectTime = now;
+            const result = await human.detect(videoElement);
 
-        if (result.face && result.face.length > 0 && studentDatabase.length > 0) {
-            const face = result.face[0]; 
-            
-            if (face.embedding) {
-                let bestMatch = null;
-                let highestSimilarity = -1;
+            if (result.face && result.face.length > 0 && activeStudents.length > 0) {
+                const face = result.face[0]; 
+                
+                if (face.score > 0.60 && face.embedding) {
+                    let bestMatch = null;
+                    let highestSimilarity = -1;
 
-                // วนลูปเทียบเวกเตอร์กับฐานข้อมูลทั้งหมด (O(N) Complexity)
-                for (const student of studentDatabase) {
-                    const similarity = cosineSimilarity(face.embedding, student.faceVector);
-                    if (similarity > highestSimilarity) {
-                        highestSimilarity = similarity;
-                        bestMatch = student;
+                    for (const student of activeStudents) {
+                        const similarity = cosineSimilarity(face.embedding, student.faceVector);
+                        if (similarity > highestSimilarity) {
+                            highestSimilarity = similarity;
+                            bestMatch = student;
+                        }
+                    }
+
+                    if (highestSimilarity >= MATCH_THRESHOLD) {
+                        unrecognizedFrames = 0; // รีเซ็ตตัวนับหากสแกนผ่าน
+                        const sid = bestMatch.studentId;
+                        
+                        if (!scannedSet.has(sid)) {
+                            scannedSet.add(sid); 
+                            activeStudents = allStudents.filter(s => !scannedSet.has(s.studentId));
+                            updateScanUI(sid);
+                            logScanRecord(sid, highestSimilarity);
+                        }
+                    } else {
+                        // ------------------------------------------------
+                        // ระบบนับเฟรม: พบใบหน้าแต่คะแนนไม่ถึงเกณฑ์
+                        // ------------------------------------------------
+                        unrecognizedFrames++;
+                        if (unrecognizedFrames >= 10) { // ประมาณ 3 วินาที (300ms * 10)
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'warning',
+                                title: 'ไม่พบข้อมูล หรือ สแกนไม่ผ่าน',
+                                text: 'กรุณาติดต่อ Admin เพื่ออัปเดตฐานข้อมูลส่วนกลาง',
+                                showConfirmButton: false,
+                                timer: 4000,
+                                background: '#fff3cd',
+                                color: '#856404'
+                            });
+                            unrecognizedFrames = 0; // รีเซ็ตเพื่อไม่ให้แจ้งเตือนรัวเกินไป
+                        }
                     }
                 }
-
-                // หากค่าความเหมือนผ่านเกณฑ์ที่ตั้งไว้
-                if (highestSimilarity >= MATCH_THRESHOLD) {
-                    const now = Date.now();
-                    const sid = bestMatch.studentId;
-                    
-                    // ตรวจสอบ Cooldown ป้องกันการแสกนซ้ำรัวๆ
-                    if (!scanCooldowns[sid] || now - scanCooldowns[sid] > COOLDOWN_TIME) {
-                        scanCooldowns[sid] = now;
-                        
-                        // 1. นำรายชื่อขึ้น UI ทางขวา
-                        updateScanUI(sid);
-                        
-                        // 2. บันทึก Log ลง Firebase
-                        logScanRecord(sid, highestSimilarity);
-                    }
-                }
+            } else {
+                unrecognizedFrames = 0; // ไม่มีคนยืนอยู่หน้ากล้อง ให้รีเซ็ตตัวนับ
             }
         }
     }
-    requestAnimationFrame(detectionLoop); // เรียกใช้ซ้ำอย่างต่อเนื่อง
+    requestAnimationFrame(detectionLoop);
 }
 
-// ==========================================
-// ระบบ UI Interaction 
-// ==========================================
 let scanQueue = [];
 function updateScanUI(studentId) {
     const listContainer = document.getElementById('scanList');
     const newItem = document.createElement('div');
     newItem.className = 'scan-item';
     newItem.innerText = studentId;
-
     listContainer.insertBefore(newItem, listContainer.firstChild);
     scanQueue.unshift(newItem);
-
     if (scanQueue.length > 5) {
         const oldestItem = scanQueue.pop();
         oldestItem.classList.add('fade-out');
@@ -269,26 +243,22 @@ function updateScanUI(studentId) {
     }
 }
 
-// ปุ่มควบคุม
+// แอดมินกดปุ่มนี้เพื่อดึง JSON ตัวใหม่มาลงเครื่อง
 window.manageLogs = function() {
     Swal.fire({ 
-        title: 'จัดการข้อมูล / Log', 
-        text: 'คุณต้องการยกเลิกการสแกนล่าสุดที่ผิดพลาดหรือไม่?', 
-        icon: 'warning', 
-        showCancelButton: true, 
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'ลบข้อมูลสแกนล่าสุด' 
-    }).then((result) => {
+        title: 'อัปเดตข้อมูล', 
+        text: 'ต้องการดึงข้อมูลล่าสุดจากส่วนกลางมาไว้ในเครื่องนี้หรือไม่?',
+        icon: 'question', 
+        showCancelButton: true,
+        confirmButtonText: 'อัปเดตข้อมูล'
+    }).then(async (result) => {
         if(result.isConfirmed) {
-            Swal.fire('ลบสำเร็จ', 'ข้อมูลถูกจัดการแล้ว', 'success');
+            const success = await fetchAndCacheFromStorage();
+            if(success) Swal.fire('สำเร็จ', 'อัปเดตข้อมูลในเครื่องสแกนเรียบร้อย', 'success');
         }
     });
 };
 
 window.openSettings = function() {
-    Swal.fire({ 
-        title: 'ตั้งค่าระบบ', 
-        html: `ปรับจูนค่า <b>MATCH_THRESHOLD</b><br>ค่าปัจจุบัน: ${MATCH_THRESHOLD}`, 
-        icon: 'info' 
-    });
+    Swal.fire({ title: 'สถานะปัจจุบัน', html: `นักเรียนรอสแกน: ${activeStudents.length}<br>สแกนแล้ว: ${scannedSet.size}`, icon: 'info' });
 };
