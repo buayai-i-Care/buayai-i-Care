@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>เครื่องมือผู้ดูแลระบบ - อัปเดตฐานข้อมูล</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f4f6f9; text-align: center; }
+        button { padding: 15px 30px; font-size: 24px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <h1>อัปเดตฐานข้อมูลส่วนกลาง (JSON)</h1>
+    <p>กดปุ่มนี้เมื่อมีการเพิ่ม/ลบนักเรียนใหม่ เพื่อสร้างไฟล์แคชให้เครื่องสแกน</p>
+    <button onclick="updateGlobalCache()">🔄 สร้างไฟล์เวกเตอร์อัปเดตล่าสุด</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getStorage, ref, uploadString } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+        // *** เปลี่ยนตรงนี้เป็น Config ของโปรเจกต์ใหม่ ***
+        const firebaseConfig = {
+            apiKey: "YOUR_NEW_API_KEY",
+            authDomain: "YOUR_NEW_DOMAIN",
+            projectId: "YOUR_NEW_PROJECT_ID",
+            storageBucket: "YOUR_NEW_BUCKET",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        window.updateGlobalCache = async function() {
+            // ล็อกอินก่อน (เปลี่ยนอีเมล/รหัส เป็นของแอดมินโปรเจกต์ใหม่)
+            await signInWithEmailAndPassword(auth, "admin@school.com", "123456");
+
+            Swal.fire({ title: 'กำลังดึงข้อมูลจาก Database...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                // 1. ดึงข้อมูลนักเรียนทั้งหมดจาก Firestore
+                const querySnapshot = await getDocs(collection(db, "students"));
+                const students = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.faceVector) students.push(data);
+                });
+
+                // 2. แปลงเป็น JSON String
+                const jsonString = JSON.stringify(students);
+
+                // 3. อัปโหลดขึ้น Firebase Storage
+                Swal.update({ title: 'กำลังอัปโหลดไฟล์เข้าระบบ Storage...' });
+                const storageRef = ref(storage, 'students.json');
+                await uploadString(storageRef, jsonString, 'raw', { contentType: 'application/json' });
+
+                Swal.fire('สำเร็จ!', `อัปเดตข้อมูลเวกเตอร์จำนวน ${students.length} คน เรียบร้อยแล้ว`, 'success');
+            } catch (error) {
+                console.error(error);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์แคชได้', 'error');
+            }
+        };
+    </script>
+</body>
+</html>
