@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/fir
 import { getFirestore, collection, addDoc, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
-// 1. Firebase Configuration (เปลี่ยนเป็น by-fscan โปรเจกต์หลัก)
+// 1. Firebase Configuration (รวมเป็น by-fscan โปรเจกต์เดียว)
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
@@ -29,15 +29,33 @@ const scannedSet = new Set();
 const MATCH_THRESHOLD = 0.75; 
 let unrecognizedFrames = 0; 
 
-// ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1 (เคล็ดลับเพิ่มความเร็ว)
+// ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1 (เคล็ดลับความเร็ว)
 function normalizeVector(vec) {
     let norm = 0;
     for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
     norm = Math.sqrt(norm);
-    if (norm === 0) return vec;
+    if (norm === 0) return Array.from(vec);
     let normalized = new Array(vec.length);
     for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
     return normalized;
+}
+
+// ฟังก์ชันสร้างเสียงติ๊ด (Beep) เมื่อสแกนผ่าน โดยไม่ต้องใช้ไฟล์เสียง
+function playSuccessSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // ความถี่เสียง 1000 Hz
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // ความดังเสียง
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 150); // ดัง 150 มิลลิวินาที
+    } catch(e) {
+        console.error("Audio not supported or blocked by browser", e);
+    }
 }
 
 // ==========================================
@@ -73,7 +91,7 @@ async function loadStudentData() {
         request.onsuccess = async () => {
             const localData = request.result;
             if (localData && localData.length > 0) {
-                // ข้อมูลใน LocalDB ถูกปรับเป็น 1 มาแล้วตอนโหลดครั้งแรก
+                // ข้อมูลในเครื่องถูกปรับเป็น 1 มาแล้วตอนโหลดครั้งแรก
                 allStudents = localData;
                 resolve(true);
             } else {
@@ -103,10 +121,13 @@ async function fetchAndCacheFromStorage() {
         const store = tx.objectStore(storeName);
         store.clear(); 
         
-        // **ปรับแต่งเวกเตอร์ทุกคนให้เป็น 1 ก่อนบันทึกลงเครื่องสแกน (เพื่อรองรับข้อมูลเก่าที่ยังไม่ได้แปลง)**
+        // Normalize เวกเตอร์ล่วงหน้าทั้งหน้าตรง และ หน้าเงย ก่อนเซฟลงเครื่องสแกน
         const preparedStudents = data.map(student => {
             if(student.faceVector) {
                 student.faceVector = normalizeVector(student.faceVector);
+            }
+            if(student.faceVectorUp) {
+                student.faceVectorUp = normalizeVector(student.faceVectorUp);
             }
             return student;
         });
@@ -169,12 +190,13 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 let ctx; 
 
 const humanConfig = {
-    backend: 'wasm', // หากเครื่องไหนมีการ์ดจอแยก แนะนำให้เปลี่ยนเป็น 'webgl' จะลื่นขึ้นมากครับ
-    modelBasePath: './models/', // เปลี่ยนมาใช้ไฟล์ที่อัปโหลดไว้ในโฟลเดอร์ GitHub
+    backend: 'wasm', // หากเครื่องรันช้า ให้เปลี่ยนเป็น 'webgl' (ต้องมีการ์ดจอ)
+    modelBasePath: './models/', // เปลี่ยนมาใช้โมเดลแบบออฟไลน์
     filter: { equalization: true },
     face: { 
         enabled: true, 
-        detector: { rotation: false, return: true, minConfidence: 0.70 }, 
+        // เปิดอนุญาตหาหน้าเอียงหน้าเงย และลดเกณฑ์การจับหน้าลงเหลือ 0.65 เผื่อมุมกล้องแปลกๆ
+        detector: { rotation: true, return: true, minConfidence: 0.65 }, 
         mesh: { enabled: false }, 
         iris: { enabled: false }, 
         description: { enabled: true } 
@@ -214,7 +236,7 @@ async function initAI() {
 }
 
 // ==========================================
-// 8. Core Detection Loop (ลูปประมวลผลกล้องแบบเร็วปรู๊ด)
+// 8. Core Detection Loop (รองรับสแกนหลายคนพร้อมกัน)
 // ==========================================
 let isDetecting = false;
 let lastDetectTime = 0;
@@ -245,86 +267,93 @@ async function detectionLoop() {
         }
 
         if (result.face && result.face.length > 0 && allStudents.length > 0) {
-            const face = result.face[0]; 
             
-            if (face.score > 0.70 && face.embedding) {
-                // 1. แปลงเวกเตอร์จากกล้องให้ความยาวเป็น 1 (ทำครั้งเดียวต่อเฟรม)
-                const normCameraEmbedding = normalizeVector(face.embedding);
+            // วนลูปตรวจจับ "ทุกใบหน้า" ที่กล้องมองเห็นพร้อมกัน
+            for (let f = 0; f < result.face.length; f++) {
+                const face = result.face[f]; 
                 
-                let bestMatch = null;
-                let highestSimilarity = -1;
+                if (face.score > 0.65 && face.embedding) {
+                    const normCameraEmbedding = normalizeVector(face.embedding);
+                    let bestMatch = null;
+                    let highestSimilarity = -1;
 
-                // 2. ค้นหาจากฐานข้อมูล 2,100 คน โดยใช้แค่การคูณ (Dot Product)
-                for (const student of allStudents) {
-                    if(!student.faceVector) continue;
-                    let dotProduct = 0;
-                    for (let i = 0; i < normCameraEmbedding.length; i++) {
-                        dotProduct += normCameraEmbedding[i] * student.faceVector[i];
-                    }
-                    if (dotProduct > highestSimilarity) {
-                        highestSimilarity = dotProduct;
-                        bestMatch = student;
-                    }
-                }
-
-                let boxColor = '#f39c12'; 
-                let statusText = `กำลังวิเคราะห์ (${Math.round(face.score * 100)}%)`;
-
-                if (highestSimilarity >= MATCH_THRESHOLD) {
-                    const sid = bestMatch.studentId;
-                    
-                    if (!scannedSet.has(sid)) {
-                        scannedSet.add(sid); 
-                        updateScanUI(sid);
-                        logScanRecord(sid, highestSimilarity);
+                    // ค้นหาฐานข้อมูล โดยเช็คทั้งแบบหน้าตรงและหน้าเงย
+                    for (const student of allStudents) {
                         
-                        boxColor = '#27ae60'; 
-                        statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
-                        unrecognizedFrames = 0;
+                        // เทียบแบบหน้าตรง
+                        if (student.faceVector) {
+                            let dotProduct = 0;
+                            for (let i = 0; i < normCameraEmbedding.length; i++) {
+                                dotProduct += normCameraEmbedding[i] * student.faceVector[i];
+                            }
+                            if (dotProduct > highestSimilarity) {
+                                highestSimilarity = dotProduct;
+                                bestMatch = student;
+                            }
+                        }
+                        
+                        // เทียบแบบหน้าเงย (เผื่อกล้องมุมสูง)
+                        if (student.faceVectorUp) {
+                            let dotProductUp = 0;
+                            for (let i = 0; i < normCameraEmbedding.length; i++) {
+                                dotProductUp += normCameraEmbedding[i] * student.faceVectorUp[i];
+                            }
+                            if (dotProductUp > highestSimilarity) {
+                                highestSimilarity = dotProductUp;
+                                bestMatch = student;
+                            }
+                        }
+                    }
+
+                    let boxColor = '#f39c12'; 
+                    let statusText = `กำลังวิเคราะห์`;
+
+                    if (highestSimilarity >= MATCH_THRESHOLD) {
+                        const sid = bestMatch.studentId;
+                        
+                        if (!scannedSet.has(sid)) {
+                            scannedSet.add(sid); 
+                            updateScanUI(sid);
+                            logScanRecord(sid, highestSimilarity);
+                            playSuccessSound(); // เรียกเสียงติ๊ด
+                            
+                            boxColor = '#27ae60'; 
+                            statusText = `✔️ ${sid}`;
+                            unrecognizedFrames = 0;
+                        } else {
+                            boxColor = '#2980b9'; 
+                            statusText = `✅ ${sid}`;
+                            unrecognizedFrames = 0;
+                        }
                     } else {
-                        boxColor = '#2980b9'; 
-                        statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
-                        unrecognizedFrames = 0;
+                        unrecognizedFrames++;
+                        if (unrecognizedFrames >= 15) {
+                            boxColor = '#c0392b'; 
+                            statusText = '❌ ไม่พบข้อมูล';
+                            unrecognizedFrames = 0; 
+                        }
                     }
-                } else {
-                    unrecognizedFrames++;
-                    if (unrecognizedFrames >= 15) {
-                        boxColor = '#c0392b'; 
-                        statusText = '❌ ไม่พบข้อมูลนักเรียน';
-                        
-                        Swal.fire({
-                            toast: true, position: 'top-end', icon: 'warning',
-                            title: 'ไม่พบข้อมูล / สแกนไม่ผ่าน',
-                            text: 'กรุณาแจ้ง Admin ให้อัปเดตข้อมูลนักเรียนใหม่',
-                            showConfirmButton: false, timer: 3000,
-                            background: '#fff3cd', color: '#856404'
-                        });
-                        unrecognizedFrames = 0; 
+
+                    // วาดกรอบของแต่ละคนบนหน้าจอ
+                    if (ctx && face.box) {
+                        const [x, y, width, height] = face.box;
+                        const mirroredX = canvasOverlay.width - x - width;
+
+                        ctx.lineWidth = 4;
+                        ctx.strokeStyle = boxColor;
+                        ctx.strokeRect(mirroredX, y, width, height);
+
+                        ctx.fillStyle = boxColor;
+                        ctx.fillRect(mirroredX, y - 30, width, 30);
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 20px "Sarabun", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(statusText, mirroredX + (width / 2), y - 15);
                     }
                 }
-
-                // วาดกรอบสี่เหลี่ยม
-                if (ctx && face.box) {
-                    const [x, y, width, height] = face.box;
-                    const mirroredX = canvasOverlay.width - x - width;
-
-                    ctx.lineWidth = 4;
-                    ctx.strokeStyle = boxColor;
-                    ctx.strokeRect(mirroredX, y, width, height);
-
-                    ctx.fillStyle = boxColor;
-                    ctx.fillRect(mirroredX, y - 40, width, 40);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 24px "Sarabun", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(statusText, mirroredX + (width / 2), y - 20);
-                }
-                
-            } else {
-                unrecognizedFrames = 0; 
-            }
+            } // จบลูปใบหน้า
         } else {
             unrecognizedFrames = 0; 
         }
