@@ -282,6 +282,10 @@
             <!-- พื้นที่กล้องขยายเต็มสัดส่วนที่เหลือ -->
             <div class="camera-container">
                 <video id="video-feed" autoplay muted playsinline></video>
+                
+                <!-- แผ่นใส Canvas สำหรับให้ AI วาดกรอบสี่เหลี่ยม (วางซ้อนทับวิดีโอ) -->
+                <canvas id="canvas-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transform: scaleX(-1);"></canvas>
+                
                 <div class="guide-frame"></div>
                 <div class="guide-text">กรุณายืนให้ใบหน้าอยู่ในกรอบ</div>
             </div>
