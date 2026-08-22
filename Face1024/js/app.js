@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+// ==========================================
+// 1. Firebase Configuration (by-fscan2)
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyBFITWlnJnXLPNIgJiSa_bMy4H-k-vck_U",
     authDomain: "by-fscan2.firebaseapp.com",
@@ -15,14 +18,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// เปิดโหมด Offline ให้เก็บ Log ไว้แม้เน็ตหลุด
 enableIndexedDbPersistence(db).catch(console.warn);
 
+// ==========================================
+// 2. Global State (ตัวแปรสถานะระบบ)
+// ==========================================
 let allStudents = [];
 let activeStudents = [];
 const scannedSet = new Set();
 const MATCH_THRESHOLD = 0.75; 
 let unrecognizedFrames = 0; 
 
+// ==========================================
+// 3. Mathematical Operations (เปรียบเทียบใบหน้า)
+// ==========================================
 function cosineSimilarity(vecA, vecB) {
     if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
     let dotProduct = 0, normA = 0, normB = 0;
@@ -35,6 +45,9 @@ function cosineSimilarity(vecA, vecB) {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// ==========================================
+// 4. Local Database (IndexedDB)
+// ==========================================
 const dbName = "FaceScanDB";
 const storeName = "students";
 
@@ -52,6 +65,9 @@ function openLocalDB() {
     });
 }
 
+// ==========================================
+// 5. Data Fetching (Google Drive via GAS)
+// ==========================================
 async function loadStudentData() {
     const localDB = await openLocalDB();
     const tx = localDB.transaction(storeName, "readonly");
@@ -88,7 +104,6 @@ async function fetchAndCacheFromStorage() {
         }
 
         const students = data;
-
         const localDB = await openLocalDB();
         const tx = localDB.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
@@ -106,6 +121,7 @@ async function fetchAndCacheFromStorage() {
     }
 }
 
+// บันทึก Log การสแกน
 async function logScanRecord(studentId, similarityScore) {
     try {
         await addDoc(collection(db, "scan_logs"), {
@@ -119,6 +135,9 @@ async function logScanRecord(studentId, similarityScore) {
     }
 }
 
+// ==========================================
+// 6. Authentication (เข้าสู่ระบบ)
+// ==========================================
 window.checkAuth = function() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPassword').value;
@@ -139,9 +158,12 @@ window.checkAuth = function() {
         .catch(() => Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error'));
 };
 
+// ==========================================
+// 7. AI Module (Vladmandic Human)
+// ==========================================
 let human;
 const videoElement = document.getElementById('video-feed');
-const canvasOverlay = document.getElementById('canvas-overlay'); // เพิ่มอ้างอิง Canvas
+const canvasOverlay = document.getElementById('canvas-overlay'); 
 let ctx; 
 
 const humanConfig = {
@@ -150,9 +172,9 @@ const humanConfig = {
     filter: { equalization: true },
     face: { 
         enabled: true, 
-        detector: { rotation: false, return: true, minConfidence: 0.70 }, // ปรับเพื่อลดการจับผิดพลาด
-        mesh: { enabled: false }, // ปิดตาข่าย 468 จุดเพื่อความเร็วสูงสุด
-        iris: { enabled: false }, // ปิดตาดำเพื่อความเร็วสูงสุด
+        detector: { rotation: false, return: true, minConfidence: 0.70 }, // กรองมือหรือสิ่งรบกวน
+        mesh: { enabled: false }, // ปิดตาข่ายเพื่อความเร็ว
+        iris: { enabled: false }, // ปิดตาดำเพื่อความเร็ว
         description: { enabled: true } 
     },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
@@ -168,7 +190,6 @@ async function initAI() {
         videoElement.onloadeddata = () => { 
             videoElement.play(); 
             
-            // ตั้งค่าขนาด Canvas ให้พอดีกับ Video ทันทีที่วิดีโอพร้อม
             if (canvasOverlay) {
                 canvasOverlay.width = videoElement.videoWidth;
                 canvasOverlay.height = videoElement.videoHeight;
@@ -186,10 +207,13 @@ async function initAI() {
             });
         };
     } catch (err) {
-        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์ของเบราว์เซอร์', 'error');
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์', 'error');
     }
 }
 
+// ==========================================
+// 8. Core Detection Loop (ลูปประมวลผลกล้อง)
+// ==========================================
 let lastDetectTime = 0;
 async function detectionLoop() {
     if (!videoElement.paused && !videoElement.ended) {
@@ -198,7 +222,6 @@ async function detectionLoop() {
             lastDetectTime = now;
             const result = await human.detect(videoElement);
 
-            // ล้างภาพวาดเก่าบน Canvas ออกก่อนเริ่มเฟรมใหม่
             if (ctx) ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
             if (result.face && result.face.length > 0 && allStudents.length > 0) {
@@ -207,9 +230,7 @@ async function detectionLoop() {
                 if (face.score > 0.70 && face.embedding) {
                     let bestMatch = null;
                     let highestSimilarity = -1;
-                    let isAlreadyScanned = false;
 
-                    // ค้นหาใบหน้าจากฐานข้อมูลทั้งหมด
                     for (const student of allStudents) {
                         const similarity = cosineSimilarity(face.embedding, student.faceVector);
                         if (similarity > highestSimilarity) {
@@ -218,14 +239,13 @@ async function detectionLoop() {
                         }
                     }
 
-                    let boxColor = '#f39c12'; // สีส้ม (กำลังวิเคราะห์)
+                    let boxColor = '#f39c12'; // สีส้ม
                     let statusText = `กำลังวิเคราะห์ (${Math.round(face.score * 100)}%)`;
 
                     if (highestSimilarity >= MATCH_THRESHOLD) {
                         const sid = bestMatch.studentId;
                         
                         if (!scannedSet.has(sid)) {
-                            // สแกนสำเร็จ (เพิ่งมาถึง)
                             scannedSet.add(sid); 
                             activeStudents = allStudents.filter(s => !scannedSet.has(s.studentId));
                             updateScanUI(sid);
@@ -235,13 +255,11 @@ async function detectionLoop() {
                             statusText = `✔️ บันทึกสำเร็จ: ${sid}`;
                             unrecognizedFrames = 0;
                         } else {
-                            // สแกนไปแล้ว 
-                            boxColor = '#2980b9'; // สีน้ำเงิน/กรมท่า (ลดความสับสนกับคนเพิ่งมา)
+                            boxColor = '#2980b9'; // สีน้ำเงิน
                             statusText = `✅ เช็คชื่อไปแล้ว: ${sid}`;
                             unrecognizedFrames = 0;
                         }
                     } else {
-                        // ไม่พบข้อมูล
                         unrecognizedFrames++;
                         if (unrecognizedFrames >= 15) {
                             boxColor = '#c0392b'; // สีแดง
@@ -258,25 +276,25 @@ async function detectionLoop() {
                         }
                     }
 
-                    // --- คำสั่งวาดกรอบสี่เหลี่ยมและข้อความ (UI) ---
+                    // --- การวาดกรอบอัจฉริยะ (แก้ปัญหา Mirror) ---
                     if (ctx && face.box) {
                         const [x, y, width, height] = face.box;
                         
-                        // วาดกรอบสี่เหลี่ยม
+                        // สมการพลิกพิกัด X ให้ตัวหนังสืออ่านออกปกติ
+                        const mirroredX = canvasOverlay.width - x - width;
+
                         ctx.lineWidth = 4;
                         ctx.strokeStyle = boxColor;
-                        ctx.strokeRect(x, y, width, height);
+                        ctx.strokeRect(mirroredX, y, width, height);
 
-                        // วาดพื้นหลังข้อความให้มองเห็นชัดเจน
                         ctx.fillStyle = boxColor;
-                        ctx.fillRect(x, y - 40, width, 40);
+                        ctx.fillRect(mirroredX, y - 40, width, 40);
 
-                        // วาดข้อความ (ใช้ฟอนต์ TH Sarabun)
-                        ctx.fillStyle = '#ffffff'; // ตัวหนังสือสีขาว
+                        ctx.fillStyle = '#ffffff';
                         ctx.font = 'bold 24px "Sarabun", sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(statusText, x + (width / 2), y - 20);
+                        ctx.fillText(statusText, mirroredX + (width / 2), y - 20);
                     }
                     
                 } else {
@@ -290,6 +308,9 @@ async function detectionLoop() {
     requestAnimationFrame(detectionLoop);
 }
 
+// ==========================================
+// 9. UI Controls (จัดการหน้าจอ)
+// ==========================================
 let scanQueue = [];
 function updateScanUI(studentId) {
     const listContainer = document.getElementById('scanList');
@@ -330,9 +351,8 @@ window.openSettings = function() {
     });
 };
 
-
 // ==========================================
-// ระบบแสดงเวลาปัจจุบัน (Real-time Clock)
+// 10. Real-time Clock (นาฬิกา)
 // ==========================================
 function updateDateTime() {
     const timeElement = document.getElementById('currentDateTime');
@@ -346,13 +366,11 @@ function updateDateTime() {
             hour: '2-digit', 
             minute: '2-digit', 
             second: '2-digit',
-            hour12: false // ใช้แบบ 24 ชั่วโมง
+            hour12: false
         };
-        // แสดงผลเป็นภาษาไทย
         timeElement.innerText = now.toLocaleDateString('th-TH', options);
     }
 }
 
-// อัปเดตเวลาทันทีที่โหลด และให้วิ่งเรื่อยๆ ทุก 1 วินาที
 updateDateTime();
 setInterval(updateDateTime, 1000);
