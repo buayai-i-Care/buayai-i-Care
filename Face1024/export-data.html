@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>เครื่องมือดึงข้อมูล (จากโปรเจกต์เดิม)</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>ดึงข้อมูลเวกเตอร์จากโปรเจกต์เดิม (by-fscan)</h2>
+    <input type="email" id="email" placeholder="อีเมล Admin (โปรเจกต์เก่า)" style="padding: 10px; font-size: 16px;"><br><br>
+    <input type="password" id="pass" placeholder="รหัสผ่าน" style="padding: 10px; font-size: 16px;"><br><br>
+    <button onclick="downloadData()" style="padding: 15px 30px; font-size: 18px; background: #2980b9; color: white; border: none; cursor: pointer;">
+        📥 ดาวน์โหลดไฟล์ students.json
+    </button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // คอนฟิกของ "โปรเจกต์เก่า"
+        const app = initializeApp({
+            apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
+            authDomain: "by-fscan.firebaseapp.com",
+            projectId: "by-fscan"
+        });
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.downloadData = async function() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            
+            Swal.fire({ title: 'กำลังดึงข้อมูล...', didOpen: () => Swal.showLoading() });
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                const snapshot = await getDocs(collection(db, "students"));
+                const students = [];
+                snapshot.forEach(doc => {
+                    if (doc.data().faceVector) students.push(doc.data());
+                });
+
+                // สร้างไฟล์ JSON และสั่งดาวน์โหลด
+                const blob = new Blob([JSON.stringify(students)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "students.json";
+                a.click();
+                
+                Swal.fire('สำเร็จ', `ดาวน์โหลดข้อมูลนักเรียน ${students.length} คน เรียบร้อยแล้ว`, 'success');
+            } catch (err) {
+                Swal.fire('ล้มเหลว', 'อีเมล/รหัสผ่านผิด หรือดึงข้อมูลไม่ได้', 'error');
+            }
+        };
+    </script>
+</body>
+</html>
