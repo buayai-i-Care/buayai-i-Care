@@ -5,12 +5,12 @@ import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebas
 
 // *** เปลี่ยนตรงนี้เป็น Config ของโปรเจกต์ใหม่ ***
 const firebaseConfig = {
-    apiKey: "YOUR_NEW_API_KEY",
-    authDomain: "YOUR_NEW_DOMAIN",
-    projectId: "YOUR_NEW_PROJECT_ID",
-    storageBucket: "YOUR_NEW_BUCKET",
-    messagingSenderId: "...",
-    appId: "..."
+  apiKey: "AIzaSyBFITWlnJnXLPNIgJiSa_bMy4H-k-vck_U",
+  authDomain: "by-fscan2.firebaseapp.com",
+  projectId: "by-fscan2",
+  storageBucket: "by-fscan2.firebasestorage.app",
+  messagingSenderId: "882321659182",
+  appId: "1:882321659182:web:e07eafc8301b28a9a696bf"
 };
 
 const app = initializeApp(firebaseConfig);
