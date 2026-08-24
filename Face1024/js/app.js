@@ -161,24 +161,47 @@ async function logScanRecord(studentId, similarityScore) {
 // ==========================================
 // 6. Authentication (เข้าสู่ระบบ)
 // ==========================================
-window.checkAuth = function() {
+window.checkAuth = async function() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPassword').value;
 
     if(email === '' || pass === '') return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
 
-    Swal.fire({ title: 'ตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: 'กำลังเตรียมกล้องและตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
+    let preLoadedStream;
+    try {
+        // ขอเปิดกล้องทันทีที่กดปุ่ม เพื่อไม่ให้เบราว์เซอร์ (Safari/Chrome) บล็อกเนื่องจากหมดเวลาคลิก
+        preLoadedStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user', // ใช้กล้องหน้าสำหรับ iPad/มือถือ
+                width: { ideal: 1280 }, 
+                height: { ideal: 720 } 
+            },
+            audio: false 
+        });
+    } catch (err) {
+        console.error("Camera Initial Error:", err);
+        return Swal.fire('ไม่สามารถเปิดกล้องได้', 'กรุณากด "อนุญาต" (Allow) ให้เว็บเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์', 'error');
+    }
+
+    // เมื่อกล้องเปิดสำเร็จ ค่อยทำการ Login และโหลดข้อมูล
     signInWithEmailAndPassword(auth, email, pass)
         .then(async () => {
             const isLoaded = await loadStudentData();
             if (isLoaded) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'flex';
-                initAI(); 
+                
+                // ส่งภาพกล้องที่เปิดรอไว้ไปให้ AI ทำงานต่อ
+                initAI(preLoadedStream); 
             }
         })
-        .catch(() => Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error'));
+        .catch(() => {
+            // หาก Login ไม่ผ่าน ให้ปิดกล้องที่เปิดรอไว้เพื่อคืนทรัพยากร
+            preLoadedStream.getTracks().forEach(track => track.stop());
+            Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+        });
 };
 
 // ==========================================
@@ -204,14 +227,12 @@ const humanConfig = {
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
 };
 
-async function initAI() {
+// รับตัวแปร stream ที่ถูกเปิดรอไว้แล้วจากเช็คอิน
+async function initAI(stream) {
     try {
-        human = new Human.Human(humanConfig);
-        await human.load(); 
-        
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
         videoElement.srcObject = stream;
-        videoElement.onloadeddata = () => { 
+        
+        videoElement.onloadeddata = async () => { 
             videoElement.play(); 
             
             if (canvasOverlay) {
@@ -220,6 +241,18 @@ async function initAI() {
                 ctx = canvasOverlay.getContext('2d');
             }
             
+            Swal.fire({ 
+                title: 'กำลังเตรียมระบบ AI...', 
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false, 
+                didOpen: () => Swal.showLoading() 
+            });
+
+            // โหลดโมเดล Human หลังจากที่ภาพวิดีโอแสดงผลแล้ว
+            human = new Human.Human(humanConfig);
+            await human.load(); 
+            
+            // เริ่มลูปตรวจจับใบหน้า
             detectionLoop(); 
             
             Swal.fire({ 
@@ -231,7 +264,8 @@ async function initAI() {
             });
         };
     } catch (err) {
-        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์', 'error');
+        console.error("AI Init Error:", err);
+        Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการตั้งค่าระบบตรวจจับใบหน้า: ' + err.message, 'error');
     }
 }
 
