@@ -245,6 +245,50 @@
             document.getElementById('uploadSection').classList.remove('hidden');
             document.getElementById('loadingScreen').classList.add('hidden');
         }
+
+
+                async function analyzeImage() {
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+
+            try {
+                // ส่งแบบ Simple POST เพื่อหลีกเลี่ยง CORS Preflight
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "analyze",
+                        image: base64String,
+                        mimeType: imageMimeType
+                    })
+                });
+
+                // อ่านค่าที่เซิร์ฟเวอร์ตอบกลับมาเป็นข้อความก่อน
+                const textResult = await response.text();
+                
+                try {
+                    const result = JSON.parse(textResult);
+                    if (result.status === "success") {
+                        displayResults(result.data);
+                    } else {
+                        alert("GAS แจ้งข้อผิดพลาด: " + result.message);
+                        resetUI();
+                    }
+                } catch (jsonError) {
+                    // ถ้าพังตรงนี้ แปลว่า Google ส่งหน้าเว็บ Error (HTML) กลับมาแทนที่จะเป็น JSON
+                    alert("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (อาจจะติดหน้า Login หรือ GAS พัง)\nข้อความ: " + textResult.substring(0, 100));
+                    resetUI();
+                }
+
+            } catch (error) {
+                // ถ้าพังตรงนี้ แปลว่าเบราว์เซอร์บล็อกการส่งข้อมูล (เช่น ปัญหาจาก file:///)
+                alert("เครือข่ายถูกบล็อก (CORS) หรือเน็ตหลุด:\n" + error.message);
+                resetUI();
+            }
+        }
+
+
+
+        
     </script>
 </body>
 </html>
