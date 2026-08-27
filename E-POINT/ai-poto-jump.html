@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คชื่อ โดดเรียน</title>
+    <!-- โหลด Tailwind CSS เพื่อความสวยงาม -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 font-sans">
+
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">📸 สแกนใบเช็คชื่อ ลงโดดเรียน</h1>
+
+        <!-- ส่วนที่ 1: อัปโหลดรูปภาพ -->
+        <div id="uploadSection" class="space-y-4">
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="previewImage(event)">
+                <label for="imageInput" class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow">
+                    เลือกรูปใบเช็คชื่อ
+                </label>
+                <p class="mt-3 text-sm text-gray-500">รองรับไฟล์ JPG, PNG</p>
+            </div>
+            
+            <!-- แสดงรูปพรีวิว -->
+            <div id="previewContainer" class="hidden text-center">
+                <img id="imagePreview" class="max-h-64 mx-auto rounded border" src="" alt="Preview">
+                <button id="analyzeBtn" onclick="analyzeImage()" class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold text-lg shadow-lg">
+                    🔍 วิเคราะห์ข้อมูลด้วย AI
+                </button>
+            </div>
+        </div>
+
+        <!-- หน้าจอ Loading ระหว่างรอ AI -->
+        <div id="loadingScreen" class="hidden text-center py-10">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-blue-600 font-semibold">AI กำลังกวาดสายตาอ่านรูปภาพ...<br>(อาจใช้เวลา 5-15 วินาที)</p>
+        </div>
+
+        <!-- ส่วนที่ 2: แสดงผลลัพธ์และปุ่มบันทึก -->
+        <div id="resultSection" class="hidden mt-8 space-y-4">
+            <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                <h2 class="font-bold text-blue-800">ตรวจสอบข้อมูลก่อนบันทึก</h2>
+                <div class="flex flex-col sm:flex-row gap-4 mt-2">
+                    <div>
+                        <label class="block text-sm font-semibold">วันที่เช็คชื่อ:</label>
+                        <input type="date" id="dateInput" class="border p-1 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold">ชั้นเรียน (AI อ่านได้):</label>
+                        <input type="text" id="classNameInput" class="border p-1 rounded font-bold text-blue-600" value="6/3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางแสดงนักเรียนที่โดด -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="py-2 px-4 text-left">รหัส</th>
+                            <th class="py-2 px-4 text-left">ชื่อ-สกุล</th>
+                            <th class="py-2 px-4 text-center">โดด (ช่อง)</th>
+                            <th class="py-2 px-4 text-center">ลบทิ้ง</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody" class="text-sm">
+                        <!-- ข้อมูลจะถูกเติมด้วย Javascript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <p class="text-sm text-red-500">* สามารถแก้ตัวเลขช่องที่โดดได้ หาก AI อ่านผิด</p>
+
+            <button onclick="saveData()" id="saveBtn" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold text-lg shadow-lg">
+                💾 ยืนยัน หักคะแนนลง Google Sheet
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // URL ของ GAS ที่คุณเพิ่งสร้าง
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzh-8AaWVXgU18qHtt8ULHxvhwWZbMRLBo9aIW8WzEx8_JKtqgh1dEmck8RbGu1EdD_/exec";
+        
+        let base64String = "";
+        let imageMimeType = "";
+        let currentStudents = [];
+
+        // ตั้งค่าวันที่ปัจจุบันให้ช่อง Date
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        // 1. ฟังก์ชันพรีวิวรูปภาพและแปลงเป็น Base64
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').classList.remove('hidden');
+                
+                // แยกเอาเฉพาะข้อมูล Base64 ไปส่งให้ AI
+                const resultSplit = e.target.result.split(',');
+                imageMimeType = resultSplit[0].split(';')[0].split(':')[1];
+                base64String = resultSplit[1];
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // 2. ฟังก์ชันส่งรูปไปให้ GAS (Gemini AI) วิเคราะห์
+        async function analyzeImage() {
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "analyze",
+                        image: base64String,
+                        mimeType: imageMimeType
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    displayResults(result.data);
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + result.message);
+                    resetUI();
+                }
+            } catch (error) {
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
+                resetUI();
+            }
+        }
+
+        // 3. ฟังก์ชันนำข้อมูล JSON จาก AI มาวาดเป็นตาราง
+        function displayResults(data) {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+            
+            document.getElementById('classNameInput').value = data.className || "";
+            currentStudents = data.students || [];
+            
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = "";
+
+            if(currentStudents.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' class='text-center py-4 text-green-600 font-bold'>🎉 ไม่มีนักเรียนคนไหนโดดเรียนเลย!</td></tr>";
+                document.getElementById('saveBtn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('saveBtn').style.display = 'block';
+
+            currentStudents.forEach((student, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="py-2 px-4">${student.id}</td>
+                    <td class="py-2 px-4">${student.name}</td>
+                    <td class="py-2 px-4 text-center">
+                        <input type="number" min="1" value="${student.absences}" 
+                               onchange="updateAbsence(${index}, this.value)"
+                               class="w-16 border text-center p-1 rounded">
+                    </td>
+                    <td class="py-2 px-4 text-center">
+                        <button onclick="removeStudent(${index})" class="text-red-500 hover:bg-red-100 p-1 rounded">❌</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateAbsence(index, newValue) {
+            currentStudents[index].absences = parseInt(newValue);
+        }
+
+        function removeStudent(index) {
+            currentStudents.splice(index, 1);
+            renderTable();
+        }
+
+        // 4. ฟังก์ชันส่งข้อมูลที่แก้ไขแล้ว กลับไปบันทึกที่ GAS
+        async function saveData() {
+            const dateVal = document.getElementById('dateInput').value;
+            // แปลงวันที่ให้อยู่ในรูปแบบ DD/MM/YYYY
+            const dateObj = new Date(dateVal);
+            const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+            
+            const classNameVal = document.getElementById('classNameInput').value;
+            const btn = document.getElementById('saveBtn');
+            
+            if(!classNameVal) {
+                alert("กรุณาระบุชั้นเรียน"); return;
+            }
+
+            btn.innerText = "กำลังบันทึกข้อมูล...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "save",
+                        date: formattedDate,
+                        className: classNameVal,
+                        students: currentStudents
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    alert("✅ บันทึกข้อมูลและหักคะแนนเรียบร้อยแล้ว!");
+                    location.reload(); // รีเฟรชหน้าเพื่อเริ่มงานใหม่
+                } else {
+                    alert("เกิดข้อผิดพลาดในการบันทึก: " + result.message);
+                    btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+                btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
+                btn.disabled = false;
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
