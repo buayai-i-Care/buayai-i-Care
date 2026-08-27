@@ -48,7 +48,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold">ชั้นเรียน (AI อ่านได้):</label>
-                        <input type="text" id="classNameInput" class="border p-1 rounded font-bold text-blue-600" value="6/3">
+                        <input type="text" id="classNameInput" class="border p-1 rounded font-bold text-blue-600" value="">
                     </div>
                 </div>
             </div>
@@ -89,20 +89,43 @@
         // ตั้งค่าวันที่ปัจจุบันให้ช่อง Date
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        // 1. ฟังก์ชันพรีวิวรูปภาพและแปลงเป็น Base64
+        // 1. ฟังก์ชันพรีวิวรูปภาพและย่อขนาดรูป (ลดขนาดไฟล์ ป้องกัน Error)
         function previewImage(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('previewContainer').classList.remove('hidden');
-                
-                // แยกเอาเฉพาะข้อมูล Base64 ไปส่งให้ AI
-                const resultSplit = e.target.result.split(',');
-                imageMimeType = resultSplit[0].split(';')[0].split(':')[1];
-                base64String = resultSplit[1];
+                const img = new Image();
+                img.onload = function() {
+                    // สร้างผืนผ้าใบ (Canvas) เพื่อย่อรูป
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1200; // ย่อความกว้างสูงสุดให้เหลือ 1200px
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // แปลงรูปที่ย่อแล้วเป็น Base64
+                    const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    document.getElementById('imagePreview').src = resizedDataUrl;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                    
+                    // แยกเอาเฉพาะข้อมูล Base64 ไปส่งให้ AI
+                    const resultSplit = resizedDataUrl.split(',');
+                    imageMimeType = resultSplit[0].split(';')[0].split(':')[1];
+                    base64String = resultSplit[1];
+                }
+                img.src = e.target.result;
             }
             reader.readAsDataURL(file);
         }
@@ -115,9 +138,9 @@
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    redirect: "follow", // เติมเพื่อกันปัญหาการตอบกลับของ Google
+                    redirect: "follow",
                     headers: {
-                        "Content-Type": "text/plain;charset=utf-8" // เติมเพื่อกันปัญหา CORS
+                        "Content-Type": "text/plain;charset=utf-8"
                     },
                     body: JSON.stringify({
                         action: "analyze",
@@ -126,17 +149,23 @@
                     })
                 });
 
-                const result = await response.json();
+                const textResult = await response.text(); // อ่านแบบข้อความเพื่อดักจับ Error
                 
-                if (result.status === "success") {
-                    displayResults(result.data);
-                } else {
-                    alert("เกิดข้อผิดพลาด: " + result.message);
+                try {
+                    const result = JSON.parse(textResult);
+                    if (result.status === "success") {
+                        displayResults(result.data);
+                    } else {
+                        alert("GAS แจ้งข้อผิดพลาด: " + result.message);
+                        resetUI();
+                    }
+                } catch (jsonError) {
+                    alert("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (อาจจะตั้งค่า Deploy ไม่ถูกต้อง)\n\nข้อความจากเซิร์ฟเวอร์: " + textResult.substring(0, 150));
                     resetUI();
                 }
+
             } catch (error) {
-                console.error("Fetch Error:", error);
-                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ (อาจเกิดจากไม่ได้เปิดสิทธิ์ Anyone ใน GAS)");
+                alert("เครือข่ายถูกบล็อก (CORS) หรือเน็ตหลุด:\n" + error.message);
                 resetUI();
             }
         }
@@ -211,9 +240,9 @@
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    redirect: "follow", // เติมเพื่อกันปัญหาการตอบกลับของ Google
+                    redirect: "follow",
                     headers: {
-                        "Content-Type": "text/plain;charset=utf-8" // เติมเพื่อกันปัญหา CORS
+                        "Content-Type": "text/plain;charset=utf-8"
                     },
                     body: JSON.stringify({
                         action: "save",
@@ -223,19 +252,25 @@
                     })
                 });
 
-                const result = await response.json();
+                const textResult = await response.text();
                 
-                if (result.status === "success") {
-                    alert("✅ บันทึกข้อมูลและหักคะแนนเรียบร้อยแล้ว!");
-                    location.reload(); 
-                } else {
-                    alert("เกิดข้อผิดพลาดในการบันทึก: " + result.message);
+                try {
+                    const result = JSON.parse(textResult);
+                    if (result.status === "success") {
+                        alert("✅ บันทึกข้อมูลและหักคะแนนเรียบร้อยแล้ว!");
+                        location.reload(); 
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการบันทึก: " + result.message);
+                        btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
+                        btn.disabled = false;
+                    }
+                } catch (jsonError) {
+                    alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (ไม่ส่งคืน JSON): " + textResult.substring(0, 100));
                     btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
                     btn.disabled = false;
                 }
             } catch (error) {
-                console.error("Fetch Error:", error);
-                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่: " + error.message);
                 btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
                 btn.disabled = false;
             }
@@ -245,50 +280,6 @@
             document.getElementById('uploadSection').classList.remove('hidden');
             document.getElementById('loadingScreen').classList.add('hidden');
         }
-
-
-                async function analyzeImage() {
-            document.getElementById('uploadSection').classList.add('hidden');
-            document.getElementById('loadingScreen').classList.remove('hidden');
-
-            try {
-                // ส่งแบบ Simple POST เพื่อหลีกเลี่ยง CORS Preflight
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "analyze",
-                        image: base64String,
-                        mimeType: imageMimeType
-                    })
-                });
-
-                // อ่านค่าที่เซิร์ฟเวอร์ตอบกลับมาเป็นข้อความก่อน
-                const textResult = await response.text();
-                
-                try {
-                    const result = JSON.parse(textResult);
-                    if (result.status === "success") {
-                        displayResults(result.data);
-                    } else {
-                        alert("GAS แจ้งข้อผิดพลาด: " + result.message);
-                        resetUI();
-                    }
-                } catch (jsonError) {
-                    // ถ้าพังตรงนี้ แปลว่า Google ส่งหน้าเว็บ Error (HTML) กลับมาแทนที่จะเป็น JSON
-                    alert("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (อาจจะติดหน้า Login หรือ GAS พัง)\nข้อความ: " + textResult.substring(0, 100));
-                    resetUI();
-                }
-
-            } catch (error) {
-                // ถ้าพังตรงนี้ แปลว่าเบราว์เซอร์บล็อกการส่งข้อมูล (เช่น ปัญหาจาก file:///)
-                alert("เครือข่ายถูกบล็อก (CORS) หรือเน็ตหลุด:\n" + error.message);
-                resetUI();
-            }
-        }
-
-
-
-        
     </script>
 </body>
 </html>
