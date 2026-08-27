@@ -115,6 +115,10 @@
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
+                    redirect: "follow", // เติมเพื่อกันปัญหาการตอบกลับของ Google
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8" // เติมเพื่อกันปัญหา CORS
+                    },
                     body: JSON.stringify({
                         action: "analyze",
                         image: base64String,
@@ -131,7 +135,8 @@
                     resetUI();
                 }
             } catch (error) {
-                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
+                console.error("Fetch Error:", error);
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ (อาจเกิดจากไม่ได้เปิดสิทธิ์ Anyone ใน GAS)");
                 resetUI();
             }
         }
@@ -190,7 +195,6 @@
         // 4. ฟังก์ชันส่งข้อมูลที่แก้ไขแล้ว กลับไปบันทึกที่ GAS
         async function saveData() {
             const dateVal = document.getElementById('dateInput').value;
-            // แปลงวันที่ให้อยู่ในรูปแบบ DD/MM/YYYY
             const dateObj = new Date(dateVal);
             const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
             
@@ -207,6 +211,10 @@
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
+                    redirect: "follow", // เติมเพื่อกันปัญหาการตอบกลับของ Google
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8" // เติมเพื่อกันปัญหา CORS
+                    },
                     body: JSON.stringify({
                         action: "save",
                         date: formattedDate,
@@ -219,14 +227,15 @@
                 
                 if (result.status === "success") {
                     alert("✅ บันทึกข้อมูลและหักคะแนนเรียบร้อยแล้ว!");
-                    location.reload(); // รีเฟรชหน้าเพื่อเริ่มงานใหม่
+                    location.reload(); 
                 } else {
                     alert("เกิดข้อผิดพลาดในการบันทึก: " + result.message);
                     btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
                     btn.disabled = false;
                 }
             } catch (error) {
-                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+                console.error("Fetch Error:", error);
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
                 btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
                 btn.disabled = false;
             }
