@@ -89,7 +89,7 @@
         // ตั้งค่าวันที่ปัจจุบันให้ช่อง Date
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        // 1. ฟังก์ชันพรีวิวรูปภาพและย่อขนาดรูป (ลดขนาดไฟล์ ป้องกัน Error)
+        // 1. ฟังก์ชันพรีวิวรูปภาพและย่อขนาดรูป 
         function previewImage(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -98,9 +98,8 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // สร้างผืนผ้าใบ (Canvas) เพื่อย่อรูป
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200; // ย่อความกว้างสูงสุดให้เหลือ 1200px
+                    const MAX_WIDTH = 1200; 
                     let width = img.width;
                     let height = img.height;
 
@@ -114,13 +113,11 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // แปลงรูปที่ย่อแล้วเป็น Base64
                     const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
                     document.getElementById('imagePreview').src = resizedDataUrl;
                     document.getElementById('previewContainer').classList.remove('hidden');
                     
-                    // แยกเอาเฉพาะข้อมูล Base64 ไปส่งให้ AI
                     const resultSplit = resizedDataUrl.split(',');
                     imageMimeType = resultSplit[0].split(';')[0].split(':')[1];
                     base64String = resultSplit[1];
@@ -130,18 +127,15 @@
             reader.readAsDataURL(file);
         }
 
-        // 2. ฟังก์ชันส่งรูปไปให้ GAS (Gemini AI) วิเคราะห์
+        // 2. ฟังก์ชันส่งรูปไปให้ GAS วิเคราะห์
         async function analyzeImage() {
             document.getElementById('uploadSection').classList.add('hidden');
             document.getElementById('loadingScreen').classList.remove('hidden');
 
             try {
+                // อัปเดต: เอา Headers ออก เพื่อลดการตรวจจับ CORS ของ Browser
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    redirect: "follow",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
                     body: JSON.stringify({
                         action: "analyze",
                         image: base64String,
@@ -149,7 +143,7 @@
                     })
                 });
 
-                const textResult = await response.text(); // อ่านแบบข้อความเพื่อดักจับ Error
+                const textResult = await response.text(); 
                 
                 try {
                     const result = JSON.parse(textResult);
@@ -160,7 +154,7 @@
                         resetUI();
                     }
                 } catch (jsonError) {
-                    alert("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (อาจจะตั้งค่า Deploy ไม่ถูกต้อง)\n\nข้อความจากเซิร์ฟเวอร์: " + textResult.substring(0, 150));
+                    alert("เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง (ตั้งค่าสิทธิ์ GAS ผิด)\nข้อความ: " + textResult.substring(0, 150));
                     resetUI();
                 }
 
@@ -170,7 +164,7 @@
             }
         }
 
-        // 3. ฟังก์ชันนำข้อมูล JSON จาก AI มาวาดเป็นตาราง
+        // 3. ฟังก์ชันวาดตาราง
         function displayResults(data) {
             document.getElementById('loadingScreen').classList.add('hidden');
             document.getElementById('resultSection').classList.remove('hidden');
@@ -221,7 +215,7 @@
             renderTable();
         }
 
-        // 4. ฟังก์ชันส่งข้อมูลที่แก้ไขแล้ว กลับไปบันทึกที่ GAS
+        // 4. ฟังก์ชันส่งข้อมูลกลับไปบันทึก
         async function saveData() {
             const dateVal = document.getElementById('dateInput').value;
             const dateObj = new Date(dateVal);
@@ -238,12 +232,9 @@
             btn.disabled = true;
 
             try {
+                // อัปเดต: เอา Headers ออกเช่นเดียวกัน
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    redirect: "follow",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
                     body: JSON.stringify({
                         action: "save",
                         date: formattedDate,
@@ -265,7 +256,7 @@
                         btn.disabled = false;
                     }
                 } catch (jsonError) {
-                    alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (ไม่ส่งคืน JSON): " + textResult.substring(0, 100));
+                    alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + textResult.substring(0, 100));
                     btn.innerText = "💾 ยืนยัน หักคะแนนลง Google Sheet";
                     btn.disabled = false;
                 }
