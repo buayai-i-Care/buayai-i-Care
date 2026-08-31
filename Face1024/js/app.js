@@ -18,31 +18,29 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// เปิดโหมด Offline ให้เก็บ Log ไว้แม้เน็ตหลุด
 enableIndexedDbPersistence(db).catch(console.warn);
 
 // ==========================================
-// 2. Global State & Config
+// 2. Global State & Config (ระบบนับโหวต)
 // ==========================================
 let allStudents = [];
 const scannedSet = new Set();
 
-// ⚠️ ปรับลดเกณฑ์ลงชั่วคราวให้สแกนติดง่ายขึ้น (จาก 0.75 เป็น 0.60)
-const MATCH_THRESHOLD = 0.68; 
+const MATCH_THRESHOLD = 0.60; // เกณฑ์ลดลงมาเพื่อให้สแกนง่ายขึ้น
+const REQUIRED_VOTES = 3; // ต้องเห็นหน้าเดิมติดต่อกัน 3 ครั้ง (โหวต)
+let activeVotes = {}; // เก็บข้อมูลการโหวต
 let unrecognizedFrames = 0; 
 
-// ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1
 function normalizeVector(vec) {
     let norm = 0;
     for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
     norm = Math.sqrt(norm);
-    if (norm === 0) return Array.from(vec);
-    let normalized = new Array(vec.length);
+    if (norm === 0) return new Float32Array(vec);
+    let normalized = new Float32Array(vec.length);
     for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
     return normalized;
 }
 
-// ฟังก์ชันเสียงแจ้งเตือน (Beep)
 function playSuccessSound() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -60,12 +58,8 @@ function playSuccessSound() {
     }
 }
 
-// ==========================================
-// 4. Local Database (IndexedDB)
-// ==========================================
 const dbName = "FaceScanDB";
 const storeName = "students";
-
 function openLocalDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(dbName, 1);
@@ -80,9 +74,6 @@ function openLocalDB() {
     });
 }
 
-// ==========================================
-// 5. Data Fetching 
-// ==========================================
 async function loadStudentData() {
     const localDB = await openLocalDB();
     const tx = localDB.transaction(storeName, "readonly");
@@ -104,9 +95,7 @@ async function loadStudentData() {
 
 async function fetchAndCacheFromStorage() {
     Swal.fire({ title: 'กำลังดึงฐานข้อมูล...', text: 'กำลังดาวน์โหลดข้อมูลนักเรียน', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-    
     try {
-        // ใช้ URL เดิมของคุณ 
         const gasUrl = "https://script.google.com/macros/s/AKfycbynOdvM_Q5mqAGiAhaWhyelAQG4lqZmq6m7S4bkkZQTE7T0jfMtVN0ejkv19cnYC0x8/exec";
         const secretToken = "Buayai_Secure_2026"; 
         
@@ -134,10 +123,8 @@ async function fetchAndCacheFromStorage() {
         });
 
         preparedStudents.forEach(student => store.put(student)); 
-
         allStudents = preparedStudents;
         scannedSet.clear(); 
-
         return true;
     } catch (error) {
         Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อส่วนกลางได้', 'error');
@@ -145,7 +132,6 @@ async function fetchAndCacheFromStorage() {
     }
 }
 
-// บันทึก Log
 async function logScanRecord(studentId, similarityScore) {
     try {
         await addDoc(collection(db, "scan_logs"), {
@@ -159,9 +145,6 @@ async function logScanRecord(studentId, similarityScore) {
     }
 }
 
-// ==========================================
-// 6. Authentication
-// ==========================================
 window.checkAuth = function() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPassword').value;
@@ -182,23 +165,20 @@ window.checkAuth = function() {
         .catch(() => Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error'));
 };
 
-// ==========================================
-// 7. AI Module (Vladmandic Human)
-// ==========================================
 let human;
 const videoElement = document.getElementById('video-feed');
 const canvasOverlay = document.getElementById('canvas-overlay'); 
 let ctx; 
 
 const humanConfig = {
-    backend: 'wasm', 
-    modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models/', // ใช้ CDN แก้ Error 404
+    backend: 'webgl', // เปลี่ยนมาใช้ webgl รีดพลังจาก Mini PC
+    modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models/', 
     filter: { equalization: true },
     face: { 
         enabled: true, 
         detector: { rotation: true, return: true, minConfidence: 0.65 }, 
-        mesh: { enabled: true },  // ⚠️ เปิดให้ตรงกับข้อมูล 300 คน
-        iris: { enabled: true },  // ⚠️ เปิดให้ตรงกับข้อมูล 300 คน
+        mesh: { enabled: true }, 
+        iris: { enabled: true }, 
         description: { enabled: true } 
     },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
@@ -219,31 +199,15 @@ async function initAI() {
                 canvasOverlay.height = videoElement.videoHeight;
                 ctx = canvasOverlay.getContext('2d');
             }
-            
             detectionLoop(); 
-            
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'ระบบพร้อมใช้งาน', 
-                html: `ดึงข้อมูลจากในเครื่องแล้ว จำนวน <b>${allStudents.length}</b> คน`, 
-                timer: 4500, 
-                showConfirmButton: false 
-            });
+            Swal.fire({ icon: 'success', title: 'ระบบพร้อมใช้งาน', html: `จำนวน <b>${allStudents.length}</b> คน`, timer: 2000, showConfirmButton: false });
         };
     } catch (err) {
         console.error("Camera Error:", err);
-        let errorMsg = 'ไม่สามารถเปิดกล้องได้';
-        if (err.name === 'NotAllowedError') errorMsg = 'คุณยังไม่อนุญาตให้เว็บไซต์ใช้งานกล้อง<br>กรุณากดที่รูปแม่กุญแจบนแถบ URL เพื่ออนุญาต';
-        else if (err.name === 'NotFoundError') errorMsg = 'ไม่พบกล้องบนอุปกรณ์นี้';
-        else if (err.name === 'NotReadableError') errorMsg = 'กล้องถูกโปรแกรมอื่นใช้อยู่';
-        
-        Swal.fire({ icon: 'error', title: 'ปัญหาการเข้าถึงกล้อง', html: errorMsg, confirmButtonText: 'รับทราบ' });
+        Swal.fire({ icon: 'error', title: 'ปัญหาการเข้าถึงกล้อง', text: 'กรุณาอนุญาตสิทธิ์กล้อง' });
     }
 }
 
-// ==========================================
-// 8. Core Detection Loop
-// ==========================================
 let isDetecting = false;
 let lastDetectTime = 0;
 
@@ -259,18 +223,21 @@ async function detectionLoop() {
     lastDetectTime = now;
 
     try {
-        if (canvasOverlay && videoElement.videoWidth > 0) {
-            if (canvasOverlay.width !== videoElement.videoWidth) {
-                canvasOverlay.width = videoElement.videoWidth;
-                canvasOverlay.height = videoElement.videoHeight;
+        // ล้างโหวตคนที่เดินออกไปจากกล้องเกิน 1.2 วินาที
+        for (const id in activeVotes) {
+            if (now - activeVotes[id].lastSeen > 1200) {
+                delete activeVotes[id];
             }
+        }
+
+        if (canvasOverlay.width !== videoElement.videoWidth) {
+            canvasOverlay.width = videoElement.videoWidth;
+            canvasOverlay.height = videoElement.videoHeight;
         }
 
         const result = await human.detect(videoElement);
 
-        if (ctx && canvasOverlay.width > 0) {
-            ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-        }
+        if (ctx) ctx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
         if (result.face && result.face.length > 0 && allStudents.length > 0) {
             
@@ -305,8 +272,7 @@ async function detectionLoop() {
                         }
                     }
 
-                    // ⭐ พิมพ์คะแนนความเหมือนออกทาง Console
-                    console.log(`[ตรวจสอบ] ความเหมือนสูงสุด: ${highestSimilarity.toFixed(4)} (เกณฑ์ผ่าน: ${MATCH_THRESHOLD})`);
+                    console.log(`ความเหมือนสูงสุด: ${highestSimilarity.toFixed(4)}`);
 
                     let boxColor = '#f39c12'; 
                     let statusText = `กำลังวิเคราะห์`;
@@ -314,23 +280,39 @@ async function detectionLoop() {
                     if (highestSimilarity >= MATCH_THRESHOLD) {
                         const sid = bestMatch.studentId;
                         
-                        if (!scannedSet.has(sid)) {
-                            scannedSet.add(sid); 
-                            updateScanUI(sid);
-                            logScanRecord(sid, highestSimilarity);
-                            playSuccessSound(); 
-                            
-                            boxColor = '#27ae60'; 
-                            statusText = `✔️ ${sid}`;
-                            unrecognizedFrames = 0;
-                        } else {
+                        // ระบบ Frame Voting
+                        if (scannedSet.has(sid)) {
+                            // เคยสแกนผ่านไปแล้ว
                             boxColor = '#2980b9'; 
                             statusText = `✅ ${sid}`;
                             unrecognizedFrames = 0;
+                        } else {
+                            // ยังไม่เคยผ่าน เริ่มนับโหวต
+                            if (!activeVotes[sid]) activeVotes[sid] = { count: 0, lastSeen: now };
+                            
+                            activeVotes[sid].count += 1;
+                            activeVotes[sid].lastSeen = now;
+
+                            if (activeVotes[sid].count >= REQUIRED_VOTES) {
+                                // โหวตครบแล้ว! ให้ผ่าน
+                                scannedSet.add(sid); 
+                                updateScanUI(sid);
+                                logScanRecord(sid, highestSimilarity);
+                                playSuccessSound(); 
+                                
+                                boxColor = '#27ae60'; 
+                                statusText = `✔️ ${sid}`;
+                                unrecognizedFrames = 0;
+                            } else {
+                                // โหวตยังไม่ครบ
+                                boxColor = '#f39c12'; 
+                                statusText = `⏳ กำลังยืนยัน... (${activeVotes[sid].count}/${REQUIRED_VOTES})`;
+                                unrecognizedFrames = 0;
+                            }
                         }
                     } else {
                         unrecognizedFrames++;
-                        if (unrecognizedFrames >= 15) {
+                        if (unrecognizedFrames >= 5) { // ลดเวลาตัดสินใจให้ไวขึ้น เหลือประมาณ 1.5 วินาที
                             boxColor = '#c0392b'; 
                             statusText = '❌ ไม่พบข้อมูล';
                             unrecognizedFrames = 0; 
@@ -366,9 +348,6 @@ async function detectionLoop() {
     }
 }
 
-// ==========================================
-// 9. UI Controls
-// ==========================================
 let scanQueue = [];
 function updateScanUI(studentId) {
     const listContainer = document.getElementById('scanList');
@@ -388,7 +367,7 @@ function updateScanUI(studentId) {
 window.manageLogs = function() {
     Swal.fire({ 
         title: 'อัปเดตข้อมูลนักเรียน', 
-        text: 'ต้องการอัปเดตข้อมูลนักเรียนชุดใหม่หรือไม่?',
+        text: 'ต้องการดึงข้อมูลนักเรียนชุดใหม่หรือไม่?',
         icon: 'question', 
         showCancelButton: true,
         confirmButtonText: 'อัปเดตเดี๋ยวนี้',
@@ -396,7 +375,7 @@ window.manageLogs = function() {
     }).then(async (result) => {
         if(result.isConfirmed) {
             const success = await fetchAndCacheFromStorage();
-            if(success) Swal.fire('สำเร็จ', 'อัปเดตฐานข้อมูลในเครื่องเรียบร้อยแล้ว', 'success');
+            if(success) Swal.fire('สำเร็จ', 'อัปเดตฐานข้อมูลเรียบร้อยแล้ว', 'success');
         }
     });
 };
@@ -409,9 +388,6 @@ window.openSettings = function() {
     });
 };
 
-// ==========================================
-// 10. Real-time Clock
-// ==========================================
 function updateDateTime() {
     const timeElement = document.getElementById('currentDateTime');
     if (timeElement) {
