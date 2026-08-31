@@ -28,7 +28,7 @@ let allStudents = [];
 const scannedSet = new Set();
 
 // ⚠️ ปรับลดเกณฑ์ลงชั่วคราวให้สแกนติดง่ายขึ้น (จาก 0.75 เป็น 0.60)
-const MATCH_THRESHOLD = 0.60; 
+const MATCH_THRESHOLD = 0.68; 
 let unrecognizedFrames = 0; 
 
 // ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1
