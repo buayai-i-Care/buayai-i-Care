@@ -525,6 +525,9 @@ window.openSettings = function() {
 // ==========================================
 // รายงานเปรียบเทียบนักเรียนที่ยังไม่ลงทะเบียน (ดึงจาก API เดิม)
 // ==========================================
+// ==========================================
+// รายงานเปรียบเทียบนักเรียน (แสดงทั้งคนที่มีข้อมูลแล้ว และยังไม่มีข้อมูล)
+// ==========================================
 window.showRegistrationReport = async function() {
     Swal.fire({
         title: 'กำลังตรวจสอบข้อมูล...',
@@ -545,50 +548,73 @@ window.showRegistrationReport = async function() {
         masterStudents.forEach(s => {
             const room = s['ชั้น'] || 'ไม่ระบุ';
             const id = String(s['ID']).trim();
+            const studentInfo = {
+                id: id,
+                name: s['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ',
+                no: s['เลขที่'] || '-'
+            };
             
-            if(!reportData[room]) reportData[room] = { total: 0, registered: 0, missing: [] };
+            // เตรียม Array เก็บรายชื่อทั้ง 2 กลุ่ม
+            if(!reportData[room]) reportData[room] = { total: 0, registeredList: [], missingList: [] };
             
             reportData[room].total++;
             if(registeredIds.has(id)) {
-                reportData[room].registered++;
+                reportData[room].registeredList.push(studentInfo);
             } else {
-                reportData[room].missing.push({
-                    id: id,
-                    name: s['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ',
-                    no: s['เลขที่'] || '-'
-                });
+                reportData[room].missingList.push(studentInfo);
             }
         });
 
         const sortedRooms = Object.keys(reportData).sort();
-        let htmlContent = `<div style="text-align: left; max-height: 60vh; overflow-y: auto; font-family: 'Sarabun', sans-serif;">`;
+        let htmlContent = `<div style="text-align: left; max-height: 65vh; overflow-y: auto; font-family: 'Sarabun', sans-serif;">`;
 
         sortedRooms.forEach(room => {
             const data = reportData[room];
-            htmlContent += `<div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 6px solid ${data.missing.length > 0 ? '#e74c3c' : '#27ae60'};">`;
-            
-            htmlContent += `<strong style="font-size: 24px; color: #2c3e50;">ชั้น ${room} จำนวน ${data.total} คน</strong><br>`;
+            // จัดเรียงตามเลขที่ทั้ง 2 กลุ่ม
+            data.registeredList.sort((a, b) => parseInt(a.no) - parseInt(b.no));
+            data.missingList.sort((a, b) => parseInt(a.no) - parseInt(b.no));
 
-            if(data.missing.length === 0) {
-                htmlContent += `<span style="font-size: 20px; color: #27ae60;">มีข้อมูลใบหน้าครบทุกคน ✅</span>`;
-            } else {
-                htmlContent += `<span style="font-size: 20px; color: #e74c3c; font-weight: 600;">ยังไม่มีข้อมูล ${data.missing.length} คน ได้แก่:</span>`;
-                htmlContent += `<ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #444; font-size: 20px;">`;
-                
-                data.missing.sort((a, b) => parseInt(a.no) - parseInt(b.no)).forEach(m => {
+            htmlContent += `<div style="margin-bottom: 20px; padding: 15px; background: #ffffff; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">`;
+            htmlContent += `<strong style="font-size: 26px; color: #2c3e50;">ชั้น ${room} (รวม ${data.total} คน)</strong><hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">`;
+
+            // 1. ส่วนรายชื่อคนที่มีข้อมูลแล้ว (สีเขียว)
+            htmlContent += `<div style="margin-bottom: 15px;">`;
+            htmlContent += `<strong style="font-size: 22px; color: #27ae60;">✅ มีข้อมูลแล้ว (${data.registeredList.length} คน)</strong>`;
+            if (data.registeredList.length > 0) {
+                htmlContent += `<div style="max-height: 150px; overflow-y: auto; background: #e8f8f5; padding: 10px; border-radius: 6px; margin-top: 5px; border: 1px solid #d1f2eb;">`;
+                htmlContent += `<ul style="margin: 0; padding-left: 20px; color: #1e8449; font-size: 20px;">`;
+                data.registeredList.forEach(m => {
                     htmlContent += `<li>เลขที่ ${m.no} ${m.name} (รหัส: ${m.id})</li>`;
                 });
-                
-                htmlContent += `</ul>`;
+                htmlContent += `</ul></div>`;
+            } else {
+                htmlContent += `<div style="color: #7f8c8d; font-size: 20px; margin-top: 5px;">ยังไม่มีผู้ลงทะเบียนในห้องนี้</div>`;
             }
             htmlContent += `</div>`;
+
+            // 2. ส่วนรายชื่อคนที่ยังไม่มีข้อมูล (สีแดง)
+            htmlContent += `<div>`;
+            htmlContent += `<strong style="font-size: 22px; color: #e74c3c;">❌ ยังไม่มีข้อมูล (${data.missingList.length} คน)</strong>`;
+            if (data.missingList.length > 0) {
+                htmlContent += `<div style="max-height: 150px; overflow-y: auto; background: #fadbd8; padding: 10px; border-radius: 6px; margin-top: 5px; border: 1px solid #f5b7b1;">`;
+                htmlContent += `<ul style="margin: 0; padding-left: 20px; color: #c0392b; font-size: 20px;">`;
+                data.missingList.forEach(m => {
+                    htmlContent += `<li>เลขที่ ${m.no} ${m.name} (รหัส: ${m.id})</li>`;
+                });
+                htmlContent += `</ul></div>`;
+            } else {
+                htmlContent += `<div style="color: #27ae60; font-size: 20px; margin-top: 5px;">ลงทะเบียนครบทุกคนแล้ว! 🎉</div>`;
+            }
+            htmlContent += `</div>`;
+
+            htmlContent += `</div>`; // ปิดกรอบของแต่ละห้อง
         });
         htmlContent += `</div>`;
 
         Swal.fire({
-            title: '📊 รายงานผู้ลงทะเบียนใบหน้า',
+            title: '📊 รายงานสถานะการลงทะเบียน',
             html: htmlContent,
-            width: '800px',
+            width: '850px',
             confirmButtonText: 'ปิดหน้าต่าง',
             confirmButtonColor: '#2980b9'
         });
@@ -598,6 +624,8 @@ window.showRegistrationReport = async function() {
         Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลรายชื่อได้', 'error');
     }
 };
+
+
 
 // ==========================================
 // 10. Real-time Clock
