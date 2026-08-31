@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/fir
 import { getFirestore, collection, addDoc, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
-// 1. Firebase Configuration (รวมเป็น by-fscan โปรเจกต์เดียว)
+// 1. Firebase Configuration
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDKUdsm370QMPICz-ap4RLip3eqM5rkFY8",
@@ -18,44 +18,100 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// เปิดโหมด Offline ให้เก็บ Log ไว้แม้เน็ตหลุด
 enableIndexedDbPersistence(db).catch(console.warn);
 
 // ==========================================
-// 2. Global State & Math Function
+// 2. Global State & System Reset Logic
 // ==========================================
 let allStudents = [];
 const scannedSet = new Set();
-const MATCH_THRESHOLD = 0.75; 
+const MATCH_THRESHOLD = 0.82; 
+const REQUIRED_MATCHES = 3;   
+const faceMatchCounts = new Map(); 
 let unrecognizedFrames = 0; 
+let studentNamesMap = new Map(); // เก็บชื่อนักเรียนไว้ในความจำ
 
-// ฟังก์ชันแปลง Vector ให้ความยาวเป็น 1 (เคล็ดลับความเร็ว)
-function normalizeVector(vec) {
+// ล้างหน่วยความจำ (Garbage Collection) เมื่อเปลี่ยนวัน
+const startupDay = new Date().getDate();
+setInterval(() => {
+    const currentDay = new Date().getDate();
+    if (currentDay !== startupDay) {
+        window.location.reload();
+    }
+}, 60000); 
+
+// ==========================================
+// 3. Helper Functions
+// ==========================================
+function normalizeVectorToFloat32(vec) {
     let norm = 0;
     for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
     norm = Math.sqrt(norm);
-    if (norm === 0) return Array.from(vec);
-    let normalized = new Array(vec.length);
-    for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
+    
+    let normalized = new Float32Array(vec.length);
+    if (norm === 0) {
+        for (let i = 0; i < vec.length; i++) normalized[i] = vec[i];
+    } else {
+        for (let i = 0; i < vec.length; i++) normalized[i] = vec[i] / norm;
+    }
     return normalized;
 }
 
-// ฟังก์ชันสร้างเสียงติ๊ด (Beep) เมื่อสแกนผ่าน โดยไม่ต้องใช้ไฟล์เสียง
 function playSuccessSound() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // ความถี่เสียง 1000 Hz
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // ความดังเสียง
+        oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.start();
-        setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 150); // ดัง 150 มิลลิวินาที
+        setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 150); 
     } catch(e) {
-        console.error("Audio not supported or blocked by browser", e);
+        console.error("Audio blocked by browser", e);
     }
+}
+
+// ฟังก์ชันแปลงชื่อเพื่อปกปิดข้อมูล (เช่น นางสาวสุภัทรวดี ศรีนามบุรี -> สุภัทร** ศรีนา**)
+function maskThaiName(fullName) {
+    if (!fullName || fullName === 'ไม่ระบุ') return "";
+    
+    let cleanName = fullName.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|ด\.ช\.|ด\.ญ\.)\s*/, '').trim();
+    let parts = cleanName.split(/\s+/); 
+    
+    if (parts.length >= 2) {
+        let fname = parts[0];
+        let lname = parts[1];
+        
+        let mFirst = fname.length > 6 ? fname.substring(0, 6) + "**" : fname + "**";
+        let mLast = lname.length > 5 ? lname.substring(0, 5) + "**" : lname + "**";
+        return `${mFirst} ${mLast}`;
+    }
+    return cleanName.length > 6 ? cleanName.substring(0, 6) + "**" : cleanName + "**";
+}
+
+// โหลดชื่อมาเก็บไว้ในเครื่อง (ออฟไลน์)
+function initStudentNamesCache() {
+    const cached = localStorage.getItem('localStudentNames');
+    if (cached) {
+        try {
+            const parsed = JSON.parse(cached);
+            for (let id in parsed) studentNamesMap.set(id, parsed[id]);
+        } catch(e) { console.error("Cache parsing error", e); }
+    }
+
+    const masterListUrl = "https://script.google.com/macros/s/AKfycbyvdgOnCm26KEHUeuUg7MRyGFZ-t4p6XZVObygxGXlr0uMbHrkxoKRcBKngMmwWTSB2aw/exec";
+    fetch(masterListUrl).then(res => res.json()).then(data => {
+        const tempObj = {};
+        data.forEach(s => {
+            const id = String(s['ID']).trim();
+            tempObj[id] = s['ชื่อ-สกุล'];
+            studentNamesMap.set(id, s['ชื่อ-สกุล']);
+        });
+        localStorage.setItem('localStudentNames', JSON.stringify(tempObj)); 
+    }).catch(() => console.log('สถานะออฟไลน์: ใช้ข้อมูลชื่อจากหน่วยความจำเดิม'));
 }
 
 // ==========================================
@@ -79,7 +135,7 @@ function openLocalDB() {
 }
 
 // ==========================================
-// 5. Data Fetching (Google Drive via GAS)
+// 5. Data Fetching
 // ==========================================
 async function loadStudentData() {
     const localDB = await openLocalDB();
@@ -89,10 +145,13 @@ async function loadStudentData() {
 
     return new Promise((resolve) => {
         request.onsuccess = async () => {
-            const localData = request.result;
+            let localData = request.result;
             if (localData && localData.length > 0) {
-                // ข้อมูลในเครื่องถูกปรับเป็น 1 มาแล้วตอนโหลดครั้งแรก
-                allStudents = localData;
+                allStudents = localData.map(student => {
+                    if(student.faceVector) student.faceVector = new Float32Array(student.faceVector);
+                    if(student.faceVectorUp) student.faceVectorUp = new Float32Array(student.faceVectorUp);
+                    return student;
+                });
                 resolve(true);
             } else {
                 resolve(await fetchAndCacheFromStorage());
@@ -102,7 +161,7 @@ async function loadStudentData() {
 }
 
 async function fetchAndCacheFromStorage() {
-    Swal.fire({ title: 'กำลังดึงฐานข้อมูลส่วนกลาง...', text: 'ดาวน์โหลดจากเซิร์ฟเวอร์โรงเรียน', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: 'กำลังดึงฐานข้อมูลส่วนกลาง...', text: 'ประมวลผลข้อมูล 2,300 รายการ', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     
     try {
         const gasUrl = "https://script.google.com/macros/s/AKfycbynOdvM_Q5mqAGiAhaWhyelAQG4lqZmq6m7S4bkkZQTE7T0jfMtVN0ejkv19cnYC0x8/exec";
@@ -121,21 +180,28 @@ async function fetchAndCacheFromStorage() {
         const store = tx.objectStore(storeName);
         store.clear(); 
         
-        // Normalize เวกเตอร์ล่วงหน้าทั้งหน้าตรง และ หน้าเงย ก่อนเซฟลงเครื่องสแกน
         const preparedStudents = data.map(student => {
             if(student.faceVector) {
-                student.faceVector = normalizeVector(student.faceVector);
+                const f32 = normalizeVectorToFloat32(student.faceVector);
+                student.faceVector = Array.from(f32); 
             }
             if(student.faceVectorUp) {
-                student.faceVectorUp = normalizeVector(student.faceVectorUp);
+                const f32up = normalizeVectorToFloat32(student.faceVectorUp);
+                student.faceVectorUp = Array.from(f32up);
             }
             return student;
         });
 
         preparedStudents.forEach(student => store.put(student)); 
 
-        allStudents = preparedStudents;
+        allStudents = preparedStudents.map(student => {
+            if(student.faceVector) student.faceVector = new Float32Array(student.faceVector);
+            if(student.faceVectorUp) student.faceVectorUp = new Float32Array(student.faceVectorUp);
+            return student;
+        });
+        
         scannedSet.clear(); 
+        faceMatchCounts.clear(); 
 
         return true;
     } catch (error) {
@@ -144,7 +210,6 @@ async function fetchAndCacheFromStorage() {
     }
 }
 
-// บันทึก Log การสแกนเข้า Firebase
 async function logScanRecord(studentId, similarityScore) {
     try {
         await addDoc(collection(db, "scan_logs"), {
@@ -159,7 +224,7 @@ async function logScanRecord(studentId, similarityScore) {
 }
 
 // ==========================================
-// 6. Authentication (เข้าสู่ระบบ)
+// 6. Authentication
 // ==========================================
 window.checkAuth = async function() {
     const email = document.getElementById('adminEmail').value.trim();
@@ -171,41 +236,37 @@ window.checkAuth = async function() {
 
     let preLoadedStream;
     try {
-        // ขอเปิดกล้องทันทีที่กดปุ่ม เพื่อไม่ให้เบราว์เซอร์ (Safari/Chrome) บล็อกเนื่องจากหมดเวลาคลิก
         preLoadedStream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
-                facingMode: 'user', // ใช้กล้องหน้าสำหรับ iPad/มือถือ
+                facingMode: 'user', 
                 width: { ideal: 1280 }, 
                 height: { ideal: 720 } 
             },
             audio: false 
         });
     } catch (err) {
-        console.error("Camera Initial Error:", err);
-        return Swal.fire('ไม่สามารถเปิดกล้องได้', 'กรุณากด "อนุญาต" (Allow) ให้เว็บเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์', 'error');
+        console.error("Camera Error:", err);
+        return Swal.fire('ไม่สามารถเปิดกล้องได้', 'กรุณากด "อนุญาต" (Allow) กล้อง', 'error');
     }
 
-    // เมื่อกล้องเปิดสำเร็จ ค่อยทำการ Login และโหลดข้อมูล
     signInWithEmailAndPassword(auth, email, pass)
         .then(async () => {
             const isLoaded = await loadStudentData();
             if (isLoaded) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'flex';
-                
-                // ส่งภาพกล้องที่เปิดรอไว้ไปให้ AI ทำงานต่อ
                 initAI(preLoadedStream); 
+                initStudentNamesCache(); // แอบดึงชื่อเก็บไว้เพื่อโชว์ตอนสแกนผ่าน
             }
         })
         .catch(() => {
-            // หาก Login ไม่ผ่าน ให้ปิดกล้องที่เปิดรอไว้เพื่อคืนทรัพยากร
             preLoadedStream.getTracks().forEach(track => track.stop());
             Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
         });
 };
 
 // ==========================================
-// 7. AI Module (Vladmandic Human)
+// 7. AI Module Configuration
 // ==========================================
 let human;
 const videoElement = document.getElementById('video-feed');
@@ -213,12 +274,11 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 let ctx; 
 
 const humanConfig = {
-    backend: 'wasm', // หากเครื่องรันช้า ให้เปลี่ยนเป็น 'webgl' (ต้องมีการ์ดจอ)
-    modelBasePath: './models/', // เปลี่ยนมาใช้โมเดลแบบออฟไลน์
+    backend: 'wasm', 
+    modelBasePath: './models/', 
     filter: { equalization: true },
     face: { 
         enabled: true, 
-        // เปิดอนุญาตหาหน้าเอียงหน้าเงย และลดเกณฑ์การจับหน้าลงเหลือ 0.65 เผื่อมุมกล้องแปลกๆ
         detector: { rotation: true, return: true, minConfidence: 0.65 }, 
         mesh: { enabled: false }, 
         iris: { enabled: false }, 
@@ -227,7 +287,6 @@ const humanConfig = {
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
 };
 
-// รับตัวแปร stream ที่ถูกเปิดรอไว้แล้วจากเช็คอิน
 async function initAI(stream) {
     try {
         videoElement.srcObject = stream;
@@ -242,35 +301,32 @@ async function initAI(stream) {
             }
             
             Swal.fire({ 
-                title: 'กำลังเตรียมระบบ AI...', 
-                text: 'กรุณารอสักครู่',
+                title: 'กำลังเริ่มต้นระบบ AI...', 
                 allowOutsideClick: false, 
                 didOpen: () => Swal.showLoading() 
             });
 
-            // โหลดโมเดล Human หลังจากที่ภาพวิดีโอแสดงผลแล้ว
             human = new Human.Human(humanConfig);
             await human.load(); 
             
-            // เริ่มลูปตรวจจับใบหน้า
             detectionLoop(); 
             
             Swal.fire({ 
                 icon: 'success', 
                 title: 'ระบบพร้อมใช้งาน', 
-                html: `ดึงข้อมูลจากในเครื่องแล้ว จำนวน <b>${allStudents.length}</b> คน<br><br><span style="color: #27ae60; font-weight: bold; font-size: 0.9em;">✔️ ท่านสามารถใช้งานได้แม้ไม่มีอินเทอร์เน็ต</span>`, 
-                timer: 4500, 
+                html: `ข้อมูลนักเรียนพร้อมทำงาน: <b>${allStudents.length}</b> คน`, 
+                timer: 3000, 
                 showConfirmButton: false 
             });
         };
     } catch (err) {
         console.error("AI Init Error:", err);
-        Swal.fire('ข้อผิดพลาด', 'มีปัญหาในการตั้งค่าระบบตรวจจับใบหน้า: ' + err.message, 'error');
+        Swal.fire('ข้อผิดพลาด', 'ปัญหาการตั้งค่า AI: ' + err.message, 'error');
     }
 }
 
 // ==========================================
-// 8. Core Detection Loop (รองรับสแกนหลายคนพร้อมกัน)
+// 8. Core Detection Loop
 // ==========================================
 let isDetecting = false;
 let lastDetectTime = 0;
@@ -281,7 +337,7 @@ async function detectionLoop() {
     if (videoElement.paused || videoElement.ended || isDetecting) return;
 
     const now = Date.now();
-    if (now - lastDetectTime < 300) return; 
+    if (now - lastDetectTime < 250) return; 
 
     isDetecting = true;
     lastDetectTime = now;
@@ -301,20 +357,17 @@ async function detectionLoop() {
         }
 
         if (result.face && result.face.length > 0 && allStudents.length > 0) {
-            
-            // วนลูปตรวจจับ "ทุกใบหน้า" ที่กล้องมองเห็นพร้อมกัน
+            let matchedInThisFrame = false;
+
             for (let f = 0; f < result.face.length; f++) {
                 const face = result.face[f]; 
                 
                 if (face.score > 0.65 && face.embedding) {
-                    const normCameraEmbedding = normalizeVector(face.embedding);
+                    const normCameraEmbedding = normalizeVectorToFloat32(face.embedding);
                     let bestMatch = null;
                     let highestSimilarity = -1;
 
-                    // ค้นหาฐานข้อมูล โดยเช็คทั้งแบบหน้าตรงและหน้าเงย
                     for (const student of allStudents) {
-                        
-                        // เทียบแบบหน้าตรง
                         if (student.faceVector) {
                             let dotProduct = 0;
                             for (let i = 0; i < normCameraEmbedding.length; i++) {
@@ -326,7 +379,6 @@ async function detectionLoop() {
                             }
                         }
                         
-                        // เทียบแบบหน้าเงย (เผื่อกล้องมุมสูง)
                         if (student.faceVectorUp) {
                             let dotProductUp = 0;
                             for (let i = 0; i < normCameraEmbedding.length; i++) {
@@ -343,32 +395,34 @@ async function detectionLoop() {
                     let statusText = `กำลังวิเคราะห์`;
 
                     if (highestSimilarity >= MATCH_THRESHOLD) {
+                        matchedInThisFrame = true;
                         const sid = bestMatch.studentId;
                         
                         if (!scannedSet.has(sid)) {
-                            scannedSet.add(sid); 
-                            updateScanUI(sid);
-                            logScanRecord(sid, highestSimilarity);
-                            playSuccessSound(); // เรียกเสียงติ๊ด
-                            
-                            boxColor = '#27ae60'; 
-                            statusText = `✔️ ${sid}`;
-                            unrecognizedFrames = 0;
+                            let currentCount = (faceMatchCounts.get(sid) || 0) + 1;
+                            faceMatchCounts.set(sid, currentCount);
+
+                            if (currentCount >= REQUIRED_MATCHES) {
+                                scannedSet.add(sid); 
+                                updateScanUI(sid);
+                                logScanRecord(sid, highestSimilarity);
+                                playSuccessSound(); 
+                                
+                                boxColor = '#27ae60'; 
+                                statusText = `✔️ ${sid}`;
+                                unrecognizedFrames = 0;
+                                faceMatchCounts.delete(sid); 
+                            } else {
+                                boxColor = '#f39c12';
+                                statusText = `ยืนยันตัวตน... (${currentCount}/${REQUIRED_MATCHES})`;
+                            }
                         } else {
                             boxColor = '#2980b9'; 
                             statusText = `✅ ${sid}`;
                             unrecognizedFrames = 0;
                         }
-                    } else {
-                        unrecognizedFrames++;
-                        if (unrecognizedFrames >= 15) {
-                            boxColor = '#c0392b'; 
-                            statusText = '❌ ไม่พบข้อมูล';
-                            unrecognizedFrames = 0; 
-                        }
                     }
 
-                    // วาดกรอบของแต่ละคนบนหน้าจอ
                     if (ctx && face.box) {
                         const [x, y, width, height] = face.box;
                         const mirroredX = canvasOverlay.width - x - width;
@@ -387,9 +441,22 @@ async function detectionLoop() {
                         ctx.fillText(statusText, mirroredX + (width / 2), y - 15);
                     }
                 }
-            } // จบลูปใบหน้า
+            } 
+
+            if (!matchedInThisFrame) {
+                unrecognizedFrames++;
+                if (unrecognizedFrames >= 15) {
+                    faceMatchCounts.clear(); 
+                    unrecognizedFrames = 0; 
+                }
+            }
+
         } else {
-            unrecognizedFrames = 0; 
+            unrecognizedFrames++;
+            if (unrecognizedFrames >= 15) {
+                faceMatchCounts.clear(); 
+                unrecognizedFrames = 0; 
+            }
         }
     } catch (err) {
         console.error("AI Detection Error:", err);
@@ -399,14 +466,25 @@ async function detectionLoop() {
 }
 
 // ==========================================
-// 9. UI Controls
+// 9. UI Controls & Reports
 // ==========================================
 let scanQueue = [];
 function updateScanUI(studentId) {
     const listContainer = document.getElementById('scanList');
     const newItem = document.createElement('div');
     newItem.className = 'scan-item';
-    newItem.innerText = studentId;
+    
+    // แสดงผล UI 2 บรรทัด (รหัส และ ชื่อที่ถูกเซ็นเซอร์)
+    const fullName = studentNamesMap.get(studentId) || "";
+    const maskedName = maskThaiName(fullName);
+    
+    newItem.innerHTML = `
+        <div style="font-size: 42px; font-weight: bold; line-height: 1;">${studentId}</div>
+        <div style="font-size: 24px; font-weight: 500; margin-top: 8px; color: #e8f8f5;">
+            ${maskedName}
+        </div>
+    `;
+    
     listContainer.insertBefore(newItem, listContainer.firstChild);
     scanQueue.unshift(newItem);
     
@@ -420,25 +498,105 @@ function updateScanUI(studentId) {
 window.manageLogs = function() {
     Swal.fire({ 
         title: 'อัปเดตข้อมูลนักเรียน', 
-        text: 'ต้องการดึงข้อมูลนักเรียนชุดใหม่จากส่วนกลาง (Google Drive) หรือไม่?',
+        text: 'ต้องการดึงข้อมูลชุดใหม่จาก Google Drive หรือไม่?',
         icon: 'question', 
         showCancelButton: true,
-        confirmButtonText: 'อัปเดตเดี๋ยวนี้',
+        confirmButtonText: 'อัปเดต',
         cancelButtonText: 'ยกเลิก'
     }).then(async (result) => {
         if(result.isConfirmed) {
             const success = await fetchAndCacheFromStorage();
-            if(success) Swal.fire('สำเร็จ', 'อัปเดตฐานข้อมูลในเครื่องสแกนเรียบร้อยแล้ว', 'success');
+            if(success) {
+                initStudentNamesCache(); // อัปเดตรายชื่อใหม่ด้วย
+                Swal.fire('สำเร็จ', 'อัปเดตฐานข้อมูลสำเร็จ', 'success');
+            }
         }
     });
 };
 
 window.openSettings = function() {
     Swal.fire({ 
-        title: 'สถานะระบบสแกน', 
-        html: `จำนวนนักเรียนในระบบ: <b>${allStudents.length}</b> คน<br>นักเรียนสแกนผ่านแล้ว: <b style="color:green;">${scannedSet.size}</b> คน`, 
+        title: 'สถานะระบบ', 
+        html: `นักเรียนในระบบ: <b>${allStudents.length}</b> คน<br>สแกนผ่านแล้ว: <b style="color:green;">${scannedSet.size}</b> คน`, 
         icon: 'info' 
     });
+};
+
+// ==========================================
+// รายงานเปรียบเทียบนักเรียนที่ยังไม่ลงทะเบียน (ดึงจาก API เดิม)
+// ==========================================
+window.showRegistrationReport = async function() {
+    Swal.fire({
+        title: 'กำลังตรวจสอบข้อมูล...',
+        text: 'ดึงข้อมูลสดจากระบบ กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        const masterListUrl = "https://script.google.com/macros/s/AKfycbyvdgOnCm26KEHUeuUg7MRyGFZ-t4p6XZVObygxGXlr0uMbHrkxoKRcBKngMmwWTSB2aw/exec"; 
+        
+        const response = await fetch(masterListUrl);
+        const masterStudents = await response.json();
+
+        const registeredIds = new Set(allStudents.map(s => String(s.studentId).trim()));
+
+        const reportData = {};
+        masterStudents.forEach(s => {
+            const room = s['ชั้น'] || 'ไม่ระบุ';
+            const id = String(s['ID']).trim();
+            
+            if(!reportData[room]) reportData[room] = { total: 0, registered: 0, missing: [] };
+            
+            reportData[room].total++;
+            if(registeredIds.has(id)) {
+                reportData[room].registered++;
+            } else {
+                reportData[room].missing.push({
+                    id: id,
+                    name: s['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ',
+                    no: s['เลขที่'] || '-'
+                });
+            }
+        });
+
+        const sortedRooms = Object.keys(reportData).sort();
+        let htmlContent = `<div style="text-align: left; max-height: 60vh; overflow-y: auto; font-family: 'Sarabun', sans-serif;">`;
+
+        sortedRooms.forEach(room => {
+            const data = reportData[room];
+            htmlContent += `<div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 6px solid ${data.missing.length > 0 ? '#e74c3c' : '#27ae60'};">`;
+            
+            htmlContent += `<strong style="font-size: 24px; color: #2c3e50;">ชั้น ${room} จำนวน ${data.total} คน</strong><br>`;
+
+            if(data.missing.length === 0) {
+                htmlContent += `<span style="font-size: 20px; color: #27ae60;">มีข้อมูลใบหน้าครบทุกคน ✅</span>`;
+            } else {
+                htmlContent += `<span style="font-size: 20px; color: #e74c3c; font-weight: 600;">ยังไม่มีข้อมูล ${data.missing.length} คน ได้แก่:</span>`;
+                htmlContent += `<ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #444; font-size: 20px;">`;
+                
+                data.missing.sort((a, b) => parseInt(a.no) - parseInt(b.no)).forEach(m => {
+                    htmlContent += `<li>เลขที่ ${m.no} ${m.name} (รหัส: ${m.id})</li>`;
+                });
+                
+                htmlContent += `</ul>`;
+            }
+            htmlContent += `</div>`;
+        });
+        htmlContent += `</div>`;
+
+        Swal.fire({
+            title: '📊 รายงานผู้ลงทะเบียนใบหน้า',
+            html: htmlContent,
+            width: '800px',
+            confirmButtonText: 'ปิดหน้าต่าง',
+            confirmButtonColor: '#2980b9'
+        });
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลรายชื่อได้', 'error');
+    }
 };
 
 // ==========================================
@@ -464,88 +622,3 @@ function updateDateTime() {
 
 updateDateTime();
 setInterval(updateDateTime, 1000);
-
-
-
-//คนไหนยังไมม่ลงเปรียบเทีบบ google shee t Bigdatabase
-// ==========================================
-// ฟังก์ชันรายงานเปรียบเทียบนักเรียนที่ยังไม่ลงทะเบียน (ใช้ API เดิม)
-// ==========================================
-window.showRegistrationReport = async function() {
-    Swal.fire({
-        title: 'กำลังตรวจสอบข้อมูล...',
-        text: 'ดึงข้อมูลสดจาก Google Sheet กรุณารอสักครู่',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        // ใช้ URL API เดิมจากหน้า Dashboard ของคุณ[cite: 1]
-        const masterListUrl = "https://script.google.com/macros/s/AKfycbyvdgOnCm26KEHUeuUg7MRyGFZ-t4p6XZVObygxGXlr0uMbHrkxoKRcBKngMmwWTSB2aw/exec"; 
-        
-        const response = await fetch(masterListUrl);
-        const masterStudents = await response.json();
-
-        // ดึงเฉพาะรหัสนักเรียนที่มีเวกเตอร์ใบหน้าในเครื่องแล้ว
-        const registeredIds = new Set(allStudents.map(s => String(s.studentId).trim()));
-
-        // จัดกลุ่มข้อมูลตามห้องเรียน
-        const reportData = {};
-        masterStudents.forEach(s => {
-            const room = s['ชั้น'] || 'ไม่ระบุ';
-            const id = String(s['ID']).trim();
-            
-            if(!reportData[room]) reportData[room] = { total: 0, registered: 0, missing: [] };
-            
-            reportData[room].total++;
-            if(registeredIds.has(id)) {
-                reportData[room].registered++;
-            } else {
-                reportData[room].missing.push({
-                    id: id,
-                    name: s['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ',
-                    no: s['เลขที่'] || '-'
-                });
-            }
-        });
-
-        // สร้างหน้าต่างแสดงผล UI
-        const sortedRooms = Object.keys(reportData).sort();
-        let htmlContent = `<div style="text-align: left; max-height: 60vh; overflow-y: auto; font-family: 'Sarabun', sans-serif;">`;
-
-        sortedRooms.forEach(room => {
-            const data = reportData[room];
-            htmlContent += `<div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 6px solid ${data.missing.length > 0 ? '#e74c3c' : '#27ae60'};">`;
-            
-            htmlContent += `<strong style="font-size: 24px; color: #2c3e50;">ชั้น ${room} จำนวน ${data.total} คน</strong><br>`;
-
-            if(data.missing.length === 0) {
-                htmlContent += `<span style="font-size: 20px; color: #27ae60;">มีข้อมูลใบหน้าครบทุกคน ✅</span>`;
-            } else {
-                htmlContent += `<span style="font-size: 20px; color: #e74c3c; font-weight: 600;">ยังไม่มีข้อมูล ${data.missing.length} คน ได้แก่:</span>`;
-                htmlContent += `<ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #444; font-size: 20px;">`;
-                
-                // เรียงตามเลขที่
-                data.missing.sort((a, b) => parseInt(a.no) - parseInt(b.no)).forEach(m => {
-                    htmlContent += `<li>เลขที่ ${m.no} ${m.name} (รหัส: ${m.id})</li>`;
-                });
-                
-                htmlContent += `</ul>`;
-            }
-            htmlContent += `</div>`;
-        });
-        htmlContent += `</div>`;
-
-        Swal.fire({
-            title: '📊 รายงานผู้ลงทะเบียนใบหน้า',
-            html: htmlContent,
-            width: '800px',
-            confirmButtonText: 'ปิดหน้าต่าง',
-            confirmButtonColor: '#2980b9'
-        });
-
-    } catch (err) {
-        console.error(err);
-        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ Google Sheet ได้ กรุณาตรวจสอบอินเทอร์เน็ต', 'error');
-    }
-};
