@@ -280,8 +280,8 @@ const humanConfig = {
     face: { 
         enabled: true, 
         detector: { rotation: true, return: true, minConfidence: 0.65 }, 
-        mesh: { enabled: false }, 
-        iris: { enabled: false }, 
+        mesh: { enabled: true }, 
+        iris: { enabled: true }, 
         description: { enabled: true } 
     },
     body: { enabled: false }, hand: { enabled: false }, object: { enabled: false }
