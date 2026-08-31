@@ -464,3 +464,88 @@ function updateDateTime() {
 
 updateDateTime();
 setInterval(updateDateTime, 1000);
+
+
+
+//คนไหนยังไมม่ลงเปรียบเทีบบ google shee t Bigdatabase
+// ==========================================
+// ฟังก์ชันรายงานเปรียบเทียบนักเรียนที่ยังไม่ลงทะเบียน (ใช้ API เดิม)
+// ==========================================
+window.showRegistrationReport = async function() {
+    Swal.fire({
+        title: 'กำลังตรวจสอบข้อมูล...',
+        text: 'ดึงข้อมูลสดจาก Google Sheet กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        // ใช้ URL API เดิมจากหน้า Dashboard ของคุณ[cite: 1]
+        const masterListUrl = "https://script.google.com/macros/s/AKfycbyvdgOnCm26KEHUeuUg7MRyGFZ-t4p6XZVObygxGXlr0uMbHrkxoKRcBKngMmwWTSB2aw/exec"; 
+        
+        const response = await fetch(masterListUrl);
+        const masterStudents = await response.json();
+
+        // ดึงเฉพาะรหัสนักเรียนที่มีเวกเตอร์ใบหน้าในเครื่องแล้ว
+        const registeredIds = new Set(allStudents.map(s => String(s.studentId).trim()));
+
+        // จัดกลุ่มข้อมูลตามห้องเรียน
+        const reportData = {};
+        masterStudents.forEach(s => {
+            const room = s['ชั้น'] || 'ไม่ระบุ';
+            const id = String(s['ID']).trim();
+            
+            if(!reportData[room]) reportData[room] = { total: 0, registered: 0, missing: [] };
+            
+            reportData[room].total++;
+            if(registeredIds.has(id)) {
+                reportData[room].registered++;
+            } else {
+                reportData[room].missing.push({
+                    id: id,
+                    name: s['ชื่อ-สกุล'] || 'ไม่ระบุชื่อ',
+                    no: s['เลขที่'] || '-'
+                });
+            }
+        });
+
+        // สร้างหน้าต่างแสดงผล UI
+        const sortedRooms = Object.keys(reportData).sort();
+        let htmlContent = `<div style="text-align: left; max-height: 60vh; overflow-y: auto; font-family: 'Sarabun', sans-serif;">`;
+
+        sortedRooms.forEach(room => {
+            const data = reportData[room];
+            htmlContent += `<div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 6px solid ${data.missing.length > 0 ? '#e74c3c' : '#27ae60'};">`;
+            
+            htmlContent += `<strong style="font-size: 24px; color: #2c3e50;">ชั้น ${room} จำนวน ${data.total} คน</strong><br>`;
+
+            if(data.missing.length === 0) {
+                htmlContent += `<span style="font-size: 20px; color: #27ae60;">มีข้อมูลใบหน้าครบทุกคน ✅</span>`;
+            } else {
+                htmlContent += `<span style="font-size: 20px; color: #e74c3c; font-weight: 600;">ยังไม่มีข้อมูล ${data.missing.length} คน ได้แก่:</span>`;
+                htmlContent += `<ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #444; font-size: 20px;">`;
+                
+                // เรียงตามเลขที่
+                data.missing.sort((a, b) => parseInt(a.no) - parseInt(b.no)).forEach(m => {
+                    htmlContent += `<li>เลขที่ ${m.no} ${m.name} (รหัส: ${m.id})</li>`;
+                });
+                
+                htmlContent += `</ul>`;
+            }
+            htmlContent += `</div>`;
+        });
+        htmlContent += `</div>`;
+
+        Swal.fire({
+            title: '📊 รายงานผู้ลงทะเบียนใบหน้า',
+            html: htmlContent,
+            width: '800px',
+            confirmButtonText: 'ปิดหน้าต่าง',
+            confirmButtonColor: '#2980b9'
+        });
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ Google Sheet ได้ กรุณาตรวจสอบอินเทอร์เน็ต', 'error');
+    }
+};
