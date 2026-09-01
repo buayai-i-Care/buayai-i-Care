@@ -38,6 +38,32 @@
             margin: 0 auto;
         }
 
+        /* ================= ระบบล็อคอิน (Login Overlay) ================= */
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95); /* พื้นหลังทึบ */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: 12px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .login-box h2 { margin-top: 0; color: var(--primary); font-size: 32px; }
+        .login-box input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #bdc3c7; border-radius: 6px;
+            box-sizing: border-box; font-size: 20px; font-family: 'Sarabun';
+        }
+        .login-box button {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: var(--accent); color: white; border: none;
+            border-radius: 6px; font-size: 22px; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
+        }
+        .login-box button:hover { background: #2980b9; }
+
         /* ส่วนหัวและตัวกรอง */
         .header {
             background: var(--primary);
@@ -70,7 +96,7 @@
             border: 1px solid #ccc;
         }
 
-        button {
+        button.control-btn {
             padding: 10px 20px;
             font-size: 20px;
             font-family: 'Sarabun', sans-serif;
@@ -84,8 +110,9 @@
         .btn-load { background-color: var(--accent); color: white; }
         .btn-excel { background-color: var(--success); color: white; }
         .btn-nav { background-color: #7f8c8d; color: white; }
+        .btn-logout { background-color: var(--danger); color: white; }
         
-        button:hover { opacity: 0.9; }
+        button.control-btn:hover { opacity: 0.9; }
 
         /* พื้นที่กราฟ */
         .charts-grid {
@@ -130,6 +157,18 @@
 </head>
 <body>
 
+    <!-- ================= หน้าจอ Login ================= -->
+    <div id="auth-overlay">
+        <div class="login-box">
+            <h2>🔐 ผู้ดูแลระบบ</h2>
+            <p style="color: #7f8c8d; font-size: 18px; margin-top: -10px;">กรุณาเข้าสู่ระบบเพื่อดูรายงาน</p>
+            <input type="email" id="adminEmail" placeholder="อีเมล">
+            <input type="password" id="adminPassword" placeholder="รหัสผ่าน">
+            <button onclick="checkAuth()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+    <!-- ============================================= -->
+
     <div class="container">
         <!-- ส่วนหัวและเครื่องมือ -->
         <div class="header">
@@ -141,15 +180,15 @@
             <div class="controls">
                 <label for="datePicker" style="font-weight: bold;">เลือกวันที่:</label>
                 <input type="date" id="datePicker">
-                <button class="btn-load" onclick="loadDashboardData()">ดูข้อมูล</button>
-                <button class="btn-excel" onclick="exportToExcel()">📥 โหลด Excel</button>
-                <button class="btn-nav" onclick="window.location.href='scan1024.html'">กลับหน้าสแกน</button>
+                <button class="control-btn btn-load" onclick="loadDashboardData()">ดูข้อมูล</button>
+                <button class="control-btn btn-excel" onclick="exportToExcel()">📥 โหลด Excel</button>
+                <button class="control-btn btn-nav" onclick="window.location.href='scan1024.html'">หน้าสแกน</button>
+                <button class="control-btn btn-logout" onclick="logout()">ออกจากระบบ</button>
             </div>
         </div>
 
         <!-- กราฟ -->
         <div class="charts-grid">
-            <!-- กราฟที่ 1: มาเรียน -->
             <div class="chart-card">
                 <h2>✅ จำนวนนักเรียนที่ "มาเรียน" (แยกตามระดับชั้น)</h2>
                 <div class="chart-container">
@@ -158,7 +197,6 @@
                 <p style="color: #7f8c8d; font-size: 16px;">* คลิกที่แท่งกราฟเพื่อดูรายละเอียดรายห้อง</p>
             </div>
 
-            <!-- กราฟที่ 2: ขาดเรียน -->
             <div class="chart-card">
                 <h2>❌ จำนวนนักเรียนที่ "ยังไม่มา" (แยกตามระดับชั้น)</h2>
                 <div class="chart-container">
@@ -173,6 +211,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 1. ตั้งค่า Firebase
         const firebaseConfig = {
@@ -185,20 +224,63 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // ระบบ Auth
 
-        // ตัวแปรเก็บข้อมูลกราฟและข้อมูลดิบ
         let presentChartInstance = null;
         let absentChartInstance = null;
         let allStudents = []; 
         let presentStudentsByDate = [];
         let absentStudentsByDate = [];
 
-        // ตั้งค่าวันที่ปัจจุบันให้ Date Picker เมื่อโหลดหน้า
-        document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('datePicker').value = today;
-            loadDashboardData(); // โหลดข้อมูลอัตโนมัติเมื่อเข้าหน้าเว็บ
+        // ==========================================
+        // ระบบ Authentication (ตรวจจับสถานะการล็อกอิน)
+        // ==========================================
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ถ้าล็อคอินแล้ว ให้ซ่อนหน้ากาก แล้วโหลดข้อมูลกราฟ
+                document.getElementById('auth-overlay').style.display = 'none';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('datePicker').value = today;
+                window.loadDashboardData(); 
+            } else {
+                // ถ้ายังไม่ล็อคอิน ให้แสดงหน้าจอให้กรอกรหัสผ่าน
+                document.getElementById('auth-overlay').style.display = 'flex';
+            }
         });
+
+        window.checkAuth = function() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPassword').value;
+
+            if(email === '' || pass === '') {
+                return Swal.fire('แจ้งเตือน', 'กรุณากรอกอีเมลและรหัสผ่าน', 'warning');
+            }
+
+            Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            signInWithEmailAndPassword(auth, email, pass)
+                .then(() => { Swal.close(); }) // สำเร็จ onAuthStateChanged จะจัดการต่อ
+                .catch(() => Swal.fire('ล้มเหลว', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error'));
+        };
+
+        window.logout = function() {
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    signOut(auth).then(() => {
+                        // ลบกราฟทิ้งตอนออกจากระบบ เพื่อความปลอดภัย
+                        if(presentChartInstance) presentChartInstance.destroy();
+                        if(absentChartInstance) absentChartInstance.destroy();
+                    });
+                }
+            });
+        };
 
         // ==========================================
         // ฟังก์ชันโหลดและประมวลผลข้อมูล
@@ -210,14 +292,14 @@
             Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             try {
-                // 1. โหลดข้อมูลนักเรียนทั้งหมดจาก Google Sheet (ทำเพียงครั้งเดียวเพื่อประหยัดทรัพยากร)
+                // โหลดชื่อนักเรียนจาก Google Sheet
                 if (allStudents.length === 0) {
                     const gasUrl = 'https://script.google.com/macros/s/AKfycbyjgfLVdbMWnEEntotJ8w2O9StmJKfj5-CdN-NRnsWufmty25QwGPdrAm6dlXVaK-xbLQ/exec';
                     const response = await fetch(gasUrl);
                     const data = await response.json();
                     
                     allStudents = data.map(student => {
-                        const roomStr = student['ชั้น'] || ''; // ดึงค่าจากคอลัมน์ 'ชั้น' (เช่น ม.1/1)
+                        const roomStr = student['ชั้น'] || ''; 
                         const gradeStr = roomStr.includes('/') ? roomStr.split('/')[0] : roomStr; 
                         
                         return {
@@ -230,7 +312,7 @@
                     });
                 }
 
-                // 2. โหลดข้อมูลการสแกนจาก Firebase ในวันที่เลือก
+                // โหลดข้อมูลการสแกนจาก Firebase
                 const startDate = new Date(selectedDate + "T00:00:00");
                 const endDate = new Date(selectedDate + "T23:59:59");
 
@@ -244,7 +326,6 @@
                     if(docData.studentId) scannedIds.add(String(docData.studentId).trim());
                 });
 
-                // 3. แยกกลุ่ม มา / ไม่มา
                 presentStudentsByDate = [];
                 absentStudentsByDate = [];
 
@@ -256,8 +337,6 @@
                     }
                 });
 
-                // 4. จัดกลุ่มข้อมูลเพื่อทำกราฟตามระดับชั้น
-                // ดึงรายชื่อระดับชั้นที่ไม่ซ้ำกันออกมา
                 const uniqueGradesSet = new Set(allStudents.map(s => s.grade).filter(g => g !== 'ไม่ระบุ'));
                 const grades = Array.from(uniqueGradesSet).sort(); 
 
@@ -280,7 +359,6 @@
             if(presentChartInstance) presentChartInstance.destroy();
             if(absentChartInstance) absentChartInstance.destroy();
 
-            // กราฟ: มาเรียน
             const ctxPresent = document.getElementById('presentChart').getContext('2d');
             presentChartInstance = new Chart(ctxPresent, {
                 type: 'bar',
@@ -296,9 +374,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     onClick: (event, elements) => {
                         if (elements.length > 0) {
                             const gradeIndex = elements[0].index;
@@ -308,7 +384,6 @@
                 }
             });
 
-            // กราฟ: ยังไม่มา
             const ctxAbsent = document.getElementById('absentChart').getContext('2d');
             absentChartInstance = new Chart(ctxAbsent, {
                 type: 'bar',
@@ -324,9 +399,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     onClick: (event, elements) => {
                         if (elements.length > 0) {
                             const gradeIndex = elements[0].index;
@@ -338,9 +411,8 @@
         }
 
         // ==========================================
-        // ฟังก์ชันแสดงรายละเอียดเมื่อคลิกกราฟ
+        // ฟังก์ชันแสดงรายละเอียด
         // ==========================================
-        
         function showPresentDetails(grade) {
             const studentsInGrade = presentStudentsByDate.filter(s => s.grade === grade);
             const roomSummary = {};
@@ -348,55 +420,23 @@
                 roomSummary[s.room] = (roomSummary[s.room] || 0) + 1;
             });
 
-            // เรียงลำดับห้อง
             const sortedRooms = Object.keys(roomSummary).sort();
-
-            let tableHTML = `
-                <div class="swal-table-container">
-                <table class="swal-table">
-                    <thead><tr><th>ชั้น/ห้อง</th><th>จำนวนที่มาแล้ว (คน)</th></tr></thead>
-                    <tbody>
-            `;
-            
-            sortedRooms.forEach(room => {
-                tableHTML += `<tr><td>${room}</td><td>${roomSummary[room]}</td></tr>`;
-            });
+            let tableHTML = `<div class="swal-table-container"><table class="swal-table"><thead><tr><th>ชั้น/ห้อง</th><th>จำนวนที่มาแล้ว (คน)</th></tr></thead><tbody>`;
+            sortedRooms.forEach(room => { tableHTML += `<tr><td>${room}</td><td>${roomSummary[room]}</td></tr>`; });
             tableHTML += `</tbody></table></div>`;
 
-            Swal.fire({
-                title: `สถิติมาเรียนระดับชั้น ${grade}`,
-                html: tableHTML,
-                width: '600px',
-                confirmButtonText: 'ปิด',
-                confirmButtonColor: '#2c3e50'
-            });
+            Swal.fire({ title: `สถิติมาเรียนระดับชั้น ${grade}`, html: tableHTML, width: '600px', confirmButtonText: 'ปิด', confirmButtonColor: '#2c3e50' });
         }
 
         function showAbsentDetails(grade) {
             const studentsInGrade = absentStudentsByDate.filter(s => s.grade === grade);
-            
-            // เรียงลำดับตามห้องและรหัส
             studentsInGrade.sort((a, b) => a.room.localeCompare(b.room) || a.studentId.localeCompare(b.studentId));
 
-            let tableHTML = `
-                <div class="swal-table-container">
-                <table class="swal-table">
-                    <thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>ชั้น</th></tr></thead>
-                    <tbody>
-            `;
-            
-            studentsInGrade.forEach(s => {
-                tableHTML += `<tr><td>${s.studentId}</td><td>${s.name}</td><td>${s.room}</td></tr>`;
-            });
+            let tableHTML = `<div class="swal-table-container"><table class="swal-table"><thead><tr><th>รหัส</th><th>ชื่อ-สกุล</th><th>ชั้น</th></tr></thead><tbody>`;
+            studentsInGrade.forEach(s => { tableHTML += `<tr><td>${s.studentId}</td><td>${s.name}</td><td>${s.room}</td></tr>`; });
             tableHTML += `</tbody></table></div>`;
 
-            Swal.fire({
-                title: `รายชื่อผู้ที่ยังไม่มา (${grade})<br><span style="font-size:18px; color:red;">รวม ${studentsInGrade.length} คน</span>`,
-                html: tableHTML,
-                width: '700px',
-                confirmButtonText: 'ปิด',
-                confirmButtonColor: '#2c3e50'
-            });
+            Swal.fire({ title: `รายชื่อผู้ที่ยังไม่มา (${grade})<br><span style="font-size:18px; color:red;">รวม ${studentsInGrade.length} คน</span>`, html: tableHTML, width: '700px', confirmButtonText: 'ปิด', confirmButtonColor: '#2c3e50' });
         }
 
         // ==========================================
@@ -409,26 +449,15 @@
                 return;
             }
 
-            // เตรียมข้อมูล: คนที่มาเรียน
             const presentData = presentStudentsByDate.map(s => ({
-                "รหัสนักเรียน": s.studentId,
-                "ชื่อ-สกุล": s.name,
-                "ระดับชั้น": s.grade,
-                "ห้อง": s.room,
-                "สถานะ": "มาเรียน"
+                "รหัสนักเรียน": s.studentId, "ชื่อ-สกุล": s.name, "ระดับชั้น": s.grade, "ห้อง": s.room, "สถานะ": "มาเรียน"
             }));
 
-            // เตรียมข้อมูล: คนที่ยังไม่มา
             const absentData = absentStudentsByDate.map(s => ({
-                "รหัสนักเรียน": s.studentId,
-                "ชื่อ-สกุล": s.name,
-                "ระดับชั้น": s.grade,
-                "ห้อง": s.room,
-                "สถานะ": "ยังไม่มาเรียน"
+                "รหัสนักเรียน": s.studentId, "ชื่อ-สกุล": s.name, "ระดับชั้น": s.grade, "ห้อง": s.room, "สถานะ": "ยังไม่มาเรียน"
             }));
 
             const wb = XLSX.utils.book_new();
-            
             if (presentData.length > 0) {
                 const wsPresent = XLSX.utils.json_to_sheet(presentData);
                 XLSX.utils.book_append_sheet(wb, wsPresent, "รายชื่อผู้ที่มาเรียน");
