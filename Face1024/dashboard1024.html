@@ -212,7 +212,7 @@
             try {
                 // 1. โหลดข้อมูลนักเรียนทั้งหมดจาก Google Sheet (ทำเพียงครั้งเดียวเพื่อประหยัดทรัพยากร)
                 if (allStudents.length === 0) {
-                    const gasUrl = 'https://script.google.com/macros/s/AKfycbyvdgOnCm26KEHUeuUg7MRyGFZ-t4p6XZVObygxGXlr0uMbHrkxoKRcBKngMmwWTSB2aw/exec';
+                    const gasUrl = 'https://script.google.com/macros/s/AKfycbyjgfLVdbMWnEEntotJ8w2O9StmJKfj5-CdN-NRnsWufmty25QwGPdrAm6dlXVaK-xbLQ/exec';
                     const response = await fetch(gasUrl);
                     const data = await response.json();
                     
