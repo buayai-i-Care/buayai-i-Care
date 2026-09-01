@@ -228,14 +228,15 @@
             }
         });
 
-        // ดึงไฟล์โมเดลจาก Local Folder ใน GitHub
+  
+        // ดึงไฟล์โมเดลจาก ออนไลน์ให้ตรงกับหน้าสแกนเป๊ะๆ
         const humanConfig = {
-            backend: 'wasm', 
-            modelBasePath: './models/', 
+            backend: 'webgl', 
+            modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models/', // ⚠️ แก้ลิงก์ตรงนี้ครับ!
             filter: { equalization: true },
             face: {
                 enabled: true,
-                detector: { rotation: false, return: true },
+                detector: { rotation: true, return: true }, // ปรับให้หมุนหน้าได้เหมือนตอนสแกน
                 mesh: { enabled: true },
                 iris: { enabled: true },
                 description: { enabled: true }, 
