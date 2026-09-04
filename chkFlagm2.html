@@ -11,8 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- 📊 Library สำหรับสร้าง Excel แบบกำหนดฟอนต์และสีได้ (ExcelJS) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 
     <style>
         :root {
@@ -130,15 +130,22 @@
                 </div>
 
                 <!-- 🌟 สวิตซ์ 2 อัน ยุบขยายการ์ด / เริ่มต้น มา -->
-                <div class="d-flex flex-wrap gap-4 mb-3 p-3 bg-white rounded-4 shadow-sm border" style="max-width: 500px;">
+                <div class="d-flex flex-wrap gap-4 mb-3 p-3 bg-white rounded-4 shadow-sm border" style="max-width: 650px;">
                     <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
-                        <input class="form-check-input mt-0" type="checkbox" id="toggle-collapse-cards" checked onchange="handleToggleCollapse()">
+                        <input class="form-check-input mt-0" type="checkbox" id="toggle-collapse-cards" onchange="handleToggleCollapse()">
                         <label class="form-check-label small fw-bold text-dark" style="cursor: pointer;" for="toggle-collapse-cards">ยุบขยายการ์ดอัตโนมัติ</label>
                     </div>
                     <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
                         <input class="form-check-input mt-0" type="checkbox" id="toggle-default-present" checked onchange="render()">
                         <label class="form-check-label small fw-bold text-dark" style="cursor: pointer;" for="toggle-default-present">เริ่ม "มา" ทั้งหมด</label>
                     </div>
+                    <!-- 🌟 ปุ่มเปิดโหมดลากวางจัดแถว -->
+                    <button id="btn-toggle-sort" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" onclick="toggleSortMode()">
+                        <i class="bi bi-arrows-move"></i> จัดแถว
+                    </button>
+                    <button id="btn-reset-sort" class="btn btn-sm btn-outline-danger rounded-pill fw-bold d-none" onclick="resetSortOrder()">
+                        <i class="bi bi-arrow-counterclockwise"></i> ล้างการจัดแถว
+                    </button>
                 </div>
 
                 <div id="student-list" class="row g-2" style="padding-bottom: 120px;"></div>
@@ -221,8 +228,93 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <script>
+        // 🌟 โหมดลากวางจัดแถว
+        let sortableInstance = null;
+        let isSortMode = false;
+
+        function toggleSortMode() {
+            const container = document.getElementById('student-list');
+            const btnSort = document.getElementById('btn-toggle-sort');
+            const btnReset = document.getElementById('btn-reset-sort');
+            
+            isSortMode = !isSortMode;
+            
+            if (isSortMode) {
+                btnSort.innerHTML = '<i class="bi bi-check-circle"></i> บันทึกการจัดแถว';
+                btnSort.classList.replace('btn-outline-secondary', 'btn-warning');
+                if (localStorage.getItem(`studentOrder_${currentUser.assignedClass}`)) {
+                    btnReset.classList.remove('d-none');
+                }
+                
+                // ปิดการคลิกเช็คชื่อชั่วคราวระหว่างลากวาง
+                document.querySelectorAll('.btn-group-status, .status-display-badge').forEach(el => el.style.pointerEvents = 'none');
+                
+                sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    delay: 200, // delay สำหรับ touch screen ให้ลากวางได้ไม่ไปทับกับการเลื่อนจอ
+                    delayOnTouchOnly: true
+                });
+                
+                Swal.fire({
+                    title: 'เปิดโหมดจัดแถว',
+                    text: 'ใช้นิ้วแตะค้างที่ชื่อนักเรียนแล้วลากสลับตำแหน่งได้เลย เมื่อเสร็จแล้วให้กด "บันทึกการจัดแถว"',
+                    icon: 'info',
+                    timer: 3500,
+                    showConfirmButton: false
+                });
+            } else {
+                // บันทึกลำดับ
+                if (sortableInstance) {
+                    const newOrder = sortableInstance.toArray();
+                    localStorage.setItem(`studentOrder_${currentUser.assignedClass}`, JSON.stringify(newOrder));
+                    sortableInstance.destroy();
+                    sortableInstance = null;
+                }
+                
+                btnSort.innerHTML = '<i class="bi bi-arrows-move"></i> จัดแถว';
+                btnSort.classList.replace('btn-warning', 'btn-outline-secondary');
+                
+                // คืนค่าให้กดได้ปกติ
+                document.querySelectorAll('.btn-group-status, .status-display-badge').forEach(el => el.style.pointerEvents = 'auto');
+                
+                Swal.fire({
+                    title: 'บันทึกเรียบร้อย',
+                    text: 'ระบบจดจำรูปแบบการยืนแถวนี้ไว้ในเครื่องของคุณครูแล้วครับ',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                render(); // รีเฟรชหน้าจอให้เลขที่รันใหม่สวยๆ
+            }
+        }
+
+        function resetSortOrder() {
+            Swal.fire({
+                title: 'ยืนยันล้างการจัดแถว?',
+                text: "รายชื่อจะกลับไปเรียงตามเลขที่ปกติ",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ใช่, ล้างเลย',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem(`studentOrder_${currentUser.assignedClass}`);
+                    document.getElementById('btn-reset-sort').classList.add('d-none');
+                    if (isSortMode) {
+                        toggleSortMode(); // ปิดโหมดลากวาง
+                    } else {
+                        render();
+                    }
+                    Swal.fire('ล้างสำเร็จ', 'กลับไปเรียงตามเลขที่ปกติแล้ว', 'success');
+                }
+            });
+        }
+
         // ⚠️ ลิงก์ Web App Backend ของคุณครู (นำลิงก์ล่าสุดมาวางที่นี่)
         const API_URL = "https://script.google.com/macros/s/AKfycbwkVHI-PC-B2-y6XOQh39vfeohZbfGAqyG1pfd09gOZaVxxB_htdYY4YGx3Ia4I1VHN/exec"; 
 
@@ -303,18 +395,40 @@
             const container = document.getElementById('student-list');
             if(!studentData.length) return container.innerHTML = '<p class="text-center py-5">ไม่พบรายชื่อในระบบ</p>';
             
+            // 🌟 เรียงลำดับนักเรียนตามที่ครูเคยบันทึกไว้ในเครื่อง (ถ้ามี)
+            const savedOrder = JSON.parse(localStorage.getItem(`studentOrder_${currentUser.assignedClass}`) || 'null');
+            let displayData = [...studentData];
+            if (savedOrder && savedOrder.length > 0) {
+                // แสดงปุ่มล้างการจัดแถวถ้ามีการจัดลำดับไว้
+                document.getElementById('btn-reset-sort').classList.remove('d-none');
+                displayData.sort((a, b) => {
+                    const idxA = savedOrder.indexOf(String(a.id));
+                    const idxB = savedOrder.indexOf(String(b.id));
+                    return (idxA > -1 ? idxA : 999) - (idxB > -1 ? idxB : 999);
+                });
+            } else {
+                document.getElementById('btn-reset-sort').classList.add('d-none');
+            }
+
             // อ่านค่าจากสวิตซ์ควบคุม
             const isDefaultPresent = document.getElementById('toggle-default-present').checked;
             const shouldCollapse = document.getElementById('toggle-collapse-cards').checked;
             
-            container.innerHTML = studentData.map((std, i) => {
+            container.innerHTML = displayData.map((std, i) => {
+                // 🌟 ทริคลับ: แปลงลิงก์รูป Google Drive ให้เป็นภาพขนาดย่อ (ลดเน็ต 99%)
+                let optimizedImg = std.img;
+                if(optimizedImg && optimizedImg.includes('drive.google.com') && optimizedImg.includes('id=')) {
+                    const match = optimizedImg.match(/id=([a-zA-Z0-9_-]+)/);
+                    if(match) optimizedImg = `https://drive.google.com/thumbnail?id=${match[1]}&sz=150`;
+                }
+
                 // 🌟 ตรวจสอบเงื่อนไขตามสวิตซ์ "เริ่มต้นสถานะมา"
                 let initialStatus = '';
                 const isLeave = (std.preStatus === 'ลป' || std.preStatus === 'ลก');
                 if (isLeave) {
                     initialStatus = std.preStatus; // ถ้านักเรียนลา ให้แสดงว่าลาเสมอ
                 } else if (isDefaultPresent) {
-                    initialStatus = 'มา'; // ถ้าเปิดสวิตซ์ ให้ติ๊ก "มา" อัตโนมัติ
+                    initialStatus = 'มา'; // ถ้าเปิดสวิตซ์ ให้ติ๊ก "มา"อัตโนมัติ
                 }
                 
                 let badgeColor = 'bg-secondary';
@@ -329,7 +443,7 @@
                 const displayStatus = (initialStatus !== '') ? `${initialStatus} (แตะเพื่อแก้)` : '';
 
                 return `
-                <div class="col-12 col-md-6 col-xl-4">
+                <div class="col-12 col-md-6 col-xl-4" data-id="${std.id}">
                     <div class="student-card ${cardClass}" id="card-${std.id}">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="fw-bold d-flex align-items-center">
@@ -342,7 +456,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-3 img-wrapper">
-                            <img src="${std.img}" class="img-profile" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                            <img src="${optimizedImg}" loading="lazy" class="img-profile" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
                             <div class="flex-grow-1 btn-group-status">
                                 <div class="btn-group w-100">
                                     <input type="radio" class="btn-check" name="st-${std.id}" id="m-${std.id}" value="มา" ${initialStatus==='มา'?'checked':''} onchange="autoCollapse('${std.id}', 'มา')">
