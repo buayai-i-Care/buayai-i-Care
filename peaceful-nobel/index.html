@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามงาน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc; /* สบายตา */
+        }
+        
+        /* Timeline Styles */
+        .timeline-container {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 0.45rem;
+            top: 0.5rem;
+            bottom: 0;
+            width: 3px;
+            background-color: #e2e8f0;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-item:last-child::after {
+            content: '';
+            position: absolute;
+            left: -1.55rem;
+            top: 1.5rem;
+            bottom: -2rem;
+            width: 5px;
+            background-color: #f8fafc; /* Hide remaining line */
+            z-index: 1;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -2rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            background-color: #cbd5e1; /* Default gray */
+            border: 3px solid #f8fafc;
+            top: 0.25rem;
+            z-index: 2;
+        }
+        
+        /* Status Colors */
+        .status-completed .timeline-dot { background-color: #10b981; } /* Green */
+        .status-current .timeline-dot { background-color: #3b82f6; box-shadow: 0 0 0 4px #dbeafe; } /* Blue (Active) */
+        .status-returned .timeline-dot { background-color: #ef4444; } /* Red (Returned) */
+        
+        /* Text Colors */
+        .text-completed { color: #10b981; }
+        .text-current { color: #2563eb; font-weight: bold; }
+        .text-returned { color: #ef4444; font-weight: bold; }
+        
+        /* Utilities */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Screen: Login -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
+                <p class="text-gray-500 mt-2">ระบบติดตามงานองค์กร</p>
+            </div>
+            
+            <div class="mb-5">
+                <label class="block text-lg mb-2 text-gray-700 font-medium">แผนกของคุณ</label>
+                <select id="roleSelect" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition">
+                    <option value="">-- เลือกแผนก --</option>
+                    <option value="1">1. ตัดงบ</option>
+                    <option value="2">2. ร่าง 14 แผ่น</option>
+                    <option value="3">3. จัดซื้อจัดจ้าง</option>
+                    <option value="4">4. เสนอรองผู้อำนวยการ</option>
+                    <option value="5">5. ฝ่ายการเงิน</option>
+                    <option value="6">6. จ่ายเช็ค</option>
+                </select>
+            </div>
+            
+            <div class="mb-8">
+                <label class="block text-lg mb-2 text-gray-700 font-medium">รหัสผ่าน</label>
+                <input type="password" id="passwordInput" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="รหัสผ่านประจำแผนก">
+            </div>
+            
+            <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl hover:bg-blue-700 active:bg-blue-800 transition shadow-lg shadow-blue-200">
+                เข้าสู่ระบบ
+            </button>
+            <p id="loginError" class="text-red-500 text-center mt-4 hidden text-lg font-medium"><i class="fas fa-exclamation-circle mr-1"></i> รหัสผ่านไม่ถูกต้อง</p>
+        </div>
+    </div>
+
+    <!-- Screen: Main App -->
+    <div id="appScreen" class="hidden min-h-screen pb-24 bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white p-5 sticky top-0 z-10 shadow-sm border-b border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">ระบบติดตามงาน</h1>
+                <p id="userRoleDisplay" class="text-blue-600 font-medium text-lg mt-1"><i class="fas fa-user-circle mr-1"></i> แผนก: -</p>
+            </div>
+            <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition bg-gray-50 p-3 rounded-full">
+                <i class="fas fa-sign-out-alt text-2xl"></i>
+            </button>
+        </header>
+
+        <!-- Dashboard Widgets -->
+        <div class="p-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
+                    <div class="text-gray-500 mb-1">งานรอคุณจัดการ</div>
+                    <div class="text-4xl font-bold text-blue-600" id="myTaskCount">0</div>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
+                    <div class="text-gray-500 mb-1">งานทั้งหมดในระบบ</div>
+                    <div class="text-4xl font-bold text-gray-700" id="totalTaskCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="px-5">
+            <div class="flex justify-between items-end mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">รายการงาน</h2>
+                <!-- Only step 1 can create tasks -->
+                <button id="btnCreateTask" onclick="showNewTaskModal()" class="hidden bg-green-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 shadow-sm transition">
+                    <i class="fas fa-plus mr-1"></i> สร้างงานใหม่
+                </button>
+            </div>
+            
+            <div id="taskList" class="space-y-4">
+                <!-- Task Cards -->
+                <div class="text-center p-10 text-gray-400">กำลังโหลดข้อมูล...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal (Timeline UI) -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">รายละเอียดงาน</h2>
+                <button onclick="closeModal('taskModal')" class="bg-gray-100 text-gray-500 hover:text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto">
+                <div class="mb-8 bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                    <div class="text-sm text-blue-500 font-medium mb-1">เลขที่งาน: <span id="modalTaskId"></span></div>
+                    <div class="text-xl font-bold text-gray-800" id="modalTaskSubject"></div>
+                    <div class="text-gray-500 text-sm mt-2"><i class="far fa-clock"></i> เริ่มเมื่อ: <span id="modalTaskDate"></span></div>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-800 mb-6 px-2">สถานะการดำเนินงาน</h3>
+                
+                <!-- Timeline UI -->
+                <div class="timeline-container px-2" id="timelineContainer">
+                    <!-- Dynamic Timeline -->
+                </div>
+
+                <!-- Action Area (Show if task is at user's step) -->
+                <div id="actionArea" class="mt-8 pt-6 border-t border-gray-100 hidden">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">ส่วนการจัดการของคุณ</h3>
+                    
+                    <div class="mb-5">
+                        <label class="block text-gray-600 mb-2 font-medium">บันทึกข้อความ / เหตุผล (ถ้ามี)</label>
+                        <textarea id="actionNote" class="w-full p-4 border border-gray-200 rounded-2xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition text-lg" rows="2" placeholder="เช่น เอกสารครบถ้วน, หรือ เหตุผลที่ส่งคืน..."></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="updateTaskStatus('returned')" class="bg-red-50 text-red-600 border border-red-200 font-bold py-4 rounded-2xl text-lg hover:bg-red-100 transition flex flex-col items-center justify-center">
+                            <i class="fas fa-undo mb-1 text-xl"></i> ส่งคืนแก้ไข
+                        </button>
+                        <button onclick="updateTaskStatus('completed')" class="bg-blue-600 text-white font-bold py-4 rounded-2xl text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex flex-col items-center justify-center">
+                            <i class="fas fa-arrow-right mb-1 text-xl"></i> ส่งต่อขั้นถัดไป
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Final Step Action Area -->
+                <div id="finalActionArea" class="mt-8 pt-6 border-t border-gray-100 hidden">
+                    <div class="bg-green-50 p-6 rounded-3xl border border-green-200 text-center">
+                        <h3 class="text-2xl font-bold text-green-700 mb-2">ขั้นตอนสุดท้าย</h3>
+                        <p class="text-green-600 mb-6">ดำเนินการจ่ายเช็คและปิดงานนี้</p>
+                        <button onclick="updateTaskStatus('finished')" class="w-full bg-green-500 text-white font-bold py-4 rounded-2xl text-xl hover:bg-green-600 transition shadow-lg shadow-green-200 flex justify-center items-center gap-2">
+                            <i class="fas fa-check-circle"></i> ปิดงานเรียบร้อย
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div id="newTaskModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">สร้างงานใหม่</h2>
+                <button onclick="closeModal('newTaskModal')" class="bg-gray-100 text-gray-500 hover:text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <label class="block text-lg mb-2 text-gray-700 font-medium">ชื่องาน / โครงการ</label>
+                    <input type="text" id="newTaskSubject" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="ระบุชื่องาน">
+                </div>
+                <button onclick="createTask()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    บันทึกและเริ่มงาน (ตัดงบ)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
