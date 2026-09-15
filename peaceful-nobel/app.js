@@ -436,11 +436,11 @@ async function createTask() {
         id: tempId,
         subject: subject,
         createdAt: new Date().toISOString(),
-        currentStep: 1, 
+        currentStep: 2, 
         status: "pending",
         history: [
-            // บันทึก owner ลงใน history แถวแรก เพื่อให้รู้ว่าใครเป็นคนสร้าง
-            { step: 1, status: "pending", note: "", date: new Date().toISOString(), owner: currentTeacherId }
+            { step: 1, status: "completed", note: "ขอดำเนินการ", date: new Date().toISOString(), owner: currentTeacherId },
+            { step: 2, status: "pending", note: "", date: "" }
         ]
     };
 
