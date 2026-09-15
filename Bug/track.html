@@ -1,80 +1,601 @@
-<!-- ... existing code ... -->
-            <!-- พื้นที่ปุ่มแก้ไขสำหรับผู้สร้างงาน (เมื่อถูกตีกลับ) -->
-<!-- ... existing code ... -->
-<script>
-// 1. ตั้งค่าเส้นทางเดินเอกสาร (Workflow Rules)
-// ระบบจะเช็คว่าใครล็อคอิน และจะแสดงปุ่มก็ต่อเมื่อสถานะงานตรงกับที่ตั้งไว้
-const WORKFLOW_RULES = {
-    'u2': { 
-        canProcess: 'STEP_2', // u2 จะเห็นปุ่มเมื่อสถานะงานคือ STEP_2 (รอ 14 แผ่น)
-        onProceed: { status: 'STEP_3', actionText: 'ส่งต่อให้ รองธานินท์' },
-        onReturn: { status: 'RETURN_1', actionText: 'ส่งคืนให้ ครูผู้สร้างงาน (t)' }
-    },
-    'u3': { 
-        canProcess: 'STEP_3', // u3 จะเห็นปุ่มเมื่อสถานะงานคือ STEP_3 (รอรองธานินท์)
-        onProceed: { status: 'STEP_4', actionText: 'ส่งต่อให้ ส่งของตรวจรับ' },
-        onReturn: { status: 'RETURN_2', actionText: 'ส่งคืนให้ 14 แผ่น' }
-    },
-    'u4': { 
-        canProcess: 'STEP_4', // u4 จะเห็นปุ่มเมื่อสถานะงานคือ STEP_4 (รอส่งของตรวจรับ)
-        onProceed: { status: 'STEP_5', actionText: 'ส่งต่อให้ การเงิน' },
-        onReturn: { status: 'RETURN_3', actionText: 'ส่งคืนให้ รองธานินท์' }
-    },
-    'u5': { 
-        canProcess: 'STEP_5', // u5 จะเห็นปุ่มเมื่อสถานะงานคือ STEP_5 (รอการเงิน)
-        onProceed: { status: 'STEP_6', actionText: 'ออกเช็คจ่ายเงิน (เสร็จสิ้น)' },
-        onReturn: { status: 'RETURN_4', actionText: 'ส่งคืนให้ ส่งของตรวจรับ' }
-    }
-};
-
-let currentSelectedTask = null; // เก็บข้อมูลงานที่กำลังเปิดดู
-
-// 2. ฟังก์ชันตรวจสอบเพื่อแสดงปุ่มเมื่อผู้ใช้กดดูรายละเอียดงาน
-function checkAndShowButtons(taskStatus) {
-    const actionContainer = document.getElementById('action-buttons-container');
-    const currentUser = localStorage.getItem('username') || ''; // ดึงชื่อผู้ใช้ที่ล็อคอิน เช่น u3
-
-    // ซ่อนปุ่มไว้ก่อนเป็นค่าเริ่มต้น
-    actionContainer.classList.add('hidden'); 
-
-    // เช็คว่า User ที่ล็อคอินมีอยู่ในกฎหรือไม่ และสถานะงานตรงกับหน้าที่เขาไหม
-    if (WORKFLOW_RULES[currentUser] && WORKFLOW_RULES[currentUser].canProcess === taskStatus) {
-        // ถ้าตรงกัน ให้แสดงกล่องปุ่มขึ้นมา
-        actionContainer.classList.remove('hidden');
-    }
-}
-
-// 3. ฟังก์ชันเมื่อเจ้าหน้าที่กดปุ่ม "เรียบร้อยดำเนินต่อไปได้" หรือ "ส่งคืน"
-async function processTask(actionType) {
-    const currentUser = localStorage.getItem('username');
-    const rule = WORKFLOW_RULES[currentUser];
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบติดตามงบประมาณ (Task Tracing)</title>
     
-    if (!rule) {
-        alert("ไม่มีสิทธิ์ดำเนินการในขั้นตอนนี้");
-        return;
-    }
-
-    // กำหนดสถานะใหม่และข้อความที่จะบันทึกลง Timeline ตามปุ่มที่กด
-    let newStatus = '';
-    let actionMessage = '';
-
-    if (actionType === 'proceed') {
-        newStatus = rule.onProceed.status;
-        actionMessage = rule.onProceed.actionText;
-    } else if (actionType === 'return') {
-        newStatus = rule.onReturn.status;
-        actionMessage = rule.onReturn.actionText;
-    }
-
-    // แจ้งให้ผู้ใช้กรอก Note สั้นๆ (ไม่บังคับ)
-    const note = prompt(`กำลังจะ${actionMessage}\nคุณสามารถพิมพ์หมายเหตุเพิ่มเติมได้ (ถ้ามี):`, "") || "-";
-
-    // ... (ส่วนนี้คือโค้ดที่คุณต้องนำตัวแปร newStatus, actionMessage, note ส่ง API ไปที่ Google Sheets ต่อไป) ...
-    console.log(`[จำลองการส่ง API] ส่งงาน: ${currentSelectedTask.TaskID} ไปสถานะ: ${newStatus}, หมายเหตุ: ${note}`);
+    <!-- โหลด Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    alert(`ดำเนินการสำเร็จ! ${actionMessage}`);
-    // ปิดหน้าต่างรายละเอียดและรีเฟรชรายการงาน
-    // closeDetailModal();
-    // loadTasks(); 
-}
-<!-- ... existing code ... -->
+    <!-- โหลดฟอนต์ TH Sarabun New เพื่อให้อ่านง่ายสำหรับผู้ใหญ่ -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ตั้งค่าฟอนต์หลักของระบบ */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f3f4f6; /* สีพื้นหลังเทาอ่อน สบายตา */
+            -webkit-tap-highlight-color: transparent; /* เอาแถบสีฟ้าตอนกดมือถือออก */
+        }
+        
+        /* สไตล์สำหรับกล่องแจ้งเตือน (Toast) */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* แต่ง Scrollbar ให้ดูสะอาด */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+            <div class="mb-6">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">ระบบติดตามงบประมาณ</h1>
+                <p class="text-gray-500 mt-2 text-lg">เข้าสู่ระบบเพื่อดำเนินการ</p>
+            </div>
+            
+            <input type="text" id="username-input" placeholder="รหัสผู้ใช้ (เช่น t1, u2, u3)" 
+                class="w-full text-center text-xl p-4 border border-gray-300 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            
+            <button onclick="login()" class="w-full bg-blue-600 text-white font-bold text-xl py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all">
+                เข้าสู่ระบบ
+            </button>
+            <p class="text-red-500 mt-4 hidden text-lg" id="login-error">กรุณากรอกรหัสผู้ใช้</p>
+        </div>
+    </div>
+
+    <div id="main-screen" class="hidden min-h-screen pb-24">
+        <!-- แถบด้านบน (Header) -->
+        <header class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">รายการงาน</h2>
+                    <p class="text-gray-500 text-lg">ผู้ใช้: <span id="display-user" class="font-semibold text-blue-600"></span></p>
+                </div>
+                <button onclick="logout()" class="text-red-500 font-bold text-lg p-2 bg-red-50 rounded-lg">
+                    ออกจากระบบ
+                </button>
+            </div>
+        </header>
+
+        <!-- พื้นที่แสดงรายการงาน -->
+        <main class="max-w-3xl mx-auto px-4 py-6">
+            <!-- สถานะกำลังโหลด -->
+            <div id="loading-tasks" class="text-center py-10">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+                <p class="text-gray-500 text-xl">กำลังดึงข้อมูลงาน...</p>
+            </div>
+
+            <!-- กล่องรายการงานจะถูกแทรกลงที่นี่โดย JS -->
+            <div id="task-list-container" class="space-y-4"></div>
+        </main>
+
+        <!-- ปุ่มลอย (FAB) สำหรับสร้างงาน (จะแสดงเฉพาะคุณครู t) -->
+        <button id="btn-create-task" onclick="openCreateModal()" class="hidden fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 transition-transform transform active:scale-95 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                <h3 class="text-2xl font-bold text-gray-800">สร้างงาน/ตัดงบใหม่</h3>
+                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 p-2">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6 flex-1 overflow-y-auto">
+                <label class="block text-gray-700 font-bold mb-2 text-xl">ชื่องาน / รายการตัดงบ</label>
+                <textarea id="new-task-title" rows="3" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xl" placeholder="พิมพ์ชื่อโครงการหรือรายการ..."></textarea>
+            </div>
+            <div class="p-6 border-t border-gray-100 bg-gray-50">
+                <button id="btn-submit-task" onclick="submitNewTask()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 text-xl transition-all">
+                    บันทึกและส่งให้ 14 แผ่น
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-end sm:items-center sm:p-4">
+        <!-- แอนิเมชันเด้งขึ้นจากด้านล่างในมือถือ -->
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] sm:h-[80vh] flex flex-col transform transition-transform duration-300 translate-y-0">
+            <!-- ส่วนหัว -->
+            <div class="p-5 border-b border-gray-100 flex justify-between items-start bg-gray-50 rounded-t-3xl">
+                <div>
+                    <span id="detail-task-id" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold mb-2 inline-block"></span>
+                    <h3 id="detail-title" class="text-2xl font-bold text-gray-800 leading-tight"></h3>
+                </div>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 bg-gray-200 rounded-full p-1">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <!-- ส่วนเส้นเวลา (Timeline) -->
+            <div class="flex-1 overflow-y-auto p-6 bg-white relative">
+                <h4 class="text-xl font-bold text-gray-700 mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ประวัติการส่งงาน
+                </h4>
+                
+                <div id="loading-timeline" class="text-center py-8 hidden">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-4 border-blue-600"></div>
+                </div>
+
+                <div id="timeline-container" class="relative pl-4 space-y-6">
+                    <!-- เส้นแนวตั้ง -->
+                    <div class="absolute left-[27px] top-4 bottom-4 w-1 bg-gray-200 rounded"></div>
+                    <!-- รายการไทม์ไลน์จะถูกแทรกลงที่นี่ -->
+                </div>
+            </div>
+
+            <!-- ส่วนปุ่มกดดำเนินการ (จะสร้างอัตโนมัติตามสิทธิ์) -->
+            <div class="p-6 border-t border-gray-100 bg-white shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+                <div id="action-buttons-container" class="w-full">
+                    <!-- โค้ด JS จะมาวาดปุ่มที่นี่ -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ตัวแสดงข้อความแจ้งเตือน (Toast) -->
+    <div id="toast"></div>
+
+    <script>
+        // ==========================================
+        // ตั้งค่าระบบ
+        // ==========================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyCp7ca99CFL77pnPUjkF4VNv0MnTpArPeNtRX4q-1KIgzLvnfX0Md7_HKp5DiA6HfI/exec';
+        
+        let allTasks = [];
+        let currentSelectedTask = null;
+
+        // คำแปลสถานะให้ผู้ใช้อ่านเข้าใจง่าย
+        const STATUS_THAI = {
+            'STEP_2': 'รอตรวจสอบ (14 แผ่น)',
+            'STEP_3': 'รอตรวจสอบ (รองธานินท์)',
+            'STEP_4': 'รอตรวจสอบ (ส่งของตรวจรับ)',
+            'STEP_5': 'รอตรวจสอบ (การเงิน)',
+            'STEP_6': 'เสร็จสิ้น (ออกเช็ค)',
+            'RETURN_1': 'ตีกลับ: รอครูผู้สร้างงานแก้ไข',
+            'RETURN_2': 'ตีกลับ: รอ 14 แผ่นแก้ไข',
+            'RETURN_3': 'ตีกลับ: รอรอบธานินท์แก้ไข',
+            'RETURN_4': 'ตีกลับ: รอส่งของตรวจรับแก้ไข'
+        };
+
+        // กฎเส้นทางการส่งเอกสาร (Workflow Rules)
+        const WORKFLOW_RULES = {
+            'u2': { 
+                canProcess: 'STEP_2', 
+                onProceed: { status: 'STEP_3', text: 'รองธานินท์' },
+                onReturn: { status: 'RETURN_1', text: 'ครูผู้สร้างงาน' }
+            },
+            'u3': { 
+                canProcess: 'STEP_3', 
+                onProceed: { status: 'STEP_4', text: 'ส่งของตรวจรับ' },
+                onReturn: { status: 'RETURN_2', text: '14 แผ่น' }
+            },
+            'u4': { 
+                canProcess: 'STEP_4', 
+                onProceed: { status: 'STEP_5', text: 'การเงิน' },
+                onReturn: { status: 'RETURN_3', text: 'รองธานินท์' }
+            },
+            'u5': { 
+                canProcess: 'STEP_5', 
+                onProceed: { status: 'STEP_6', text: 'ออกเช็คจ่ายเงิน (เสร็จสิ้น)' },
+                onReturn: { status: 'RETURN_4', text: 'ส่งของตรวจรับ' }
+            }
+        };
+
+        // ==========================================
+        // ระบบแจ้งเตือน (UI)
+        // ==========================================
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // ==========================================
+        // ระบบ Login
+        // ==========================================
+        window.onload = function() {
+            const savedUser = localStorage.getItem('username');
+            if(savedUser) {
+                showDashboard(savedUser);
+            }
+        };
+
+        function login() {
+            const username = document.getElementById('username-input').value.trim().toLowerCase();
+            if(!username) {
+                document.getElementById('login-error').classList.remove('hidden');
+                return;
+            }
+            localStorage.setItem('username', username);
+            showDashboard(username);
+        }
+
+        function logout() {
+            localStorage.removeItem('username');
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('username-input').value = '';
+        }
+
+        function showDashboard(username) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('display-user').innerText = username;
+            
+            // เช็คว่าเป็นครู (t) หรือไม่ ถ้าใช่ให้โชว์ปุ่มสร้างงาน
+            const isTeacher = username.startsWith('t');
+            if(isTeacher) {
+                document.getElementById('btn-create-task').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-create-task').classList.add('hidden');
+            }
+
+            fetchTasks();
+        }
+
+        // ==========================================
+        // ดึงและแสดงรายการงาน
+        // ==========================================
+        async function fetchTasks() {
+            const container = document.getElementById('task-list-container');
+            const loader = document.getElementById('loading-tasks');
+            
+            container.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(API_URL + '?action=getTasks');
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    allTasks = result.data.reverse(); // เอาอันล่าสุดขึ้นก่อน
+                    renderTasks();
+                } else {
+                    showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                }
+            } catch (error) {
+                showToast('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+                console.error(error);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('task-list-container');
+            container.innerHTML = '';
+
+            if(allTasks.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-gray-500 text-xl">ยังไม่มีรายการงานในระบบ</div>';
+                return;
+            }
+
+            const currentUser = localStorage.getItem('username');
+            const isTeacher = currentUser.startsWith('t');
+
+            allTasks.forEach(task => {
+                // กรองงาน: ถ้าเป็นครู ให้เห็นเฉพาะงานที่ตัวเองสร้าง
+                if(isTeacher && task.CreatedBy !== currentUser) return;
+
+                const isReturn = String(task.Status).includes('RETURN');
+                const isDone = task.Status === 'STEP_6';
+                
+                // กำหนดสีพื้นหลังบัตรงานตามสถานะ
+                let statusColor = 'bg-blue-100 text-blue-800'; // ปกติ
+                if (isReturn) statusColor = 'bg-red-100 text-red-800 animate-pulse'; // ตีกลับ
+                if (isDone) statusColor = 'bg-green-100 text-green-800'; // เสร็จ
+
+                const statusText = STATUS_THAI[task.Status] || task.Status;
+
+                const cardHtml = `
+                    <div onclick="openDetailModal('${task.TaskID}')" class="bg-white p-5 rounded-2xl shadow border border-gray-100 active:bg-gray-50 transition-colors cursor-pointer relative overflow-hidden">
+                        ${isReturn ? '<div class="absolute top-0 left-0 w-2 h-full bg-red-500"></div>' : ''}
+                        ${isDone ? '<div class="absolute top-0 left-0 w-2 h-full bg-green-500"></div>' : ''}
+                        
+                        <div class="flex justify-between items-start mb-2 pl-2">
+                            <span class="text-sm font-bold text-gray-400">${task.TaskID}</span>
+                            <span class="px-3 py-1 rounded-full text-sm font-bold ${statusColor}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 pl-2 line-clamp-2">${task.Title}</h3>
+                        <div class="mt-3 text-gray-500 text-sm flex justify-between pl-2">
+                            <span>ผู้สร้าง: ${task.CreatedBy}</span>
+                            <span>${new Date(task.CreatedAt).toLocaleDateString('th-TH')}</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // ==========================================
+        // การสร้างงานใหม่ (สำหรับ t)
+        // ==========================================
+        function openCreateModal() {
+            document.getElementById('create-modal').classList.remove('hidden');
+            document.getElementById('new-task-title').value = '';
+        }
+        function closeCreateModal() {
+            document.getElementById('create-modal').classList.add('hidden');
+        }
+
+        async function submitNewTask() {
+            const title = document.getElementById('new-task-title').value.trim();
+            if(!title) {
+                showToast('กรุณากรอกชื่องาน');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-task');
+            btn.innerHTML = 'กำลังบันทึก...';
+            btn.disabled = true;
+
+            const currentUser = localStorage.getItem('username');
+            const taskId = 'TSK-' + new Date().getTime(); // สุ่มรหัสงาน
+
+            const payload = {
+                action: 'addTask',
+                TaskID: taskId,
+                Title: title,
+                Status: 'STEP_2', // ส่งให้ 14 แผ่นทันที
+                CreatedBy: currentUser
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                if(result.status === 'success') {
+                    showToast('สร้างงานเรียบร้อยแล้ว');
+                    closeCreateModal();
+                    
+                    // บันทึก History แรกลง Timeline ด้วย
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'addTracking',
+                            TaskID: taskId,
+                            Sender: currentUser,
+                            Receiver: 'u2', // ส่งหา 14 แผ่น
+                            Action: 'STEP_2',
+                            Note: 'สร้างรายการตัดงบใหม่'
+                        })
+                    });
+                    
+                    fetchTasks(); // โหลดข้อมูลใหม่
+                }
+            } catch(e) {
+                showToast('เกิดข้อผิดพลาดในการบันทึก');
+            } finally {
+                btn.innerHTML = 'บันทึกและส่งให้ 14 แผ่น';
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // หน้ารายละเอียดงาน (Timeline & Workflow Rules)
+        // ==========================================
+        async function openDetailModal(taskId) {
+            currentSelectedTask = allTasks.find(t => t.TaskID === taskId);
+            if(!currentSelectedTask) return;
+
+            // นำข้อมูลลงหน้าต่าง
+            document.getElementById('detail-task-id').innerText = currentSelectedTask.TaskID;
+            document.getElementById('detail-title').innerText = currentSelectedTask.Title;
+            
+            // เปิดหน้าต่าง
+            document.getElementById('detail-modal').classList.remove('hidden');
+            
+            // ตรวจสอบสิทธิ์เพื่อวาดปุ่ม
+            checkAndShowButtons(currentSelectedTask.Status);
+
+            // โหลด Timeline
+            await fetchTimeline(taskId);
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        async function fetchTimeline(taskId) {
+            const container = document.getElementById('timeline-container');
+            const loader = document.getElementById('loading-timeline');
+            
+            container.innerHTML = '<div class="absolute left-[27px] top-4 bottom-4 w-1 bg-gray-200 rounded"></div>'; // รีเซ็ตโครงสร้าง
+            loader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(API_URL + '?action=getTimeline&taskId=' + taskId);
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    const timelineData = result.data;
+                    timelineData.forEach((track, index) => {
+                        const isLast = index === timelineData.length - 1;
+                        const isError = String(track.Action).includes('RETURN');
+                        
+                        // สีจุดวงกลม
+                        let dotColor = 'bg-blue-500 border-white';
+                        if (isError) dotColor = 'bg-red-500 border-white';
+                        if (isLast && track.Action === 'STEP_6') dotColor = 'bg-green-500 border-white';
+
+                        const html = `
+                            <div class="relative pl-12 pb-6">
+                                <!-- จุด Timeline -->
+                                <div class="absolute left-[15px] top-1 w-7 h-7 rounded-full border-4 ${dotColor} shadow z-10 flex items-center justify-center"></div>
+                                
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-gray-800 text-lg">${STATUS_THAI[track.Action] || track.Action}</span>
+                                        <span class="text-xs text-gray-400">${track.Timestamp}</span>
+                                    </div>
+                                    <div class="text-gray-600 text-sm mt-2 bg-gray-50 p-2 rounded-lg">
+                                        ${track.Note || 'ไม่มีหมายเหตุ'}
+                                    </div>
+                                    <div class="text-xs text-gray-400 mt-2 text-right font-semibold">
+                                        ผู้ดำเนินการ: ${track.Sender}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', html);
+                    });
+                }
+            } catch (error) {
+                container.innerHTML += '<p class="pl-12 text-red-500">โหลดประวัติไม่สำเร็จ</p>';
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // ฟังก์ชันหัวใจสำคัญ: วาดปุ่มตามสิทธิ์ผู้ใช้งาน (Workflow Engine)
+        function checkAndShowButtons(taskStatus) {
+            const actionContainer = document.getElementById('action-buttons-container');
+            const currentUser = localStorage.getItem('username') || ''; 
+            const isTeacher = currentUser.startsWith('t'); 
+
+            // ล้างข้อมูลเก่า
+            actionContainer.innerHTML = '';
+            
+            // กรณีเป็นครู (t)
+            if (isTeacher) {
+                // จะเห็นปุ่มก็ต่อเมื่อสถานะคือ RETURN_1 เท่านั้น
+                if (taskStatus === 'RETURN_1') {
+                    actionContainer.innerHTML = `
+                        <button onclick="processTask('resubmit')" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 text-xl flex items-center justify-center gap-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            ส่งคืนการแก้ไข (ส่งไป 14 แผ่น)
+                        </button>
+                    `;
+                } else {
+                    actionContainer.innerHTML = `<p class="text-center text-gray-500 p-2 text-lg">กำลังอยู่ในขั้นตอน: ${STATUS_THAI[taskStatus] || taskStatus}</p>`;
+                }
+            } 
+            // กรณีเป็นเจ้าหน้าที่ (u2, u3, u4, u5)
+            else {
+                const rule = WORKFLOW_RULES[currentUser];
+                // จะเห็นปุ่ม 2 ปุ่ม ก็ต่อเมื่อสถานะงานตรงกับความรับผิดชอบของตัวเอง
+                if (rule && rule.canProcess === taskStatus) {
+                    actionContainer.innerHTML = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="processTask('return')" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-xl shadow-sm border border-red-200 hover:bg-red-100 text-lg flex flex-col items-center justify-center gap-1 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>ส่งคืนเพื่อแก้ไข</span>
+                            </button>
+                            <button onclick="processTask('proceed')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 text-lg flex flex-col items-center justify-center gap-1 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>เรียบร้อยดำเนินต่อไปได้</span>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionContainer.innerHTML = `<p class="text-center text-gray-500 p-2 text-lg">รายการนี้ไม่ได้อยู่ในขั้นตอนความรับผิดชอบของคุณ</p>`;
+                }
+            }
+        }
+
+        // ฟังก์ชันดำเนินการเมื่อกดปุ่ม (ส่งข้อมูลไปฐานข้อมูล)
+        async function processTask(actionType) {
+            const currentUser = localStorage.getItem('username');
+            const isTeacher = currentUser.startsWith('t');
+            
+            let newStatus = '';
+            let actionMessage = '';
+
+            // กำหนดปลายทางตามกฎ
+            if (isTeacher) {
+                if (actionType === 'resubmit') {
+                    newStatus = 'STEP_2'; 
+                    actionMessage = 'ส่งแก้ไขเอกสารเรียบร้อยแล้ว';
+                }
+            } else {
+                const rule = WORKFLOW_RULES[currentUser];
+                if (actionType === 'proceed') {
+                    newStatus = rule.onProceed.status;
+                    actionMessage = `ส่งต่อให้ ${rule.onProceed.text} เรียบร้อย`;
+                } else if (actionType === 'return') {
+                    newStatus = rule.onReturn.status;
+                    actionMessage = `ส่งคืนให้ ${rule.onReturn.text} เพื่อแก้ไขเรียบร้อย`;
+                }
+            }
+
+            // แสดงหน้าจอโหลดระหว่างส่ง
+            const actionContainer = document.getElementById('action-buttons-container');
+            actionContainer.innerHTML = '<div class="text-center py-4 text-blue-600 font-bold text-lg animate-pulse">กำลังประมวลผล...</div>';
+
+            const payload = {
+                action: 'addTracking',
+                TaskID: currentSelectedTask.TaskID,
+                Sender: currentUser,
+                Receiver: 'System', // อนาคตสามารถระบุตัวบุคคลได้
+                Action: newStatus,
+                Note: actionType === 'return' ? 'พบข้อผิดพลาด ส่งคืนเพื่อแก้ไข' : 'ตรวจสอบเรียบร้อย ดำเนินการต่อ'
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast(actionMessage);
+                    closeDetailModal();
+                    fetchTasks(); // รีเฟรชหน้ารายการ
+                }
+            } catch (error) {
+                showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                checkAndShowButtons(currentSelectedTask.Status); // วาดปุ่มกลับคืนมาให้กดใหม่
+            }
+        }
+    </script>
+</body>
+</html>
