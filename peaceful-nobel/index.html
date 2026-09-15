@@ -70,89 +70,109 @@
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-gray-800 bg-gray-200 min-h-screen flex justify-center">
 
-    <!-- Screen: Login -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
-        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
-            <div class="text-center mb-8">
-                <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fas fa-tasks"></i>
+    <!-- Wrapper สำหรับสลับหน้าจอ (Mobile/Desktop) -->
+    <div id="deviceWrapper" class="w-full min-h-screen flex flex-col bg-gray-50 shadow-2xl relative transition-all duration-300 ease-in-out">
+        
+        <!-- Screen: Login -->
+        <div id="loginScreen" class="flex-1 flex items-center justify-center p-6">
+            <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
+                <div class="text-center mb-8">
+                    <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
+                    <p class="text-gray-500 mt-2">ระบบติดตามงานองค์กร</p>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
-                <p class="text-gray-500 mt-2">ระบบติดตามงานองค์กร</p>
-            </div>
-            
-            <div class="mb-5">
-                <label class="block text-lg mb-2 text-gray-700 font-medium">แผนก/ฝ่ายของคุณ</label>
-                <select id="roleSelect" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition">
-                    <option value="">-- เลือกฝ่าย --</option>
-                    <option value="1">1. คุณครู (ขอดำเนินการ)</option>
-                    <option value="2">2. ตัดงบ</option>
-                    <option value="3">3. ร่าง 14 แผ่น</option>
-                    <option value="4">4. จัดซื้อจัดจ้าง</option>
-                    <option value="5">5. เสนอรองผู้อำนวยการ</option>
-                    <option value="6">6. ฝ่ายการเงิน</option>
-                    <option value="7">7. จ่ายเช็ค</option>
-                </select>
-            </div>
-            
-            <div class="mb-8">
-                <label class="block text-lg mb-2 text-gray-700 font-medium">รหัสผ่าน</label>
-                <input type="password" id="passwordInput" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="เช่น 123 หรือ t1">
-                <p class="text-sm text-gray-400 mt-2">*คุณครูใช้รหัสประจำตัว t1 ถึง t120</p>
-            </div>
-            
-            <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl hover:bg-blue-700 active:bg-blue-800 transition shadow-lg shadow-blue-200">
-                เข้าสู่ระบบ
-            </button>
-            <p id="loginError" class="text-red-500 text-center mt-4 hidden text-lg font-medium"><i class="fas fa-exclamation-circle mr-1"></i> รหัสผ่านไม่ถูกต้อง</p>
-        </div>
-    </div>
-
-    <!-- Screen: Main App -->
-    <div id="appScreen" class="hidden min-h-screen pb-24 bg-gray-50">
-        <!-- Header -->
-        <header class="bg-white p-5 sticky top-0 z-10 shadow-sm border-b border-gray-200 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">ระบบติดตามงาน</h1>
-                <p id="userRoleDisplay" class="text-blue-600 font-medium text-lg mt-1"><i class="fas fa-user-circle mr-1"></i> แผนก: -</p>
-            </div>
-            <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition bg-gray-50 p-3 rounded-full">
-                <i class="fas fa-sign-out-alt text-2xl"></i>
-            </button>
-        </header>
-
-        <!-- Dashboard Widgets -->
-        <div class="p-5">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
-                    <div class="text-gray-500 mb-1">งานรอคุณจัดการ</div>
-                    <div class="text-4xl font-bold text-blue-600" id="myTaskCount">0</div>
+                
+                <div class="mb-5">
+                    <label class="block text-lg mb-2 text-gray-700 font-medium">แผนก/ฝ่ายของคุณ</label>
+                    <select id="roleSelect" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition">
+                        <option value="">-- เลือกฝ่าย --</option>
+                        <option value="1">1. คุณครู (ขอดำเนินการ)</option>
+                        <option value="2">2. ตัดงบ</option>
+                        <option value="3">3. ร่าง 14 แผ่น</option>
+                        <option value="4">4. จัดซื้อจัดจ้าง</option>
+                        <option value="5">5. เสนอรองผู้อำนวยการ</option>
+                        <option value="6">6. ฝ่ายการเงิน</option>
+                        <option value="7">7. จ่ายเช็ค</option>
+                    </select>
                 </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
-                    <div class="text-gray-500 mb-1">งานทั้งหมดในระบบ</div>
-                    <div class="text-4xl font-bold text-gray-700" id="totalTaskCount">0</div>
+                
+                <div class="mb-8">
+                    <label class="block text-lg mb-2 text-gray-700 font-medium">รหัสผ่าน</label>
+                    <input type="password" id="passwordInput" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="เช่น 123 หรือ t1">
+                    <p class="text-sm text-gray-400 mt-2">*คุณครูใช้รหัสประจำตัว t1 ถึง t120</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Task List -->
-        <div class="px-5">
-            <div class="flex justify-between items-end mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">รายการงาน</h2>
-                <!-- Only step 1 can create tasks -->
-                <button id="btnCreateTask" onclick="showNewTaskModal()" class="hidden bg-green-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 shadow-sm transition">
-                    <i class="fas fa-plus mr-1"></i> สร้างงานใหม่
+                
+                <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl hover:bg-blue-700 active:bg-blue-800 transition shadow-lg shadow-blue-200">
+                    เข้าสู่ระบบ
                 </button>
-            </div>
-            
-            <div id="taskList" class="space-y-4">
-                <!-- Task Cards -->
-                <div class="text-center p-10 text-gray-400">กำลังโหลดข้อมูล...</div>
+                <p id="loginError" class="text-red-500 text-center mt-4 hidden text-lg font-medium"><i class="fas fa-exclamation-circle mr-1"></i> รหัสผ่านไม่ถูกต้อง</p>
             </div>
         </div>
-    </div>
+
+        <!-- Screen: Main App -->
+        <div id="appScreen" class="hidden flex-1 pb-24">
+            <!-- Header -->
+            <header class="bg-white p-5 sticky top-0 z-10 shadow-sm border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">ระบบติดตามงาน</h1>
+                    <p id="userRoleDisplay" class="text-blue-600 font-medium text-lg mt-1"><i class="fas fa-user-circle mr-1"></i> แผนก: -</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleDeviceView()" id="btnDeviceToggle" class="text-gray-500 hover:text-blue-600 transition bg-gray-50 w-10 h-10 flex items-center justify-center rounded-full" title="สลับหน้าจอ (มือถือ/คอมพิวเตอร์)">
+                        <i class="fas fa-mobile-alt text-xl"></i>
+                    </button>
+                    <button onclick="showStatsModal()" class="text-gray-500 hover:text-blue-600 transition bg-gray-50 w-10 h-10 flex items-center justify-center rounded-full" title="สารสนเทศ">
+                        <i class="fas fa-chart-pie text-xl"></i>
+                    </button>
+                    <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition bg-gray-50 w-10 h-10 flex items-center justify-center rounded-full" title="ออกจากระบบ">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Widgets -->
+            <div class="p-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
+                        <div class="text-gray-500 mb-1 text-center">งานรอคุณจัดการ</div>
+                        <div class="text-4xl font-bold text-blue-600" id="myTaskCount">0</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center items-center">
+                        <div class="text-gray-500 mb-1 text-center">งานทั้งหมดในระบบ</div>
+                        <div class="text-4xl font-bold text-gray-700" id="totalTaskCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task List -->
+            <div class="px-5">
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">รายการงาน</h2>
+                    <!-- Only step 1 can create tasks -->
+                    <button id="btnCreateTask" onclick="showNewTaskModal()" class="hidden bg-green-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 shadow-sm transition">
+                        <i class="fas fa-plus mr-1"></i> สร้างงานใหม่
+                    </button>
+                </div>
+                
+                <div id="taskList" class="space-y-4">
+                    <!-- Task Cards -->
+                    <div class="text-center p-10 text-gray-400">กำลังโหลดข้อมูล...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer ทุกหน้า -->
+        <footer class="mt-auto py-4 bg-white border-t border-gray-200 text-center">
+            <p class="text-gray-500 text-sm font-medium">
+                <i class="fas fa-school mr-1"></i> โรงเรียนบัวใหญ่ อบจ.นครราชสีมา
+            </p>
+        </footer>
+
+    </div> <!-- End Device Wrapper -->
 
     <!-- Task Detail Modal (Timeline UI) -->
     <div id="taskModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
@@ -176,7 +196,7 @@
                 <h3 class="text-xl font-bold text-gray-800 mb-6 px-2">สถานะการดำเนินงาน</h3>
                 
                 <!-- Timeline UI -->
-                <div class="timeline-container px-2" id="timelineContainer">
+                <div class="px-2" id="timelineContainer">
                     <!-- Dynamic Timeline -->
                 </div>
 
@@ -235,7 +255,23 @@
         </div>
     </div>
 
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 z-50 flex items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white rounded-t-3xl sm:rounded-t-3xl z-10">
+                <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-chart-pie text-blue-500 mr-2"></i> สารสนเทศระบบ</h2>
+                <button onclick="closeModal('statsModal')" class="bg-gray-100 text-gray-500 hover:text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto" id="statsContent">
+                <!-- Data will be populated here -->
+                <div class="text-center text-gray-400">กำลังประมวลผล...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

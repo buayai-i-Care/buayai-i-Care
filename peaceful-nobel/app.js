@@ -47,13 +47,19 @@ function login() {
     let displayName = ROLES[roleId].name;
 
     if (ROLES[roleId].isTeacher) {
-        // เช็คว่ารหัสผ่านคือ t1 ถึง t120
-        const teacherMatch = password.match(/^t([1-9][0-9]?|1[0-1][0-9]|120)$/); // t1 - t120
-        if (teacherMatch) {
-            isValid = true;
-            currentTeacherId = password;
-            displayName = `คุณครู (${password})`;
-        } else {
+        // ลบช่องว่างทั้งหมดออกเผื่อเผลอพิมพ์เว้นวรรค เช่น "t 1" -> "t1"
+        const cleanPassword = password.replace(/\s+/g, '');
+        
+        if (cleanPassword.startsWith('t')) {
+            const num = parseInt(cleanPassword.substring(1), 10);
+            if (!isNaN(num) && num >= 1 && num <= 120) {
+                isValid = true;
+                currentTeacherId = 't' + num; // แปลงให้เป็นฟอร์แมตมาตรฐาน t1, t2
+                displayName = `คุณครู (${currentTeacherId})`;
+            }
+        }
+        
+        if (!isValid) {
             errorMsg.textContent = "รหัสคุณครูไม่ถูกต้อง (ต้องเป็น t1 ถึง t120)";
         }
     } else {
@@ -99,21 +105,43 @@ function logout() {
 // ฟังก์ชัน Data & UI Rendering (โหลดข้อมูลและแสดงผล)
 // -------------------------------------------------------------
 async function loadData() {
-    document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>กำลังโหลดข้อมูล...</div>';
+    // 1. ดึงข้อมูลเก่าที่เคยโหลดไว้ (Cache) มาแสดงผลให้ผู้ใช้ดูก่อนทันที (ความเร็ว 0 วินาที)
+    const cachedData = localStorage.getItem('tasksCache');
+    if (cachedData) {
+        try {
+            currentTasks = JSON.parse(cachedData);
+            renderDashboard();
+            renderTaskList();
+        } catch(e) {
+            console.error("Cache error", e);
+        }
+    } else {
+        // ถ้าไม่มี Cache ค่อยขึ้นหน้าโหลดหมุนๆ
+        document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>กำลังดึงข้อมูลล่าสุด...</div>';
+    }
     
+    // 2. ไปดึงข้อมูลล่าสุดจาก Google Sheets เบื้องหลัง
     try {
         const response = await fetch(GAS_API_URL + "?action=getTasks");
         const result = await response.json();
         
         if (result.status === "success") {
-            currentTasks = result.data || [];
-            renderDashboard();
-            renderTaskList();
+            const newTasks = result.data || [];
+            
+            // อัปเดต Cache
+            localStorage.setItem('tasksCache', JSON.stringify(newTasks));
+            
+            // ถ้าข้อมูลใหม่หน้าตาไม่เหมือนของเก่า ให้โหลดทับแล้วอัปเดตจอ
+            if (JSON.stringify(newTasks) !== JSON.stringify(currentTasks)) {
+                currentTasks = newTasks;
+                renderDashboard();
+                renderTaskList();
+            }
         } else {
-            document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
+            if (!cachedData) document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
         }
     } catch (error) {
-        document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>';
+        if (!cachedData) document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>';
     }
 }
 
@@ -244,7 +272,30 @@ function renderTimeline(task) {
     const container = document.getElementById('timelineContainer');
     container.innerHTML = '';
 
-    WORKFLOW_STEPS.forEach((step, index) => {
+    const currentStepContainer = document.createElement('div');
+    currentStepContainer.className = 'mb-6';
+    
+    const fullTimelineContainer = document.createElement('div');
+    fullTimelineContainer.className = 'hidden mt-6 pt-6 border-t border-gray-100';
+    
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'w-full text-center text-blue-600 font-medium text-sm py-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition mt-2 flex items-center justify-center gap-2';
+    toggleBtn.innerHTML = '<i class="fas fa-list-ul"></i> แสดงประวัติและขั้นตอนทั้งหมด';
+    toggleBtn.onclick = () => {
+        if (fullTimelineContainer.classList.contains('hidden')) {
+            fullTimelineContainer.classList.remove('hidden');
+            toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i> ซ่อนประวัติและขั้นตอนทั้งหมด';
+        } else {
+            fullTimelineContainer.classList.add('hidden');
+            toggleBtn.innerHTML = '<i class="fas fa-list-ul"></i> แสดงประวัติและขั้นตอนทั้งหมด';
+        }
+    };
+
+    const timelineWrapper = document.createElement('div');
+    timelineWrapper.className = 'timeline-container px-2'; 
+    fullTimelineContainer.appendChild(timelineWrapper);
+
+    WORKFLOW_STEPS.forEach((step) => {
         const historyEntries = task.history.filter(h => h.step === step.id);
         const lastEntry = historyEntries.length > 0 ? historyEntries[historyEntries.length - 1] : null;
         
@@ -273,6 +324,32 @@ function renderTimeline(task) {
                 titleClass = 'text-blue-600 font-bold';
                 detailHtml = `<p class="text-sm text-blue-500 mt-1"><i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ</p>`;
             }
+            
+            let cardBg = 'bg-blue-50 border-blue-200';
+            let iconClass = 'text-blue-500 fas fa-arrow-right';
+            if (task.status === 'returned') {
+                cardBg = 'bg-red-50 border-red-200';
+                iconClass = 'text-red-500 fas fa-undo';
+            } else if (task.status === 'finished') {
+                cardBg = 'bg-green-50 border-green-200';
+                iconClass = 'text-green-500 fas fa-check-circle';
+            }
+            
+            const prominentCard = document.createElement('div');
+            prominentCard.className = `p-5 rounded-2xl border-2 ${cardBg} shadow-sm`;
+            prominentCard.innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 shrink-0 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                        <i class="${iconClass} text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">ขั้นตอนปัจจุบัน</div>
+                        <h4 class="text-xl ${titleClass} mb-1">${step.name}</h4>
+                        ${detailHtml}
+                    </div>
+                </div>
+            `;
+            currentStepContainer.appendChild(prominentCard);
         }
 
         const item = document.createElement('div');
@@ -284,8 +361,12 @@ function renderTimeline(task) {
                 ${detailHtml}
             </div>
         `;
-        container.appendChild(item);
+        timelineWrapper.appendChild(item);
     });
+
+    container.appendChild(currentStepContainer);
+    container.appendChild(toggleBtn);
+    container.appendChild(fullTimelineContainer);
 }
 
 // -------------------------------------------------------------
@@ -324,6 +405,9 @@ async function updateTaskStatus(action) {
     closeModal('taskModal');
     renderDashboard();
     renderTaskList();
+    
+    // บันทึกลงเครื่องทันที
+    localStorage.setItem('tasksCache', JSON.stringify(currentTasks));
     
     showToast("กำลังบันทึกข้อมูล...");
 
@@ -365,6 +449,9 @@ async function createTask() {
     renderDashboard();
     renderTaskList();
     
+    // บันทึกลงเครื่องทันที
+    localStorage.setItem('tasksCache', JSON.stringify(currentTasks));
+    
     showToast("กำลังสร้างงานใหม่...");
 
     try {
@@ -386,6 +473,124 @@ function showNewTaskModal() {
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
+}
+
+let isMobileView = false;
+function toggleDeviceView() {
+    isMobileView = !isMobileView;
+    const wrapper = document.getElementById('deviceWrapper');
+    const btnIcon = document.querySelector('#btnDeviceToggle i');
+    
+    if (isMobileView) {
+        wrapper.classList.add('max-w-md', 'border-x', 'border-gray-300');
+        btnIcon.className = 'fas fa-desktop text-xl'; // เปลี่ยนไอคอนเป็นคอมพิวเตอร์
+    } else {
+        wrapper.classList.remove('max-w-md', 'border-x', 'border-gray-300');
+        btnIcon.className = 'fas fa-mobile-alt text-xl'; // เปลี่ยนไอคอนเป็นมือถือ
+    }
+}
+
+function showStatsModal() {
+    const statsContent = document.getElementById('statsContent');
+    document.getElementById('statsModal').classList.remove('hidden');
+    
+    const tasks = currentTasks;
+    if (!tasks || tasks.length === 0) {
+        statsContent.innerHTML = '<div class="text-center text-gray-500 py-10">ยังไม่มีข้อมูลในระบบ</div>';
+        return;
+    }
+    
+    const total = tasks.length;
+    const finished = tasks.filter(t => t.status === 'finished').length;
+    const pending = total - finished;
+    
+    // งานแต่ละขั้นตอน
+    const stepsCount = {};
+    WORKFLOW_STEPS.forEach(s => stepsCount[s.id] = 0);
+    tasks.forEach(t => {
+        if(t.status !== 'finished' && stepsCount[t.currentStep] !== undefined) {
+            stepsCount[t.currentStep]++;
+        }
+    });
+    
+    // เวลาเฉลี่ย
+    let totalDays = 0;
+    let finishedTasksWithTime = 0;
+    tasks.forEach(t => {
+        if (t.status === 'finished' && t.history && t.history.length > 0) {
+            const start = new Date(t.createdAt);
+            // หาประวัติอันสุดท้ายที่มี date
+            let endEntry = null;
+            for (let i = t.history.length - 1; i >= 0; i--) {
+                if (t.history[i].date) {
+                    endEntry = t.history[i];
+                    break;
+                }
+            }
+            if (endEntry && endEntry.date) {
+                const end = new Date(endEntry.date);
+                const diffTime = Math.abs(end - start);
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                if (diffDays === 0) diffDays = 1; // นับขั้นต่ำ 1 วันถ้าเสร็จวันเดียวกัน
+                totalDays += diffDays;
+                finishedTasksWithTime++;
+            }
+        }
+    });
+    const avgDays = finishedTasksWithTime > 0 ? (totalDays / finishedTasksWithTime).toFixed(1) : 0;
+    
+    // คุณครู
+    const teacherMap = {};
+    tasks.forEach(t => {
+        if (t.history && t.history[0] && t.history[0].owner) {
+            const owner = t.history[0].owner;
+            teacherMap[owner] = (teacherMap[owner] || 0) + 1;
+        }
+    });
+    const teacherCount = Object.keys(teacherMap).length;
+    
+    // สร้าง HTML
+    let stepHtml = '';
+    WORKFLOW_STEPS.forEach(s => {
+        stepHtml += `<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+            <span class="text-gray-600">ขั้นที่ ${s.id} ${s.name}</span>
+            <span class="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">${stepsCount[s.id]} งาน</span>
+        </div>`;
+    });
+    
+    statsContent.innerHTML = `
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-2xl text-center border border-blue-100">
+                <div class="text-sm text-gray-500 mb-1">งานทั้งหมด</div>
+                <div class="text-3xl font-bold text-blue-700">${total}</div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-2xl text-center border border-green-100">
+                <div class="text-sm text-gray-500 mb-1">สำเร็จแล้ว</div>
+                <div class="text-3xl font-bold text-green-700">${finished}</div>
+            </div>
+            <div class="bg-yellow-50 p-4 rounded-2xl text-center border border-yellow-100">
+                <div class="text-sm text-gray-500 mb-1">กำลังดำเนินการ</div>
+                <div class="text-3xl font-bold text-yellow-700">${pending}</div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-2xl text-center border border-purple-100">
+                <div class="text-sm text-gray-500 mb-1">เวลาเฉลี่ยจนสำเร็จ</div>
+                <div class="text-3xl font-bold text-purple-700">${avgDays} <span class="text-base font-normal text-purple-500">วัน</span></div>
+            </div>
+        </div>
+        
+        <div class="mb-6 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-users text-gray-400 mr-2"></i>ข้อมูลผู้เสนองาน</h3>
+            <div class="flex justify-between items-center py-2">
+                <span class="text-gray-600">จำนวนคุณครูที่เสนองาน</span>
+                <span class="font-bold text-gray-800">${teacherCount} ท่าน</span>
+            </div>
+        </div>
+        
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fas fa-tasks text-gray-400 mr-2"></i>งานที่ค้างในแต่ละขั้นตอน</h3>
+            ${stepHtml}
+        </div>
+    `;
 }
 
 function showToast(message, autoHide = false) {
