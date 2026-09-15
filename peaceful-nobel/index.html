@@ -84,21 +84,23 @@
             </div>
             
             <div class="mb-5">
-                <label class="block text-lg mb-2 text-gray-700 font-medium">แผนกของคุณ</label>
+                <label class="block text-lg mb-2 text-gray-700 font-medium">แผนก/ฝ่ายของคุณ</label>
                 <select id="roleSelect" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition">
-                    <option value="">-- เลือกแผนก --</option>
-                    <option value="1">1. ตัดงบ</option>
-                    <option value="2">2. ร่าง 14 แผ่น</option>
-                    <option value="3">3. จัดซื้อจัดจ้าง</option>
-                    <option value="4">4. เสนอรองผู้อำนวยการ</option>
-                    <option value="5">5. ฝ่ายการเงิน</option>
-                    <option value="6">6. จ่ายเช็ค</option>
+                    <option value="">-- เลือกฝ่าย --</option>
+                    <option value="1">1. คุณครู (ขอดำเนินการ)</option>
+                    <option value="2">2. ตัดงบ</option>
+                    <option value="3">3. ร่าง 14 แผ่น</option>
+                    <option value="4">4. จัดซื้อจัดจ้าง</option>
+                    <option value="5">5. เสนอรองผู้อำนวยการ</option>
+                    <option value="6">6. ฝ่ายการเงิน</option>
+                    <option value="7">7. จ่ายเช็ค</option>
                 </select>
             </div>
             
             <div class="mb-8">
                 <label class="block text-lg mb-2 text-gray-700 font-medium">รหัสผ่าน</label>
-                <input type="password" id="passwordInput" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="รหัสผ่านประจำแผนก">
+                <input type="password" id="passwordInput" class="w-full p-4 border border-gray-200 rounded-2xl text-xl bg-gray-50 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition" placeholder="เช่น 123 หรือ t1">
+                <p class="text-sm text-gray-400 mt-2">*คุณครูใช้รหัสประจำตัว t1 ถึง t120</p>
             </div>
             
             <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl hover:bg-blue-700 active:bg-blue-800 transition shadow-lg shadow-blue-200">

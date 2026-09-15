@@ -1,127 +1,104 @@
 // -------------------------------------------------------------
 // การตั้งค่าทั่วไป (Configuration)
 // -------------------------------------------------------------
-// รหัสผ่านกลางสำหรับแต่ละแผนก (เพื่อความเรียบง่าย ใช้รหัสเดียวกันหมดตามที่ระบุ)
 const ROLES = {
-    "1": { name: "ตัดงบ", password: "123" },
-    "2": { name: "ร่าง 14 แผ่น", password: "123" },
-    "3": { name: "จัดซื้อจัดจ้าง", password: "123" },
-    "4": { name: "เสนอรองผู้อำนวยการ", password: "123" },
-    "5": { name: "ฝ่ายการเงิน", password: "123" },
-    "6": { name: "จ่ายเช็ค", password: "123" }
+    "1": { name: "คุณครู (ขอดำเนินการ)", isTeacher: true },
+    "2": { name: "ตัดงบ", password: "123" },
+    "3": { name: "ร่าง 14 แผ่น", password: "123" },
+    "4": { name: "จัดซื้อจัดจ้าง", password: "123" },
+    "5": { name: "เสนอรองผู้อำนวยการ", password: "123" },
+    "6": { name: "ฝ่ายการเงิน", password: "123" },
+    "7": { name: "จ่ายเช็ค", password: "123" }
 };
 
 const WORKFLOW_STEPS = [
-    { id: 1, name: "ตัดงบ" },
-    { id: 2, name: "ร่าง 14 แผ่น" },
-    { id: 3, name: "จัดซื้อจัดจ้าง" },
-    { id: 4, name: "เสนอรองผู้อำนวยการ" },
-    { id: 5, name: "ฝ่ายการเงิน" },
-    { id: 6, name: "จ่ายเช็ค" }
+    { id: 1, name: "ขอดำเนินการ (คุณครู)" },
+    { id: 2, name: "ตัดงบ" },
+    { id: 3, name: "ร่าง 14 แผ่น" },
+    { id: 4, name: "จัดซื้อจัดจ้าง" },
+    { id: 5, name: "เสนอรองผู้อำนวยการ" },
+    { id: 6, name: "ฝ่ายการเงิน" },
+    { id: 7, name: "จ่ายเช็ค" }
 ];
 
 // ตัวแปรเก็บสถานะการเข้าสู่ระบบ
 let currentUserRole = null;
+let currentTeacherId = null; // เก็บ t1 - t120 ถ้าเป็นครู
 let currentTasks = []; 
 let activeTaskId = null;
 
-// ข้อมูลจำลอง (Mock Data) สำหรับทดสอบ UI ก่อนเชื่อมต่อ GAS
-const MOCK_TASKS = [
-    {
-        id: "T-001",
-        subject: "โครงการจัดซื้อคอมพิวเตอร์สำนักงาน",
-        createdAt: "2026-09-15T09:00:00",
-        currentStep: 3, 
-        status: "pending", // pending, returned, finished
-        history: [
-            { step: 1, status: "completed", note: "ตรวจสอบงบประมาณเรียบร้อย", date: "2026-09-15T09:15:00" },
-            { step: 2, status: "completed", note: "ร่างเอกสารผ่าน", date: "2026-09-15T10:30:00" },
-            { step: 3, status: "pending", note: "", date: "" }
-        ]
-    },
-    {
-        id: "T-002",
-        subject: "โครงการปรับปรุงภูมิทัศน์",
-        createdAt: "2026-09-14T14:00:00",
-        currentStep: 2,
-        status: "returned",
-        history: [
-            { step: 1, status: "completed", note: "ตัดงบเรียบร้อย", date: "2026-09-14T14:30:00" },
-            { step: 2, status: "completed", note: "ส่งร่าง", date: "2026-09-14T15:00:00" },
-            { step: 3, status: "returned", note: "เอกสารไม่ครบ ขาดใบเสนอราคา", date: "2026-09-15T08:30:00" },
-            { step: 2, status: "returned", note: "", date: "" } // กลับมาที่สเตป 2
-        ]
-    },
-    {
-        id: "T-003",
-        subject: "เบิกจ่ายค่าเดินทาง",
-        createdAt: "2026-09-13T10:00:00",
-        currentStep: 6,
-        status: "pending",
-        history: [
-            { step: 1, status: "completed", note: "", date: "2026-09-13T10:30:00" },
-            { step: 2, status: "completed", note: "", date: "2026-09-13T11:00:00" },
-            { step: 3, status: "completed", note: "", date: "2026-09-13T13:00:00" },
-            { step: 4, status: "completed", note: "อนุมัติ", date: "2026-09-14T09:00:00" },
-            { step: 5, status: "completed", note: "ตรวจสอบเอกสารการเงินผ่าน", date: "2026-09-14T14:00:00" },
-            { step: 6, status: "pending", note: "", date: "" }
-        ]
-    }
-];
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlaVCmbjHhlXfxvboRFhxnqY8f5xCDKGpmpBC_Cvn9TYKKDIqnhLfBMAokbO8unHTR/exec";
 
 // -------------------------------------------------------------
 // ฟังก์ชัน Authentication (เข้าสู่ระบบ)
 // -------------------------------------------------------------
 function login() {
     const roleId = document.getElementById('roleSelect').value;
-    const password = document.getElementById('passwordInput').value;
+    const password = document.getElementById('passwordInput').value.trim().toLowerCase();
     const errorMsg = document.getElementById('loginError');
 
     if (!roleId || !password) {
-        errorMsg.textContent = "กรุณาเลือกแผนกและกรอกรหัสผ่าน";
+        errorMsg.textContent = "กรุณาเลือกฝ่ายและกรอกรหัสผ่าน";
         errorMsg.classList.remove('hidden');
         return;
     }
 
-    if (ROLES[roleId].password === password) {
-        // เข้าสู่ระบบสำเร็จ
+    let isValid = false;
+    let displayName = ROLES[roleId].name;
+
+    if (ROLES[roleId].isTeacher) {
+        // เช็คว่ารหัสผ่านคือ t1 ถึง t120
+        const teacherMatch = password.match(/^t([1-9][0-9]?|1[0-1][0-9]|120)$/); // t1 - t120
+        if (teacherMatch) {
+            isValid = true;
+            currentTeacherId = password;
+            displayName = `คุณครู (${password})`;
+        } else {
+            errorMsg.textContent = "รหัสคุณครูไม่ถูกต้อง (ต้องเป็น t1 ถึง t120)";
+        }
+    } else {
+        if (ROLES[roleId].password === password) {
+            isValid = true;
+            currentTeacherId = null;
+        } else {
+            errorMsg.textContent = "รหัสผ่านไม่ถูกต้อง";
+        }
+    }
+
+    if (isValid) {
         currentUserRole = parseInt(roleId);
         errorMsg.classList.add('hidden');
         
         // อัปเดต UI
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('appScreen').classList.remove('hidden');
-        document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-circle mr-1"></i> แผนก: ${ROLES[roleId].name}`;
+        document.getElementById('userRoleDisplay').innerHTML = `<i class="fas fa-user-circle mr-1"></i> ${displayName}`;
         
-        // ถ้าเป็นแผนก 1 (ตัดงบ) ให้แสดงปุ่มสร้างงาน
+        // ถ้าเป็นแผนก 1 (คุณครู) ให้แสดงปุ่มสร้างงาน
         if (currentUserRole === 1) {
             document.getElementById('btnCreateTask').classList.remove('hidden');
         } else {
             document.getElementById('btnCreateTask').classList.add('hidden');
         }
 
-        // โหลดข้อมูล Dashboard และรายการงาน
         loadData();
     } else {
-        errorMsg.textContent = "รหัสผ่านไม่ถูกต้อง";
         errorMsg.classList.remove('hidden');
     }
 }
 
 function logout() {
     currentUserRole = null;
+    currentTeacherId = null;
     document.getElementById('passwordInput').value = '';
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('appScreen').classList.add('hidden');
 }
 
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlaVCmbjHhlXfxvboRFhxnqY8f5xCDKGpmpBC_Cvn9TYKKDIqnhLfBMAokbO8unHTR/exec";
-
 // -------------------------------------------------------------
 // ฟังก์ชัน Data & UI Rendering (โหลดข้อมูลและแสดงผล)
 // -------------------------------------------------------------
 async function loadData() {
-    // แสดงสถานะกำลังโหลด
     document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>กำลังโหลดข้อมูล...</div>';
     
     try {
@@ -133,42 +110,52 @@ async function loadData() {
             renderDashboard();
             renderTaskList();
         } else {
-            console.error("Error fetching tasks:", result.message);
             document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล</div>';
         }
     } catch (error) {
-        console.error("Fetch error:", error);
         document.getElementById('taskList').innerHTML = '<div class="text-center p-10 text-red-500">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</div>';
     }
 }
 
+// ดึงรายการงานที่ผู้ใช้ควรเห็น
+function getVisibleTasks() {
+    if (currentUserRole === 1) {
+        // ถ้าเป็นครู ให้เห็นเฉพาะงานที่ตัวเองสร้าง
+        return currentTasks.filter(t => t.history && t.history[0] && t.history[0].owner === currentTeacherId);
+    }
+    // ฝ่ายอื่นๆ เห็นทั้งหมด
+    return currentTasks;
+}
+
 function renderDashboard() {
+    const visibleTasks = getVisibleTasks();
     let myCount = 0;
     
-    currentTasks.forEach(task => {
+    visibleTasks.forEach(task => {
         if (task.currentStep === currentUserRole && task.status !== 'finished') {
             myCount++;
         }
     });
 
     document.getElementById('myTaskCount').textContent = myCount;
-    document.getElementById('totalTaskCount').textContent = currentTasks.length;
+    document.getElementById('totalTaskCount').textContent = visibleTasks.length;
 }
 
 function renderTaskList() {
     const listContainer = document.getElementById('taskList');
     listContainer.innerHTML = '';
+    
+    const visibleTasks = getVisibleTasks();
 
-    if (currentTasks.length === 0) {
+    if (visibleTasks.length === 0) {
         listContainer.innerHTML = '<div class="text-center p-10 text-gray-400">ไม่มีงานในระบบ</div>';
         return;
     }
 
-    // เรียงงาน: งานที่อยู่แผนกตัวเองขึ้นก่อน แล้วตามด้วยงานอื่นๆ
-    const sortedTasks = [...currentTasks].sort((a, b) => {
+    const sortedTasks = [...visibleTasks].sort((a, b) => {
         if (a.currentStep === currentUserRole && b.currentStep !== currentUserRole) return -1;
         if (a.currentStep !== currentUserRole && b.currentStep === currentUserRole) return 1;
-        return new Date(b.createdAt) - new Date(a.createdAt); // ใหม่สุดขึ้นก่อน
+        return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
     sortedTasks.forEach(task => {
@@ -198,10 +185,13 @@ function renderTaskList() {
         card.onclick = () => openTaskDetail(task.id);
         
         const dateStr = new Date(task.createdAt).toLocaleDateString('th-TH');
+        
+        // แสดงชื่อครูเจ้าของเรื่อง
+        const ownerStr = task.history[0]?.owner ? ` • ของ: ${task.history[0].owner}` : '';
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-2">
-                <div class="text-sm text-gray-500 font-medium">${task.id} • ${dateStr}</div>
+                <div class="text-sm text-gray-500 font-medium">${task.id} • ${dateStr}${ownerStr}</div>
                 ${statusBadge}
             </div>
             <h3 class="text-xl font-bold text-gray-800 mb-3">${task.subject}</h3>
@@ -230,20 +220,19 @@ function openTaskDetail(taskId) {
 
     renderTimeline(task);
 
-    // Show/Hide Action Buttons
     const actionArea = document.getElementById('actionArea');
     const finalActionArea = document.getElementById('finalActionArea');
     
     actionArea.classList.add('hidden');
     finalActionArea.classList.add('hidden');
-    document.getElementById('actionNote').value = '';
+    if(document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
 
     if (task.currentStep === currentUserRole && task.status !== 'finished') {
-        if (currentUserRole === 6) {
-            // ขั้นตอนที่ 6: จ่ายเช็ค (ขั้นตอนสุดท้าย)
+        if (currentUserRole === 7) {
+            // ขั้นตอนที่ 7: จ่ายเช็ค (ขั้นตอนสุดท้าย)
             finalActionArea.classList.remove('hidden');
         } else {
-            // ขั้นตอนที่ 1-5
+            // ขั้นตอนที่ 1-6
             actionArea.classList.remove('hidden');
         }
     }
@@ -256,7 +245,6 @@ function renderTimeline(task) {
     container.innerHTML = '';
 
     WORKFLOW_STEPS.forEach((step, index) => {
-        // หาข้อมูลประวัติของขั้นตอนนี้
         const historyEntries = task.history.filter(h => h.step === step.id);
         const lastEntry = historyEntries.length > 0 ? historyEntries[historyEntries.length - 1] : null;
         
@@ -265,14 +253,12 @@ function renderTimeline(task) {
         let detailHtml = '<p class="text-sm text-gray-400 mt-1">ยังไม่ถึงขั้นตอน</p>';
 
         if (step.id < task.currentStep) {
-            // ผ่านมาแล้ว
             statusClass = 'status-completed';
             titleClass = 'text-gray-800';
             const note = lastEntry?.note ? `<div class="bg-gray-50 p-2 rounded-lg mt-2 text-sm text-gray-600 border border-gray-100"><i class="fas fa-comment-alt text-gray-400 mr-1"></i> ${lastEntry.note}</div>` : '';
             detailHtml = `<p class="text-sm text-green-600 mt-1"><i class="fas fa-check-circle"></i> เสร็จสิ้นแล้ว</p>${note}`;
         
         } else if (step.id === task.currentStep) {
-            // อยู่ที่ขั้นตอนนี้
             if (task.status === 'returned') {
                 statusClass = 'status-returned';
                 titleClass = 'text-red-600 font-bold';
@@ -303,16 +289,14 @@ function renderTimeline(task) {
 }
 
 // -------------------------------------------------------------
-// ฟังก์ชัน Action (อัปเดตสถานะ, สร้างงาน)
+// ฟังก์ชัน Action (อัปเดตสถานะ, สร้างงาน) - Optimistic UI
 // -------------------------------------------------------------
 async function updateTaskStatus(action) {
     const taskIndex = currentTasks.findIndex(t => t.id === activeTaskId);
     if (taskIndex === -1) return;
     
-    // โคลนออบเจ็กต์เพื่อไม่ให้กระทบ state ก่อนอัปเดตสำเร็จ
-    const task = JSON.parse(JSON.stringify(currentTasks[taskIndex])); 
+    const task = currentTasks[taskIndex]; 
     const note = document.getElementById('actionNote') ? document.getElementById('actionNote').value : '';
-    
     const now = new Date().toISOString();
 
     if (action === 'completed') {
@@ -333,28 +317,25 @@ async function updateTaskStatus(action) {
         task.history.push({ step: task.currentStep, status: 'returned', note: '', date: '' });
     }
     else if (action === 'finished') {
-        task.history.push({ step: 6, status: 'completed', note: note, date: now });
+        task.history.push({ step: 7, status: 'completed', note: note, date: now });
         task.status = 'finished';
     }
 
-    // เรียก GAS API อัปเดตข้อมูล
+    closeModal('taskModal');
+    renderDashboard();
+    renderTaskList();
+    
+    showToast("กำลังบันทึกข้อมูล...");
+
     try {
-        // ปิด modal ชั่วคราว และขึ้นโหลด
-        closeModal('taskModal');
-        document.getElementById('taskList').innerHTML = '<div class="text-center p-10"><i class="fas fa-spinner fa-spin text-2xl"></i> กำลังบันทึกข้อมูล...</div>';
-        
         await fetch(GAS_API_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'updateTask', task: task }) 
         });
-        
-        // รีเฟรชข้อมูลจากเซิร์ฟเวอร์
-        await loadData();
+        showToast("บันทึกข้อมูลเรียบร้อย ✅", true);
     } catch (error) {
-        console.error(error);
-        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-        await loadData(); // โหลดใหม่ถ้าพัง
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณารีเฟรชหน้าเว็บ");
     }
 }
 
@@ -365,31 +346,36 @@ async function createTask() {
         return;
     }
 
+    const tempId = `T-00${currentTasks.length + 1}`;
+    
     const newTask = {
-        // id จะถูกสร้างฝั่งเซิร์ฟเวอร์ (GAS) 
+        id: tempId,
         subject: subject,
         createdAt: new Date().toISOString(),
         currentStep: 1, 
         status: "pending",
         history: [
-            { step: 1, status: "pending", note: "", date: "" }
+            // บันทึก owner ลงใน history แถวแรก เพื่อให้รู้ว่าใครเป็นคนสร้าง
+            { step: 1, status: "pending", note: "", date: new Date().toISOString(), owner: currentTeacherId }
         ]
     };
 
+    currentTasks.unshift(newTask);
     closeModal('newTaskModal');
-    document.getElementById('taskList').innerHTML = '<div class="text-center p-10"><i class="fas fa-spinner fa-spin text-2xl"></i> กำลังสร้างงานใหม่...</div>';
+    renderDashboard();
+    renderTaskList();
+    
+    showToast("กำลังสร้างงานใหม่...");
 
     try {
-        await fetch(GAS_API_URL, { 
+        const response = await fetch(GAS_API_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'createTask', task: newTask }) 
         });
-        await loadData();
+        showToast("สร้างงานเรียบร้อย ✅", true);
     } catch (error) {
-        console.error(error);
-        alert("เกิดข้อผิดพลาดในการสร้างงาน");
-        await loadData();
+        alert("เกิดข้อผิดพลาดในการสร้างงาน กรุณารีเฟรชหน้าเว็บ");
     }
 }
 
@@ -400,4 +386,20 @@ function showNewTaskModal() {
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
+}
+
+function showToast(message, autoHide = false) {
+    let toast = document.getElementById('appToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-xl shadow-lg z-50 transition-opacity duration-300';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    
+    if (autoHide) {
+        setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
 }
