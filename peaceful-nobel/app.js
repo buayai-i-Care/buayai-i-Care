@@ -197,7 +197,9 @@ function renderTaskList() {
             statusBadge = '<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">ปิดงานแล้ว</span>';
             borderClass = 'border-green-200';
         } else if (task.status === 'returned') {
-            statusBadge = `<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-bold">ถูกส่งคืนจากขั้น ${task.currentStep + 1}</span>`;
+            const returnHistory = [...task.history].reverse().find(h => h.status === 'returned' && h.note);
+            const returnedFrom = returnHistory ? returnHistory.step : task.currentStep + 1;
+            statusBadge = `<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-bold">ถูกส่งคืนจากขั้น ${returnedFrom}</span>`;
             if (isMyTask) borderClass = 'border-red-300 shadow-md shadow-red-100';
         } else {
             if (isMyTask) {
@@ -254,6 +256,24 @@ function openTaskDetail(taskId) {
     actionArea.classList.add('hidden');
     finalActionArea.classList.add('hidden');
     if(document.getElementById('actionNote')) document.getElementById('actionNote').value = '';
+
+    const returnSelect = document.getElementById('returnStepSelect');
+    const returnContainer = document.getElementById('returnStepContainer');
+    if (returnSelect && returnContainer) {
+        returnSelect.innerHTML = '';
+        if (task.currentStep > 1) {
+            for (let i = task.currentStep - 1; i >= 1; i--) {
+                const stepInfo = WORKFLOW_STEPS.find(s => s.id === i);
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `ส่งกลับไปขั้นที่ ${i}: ${stepInfo.name}`;
+                returnSelect.appendChild(opt);
+            }
+            returnContainer.classList.remove('hidden');
+        } else {
+            returnContainer.classList.add('hidden');
+        }
+    }
 
     if (task.currentStep === currentUserRole && task.status !== 'finished') {
         if (currentUserRole === 7) {
@@ -313,8 +333,14 @@ function renderTimeline(task) {
             if (task.status === 'returned') {
                 statusClass = 'status-returned';
                 titleClass = 'text-red-600 font-bold';
-                const note = lastEntry?.note ? `<div class="bg-red-50 p-3 rounded-xl mt-2 text-sm text-red-700 border border-red-100 font-medium"><i class="fas fa-exclamation-triangle mr-1"></i> เหตุผลที่ส่งคืน: ${lastEntry.note}</div>` : '';
-                detailHtml = `<p class="text-sm text-red-500 mt-1"><i class="fas fa-times-circle"></i> ถูกส่งคืนแก้ไข</p>${note}`;
+                // หาประวัติการส่งคืนล่าสุดที่มีการระบุเหตุผล
+                const returnHistory = [...task.history].reverse().find(h => h.status === 'returned' && h.note);
+                let noteHtml = '';
+                if (returnHistory) {
+                    const fromStepInfo = WORKFLOW_STEPS.find(s => s.id === returnHistory.step);
+                    noteHtml = `<div class="bg-red-50 p-3 rounded-xl mt-2 text-sm text-red-700 border border-red-100 font-medium"><i class="fas fa-exclamation-triangle mr-1"></i> ถูกส่งคืนจากขั้นที่ ${returnHistory.step} (${fromStepInfo?.name})<br>เหตุผล: ${returnHistory.note}</div>`;
+                }
+                detailHtml = `<p class="text-sm text-red-500 mt-1"><i class="fas fa-times-circle"></i> ต้องแก้ไขงานใหม่</p>${noteHtml}`;
             } else if (task.status === 'finished') {
                 statusClass = 'status-completed';
                 titleClass = 'text-gray-800';
@@ -391,8 +417,13 @@ async function updateTaskStatus(action) {
             alert("กรุณาระบุเหตุผลในการส่งคืนงาน");
             return;
         }
-        const previousStep = task.currentStep - 1;
-        task.history.push({ step: task.currentStep, status: 'returned', note: note, date: now });
+        let previousStep = task.currentStep - 1;
+        const returnSelect = document.getElementById('returnStepSelect');
+        if (returnSelect && returnSelect.value) {
+            previousStep = parseInt(returnSelect.value);
+        }
+        
+        task.history.push({ step: task.currentStep, status: 'returned', note: note, date: now, returnedTo: previousStep });
         task.currentStep = previousStep;
         task.status = 'returned';
         task.history.push({ step: task.currentStep, status: 'returned', note: '', date: '' });
