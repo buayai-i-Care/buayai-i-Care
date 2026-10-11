@@ -1,0 +1,16 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # รันอัตโนมัติทุกๆ 4 วัน เวลา 00:00 UTC
+    - cron: '0 0 */4 * *'
+  workflow_dispatch: # ปุ่มสำหรับกดสั่งเทสรันมือได้ทันที
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Project
+        run: |
+          curl -s "https://fljiehtwwohbndossavw.supabase.co/rest/v1/" > /dev/null
+          echo "Supabase successfully pinged!"
