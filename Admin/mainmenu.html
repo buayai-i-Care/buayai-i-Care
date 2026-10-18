@@ -14,7 +14,7 @@
     <style>
         :root { --admin-purple: #d946ef; --admin-dark: #a21caf; --admin-light: #fdf4ff; --terminal-bg: #1e1e1e; --terminal-green: #00ff00; }
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
-        h1, h2, h3, h4, h5, .nav-link, .font-prompt, .btn, .guidance-text { font-family: 'Prompt', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .nav-link, .font-prompt, .btn, .guidance-text { font-family: 'Prompt', sans-serif; }
         .top-navbar { background: linear-gradient(135deg, var(--admin-purple), var(--admin-dark)); color: white; height: 70px; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3); z-index: 1030; }
         .main-container { padding: 30px 20px; flex-grow: 1; }
         .layout-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
@@ -25,7 +25,9 @@
         .form-control, .form-select { border-radius: 12px; padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: 600; }
         .btn-purple { background-color: var(--admin-purple); color: white; border-radius: 12px; padding: 12px 20px; transition: 0.2s; border: none; width: 100%; }
         .terminal-panel { background: var(--terminal-bg); border-radius: 20px; padding: 20px; height: calc(100vh - 150px); min-height: 500px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #333; position: sticky; top: 90px;}
-        .terminal-body { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.95rem; color: var(--terminal-green); line-height: 1.6; padding-right: 10px;}
+        .terminal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #333; margin-bottom: 10px; }
+        .terminal-dots span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+        .terminal-body { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.92rem; color: var(--terminal-green); line-height: 1.6; padding-right: 10px;}
         .log-info { color: #60a5fa; } .log-working { color: #facc15; } .log-success { color: #4ade80; } .log-error { color: #f87171; font-weight: bold; } 
         .preview-table-container { max-height: 350px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; display: none; }
         .preview-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -42,6 +44,57 @@
         }
         .btn-sync-external:hover {
             transform: translateY(-2px);
+        }
+
+        /* การ์ดเลือกโหมดเริ่มภาคเรียนใหม่ / เลื่อนชั้น */
+        .mode-selector-card {
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+        .mode-selector-card:hover {
+            border-color: #94a3b8;
+            background: #ffffff;
+        }
+        .mode-selector-card.active-semester {
+            border-color: #0ea5e9;
+            background: #f0f9ff;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+        }
+        .mode-selector-card.active-promote {
+            border-color: #d946ef;
+            background: #fdf4ff;
+            box-shadow: 0 4px 12px rgba(217, 70, 239, 0.15);
+        }
+
+        /* Live Progress Banner */
+        .live-progress-box {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #f8fafc;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #334155;
+        }
+        .step-pill {
+            font-size: 0.78rem;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #334155;
+            color: #94a3b8;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+        .step-pill.active {
+            background: #f59e0b;
+            color: #0f172a;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+        }
+        .step-pill.done {
+            background: #10b981;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -60,16 +113,24 @@
                 <div class="row">
                     <div class="col-md-4 border-end pe-3">
                         <!-- โซนจัดการฐานข้อมูลหลัก -->
-                        <ul class="nav nav-pills flex-column" role="tablist">
+                        <ul class="nav nav-pills flex-column" role="tablist" id="main-admin-tabs">
                             <li class="nav-item"><button class="nav-link active w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-add"><i class="bi bi-person-plus-fill me-2"></i> 1. เพิ่มนักเรียน</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-remove"><i class="bi bi-person-dash-fill me-2"></i> 2. ย้ายออก / ลบ</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-edit"><i class="bi bi-pencil-square me-2"></i> 3. ปรับปรุงข้อมูล</button></li>
                             <li class="nav-item"><button class="nav-link w-100 text-start" data-bs-toggle="pill" data-bs-target="#pane-transfer"><i class="bi bi-arrow-left-right me-2"></i> 4. ย้ายห้องเรียน</button></li>
                             
-                            <li class="nav-item mt-2 border-top pt-2"><button class="nav-link w-100 text-start text-primary font-prompt" data-bs-toggle="pill" data-bs-target="#pane-bulksync"><i class="bi bi-cloud-sync-fill me-2"></i> 5. เลื่อนชั้น (ล้างกระดาน)</button></li>
+                            <li class="nav-item mt-2 border-top pt-2">
+                                <button class="nav-link w-100 text-start text-primary font-prompt" id="tab-btn-bulksync" data-bs-toggle="pill" data-bs-target="#pane-bulksync" onclick="loadBackupHistory()">
+                                    <i class="bi bi-cloud-sync-fill me-2"></i> 5. เริ่มภาคเรียนใหม่ / เลื่อนชั้น
+                                </button>
+                            </li>
                             <li class="nav-item"><button class="nav-link w-100 text-start text-success font-prompt" data-bs-toggle="pill" data-bs-target="#pane-import"><i class="bi bi-file-earmark-excel-fill me-2"></i> 6. นำเข้า ม.1/ม.4 (Excel)</button></li>
-                            
                             <li class="nav-item"><button class="nav-link w-100 text-start text-info font-prompt" data-bs-toggle="pill" data-bs-target="#pane-update"><i class="bi bi-arrow-repeat me-2"></i> 7. อัปเดตเด็กเก่า (Excel)</button></li>
+                            <li class="nav-item">
+                                <button class="nav-link w-100 text-start text-dark font-prompt" id="tab-btn-synccheck" data-bs-toggle="pill" data-bs-target="#pane-sync-check">
+                                    <i class="bi bi-check2-all me-2 text-primary"></i> 8. ตรวจสอบ/ซิงค์ 6 ชีต (ม.1-ม.6)
+                                </button>
+                            </li>
                         </ul>
 
                         <!-- ========================================== -->
@@ -83,9 +144,9 @@
                                     <i class="bi bi-heart-pulse-fill me-2"></i> 1. อัปเดตฐานข้อมูล SDQ
                                 </a>
                                 
-                                <!-- 2. เช็คชื่อเข้าแถว (รลิงก์) -->
-                                <button class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #3b82f6;" onclick="alert('ระบบเช็คชื่อเข้าแถวกำลังเตรียมการ ขออภัยในความไม่สะดวกครับ')">
-                                    <i class="bi bi-person-lines-fill me-2"></i> 2. อัปเดตเช็คชื่อเข้าแถว
+                                <!-- 2. เช็คชื่อเข้าแถว (เปิดหน้าตรวจสอบและซิงค์ 6 ชีตทันที) -->
+                                <button class="btn btn-sync-external text-start fw-bold rounded-3 shadow-sm border-0 text-white" style="background-color: #3b82f6;" onclick="openSyncCheckPane()">
+                                    <i class="bi bi-person-lines-fill me-2"></i> 2. อัปเดตเช็คชื่อเข้าแถว (6 ชีต)
                                 </button>
                                 
                                 <!-- 3. E-Point -->
@@ -109,7 +170,7 @@
                             <div class="p-2 bg-danger bg-opacity-10 rounded border border-danger">
                                 <p class="mb-1 text-danger fw-bold">⚠ เมื่อทำรายการใดๆ ในส่วนนี้เสร็จแล้ว ท่านต้องกดอัปเดตอีก 4 ระบบ ทุกครั้ง!</p>
                                 <ul class="mb-0 ps-3 text-dark fw-bold small">
-                                    <li>1. เช็คชื่อเข้าแถว</li>
+                                    <li>1. เช็คชื่อเข้าแถว (6 ชีต ม.1-ม.6)</li>
                                     <li>2. ระบบ SDQ</li>
                                     <li>3. ระบบ E-Point</li>
                                     <li>4. ระบบห้องสมุด</li>
@@ -177,25 +238,164 @@
                                 </div>
                             </div>
 
-                            <!-- เมนู 5 - 6 -->
+                            <!-- ========================================================================= -->
+                            <!-- 🌟 เมนู 5: เริ่มภาคเรียนใหม่ / เลื่อนชั้น (พร้อม Backup & Live Progress) -->
+                            <!-- ========================================================================= -->
                             <div class="tab-pane fade" id="pane-bulksync">
-                                <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-cloud-sync-fill"></i> ระบบเลื่อนชั้นปีแบบกลุ่ม (Bulk Sync)</h5>
-                                <div class="alert alert-warning border-0 small mb-4">
-                                    <i class="bi bi-info-circle-fill"></i> <b>ขั้นตอน:</b> กรุณาจัดการรายชื่อใน "ชีตส่วนกลาง" ให้เรียบร้อยก่อน (ย้ายห้องนักเรียนเก่า/ลบคนจบ) จากนั้นจึงมาเลือกระดับชั้นเพื่อล้างและซิงค์ข้อมูลใหม่ลงในไฟล์โฮมรูมของปีการศึกษานั้นๆ
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold m-0 text-primary"><i class="bi bi-cloud-sync-fill me-1"></i> ระบบจัดการภาคเรียนใหม่ & เลื่อนชั้นปี</h5>
+                                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-shield-lock-fill me-1"></i> สำรองข้อมูลอัตโนมัติก่อนลบ 100%</span>
                                 </div>
-                                <select id="bulk-level" class="form-select mb-4 fw-bold text-primary" onchange="resetBulkUI()"><option value="">-- เลือกระดับชั้นเป้าหมาย --</option><option value="1">ม.1</option><option value="2">ม.2</option><option value="3">ม.3</option><option value="4">ม.4</option><option value="5">ม.5</option><option value="6">ม.6</option></select>
-                                <div class="card p-3 border-2 border-primary mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div><b class="text-dark">ขั้นที่ 1: ล้างกระดานปลายทาง</b><br><small class="text-muted">ลบข้อมูลเก่าทุกชีตในไฟล์ห้อง (ยกเว้น user, teacher)</small></div>
-                                        <button class="btn btn-outline-danger px-4 rounded-pill fw-bold" id="btn-bulk-step1" onclick="executeBulkStep1()"><i class="bi bi-eraser-fill"></i> เริ่มขั้นที่ 1</button>
+
+                                <!-- 1. เลือกโหมดการทำงาน 2 แบบ -->
+                                <label class="small fw-bold text-secondary mb-2">1. เลือกรูปแบบการดำเนินการ:</label>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="mode-selector-card active-semester" id="card-mode-semester" onclick="selectRolloverMode('NEW_SEMESTER')">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <input class="form-check-input me-2 mt-0" type="radio" name="rolloverMode" id="radio-mode-semester" value="NEW_SEMESTER" checked>
+                                                <span class="fw-bold text-info-emphasis font-prompt">1. เริ่มภาคเรียนใหม่ (เทอม 2)</span>
+                                            </div>
+                                            <div class="small text-muted ps-4">
+                                                สำรองไฟล์เก็บเข้า Drive + ล้างเฉพาะข้อมูลเช็คชื่อ/โฮมรูมเทอมเก่า <b class="text-success">(เก็บรายชื่อนักเรียนและห้องเดิมไว้ทั้งหมด)</b>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center border-top pt-3" id="ui-bulk-step2" style="opacity: 0.5;">
-                                        <div><b class="text-dark">ขั้นที่ 2: โอนย้ายรายชื่อ + รหัสผ่าน</b><br><small class="text-muted">ส่งรายชื่อ 5 คอลัมน์ และสร้างบัญชีนักเรียนใหม่ (แถว 18)</small></div>
-                                        <button class="btn btn-outline-success px-4 rounded-pill fw-bold" id="btn-bulk-step2" onclick="executeBulkStep2()" disabled><i class="bi bi-cloud-arrow-up-fill"></i> เริ่มขั้นที่ 2</button>
+                                    <div class="col-md-6">
+                                        <div class="mode-selector-card" id="card-mode-promote" onclick="selectRolloverMode('PROMOTE_GRADE')">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <input class="form-check-input me-2 mt-0" type="radio" name="rolloverMode" id="radio-mode-promote" value="PROMOTE_GRADE">
+                                                <span class="fw-bold text-purple font-prompt" style="color: #a21caf;">2. เลื่อนชั้น / ปีการศึกษาใหม่ (เทอม 1)</span>
+                                            </div>
+                                            <div class="small text-muted ps-4">
+                                                สำรองไฟล์เก็บเข้า Drive + ล้างข้อมูลเทอมเก่า + <b class="text-primary">โอนรายชื่อนักเรียนและรหัสผ่านใหม่จากชีตส่วนกลาง</b>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. ระบุชื่อปีการศึกษา/เทอมที่จะสำรอง และเลือกระดับชั้น -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold text-secondary mb-1">2. ป้ายกำกับไฟล์สำรอง (เช่น เทอม1_2568)</label>
+                                        <input type="text" id="bulk-semester-label" class="form-control" value="เทอมเก่า_ก่อนเริ่มเทอมใหม่" placeholder="เช่น เทอม1_2568">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold text-secondary mb-1">3. เลือกระดับชั้นเป้าหมาย (ทำทีละชั้นเพื่อป้องกัน Timeout 6 นาที)</label>
+                                        <select id="bulk-level" class="form-select fw-bold text-primary" onchange="resetBulkUI()">
+                                            <option value="">-- เลือกระดับชั้นเป้าหมาย --</option>
+                                            <option value="1">ชั้นมัธยมศึกษาปีที่ 1 (ม.1)</option>
+                                            <option value="2">ชั้นมัธยมศึกษาปีที่ 2 (ม.2 - มีชีตสรุปรวมโรงเรียน)</option>
+                                            <option value="3">ชั้นมัธยมศึกษาปีที่ 3 (ม.3)</option>
+                                            <option value="4">ชั้นมัธยมศึกษาปีที่ 4 (ม.4)</option>
+                                            <option value="5">ชั้นมัธยมศึกษาปีที่ 5 (ม.5)</option>
+                                            <option value="6">ชั้นมัธยมศึกษาปีที่ 6 (ม.6)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- กล่องตัวเลือกพิเศษเฉพาะ ม.2 -->
+                                <div id="m2-special-options" class="alert alert-warning border-warning rounded-4 p-3 mb-3 d-none">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-exclamation text-danger me-1"></i> การตั้งค่าความปลอดภัยพิเศษสำหรับชีต ม.2</h6>
+                                            <p class="small text-dark mb-2">
+                                                ชีต ม.2 มีแท็บฐานข้อมูลกลางของโรงเรียนอยู่ ระบบจะปกป้อง <code>user</code>, <code>teacher</code>, <code>student</code>, <code>Task_m2</code> ให้อัตโนมัติ
+                                            </p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="chk-reset-m2-summary">
+                                                <label class="form-check-label small fw-bold text-danger" for="chk-reset-m2-summary">
+                                                    ล้างข้อมูลสะสมในชีต "สรุปการมาเรียนหน้าเสาธง" และ "ข้อมูลกลุ่มเสี่ยงหน้าเสาธง" เพื่อเริ่มนับสถิติเทอมใหม่ด้วย
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-dark rounded-pill fw-bold" onclick="executeCleanupUnusedM2Tabs()">
+                                            <i class="bi bi-trash3 me-1"></i> สำรอง & ลบ 4 ชีตที่ไม่ได้ใช้ใน ม.2
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 3. แถบสื่อสารความก้าวหน้าแบบเรียลไทม์ (Live Progress Bar & Step Tracker) -->
+                                <div class="live-progress-box mb-3 shadow-sm" id="rollover-progress-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold font-prompt" id="live-status-title"><i class="bi bi-broadcast me-2 text-info"></i>สถานะการทำงาน: พร้อมดำเนินการ</span>
+                                        <span class="badge bg-info text-dark fw-bold fs-6" id="live-progress-pct">0%</span>
+                                    </div>
+                                    <div class="progress mb-3" style="height: 14px; background-color: #334155; border-radius: 999px;">
+                                        <div id="live-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="step-pill" id="pill-step-1">ขั้นที่ 1: สำรองไฟล์ลง Drive</span>
+                                            <span class="step-pill" id="pill-step-2">ขั้นที่ 2: ล้างข้อมูลรายเทอม</span>
+                                            <span class="step-pill" id="pill-step-3">ขั้นที่ 3: โอนรายชื่อนักเรียน</span>
+                                        </div>
+                                        <small class="text-white-50" id="live-status-detail">กรุณาเลือกระดับชั้นเพื่อเริ่มต้น</small>
+                                    </div>
+                                </div>
+
+                                <!-- ปุ่มกดดำเนินการอัตโนมัติทีละขั้น หรือ แยกกดทีละขั้น -->
+                                <div class="card p-3 border-2 border-primary rounded-4 mb-4">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                                        <div>
+                                            <h6 class="fw-bold text-primary m-0"><i class="bi bi-play-circle-fill me-1"></i> ดำเนินการแบบอัตโนมัติครบทุกขั้นตอน (แนะนำ)</h6>
+                                            <small class="text-muted">ระบบจะรันทีละขั้นพร้อมรายงานความก้าวหน้าให้ทราบทันทีตลอดเวลา (ใช้เวลาชั้นละ ~15-30 วินาที ไม่ติด Limit 6 นาที)</small>
+                                        </div>
+                                        <button class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm" id="btn-run-auto-rollover" onclick="executeAutoRollover()" disabled>
+                                            <i class="bi bi-rocket-takeoff-fill me-1"></i> เริ่มดำเนินการอัตโนมัติ
+                                        </button>
+                                    </div>
+
+                                    <!-- ปุ่มแยกทีละขั้นสำหรับผู้ดูแลที่ต้องการควบคุมเอง -->
+                                    <div class="small fw-bold text-secondary mb-2">หรือเลือกกดทำทีละขั้นตอนด้วยตนเอง:</div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <button class="btn btn-outline-info w-100 rounded-pill fw-bold btn-sm py-2" id="btn-bulk-backup" onclick="executeManualStepBackup()" disabled>
+                                                <i class="bi bi-cloud-arrow-down-fill me-1"></i> 1. สำรองข้อมูลก่อนลบ
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-outline-danger w-100 rounded-pill fw-bold btn-sm py-2" id="btn-bulk-step1" onclick="executeBulkStep1()" disabled>
+                                                <i class="bi bi-eraser-fill me-1"></i> 2. ล้างข้อมูลรายเทอม
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-outline-success w-100 rounded-pill fw-bold btn-sm py-2" id="btn-bulk-step2" onclick="executeBulkStep2()" disabled>
+                                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> 3. โอนรายชื่อ+รหัสผ่าน
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. ตารางประวัติการสำรองข้อมูลและการย้อนคืน (Audit History & One-Click Restore) -->
+                                <div class="border rounded-4 p-3 bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold m-0 text-dark"><i class="bi bi-clock-history text-primary me-1"></i> ประวัติการสำรองข้อมูลและการลบ (ย้อนคืนข้อมูลได้ตลอดเวลา)</h6>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadBackupHistory()">
+                                            <i class="bi bi-arrow-clockwise"></i> รีเฟรชประวัติ
+                                        </button>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle bg-white rounded mb-0" style="font-size: 0.82rem;">
+                                            <thead class="table-light sticky-top">
+                                                <tr>
+                                                    <th>วัน-เวลา</th>
+                                                    <th>ระดับชั้น</th>
+                                                    <th>การดำเนินการ</th>
+                                                    <th>รายละเอียดชีตที่ลบ/สำรอง</th>
+                                                    <th>สถานะ</th>
+                                                    <th class="text-end">จัดการ / ย้อนคืน</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="backup-history-tbody">
+                                                <tr><td colspan="6" class="text-center text-muted py-3">คลิกปุ่ม "รีเฟรชประวัติ" เพื่อโหลดข้อมูลประวัติการสำรอง</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- เมนู 6: นำเข้าเด็กใหม่ Excel -->
                             <div class="tab-pane fade" id="pane-import">
                                 <h5 class="fw-bold mb-3 text-success"><i class="bi bi-file-earmark-excel-fill"></i> นำเข้านักเรียนใหม่ ม.1 / ม.4 (Excel)</h5>
                                 <div class="alert alert-info border-0 small mb-4 shadow-sm">
@@ -253,6 +453,51 @@
                                 </button>
                             </div>
 
+                            <!-- ========================================================================= -->
+                            <!-- 🌟 เมนู 8: ตรวจสอบและซิงค์รายชื่อ 6 ชีต (ม.1-ม.6) เทียบกับฐานข้อมูลหลัก -->
+                            <!-- ========================================================================= -->
+                            <div class="tab-pane fade" id="pane-sync-check">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold m-0 text-primary"><i class="bi bi-check2-all me-1"></i> ตรวจสอบความตรงกันของรายชื่อ 6 ชีต (ม.1 - ม.6)</h5>
+                                    <button class="btn btn-primary rounded-pill fw-bold px-3" id="btn-scan-all-grades" onclick="scanAllSixGrades()">
+                                        <i class="bi bi-search me-1"></i> ตรวจสอบทั้ง 6 ชีตเดี๋ยวนี้
+                                    </button>
+                                </div>
+
+                                <div class="alert alert-info border-0 small mb-3">
+                                    <i class="bi bi-info-circle-fill me-1"></i> ระบบจะตรวจสอบรายชื่อในชีต <code>student</code> และรหัสผ่านในชีต <code>user</code> ของทั้ง 6 ระดับชั้น (ม.1-ม.6) ว่าตรงกับ <b>ฐานข้อมูลกลาง</b> หรือไม่ พร้อมแจ้งความก้าวหน้าทีละระดับชั้น
+                                </div>
+
+                                <!-- แถบความก้าวหน้าการสแกน 6 ชีต -->
+                                <div class="live-progress-box mb-3" id="sync-check-progress-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold font-prompt" id="sync-check-status-text"><i class="bi bi-activity me-2 text-warning"></i>พร้อมตรวจสอบฐานข้อมูลทั้ง 6 ชีต</span>
+                                        <span class="badge bg-warning text-dark fw-bold" id="sync-check-pct">0%</span>
+                                    </div>
+                                    <div class="progress" style="height: 12px; background-color: #334155; border-radius: 999px;">
+                                        <div id="sync-check-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle bg-white">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ระดับชั้น</th>
+                                                <th class="text-center">จำนวนในฐานข้อมูลกลาง</th>
+                                                <th class="text-center">ในชีต student</th>
+                                                <th class="text-center">ในชีต user (แถว 18+)</th>
+                                                <th>สถานะความตรงกัน</th>
+                                                <th class="text-end">ซิงค์ข้อมูล</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sync-check-tbody">
+                                            <tr><td colspan="6" class="text-center text-muted py-4">กดปุ่ม "ตรวจสอบทั้ง 6 ชีตเดี๋ยวนี้" ด้านบนเพื่อเริ่มสแกน</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -266,10 +511,11 @@
                         <span style="background: #f59e0b;"></span>
                         <span style="background: #10b981;"></span>
                     </div>
-                    <div class="text-white-50 small font-prompt">System Progress Console</div>
+                    <div class="text-white-50 small font-prompt">System Progress Console (รายงานความก้าวหน้าเรียลไทม์)</div>
                 </div>
                 <div class="terminal-body" id="console-output">
                     <div class="log-info">> Buayai Master DB System Ready.</div>
+                    <div class="log-info">> รองรับทุกชั้น ม.1-ม.6 ชั้นละ 12 ห้องเรียน</div>
                     <div class="log-info">> รอรับคำสั่งดำเนินการ...</div>
                 </div>
             </div>
@@ -288,15 +534,20 @@
         let studentLookup = {}; 
         let pendingImportData = [];
         let pendingUpdateData = [];
+        let currentRolloverMode = "NEW_SEMESTER"; // NEW_SEMESTER | PROMOTE_GRADE
+        let lastCreatedBackupId = "";
 
+        // ✅ กฎเหล็กข้อ 4: รองรับครบทุก ม. (ม.1 - ม.6) ชั้นละ 12 ห้องเรียน
         window.addEventListener('DOMContentLoaded', () => {
             let options = '<option value="">-- เลือกห้อง --</option>';
             for (let m = 1; m <= 6; m++) {
-                let max = (m === 4) ? 12 : 10;
-                for (let r = 1; r <= max; r++) options += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
+                for (let r = 1; r <= 12; r++) {
+                    options += `<option value="${m}/${r}">ม.${m}/${r}</option>`;
+                }
             }
             ['add-room', 'rm-room-select', 'ed-room-select', 'tr-room-select', 'tr-new-room'].forEach(id => {
-                document.getElementById(id).innerHTML = options;
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = options;
             });
         });
 
@@ -304,18 +555,66 @@
             const terminal = document.getElementById('console-output');
             const line = document.createElement('div');
             line.className = `log-${type}`;
-            line.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            line.innerText = `[${new Date().toLocaleTimeString('th-TH')}] ${msg}`;
             terminal.appendChild(line);
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        async function callAPI(payload) {
+        // ✅ กฎเหล็กข้อ 3: Defensive Fetching (Timeout 90s + Text-before-JSON)
+        async function safeApiCall(url, payload, timeoutMs = 90000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             try {
-                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                return await response.json();
-            } catch (e) { return { success: false, error: "Network Error" }; }
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (parseErr) {
+                    return { success: false, error: "เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON: " + text.substring(0, 120) };
+                }
+            } catch (e) {
+                clearTimeout(timeoutId);
+                if (e.name === 'AbortError') {
+                    return { success: false, error: "หมดเวลาเชื่อมต่อ (Timeout) กรุณาลองใหม่อีกครั้ง" };
+                }
+                return { success: false, error: "Network Error: " + e.message };
+            }
         }
 
+        async function callAPI(payload) {
+            return await safeApiCall(API_URL, payload);
+        }
+
+        // อัปเดตแถบความก้าวหน้าแบบเรียลไทม์ (Real-time User Progress Communication)
+        function updateLiveProgress(pct, title, detail, activeStep = 0, barClass = "bg-info") {
+            const pctEl = document.getElementById('live-progress-pct');
+            const barEl = document.getElementById('live-progress-bar');
+            const titleEl = document.getElementById('live-status-title');
+            const detailEl = document.getElementById('live-status-detail');
+
+            if (pctEl) pctEl.innerText = `${pct}%`;
+            if (barEl) {
+                barEl.style.width = `${pct}%`;
+                barEl.className = `progress-bar progress-bar-striped ${pct < 100 && pct > 0 ? 'progress-bar-animated' : ''} ${barClass}`;
+            }
+            if (titleEl) titleEl.innerHTML = `<i class="bi bi-broadcast me-2"></i>${title}`;
+            if (detailEl) detailEl.innerText = detail;
+
+            for (let i = 1; i <= 3; i++) {
+                const pill = document.getElementById(`pill-step-${i}`);
+                if (!pill) continue;
+                pill.classList.remove('active', 'done');
+                if (i < activeStep || pct === 100) pill.classList.add('done');
+                else if (i === activeStep) pill.classList.add('active');
+            }
+        }
+
+        // ✅ กฎเหล็กข้อ 4: หากเลือกห้องที่ไม่มีนักเรียน ให้แจ้งผู้ใช้ว่า "ไม่พบห้องเรียนนี้"
         async function loadStudents(prefix) {
             const room = document.getElementById(`${prefix}-room-select`).value;
             const sel = document.getElementById(`${prefix}-student-select`);
@@ -324,17 +623,24 @@
             log(`> กำลังดึงรายชื่อห้อง ม.${room}...`, 'working');
             const res = await callAPI({ action: 'getStudentsFull', room });
             if(res.success) {
+                if (res.roomNotFound || !res.data || res.data.length === 0) {
+                    sel.innerHTML = '<option value="">ไม่พบห้องเรียนนี้</option>';
+                    sel.disabled = true;
+                    log(`> แจ้งเตือน: ไม่พบห้องเรียนนี้ (ม.${room}) ในฐานข้อมูล`, 'error');
+                    Swal.fire({ icon: 'info', title: 'ไม่พบห้องเรียนนี้', text: `ไม่พบข้อมูลนักเรียนในห้อง ม.${room} ครับ`, confirmButtonText: 'ตกลง' });
+                    return;
+                }
                 studentLookup[prefix] = res.data;
                 let html = '<option value="">-- เลือกนักเรียน --</option>';
                 res.data.forEach(s => html += `<option value="${s.id}">เลขที่ ${s.no} - ${s.name} (${s.id})</option>`);
                 sel.innerHTML = html; sel.disabled = false;
-                log(`> โหลดสำเร็จ พบนักเรียน ${res.data.length} คน`, 'success');
+                log(`> โหลดสำเร็จ พบนักเรียนห้อง ม.${room} จำนวน ${res.data.length} คน`, 'success');
             } else { log(`> [ERROR] ${res.error}`, 'error'); }
         }
 
         function selectStudent(prefix) {
             const id = document.getElementById(`${prefix}-student-select`).value;
-            const std = studentLookup[prefix].find(s => s.id.toString() === id);
+            const std = (studentLookup[prefix] || []).find(s => s.id.toString() === id);
             if(!std) return;
             document.getElementById(`${prefix}-id`).value = std.id;
             if(prefix === 'rm') { 
@@ -355,84 +661,579 @@
             const id = document.getElementById('add-id').value.trim(); const name = document.getElementById('add-name').value.trim();
             const room = document.getElementById('add-room').value; const no = document.getElementById('add-no').value;
             if(!id || !name || !room) return alert("ข้อมูลไม่ครบ");
-            log(`> กำลังบันทึกนักเรียน: ${name}`, 'working');
+            log(`> [ขั้นที่ 1/2] กำลังบันทึกนักเรียนใหม่: ${name} (ม.${room}) ลงฐานข้อมูลกลาง...`, 'working');
             const res = await callAPI({ action: 'add_central', id, name, room, no });
             if(res.success) {
-                log(`> ส่วนกลางบันทึกแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
-                await callAPI({ action: 'sync_homeroom', level: room.split('/')[0] });
-                await callAPI({ action: 'write_log', type: 'ADD', detail: `เพิ่ม นร.ใหม่ ${id} เข้าห้อง ${room}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'เพิ่มข้อมูลและซิงค์เรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
-            } else { log(`> [ERROR] ${res.error}`, 'error'); }
+                const lvl = room.replace(/^ม\./, '').split('/')[0];
+                log(`> [ขั้นที่ 2/2] ส่วนกลางบันทึกแล้ว กำลังซิงค์ไปชีตเช็คชื่อ/โฮมรูม ม.${lvl}...`, 'working');
+                await callAPI({ action: 'sync_homeroom', level: lvl });
+                await callAPI({ action: 'write_log', type: 'ADD', detail: `เพิ่ม นร.ใหม่ ${id} เข้าห้อง ม.${room}`, user: adminUser });
+                log(`> ซิงค์สำเร็จครบทุกขั้นตอน!`, 'success');
+                Swal.fire('สำเร็จ', 'เพิ่มข้อมูลและซิงค์เรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
+            } else { log(`> [ERROR] ${res.error}`, 'error'); Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
         }
 
         async function executeRemove() {
-            const id = document.getElementById('rm-id').value; log(`> กำลังลบรหัส: ${id}`, 'working');
+            const id = document.getElementById('rm-id').value;
+            log(`> [ขั้นที่ 1/2] กำลังลบรหัสนักเรียน: ${id} จากฐานข้อมูลกลาง...`, 'working');
             const res = await callAPI({ action: 'remove_central', id });
             if(res.success) {
-                log(`> ส่วนกลางลบแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
+                log(`> [ขั้นที่ 2/2] ส่วนกลางลบแล้ว กำลังซิงค์ไปชีตเช็คชื่อ/โฮมรูม ม.${res.level}...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
                 await callAPI({ action: 'write_log', type: 'REMOVE', detail: `ลบ นร. ${id}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'ลบข้อมูลและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('rm');
+                log(`> ซิงค์สำเร็จ!`, 'success');
+                Swal.fire('สำเร็จ', 'ลบข้อมูลและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
+                loadStudents('rm');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
         async function executeEdit() {
             const id = document.getElementById('ed-id').value; const name = document.getElementById('ed-name').value.trim();
-            log(`> กำลังแก้ชื่อเป็น: ${name}`, 'working');
+            log(`> [ขั้นที่ 1/2] กำลังแก้ไขชื่อเป็น: ${name}...`, 'working');
             const res = await callAPI({ action: 'edit_central', id, name });
             if(res.success) {
-                log(`> ส่วนกลางแก้ไขแล้ว กำลังซิงค์ไปโฮมรูม...`, 'working');
+                log(`> [ขั้นที่ 2/2] ส่วนกลางแก้ไขแล้ว กำลังซิงค์ไปชีตเช็คชื่อ/โฮมรูม ม.${res.level}...`, 'working');
                 await callAPI({ action: 'sync_homeroom', level: res.level });
                 await callAPI({ action: 'write_log', type: 'EDIT', detail: `แก้ไขชื่อ รหัส ${id} เป็น ${name}`, user: adminUser });
-                log(`> ซิงค์สำเร็จ!`, 'success'); Swal.fire('สำเร็จ', 'แก้ไขชื่อและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('ed');
+                log(`> ซิงค์สำเร็จ!`, 'success');
+                Swal.fire('สำเร็จ', 'แก้ไขชื่อและซิงค์แล้ว\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
+                loadStudents('ed');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
         async function executeTransfer() {
             const id = document.getElementById('tr-id').value; const newRoom = document.getElementById('tr-new-room').value; const newNo = document.getElementById('tr-new-no').value;
-            log(`> กำลังย้ายไปห้อง: ${newRoom}`, 'working');
+            log(`> [ขั้นที่ 1/3] กำลังย้ายนักเรียน ${id} ไปห้อง ม.${newRoom} เลขที่ ${newNo}...`, 'working');
             const res = await callAPI({ action: 'transfer_central', id, newRoom, newNo });
             if(res.success) {
-                log(`> กำลังซิงค์ข้อมูลห้องเดิม...`, 'working'); await callAPI({ action: 'sync_homeroom', level: res.oldLevel });
-                if(res.oldLevel !== res.newLevel) { log(`> กำลังซิงค์ข้อมูลห้องใหม่...`, 'working'); await callAPI({ action: 'sync_homeroom', level: res.newLevel }); }
-                await callAPI({ action: 'write_log', type: 'TRANSFER', detail: `ย้าย นร. ${id} ไปห้อง ${newRoom} เลขที่ ${newNo}`, user: adminUser });
-                log(`> ซิงค์เสร็จสิ้น!`, 'success'); Swal.fire('สำเร็จ', 'ย้ายห้องและซิงค์ข้อมูลเรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); loadStudents('tr');
+                log(`> [ขั้นที่ 2/3] กำลังซิงค์ข้อมูลชั้นเดิม (ม.${res.oldLevel})...`, 'working');
+                await callAPI({ action: 'sync_homeroom', level: res.oldLevel });
+                if(res.oldLevel !== res.newLevel) {
+                    log(`> [ขั้นที่ 3/3] กำลังซิงค์ข้อมูลชั้นใหม่ (ม.${res.newLevel})...`, 'working');
+                    await callAPI({ action: 'sync_homeroom', level: res.newLevel });
+                }
+                await callAPI({ action: 'write_log', type: 'TRANSFER', detail: `ย้าย นร. ${id} ไปห้อง ม.${newRoom} เลขที่ ${newNo}`, user: adminUser });
+                log(`> ซิงค์เสร็จสิ้นครบทุกชั้น!`, 'success');
+                Swal.fire('สำเร็จ', 'ย้ายห้องและซิงค์ข้อมูลเรียบร้อย\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
+                loadStudents('tr');
             } else { log(`> [ERROR] ${res.error}`, 'error'); alert(res.error); }
         }
 
-        function resetBulkUI() {
-            let level = document.getElementById('bulk-level').value;
-            document.getElementById('btn-bulk-step1').disabled = !level;
-            document.getElementById('btn-bulk-step2').disabled = true;
-            document.getElementById('ui-bulk-step2').style.opacity = '0.5';
+        // ============================================================================
+        // 🌟 เมนู 5: เริ่มภาคเรียนใหม่ / เลื่อนชั้น + สำรองข้อมูลอัตโนมัติ + รายงานความก้าวหน้าเรียลไทม์
+        // ============================================================================
+        function selectRolloverMode(mode) {
+            currentRolloverMode = mode;
+            document.getElementById('radio-mode-semester').checked = (mode === 'NEW_SEMESTER');
+            document.getElementById('radio-mode-promote').checked = (mode === 'PROMOTE_GRADE');
+            document.getElementById('card-mode-semester').classList.toggle('active-semester', mode === 'NEW_SEMESTER');
+            document.getElementById('card-mode-promote').classList.toggle('active-promote', mode === 'PROMOTE_GRADE');
+
+            const pill3 = document.getElementById('pill-step-3');
+            if (mode === 'NEW_SEMESTER') {
+                pill3.innerText = "ขั้นที่ 3: คงรายชื่อนักเรียนเดิมไว้";
+                log(`> เปลี่ยนโหมดเป็น: [1. เริ่มภาคเรียนใหม่ (เทอม 2)] - สำรองข้อมูล + ล้างเฉพาะประวัติเช็คชื่อ/โฮมรูม (เก็บรายชื่อเดิม)`, 'info');
+            } else {
+                pill3.innerText = "ขั้นที่ 3: โอนรายชื่อ+รหัสผ่านใหม่";
+                log(`> เปลี่ยนโหมดเป็น: [2. เลื่อนชั้น / ปีการศึกษาใหม่] - สำรองข้อมูล + ล้างประวัติเทอมเก่า + โอนรายชื่อใหม่จากส่วนกลาง`, 'info');
+            }
+            resetBulkUI();
         }
 
+        function resetBulkUI() {
+            const level = document.getElementById('bulk-level').value;
+            const hasLevel = Boolean(level);
+            document.getElementById('btn-run-auto-rollover').disabled = !hasLevel;
+            document.getElementById('btn-bulk-backup').disabled = !hasLevel;
+            document.getElementById('btn-bulk-step1').disabled = !hasLevel;
+            document.getElementById('btn-bulk-step2').disabled = !hasLevel;
+
+            const m2Box = document.getElementById('m2-special-options');
+            if (m2Box) m2Box.classList.toggle('d-none', level !== "2");
+
+            lastCreatedBackupId = "";
+            if (hasLevel) {
+                const modeTitle = currentRolloverMode === 'NEW_SEMESTER' ? 'เริ่มภาคเรียนใหม่ (เก็บรายชื่อเดิม)' : 'เลื่อนชั้นปี (โอนรายชื่อใหม่)';
+                updateLiveProgress(0, `พร้อมดำเนินการ ม.${level} โหมด: ${modeTitle}`, `กดปุ่ม "เริ่มดำเนินการอัตโนมัติ" เพื่อสำรองข้อมูลและเริ่มทำงาน`, 0, "bg-info");
+                log(`> เลือกเป้าหมาย: ชั้น ม.${level} (${modeTitle})`, 'info');
+            } else {
+                updateLiveProgress(0, `สถานะการทำงาน: พร้อมดำเนินการ`, `กรุณาเลือกระดับชั้นเพื่อเริ่มต้น`, 0, "bg-info");
+            }
+        }
+
+        // รันอัตโนมัติครบทุกขั้นตอนพร้อมสื่อสารความก้าวหน้าตลอดเวลา
+        async function executeAutoRollover() {
+            const level = document.getElementById('bulk-level').value;
+            if (!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
+            const semesterLabel = document.getElementById('bulk-semester-label').value.trim() || "ก่อนเริ่มเทอมใหม่";
+            const resetGlobalSummary = (level === "2") && document.getElementById('chk-reset-m2-summary').checked;
+            const isPromote = (currentRolloverMode === 'PROMOTE_GRADE');
+
+            const modeBadge = isPromote
+                ? `<span class="badge bg-primary fs-6">โหมด 2: เลื่อนชั้นปี (ล้างประวัติ + โอนรายชื่อใหม่)</span>`
+                : `<span class="badge bg-info text-dark fs-6">โหมด 1: เริ่มภาคเรียนใหม่ (ล้างเฉพาะประวัติรายเทอม เก็บรายชื่อเดิม)</span>`;
+
+            const confirm = await Swal.fire({
+                title: `ยืนยันดำเนินการ ชั้น ม.${level}?`,
+                html: `
+                    <div class="mb-2">${modeBadge}</div>
+                    <div class="text-start small bg-light p-3 rounded border mb-2">
+                        <b>ระบบจะทำงานเป็นลำดับขั้นและแจ้งความก้าวหน้าตลอดเวลา:</b>
+                        <ol class="mb-0 mt-1 ps-3">
+                            <li><b>สำรองข้อมูล (Snapshot Backup):</b> คัดลอกไฟล์ ม.${level} ทั้งไฟล์เก็บไว้ใน Google Drive ก่อนเป็นอันดับแรก</li>
+                            <li><b>ล้างข้อมูลรายเทอม:</b> ล้างเฉพาะแท็บเช็คชื่อ/โฮมรูม/แจ้งเตือน (ปกป้องชีต <code>user</code>, <code>teacher</code>, <code>student</code>, <code>Task_m${level}</code> ${level === '2' && !resetGlobalSummary ? 'และชีตสรุปรวมหน้าเสาธง' : ''})</li>
+                            <li><b>${isPromote ? 'โอนย้ายรายชื่อใหม่:' : 'รักษาฐานข้อมูลนักเรียน:'}</b> ${isPromote ? 'ดึงรายชื่อและรหัสผ่านใหม่จากชีตส่วนกลางเข้าสู่ ม.' + level : 'คงรายชื่อนักเรียนและรหัสผ่านเดิมของ ม.' + level + ' ไว้ทั้งหมด'}</li>
+                        </ol>
+                    </div>
+                    <span class="text-success small fw-bold"><i class="bi bi-arrow-counterclockwise"></i> หากต้องการย้อนกลับ สามารถกดปุ่ม "ย้อนคืนข้อมูล (Restore)" ด้านล่างได้ตลอดเวลา</span>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'เริ่มดำเนินการทันที',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#2563eb'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const autoBtn = document.getElementById('btn-run-auto-rollover');
+            autoBtn.disabled = true;
+            autoBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังดำเนินการ... โปรดดูแถบความก้าวหน้า';
+
+            // --- ขั้นที่ 1: สำรองข้อมูลลง Google Drive ---
+            updateLiveProgress(15, `[ขั้นที่ 1/3] กำลังสำรองไฟล์ Google Sheet ม.${level} ลง Google Drive...`, `กำลังสร้างไฟล์ Backup เก็บเข้าโฟลเดอร์สำรอง...`, 1, "bg-warning");
+            log(`> ⏳ [ความก้าวหน้า 15%] ขั้นที่ 1/3: กำลังสำรองไฟล์ ม.${level} ลงใน Google Drive...`, 'working');
+
+            const resBackup = await callAPI({
+                action: 'step1_backup_sheet',
+                level: level,
+                mode: currentRolloverMode,
+                semesterLabel: semesterLabel,
+                user: adminUser
+            });
+
+            if (!resBackup.success) {
+                updateLiveProgress(15, `❌ หยุดการทำงาน: สำรองข้อมูลไม่สำเร็จ`, resBackup.error, 1, "bg-danger");
+                log(`> ❌ [ERROR ขั้นที่ 1] สำรองข้อมูลล้มเหลว ระบบระงับการลบเพื่อความปลอดภัย: ${resBackup.error}`, 'error');
+                Swal.fire('ระงับการทำงานเพื่อความปลอดภัย', `ระบบไม่สามารถสำรองไฟล์ได้ จึงยังไม่ลบข้อมูลใดๆ:\n${resBackup.error}`, 'error');
+                autoBtn.disabled = false;
+                autoBtn.innerHTML = '<i class="bi bi-rocket-takeoff-fill me-1"></i> เริ่มดำเนินการอัตโนมัติ';
+                return;
+            }
+
+            lastCreatedBackupId = resBackup.backupFileId || resBackup.backupId;
+            const bName = resBackup.backupFileName || resBackup.backupName || lastCreatedBackupId;
+            updateLiveProgress(35, `✅ [ขั้นที่ 1/3 สำเร็จ] สำรองข้อมูล ม.${level} เรียบร้อยแล้ว`, `ไฟล์สำรอง: ${bName}`, 1, "bg-info");
+            log(`> ✅ [ความก้าวหน้า 35%] สำรองไฟล์สำเร็จ! ชื่อไฟล์: ${bName} (${resBackup.totalTabs} แท็บ)`, 'success');
+
+            // --- ขั้นที่ 2: ล้างข้อมูลรายเทอมตาม Whitelist ---
+            updateLiveProgress(50, `[ขั้นที่ 2/3] กำลังล้างข้อมูลเช็คชื่อ/โฮมรูมรายเทอม ม.${level}...`, `กำลังล้างเฉพาะชีตรายเทอม และปกป้องชีตหลัก...`, 2, "bg-warning");
+            log(`> 🧹 [ความก้าวหน้า 50%] ขั้นที่ 2/3: กำลังล้างประวัติเช็คชื่อและโฮมรูมรายเทอม ม.${level}...`, 'working');
+
+            const resClear = await callAPI({
+                action: 'step2_clear_seasonal_data',
+                level: level,
+                mode: currentRolloverMode,
+                backupFileId: lastCreatedBackupId,
+                backupUrl: resBackup.backupUrl,
+                backupFileName: bName,
+                includeGlobalSummary: resetGlobalSummary,
+                user: adminUser
+            });
+
+            if (!resClear.success) {
+                updateLiveProgress(50, `❌ เกิดข้อผิดพลาดในขั้นที่ 2 (มีไฟล์สำรองปลอดภัยแล้ว)`, resClear.error, 2, "bg-danger");
+                log(`> ❌ [ERROR ขั้นที่ 2] ${resClear.error}`, 'error');
+                Swal.fire('เกิดข้อผิดพลาด', resClear.error, 'error');
+                autoBtn.disabled = false;
+                autoBtn.innerHTML = '<i class="bi bi-rocket-takeoff-fill me-1"></i> เริ่มดำเนินการอัตโนมัติ';
+                loadBackupHistory();
+                return;
+            }
+
+            const clearedCnt = resClear.clearedTabsCount ?? resClear.clearedCount ?? 0;
+            const protectedCnt = (resClear.protectedNames ? resClear.protectedNames.length : resClear.protectedCount) ?? 0;
+            log(`> ✅ [ความก้าวหน้า 70%] ล้างชีตรายเทอม ม.${level} สำเร็จ ${clearedCnt} ชีต (ปกป้อง ${protectedCnt} ชีต)`, 'success');
+
+            // --- ขั้นที่ 3: โอนรายชื่อใหม่ (เฉพาะโหมด PROMOTE_GRADE) หรือ เสร็จสิ้น (โหมด NEW_SEMESTER) ---
+            if (isPromote) {
+                updateLiveProgress(80, `[ขั้นที่ 3/3] กำลังโอนย้ายรายชื่อนักเรียนและรหัสผ่านใหม่เข้าสู่ ม.${level}...`, `กำลังเขียนข้อมูลลงชีต student และ user (แถว 18+)...`, 3, "bg-warning");
+                log(`> 🚀 [ความก้าวหน้า 80%] ขั้นที่ 3/3: กำลังโอนย้ายรายชื่อและสร้างบัญชีรหัสผ่านใหม่ของ ม.${level}...`, 'working');
+
+                const resTransfer = await callAPI({
+                    action: 'step3_transfer_students',
+                    level: level,
+                    backupFileId: lastCreatedBackupId,
+                    backupUrl: resBackup.backupUrl,
+                    logId: resClear.logId,
+                    user: adminUser
+                });
+
+                if (!resTransfer.success) {
+                    updateLiveProgress(80, `❌ เกิดข้อผิดพลาดในขั้นที่ 3`, resTransfer.error, 3, "bg-danger");
+                    log(`> ❌ [ERROR ขั้นที่ 3] ${resTransfer.error}`, 'error');
+                    Swal.fire('เกิดข้อผิดพลาดในขั้นที่ 3', resTransfer.error, 'error');
+                    autoBtn.disabled = false;
+                    autoBtn.innerHTML = '<i class="bi bi-rocket-takeoff-fill me-1"></i> เริ่มดำเนินการอัตโนมัติ';
+                    loadBackupHistory();
+                    return;
+                }
+
+                const transferredCnt = resTransfer.transferredCount ?? resTransfer.studentCount ?? 0;
+                updateLiveProgress(100, `🎉 เสร็จสมบูรณ์ 100%! เลื่อนชั้นและซิงค์ข้อมูล ม.${level} เรียบร้อยแล้ว`, `โอนนักเรียน ${transferredCnt} คน พร้อมสำรองไฟล์เรียบร้อย`, 3, "bg-success");
+                log(`> 🎉 [ความก้าวหน้า 100%] เสร็จสมบูรณ์! โอนนักเรียน ม.${level} จำนวน ${transferredCnt} คน เรียบร้อยแล้ว`, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: `เลื่อนชั้น ม.${level} สำเร็จ 100%!`,
+                    html: `
+                        <div class="text-start small">
+                            <p class="mb-1">✅ <b>ขั้นที่ 1 (สำรองข้อมูล):</b> บันทึกไฟล์สำรอง <code>${bName}</code></p>
+                            <p class="mb-1">✅ <b>ขั้นที่ 2 (ล้างเทอมเก่า):</b> ล้างข้อมูลรายเทอม ${clearedCnt} ชีต</p>
+                            <p class="mb-2">✅ <b>ขั้นที่ 3 (โอนรายชื่อใหม่):</b> โอนนักเรียน ${transferredCnt} คน เข้าสู่ ม.${level}</p>
+                            <a href="${resBackup.backupUrl}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill"><i class="bi bi-folder2-open"></i> เปิดดูไฟล์สำรองใน Google Drive</a>
+                        </div>
+                    `
+                });
+            } else {
+                updateLiveProgress(100, `🎉 เสร็จสมบูรณ์ 100%! เริ่มภาคเรียนใหม่ ม.${level} เรียบร้อยแล้ว`, `ล้างประวัติรายเทอม ${clearedCnt} ชีต (คงรายชื่อนักเรียนเดิมไว้ครบ 100%)`, 3, "bg-success");
+                log(`> 🎉 [ความก้าวหน้า 100%] เริ่มภาคเรียนใหม่ ม.${level} เสร็จสมบูรณ์! คงรายชื่อนักเรียนและห้องเดิมไว้ครบถ้วน`, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: `เริ่มภาคเรียนใหม่ ม.${level} สำเร็จ 100%!`,
+                    html: `
+                        <div class="text-start small">
+                            <p class="mb-1">✅ <b>ขั้นที่ 1 (สำรองข้อมูล):</b> บันทึกไฟล์สำรอง <code>${bName}</code></p>
+                            <p class="mb-1">✅ <b>ขั้นที่ 2 (ล้างเทอมเก่า):</b> ล้างเฉพาะชีตเช็คชื่อ/โฮมรูม ${clearedCnt} ชีต</p>
+                            <p class="mb-2">✅ <b>ขั้นที่ 3 (รายชื่อนักเรียน):</b> เก็บรายชื่อนักเรียนและครูที่ปรึกษาเดิมไว้ครบ 100%</p>
+                            <a href="${resBackup.backupUrl}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill"><i class="bi bi-folder2-open"></i> เปิดดูไฟล์สำรองใน Google Drive</a>
+                        </div>
+                    `
+                });
+            }
+
+            autoBtn.disabled = false;
+            autoBtn.innerHTML = '<i class="bi bi-rocket-takeoff-fill me-1"></i> เริ่มดำเนินการอัตโนมัติ';
+            loadBackupHistory();
+        }
+
+        // ปุ่มแยกทำทีละขั้น: ขั้นที่ 1 สำรองข้อมูลอย่างเดียว
+        async function executeManualStepBackup() {
+            const level = document.getElementById('bulk-level').value;
+            if (!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
+            const btn = document.getElementById('btn-bulk-backup');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังสำรอง...';
+
+            updateLiveProgress(20, `[ขั้นที่ 1] กำลังสำรองไฟล์ ม.${level} ลง Google Drive...`, `โปรดรอสักครู่...`, 1, "bg-warning");
+            log(`> [BACKUP] กำลังสร้างไฟล์สำรองของ ม.${level} ลงใน Google Drive...`, 'working');
+
+            const res = await callAPI({
+                action: 'step1_backup_sheet',
+                level: level,
+                mode: 'MANUAL_BACKUP',
+                user: adminUser
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-down-fill me-1"></i> 1. สำรองข้อมูลก่อนลบ';
+
+            if (res.success) {
+                lastCreatedBackupId = res.backupFileId || res.backupId;
+                updateLiveProgress(35, `✅ สำรองข้อมูล ม.${level} สำเร็จ (${res.backupFileName || lastCreatedBackupId})`, `พร้อมทำขั้นที่ 2 ต่อได้ทันที`, 1, "bg-success");
+                log(`> [SUCCESS] ${res.message} (รหัสไฟล์: ${lastCreatedBackupId})`, 'success');
+                loadBackupHistory();
+                Swal.fire('สำรองข้อมูลสำเร็จ', `${res.message}\nชื่อไฟล์สำรอง: ${res.backupFileName || lastCreatedBackupId}`, 'success');
+            } else {
+                updateLiveProgress(0, `❌ สำรองข้อมูลไม่สำเร็จ`, res.error, 1, "bg-danger");
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+            }
+        }
+
+        // ปุ่มแยกทำทีละขั้น: ขั้นที่ 2 ล้างข้อมูลรายเทอม (สำรองให้อัตโนมัติหากยังไม่ได้สำรอง)
         async function executeBulkStep1() {
             const level = document.getElementById('bulk-level').value;
             if(!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
-            const confirm = await Swal.fire({ title: `ยืนยันล้างข้อมูลปลายทาง ม.${level}?`, html: `<span class="text-danger fw-bold">ข้อมูลในทุกชีตของไฟล์ ม.${level} จะถูกลบแถวทิ้งทั้งหมด!</span><br>ระบบจะเหลือไว้เพียงบรรทัดหัวข้อเท่านั้น (ยกเว้นชีต user, teacher)<br><br><span class="badge bg-success w-100 p-2 fs-6"><i class="bi bi-shield-check"></i> ข้อมูลในชีตส่วนกลางจะปลอดภัย 100%</span>`, icon: 'warning', showCancelButton: true, confirmButtonText: 'ยืนยันล้างข้อมูลปลายทาง', confirmButtonColor: '#ef4444' });
+            const resetGlobalSummary = (level === "2") && document.getElementById('chk-reset-m2-summary').checked;
+
+            const confirm = await Swal.fire({
+                title: `ยืนยันล้างข้อมูลรายเทอม ม.${level}?`,
+                html: `ระบบจะสำรองไฟล์เก็บเข้า Google Drive ให้ก่อนอัตโนมัติ แล้วจึงล้างเฉพาะชีตเช็คชื่อ/โฮมรูมรายเทอม<br><br><span class="badge bg-success w-100 p-2 fs-6"><i class="bi bi-shield-check"></i> ปกป้องชีต user, teacher, Task_m${level} และฐานข้อมูลหลัก 100%</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันล้างข้อมูลรายเทอม',
+                confirmButtonColor: '#ef4444'
+            });
             if(!confirm.isConfirmed) return;
-            const btn = document.getElementById('btn-bulk-step1'); btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังลบแถว...'; btn.disabled = true;
-            log(`> [BULK SYNC] เริ่มกระบวนการ ขั้นที่ 1: ลบแถวข้อมูลปลายทาง ม.${level}`, 'info');
-            const res = await callAPI({ action: 'bulk_step1_clear', level: level });
+
+            const btn = document.getElementById('btn-bulk-step1');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังล้างข้อมูล...';
+            btn.disabled = true;
+
+            updateLiveProgress(55, `[ขั้นที่ 2] กำลังสำรองและล้างข้อมูลรายเทอม ม.${level}...`, `กำลังประมวลผล...`, 2, "bg-warning");
+            log(`> [STEP 2] เริ่มล้างข้อมูลรายเทอม ม.${level} (โหมด: ${currentRolloverMode})...`, 'working');
+
+            const res = await callAPI({
+                action: 'step2_clear_seasonal_data',
+                level: level,
+                mode: currentRolloverMode,
+                backupFileId: lastCreatedBackupId,
+                includeGlobalSummary: resetGlobalSummary,
+                user: adminUser
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-eraser-fill me-1"></i> 2. ล้างข้อมูลรายเทอม';
+
             if(res.success) {
-                log(`> [SUCCESS] ${res.message}`, 'success'); btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ล้างเสร็จแล้ว'; btn.classList.replace('btn-outline-danger', 'btn-success');
-                document.getElementById('btn-bulk-step2').disabled = false; document.getElementById('ui-bulk-step2').style.opacity = '1'; Swal.fire('ขั้นที่ 1 สำเร็จ', `ลบแถวข้อมูลชีตนักเรียนปลายทาง ม.${level} เรียบร้อยแล้ว เชิญกดทำขั้นที่ 2 ต่อได้เลยครับ`, 'success');
-            } else { log(`> [ERROR] ${res.error}`, 'error'); Swal.fire('ข้อผิดพลาด', res.error, 'error'); btn.innerHTML = '<i class="bi bi-eraser-fill"></i> เริ่มขั้นที่ 1'; btn.disabled = false; }
+                lastCreatedBackupId = res.backupFileId || res.backupId;
+                const cCnt = res.clearedTabsCount ?? res.clearedCount ?? 0;
+                const pCnt = (res.protectedNames ? res.protectedNames.length : res.protectedCount) ?? 0;
+                updateLiveProgress(70, `✅ ล้างข้อมูลรายเทอม ม.${level} สำเร็จ (${cCnt} ชีต)`, `ปกป้องชีตสำคัญ ${pCnt} ชีต`, 2, "bg-success");
+                log(`> [SUCCESS] ${res.message}`, 'success');
+                loadBackupHistory();
+                Swal.fire('ล้างข้อมูลรายเทอมสำเร็จ', res.message, 'success');
+            } else {
+                updateLiveProgress(50, `❌ เกิดข้อผิดพลาดในการล้างข้อมูล`, res.error, 2, "bg-danger");
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+            }
         }
 
+        // ปุ่มแยกทำทีละขั้น: ขั้นที่ 3 โอนย้ายรายชื่อ + รหัสผ่าน
         async function executeBulkStep2() {
-            const level = document.getElementById('bulk-level').value; if(!level) return;
-            const btn = document.getElementById('btn-bulk-step2'); btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังโอนย้าย...'; btn.disabled = true;
-            log(`> [BULK SYNC] เริ่มกระบวนการ ขั้นที่ 2: โอนย้ายข้อมูล และสร้างบัญชีผู้ใช้ ม.${level}`, 'info');
-            const res = await callAPI({ action: 'bulk_step2_transfer', level: level });
+            const level = document.getElementById('bulk-level').value;
+            if(!level) return alert("กรุณาเลือกระดับชั้นก่อนครับ");
+            const btn = document.getElementById('btn-bulk-step2');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังโอนย้าย...';
+            btn.disabled = true;
+
+            updateLiveProgress(85, `[ขั้นที่ 3] กำลังโอนย้ายรายชื่อและสร้างบัญชีผู้ใช้ ม.${level}...`, `กำลังเขียนลงชีต student และ user...`, 3, "bg-warning");
+            log(`> [STEP 3] เริ่มโอนย้ายข้อมูลนักเรียนและสร้างรหัสผ่าน ม.${level}...`, 'working');
+
+            const res = await callAPI({
+                action: 'step3_transfer_students',
+                level: level,
+                backupFileId: lastCreatedBackupId,
+                user: adminUser
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> 3. โอนรายชื่อ+รหัสผ่าน';
+
             if(res.success) {
-                log(`> [SUCCESS] ${res.message}`, 'success'); btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ย้ายข้อมูลเสร็จสมบูรณ์'; btn.classList.replace('btn-outline-success', 'btn-success');
-                await callAPI({ action: 'write_log', type: 'BULK_SYNC', detail: `เลื่อนชั้นและซิงค์ข้อมูลใหม่ของ ม.${level}`, user: adminUser });
-                log(`> [DONE] กระบวนการเลื่อนชั้น ม.${level} เสร็จสมบูรณ์ 100%! 🎉`, 'info'); Swal.fire('เสร็จสมบูรณ์', `โอนย้ายรายชื่อและสร้างบัญชีเข้าระบบให้นักเรียน ม.${level} เรียบร้อยแล้ว!`, 'success');
-            } else { log(`> [ERROR] ${res.error}`, 'error'); Swal.fire('ข้อผิดพลาด', res.error, 'error'); btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> เริ่มขั้นที่ 2'; btn.disabled = false; }
+                updateLiveProgress(100, `🎉 โอนย้ายรายชื่อ ม.${level} เสร็จสมบูรณ์ 100%!`, res.message, 3, "bg-success");
+                log(`> [SUCCESS] ${res.message}`, 'success');
+                loadBackupHistory();
+                Swal.fire('เสร็จสมบูรณ์', res.message, 'success');
+            } else {
+                updateLiveProgress(80, `❌ โอนย้ายรายชื่อไม่สำเร็จ`, res.error, 3, "bg-danger");
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+            }
         }
 
+        // สำรองและลบ 4 แท็บที่ไม่ได้ใช้ในชีต ม.2
+        async function executeCleanupUnusedM2Tabs() {
+            const confirm = await Swal.fire({
+                title: 'สำรอง & ลบ 4 ชีตที่ไม่ได้ใช้ใน ม.2?',
+                html: `
+                    <div class="text-start small">
+                        <p>ระบบจะ<b>สำรองไฟล์ ม.2 ทั้งไฟล์ลง Google Drive ก่อน</b> จากนั้นจึงลบเฉพาะ 4 ชีตที่ไม่มีโค้ดส่วนใดเรียกใช้แล้ว:</p>
+                        <ul>
+                            <li><code>สรุปมาเรียนทั้งโรงเรียน</code> (ซ้ำซ้อน)</li>
+                            <li><code>ข้อมูลกลุ่มเสี่ยงทั้งโรงเรียน</code> (ซ้ำซ้อน)</li>
+                            <li><code>บันทึกการตรวจ</code> (ไม่ได้ใช้)</li>
+                            <li><code>subject</code> (ชีตว่างเปล่า)</li>
+                        </ul>
+                        <p class="text-success fw-bold mb-0">ส่วนชีต "สรุปการมาเรียนหน้าเสาธง" และ "ข้อมูลกลุ่มเสี่ยงหน้าเสาธง" ที่ใช้งานจริงจะถูกเก็บรักษาไว้ 100%</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'สำรองและลบ 4 ชีตนี้'
+            });
+            if (!confirm.isConfirmed) return;
+
+            updateLiveProgress(40, `กำลังสำรองไฟล์ ม.2 และลบ 4 ชีตที่ไม่ได้ใช้งาน...`, `โปรดรอสักครู่...`, 1, "bg-warning");
+            log(`> [CLEANUP M.2] กำลังสำรองไฟล์ ม.2 และลบ 4 ชีตที่ไม่ได้ใช้งาน...`, 'working');
+
+            const res = await callAPI({ action: 'archive_and_remove_unused_tabs', level: '2', user: adminUser });
+            if (res.success) {
+                updateLiveProgress(100, `✅ ทำความสะอาดชีต ม.2 สำเร็จ!`, res.message, 3, "bg-success");
+                log(`> [SUCCESS] ${res.message} (Backup ID: ${res.backupFileId})`, 'success');
+                loadBackupHistory();
+                Swal.fire('สำเร็จ', res.message, 'success');
+            } else {
+                updateLiveProgress(0, `❌ เกิดข้อผิดพลาด`, res.error, 1, "bg-danger");
+                log(`> [ERROR] ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+            }
+        }
+
+        // โหลดตารางประวัติการสำรองข้อมูลและการลบ (System_Backup_Log)
+        async function loadBackupHistory() {
+            const tbody = document.getElementById('backup-history-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-3"><span class="spinner-border spinner-border-sm text-primary"></span> กำลังโหลดประวัติการสำรองข้อมูล...</td></tr>`;
+            const res = await callAPI({ action: 'get_backup_history' });
+            if (!res.success) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3">${res.error}</td></tr>`;
+                return;
+            }
+            if (!res.data || res.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">ยังไม่มีประวัติการสำรองข้อมูลในระบบ</td></tr>`;
+                return;
+            }
+            let html = '';
+            res.data.forEach(item => {
+                const bFileId = item.backupFileId || item.backupId || '';
+                const bUrl = item.backupUrl || item.backupFileUrl || '#';
+                const gradeTxt = item.level || item.grade || '-';
+                const modeTxt = item.mode || item.operationType || '-';
+                const summaryTxt = item.summary || item.clearedSummary || '-';
+                const isRestored = modeTxt.includes('ย้อนคืน') || (item.status && item.status.includes('RESTORED'));
+                const statusBadge = isRestored
+                    ? `<span class="badge bg-info text-dark">ย้อนคืนแล้ว</span>`
+                    : `<span class="badge bg-success">สำรองปลอดภัย</span>`;
+                html += `
+                    <tr>
+                        <td class="text-nowrap"><small>${item.timestamp}</small><br><code class="text-muted">${item.logId || bFileId.substring(0, 12)}</code></td>
+                        <td class="fw-bold text-primary">${gradeTxt}</td>
+                        <td><span class="badge bg-secondary">${modeTxt}</span></td>
+                        <td><small class="text-muted">${summaryTxt}</small></td>
+                        <td>${statusBadge}</td>
+                        <td class="text-end text-nowrap">
+                            ${bUrl && bUrl !== '-' ? `<a href="${bUrl}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill me-1" title="เปิดดูไฟล์สำรองใน Google Drive"><i class="bi bi-box-arrow-up-right"></i> เปิดไฟล์</a>` : ''}
+                            ${bFileId && bFileId !== '-' ? `<button class="btn btn-sm btn-warning rounded-pill fw-bold" onclick="executeRestoreBackup('${bFileId}', '${gradeTxt}')"><i class="bi bi-arrow-counterclockwise"></i> ย้อนคืน</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ย้อนคืนข้อมูลจากไฟล์สำรองกลับเข้าสู่ Spreadsheet ID เดิม
+        async function executeRestoreBackup(backupFileId, gradeLabel) {
+            const confirm = await Swal.fire({
+                title: `ยืนยันย้อนคืนข้อมูล ${gradeLabel}?`,
+                html: `ระบบจะนำข้อมูลทุกชีตจากไฟล์สำรอง <code>${backupFileId}</code> <b>กู้คืนกลับเข้าสู่ไฟล์ Google Sheet หลักของ ${gradeLabel} (Spreadsheet ID เดิม)</b> ทันที`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันกู้คืนข้อมูล (Restore)',
+                confirmButtonColor: '#f59e0b'
+            });
+            if (!confirm.isConfirmed) return;
+
+            updateLiveProgress(45, `⏪ กำลังกู้คืนข้อมูล ${gradeLabel} จากไฟล์สำรอง...`, `กำลังคัดลอกข้อมูลแต่ละแท็บกลับเข้าสู่ไฟล์หลัก...`, 2, "bg-warning");
+            log(`> ⏪ [RESTORE] กำลังกู้คืนข้อมูล ${gradeLabel} จากรหัสไฟล์สำรอง ${backupFileId}...`, 'working');
+
+            const res = await callAPI({ action: 'restore_from_backup', level: gradeLabel, backupFileId: backupFileId, user: adminUser });
+            if (res.success) {
+                updateLiveProgress(100, `✅ กู้คืนข้อมูล ${gradeLabel} สำเร็จ 100%!`, res.message, 3, "bg-success");
+                log(`> ✅ [RESTORE SUCCESS] ${res.message}`, 'success');
+                loadBackupHistory();
+                Swal.fire('กู้คืนข้อมูลสำเร็จ!', res.message, 'success');
+            } else {
+                updateLiveProgress(0, `❌ กู้คืนข้อมูลไม่สำเร็จ`, res.error, 1, "bg-danger");
+                log(`> ❌ [RESTORE ERROR] ${res.error}`, 'error');
+                Swal.fire('เกิดข้อผิดพลาด', res.error, 'error');
+            }
+        }
+
+        // ============================================================================
+        // 🌟 เมนู 8: ตรวจสอบและซิงค์รายชื่อ 6 ชีต (ม.1 - ม.6) เทียบกับฐานข้อมูลหลัก
+        // ============================================================================
+        function openSyncCheckPane() {
+            const tabBtn = document.getElementById('tab-btn-synccheck');
+            if (tabBtn) {
+                const tab = new bootstrap.Tab(tabBtn);
+                tab.show();
+            }
+            scanAllSixGrades();
+        }
+
+        async function scanAllSixGrades() {
+            const tbody = document.getElementById('sync-check-tbody');
+            const btn = document.getElementById('btn-scan-all-grades');
+            const bar = document.getElementById('sync-check-bar');
+            const pctEl = document.getElementById('sync-check-pct');
+            const statusEl = document.getElementById('sync-check-status-text');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังตรวจสอบทีละชั้น...';
+            tbody.innerHTML = '';
+
+            log(`> 🔍 เริ่มตรวจสอบความตรงกันของรายชื่อทั้ง 6 ชีต (ม.1 - ม.6) กับฐานข้อมูลหลัก...`, 'working');
+
+            for (let m = 1; m <= 6; m++) {
+                const pct = Math.round(((m - 1) / 6) * 100);
+                bar.style.width = `${pct}%`;
+                pctEl.innerText = `${pct}%`;
+                statusEl.innerHTML = `<i class="bi bi-hourglass-split me-2 text-warning"></i>กำลังตรวจสอบชีต ชั้น ม.${m} (${m}/6)...`;
+                log(`> [กำลังตรวจ ${m}/6] กำลังเปรียบเทียบรายชื่อ ชั้น ม.${m} กับฐานข้อมูลกลาง...`, 'working');
+
+                const res = await callAPI({ action: 'check_sync_grade', level: String(m) });
+                const donePct = Math.round((m / 6) * 100);
+                bar.style.width = `${donePct}%`;
+                pctEl.innerText = `${donePct}%`;
+
+                if (res.success) {
+                    const isSynced = Boolean(res.isSynced || res.isFullySynced);
+                    const diffCount = (res.missingInTargetCount || 0) + (res.mismatchedCount || 0) + (res.extraInTargetCount || 0) + (res.prefixMissingCount || 0);
+                    const badge = isSynced
+                        ? `<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>ตรงกัน 100%</span>`
+                        : `<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>ต้องซิงค์ (${diffCount} จุดต่าง)</span>`;
+
+                    const tr = document.createElement('tr');
+                    tr.id = `sync-row-m${m}`;
+                    tr.innerHTML = `
+                        <td class="fw-bold text-primary">ชั้น ม.${m}</td>
+                        <td class="text-center fw-bold">${res.centralCount} คน</td>
+                        <td class="text-center">${res.targetStudentCount} คน</td>
+                        <td class="text-center">${res.targetUserCount} บัญชี</td>
+                        <td>${badge}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm ${isSynced ? 'btn-outline-primary' : 'btn-primary'} rounded-pill fw-bold" onclick="syncSingleGradeFromCheck('${m}')">
+                                <i class="bi bi-arrow-repeat me-1"></i> ซิงค์ ม.${m}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    log(`> [ผลตรวจ ม.${m}] ส่วนกลาง: ${res.centralCount} คน | ชีต student: ${res.targetStudentCount} คน | สถานะ: ${isSynced ? 'ตรงกัน 100%' : 'ต้องอัปเดต'}`, isSynced ? 'success' : 'error');
+                } else {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="fw-bold">ชั้น ม.${m}</td><td colspan="5" class="text-danger">${res.error}</td>`;
+                    tbody.appendChild(tr);
+                    log(`> [ERROR ม.${m}] ${res.error}`, 'error');
+                }
+            }
+
+            statusEl.innerHTML = `<i class="bi bi-check-circle-fill me-2 text-success"></i>ตรวจสอบครบทั้ง 6 ชีต (ม.1 - ม.6) เสร็จสมบูรณ์ 100%!`;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-search me-1"></i> ตรวจสอบทั้ง 6 ชีตอีกครั้ง';
+        }
+
+        async function syncSingleGradeFromCheck(level) {
+            const statusEl = document.getElementById('sync-check-status-text');
+            statusEl.innerHTML = `<span class="spinner-border spinner-border-sm text-warning me-2"></span>กำลังซิงค์รายชื่อและรหัสผ่านเข้าสู่ชีต ม.${level}...`;
+            log(`> 🔄 กำลังซิงค์ข้อมูลจากฐานข้อมูลกลางไปที่ชีต ม.${level}...`, 'working');
+
+            const res = await callAPI({ action: 'sync_homeroom', level: String(level) });
+            if (res.success) {
+                const cnt = res.transferredCount ?? res.count ?? 0;
+                log(`> ✅ ซิงค์ชีต ม.${level} สำเร็จ (${cnt} คน)! กำลังตรวจสอบผลซ้ำ...`, 'success');
+                await scanAllSixGrades();
+                Swal.fire('ซิงค์สำเร็จ!', `อัปเดตรายชื่อและรหัสผ่านชั้น ม.${level} จำนวน ${cnt} คน เรียบร้อยแล้ว`, 'success');
+            } else {
+                log(`> ❌ ซิงค์ ม.${level} ล้มเหลว: ${res.error}`, 'error');
+                Swal.fire('ข้อผิดพลาด', res.error, 'error');
+            }
+        }
+
+        // ============================================================================
+        // เมนู 6 & 7: นำเข้าและอัปเดตด้วยไฟล์ Excel พร้อมแจ้งความก้าวหน้าทีละระดับชั้น
+        // ============================================================================
         function handleExcelUpload(e) {
             const file = e.target.files[0]; if(!file) return;
             log(`> วิเคราะห์ไฟล์ Excel เด็กใหม่...`, 'working');
@@ -468,14 +1269,20 @@
             const confirm = await Swal.fire({ title: 'ยืนยันการนำเข้าเด็กใหม่?', text: `ระบบจะเพิ่มรายชื่อ ${pendingImportData.length} คน (ป้องกันรหัสซ้ำอัตโนมัติ)`, icon: 'question', showCancelButton: true, confirmButtonText: 'เริ่มนำเข้า' });
             if (!confirm.isConfirmed) return;
             const btn = document.getElementById('btn-submit-import'); btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังนำเข้า...';
-            log(`> กำลังส่งข้อมูลเด็กใหม่เข้าส่วนกลาง...`, 'working');
+            log(`> [ขั้นที่ 1] กำลังส่งข้อมูลเด็กใหม่ ${pendingImportData.length} คน เข้าฐานข้อมูลส่วนกลาง...`, 'working');
             const res = await callAPI({ action: 'bulk_import_new_students', students: pendingImportData });
             if(res.success) {
-                log(`> นำเข้าสำเร็จ!`, 'success');
-                let affectedLevels = new Set(pendingImportData.map(s => s.room.split('/')[0]));
-                for (let lvl of affectedLevels) { log(`> กำลัง Sync ข้อมูลโฮมรูม ม.${lvl}...`, 'working'); await callAPI({ action: 'sync_homeroom', level: lvl }); log(`> [SYNC] ม.${lvl} สำเร็จ`, 'success'); }
+                log(`> นำเข้าส่วนกลางสำเร็จ (${res.added} คน)!`, 'success');
+                let affectedLevels = Array.from(new Set(pendingImportData.map(s => s.room.replace(/^ม\./, '').split('/')[0])));
+                for (let idx = 0; idx < affectedLevels.length; idx++) {
+                    let lvl = affectedLevels[idx];
+                    log(`> [กำลังซิงค์ ${idx + 1}/${affectedLevels.length}] กำลัง Sync ข้อมูลโฮมรูม ม.${lvl}...`, 'working');
+                    await callAPI({ action: 'sync_homeroom', level: lvl });
+                    log(`> [SYNC] ม.${lvl} สำเร็จ`, 'success');
+                }
                 await callAPI({ action: 'write_log', type: 'IMPORT', detail: `นำเข้าเด็กใหม่ (Excel) ${res.added} คน`, user: adminUser });
-                Swal.fire('สำเร็จ', res.message + '\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success'); document.getElementById('excel-file').value = ""; document.getElementById('import-preview-container').style.display = 'none'; document.getElementById('import-count-display').classList.add('d-none'); pendingImportData = [];
+                Swal.fire('สำเร็จ', res.message + '\n\nอย่าลืมกดอัปเดตระบบภายนอกด้วยนะครับ!', 'success');
+                document.getElementById('excel-file').value = ""; document.getElementById('import-preview-container').style.display = 'none'; document.getElementById('import-count-display').classList.add('d-none'); pendingImportData = [];
             } else { log(`> [ERROR] ${res.error}`, 'error'); }
             btn.disabled = false; btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i> บันทึกเข้าฐานข้อมูลส่วนกลาง';
         }
@@ -598,16 +1405,17 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังประมวลผล...';
             btn.disabled = true;
 
-            log(`> [SMART SYNC] กำลังส่งข้อมูล ${pendingUpdateData.length} รายการ เข้าสู่ฐานข้อมูลส่วนกลาง...`, 'working');
+            log(`> [SMART SYNC ขั้นที่ 1] กำลังส่งข้อมูล ${pendingUpdateData.length} รายการ เข้าสู่ฐานข้อมูลส่วนกลาง...`, 'working');
 
             const res = await callAPI({ action: 'bulk_update_existing_students', students: pendingUpdateData });
             
             if (res.success) {
                 log(`> [SUCCESS] ${res.message}`, 'success');
                 
-                let affectedLevels = new Set(pendingUpdateData.map(s => s.room.split('/')[0]));
-                for (let lvl of affectedLevels) {
-                    log(`> กำลัง Sync ข้อมูลไปยังฐานข้อมูลโฮมรูม ม.${lvl}...`, 'working');
+                let affectedLevels = Array.from(new Set(pendingUpdateData.map(s => s.room.replace(/^ม\./, '').split('/')[0])));
+                for (let idx = 0; idx < affectedLevels.length; idx++) {
+                    let lvl = affectedLevels[idx];
+                    log(`> [กำลังซิงค์ ${idx + 1}/${affectedLevels.length}] กำลัง Sync ข้อมูลไปยังฐานข้อมูลโฮมรูม ม.${lvl}...`, 'working');
                     await callAPI({ action: 'sync_homeroom', level: lvl });
                     log(`> [SYNC] ม.${lvl} สำเร็จ`, 'success');
                 }
