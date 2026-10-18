@@ -18,10 +18,11 @@
             --orange-main: #f97316;
             --gray-main: #64748b;
             --green-main: #10b981;
+            --purple-main: #7c3aed;
         }
 
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
-        h1, h2, h3, h4, h5, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-prompt, .btn { font-family: 'Prompt', sans-serif; }
 
         /* Top Navbar */
         .top-navbar {
@@ -30,26 +31,26 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1030;
         }
 
-        .main-content { padding: 30px 20px; max-width: 1000px; margin: 0 auto; flex-grow: 1; width: 100%; }
+        .main-content { padding: 30px 20px; max-width: 1050px; margin: 0 auto; flex-grow: 1; width: 100%; }
 
         /* 🍱 Bento Grid Layout */
         .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         @media (max-width: 768px) { .bento-grid { grid-template-columns: 1fr; } }
 
         .bento-card {
-            background: white; border-radius: 24px; padding: 30px; text-decoration: none;
+            background: white; border-radius: 24px; padding: 28px; text-decoration: none;
             color: inherit; display: flex; flex-direction: column; align-items: center;
             justify-content: center; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 2px solid transparent;
-            cursor: pointer; min-height: 220px; position: relative; overflow: hidden;
+            cursor: pointer; min-height: 210px; position: relative; overflow: hidden;
         }
         
-        .bento-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-        .bento-card:active { transform: scale(0.97); }
+        .bento-card:hover { transform: translateY(-6px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+        .bento-card:active { transform: scale(0.98); }
 
-        .bento-icon { font-size: 4rem; margin-bottom: 15px; z-index: 2; transition: transform 0.3s; }
+        .bento-icon { font-size: 3.6rem; margin-bottom: 12px; z-index: 2; transition: transform 0.3s; }
         .bento-card:hover .bento-icon { transform: scale(1.1); }
-        .bento-title { font-size: 1.3rem; font-weight: 700; z-index: 2; margin-bottom: 5px; }
+        .bento-title { font-size: 1.25rem; font-weight: 700; z-index: 2; margin-bottom: 5px; }
         .bento-desc { font-size: 0.9rem; color: #64748b; z-index: 2; line-height: 1.4; }
 
         /* Card Themes */
@@ -65,15 +66,24 @@
         .card-report:hover { border-color: var(--green-main); background: #ecfdf5; }
         .card-report .bento-icon { color: var(--green-main); }
 
-        .card-placeholder { border-color: #e2e8f0; background: #f8fafc; opacity: 0.8; }
-        .card-placeholder:hover { opacity: 1; border-color: var(--gray-main); }
-        .card-placeholder .bento-icon { color: var(--gray-main); }
+        .card-backup { border-color: #ddd6fe; }
+        .card-backup:hover { border-color: var(--purple-main); background: #f5f3ff; }
+        .card-backup .bento-icon { color: var(--purple-main); }
+
+        /* Mode Selector Cards */
+        .mode-option-card {
+            border: 2px solid #e2e8f0; border-radius: 16px; padding: 15px; cursor: pointer;
+            transition: all 0.2s; background: white; height: 100%;
+        }
+        .mode-option-card:hover { border-color: #94a3b8; }
+        .mode-option-card.active-semester { border-color: #2563eb; background: #eff6ff; box-shadow: 0 4px 12px rgba(37,99,235,0.12); }
+        .mode-option-card.active-promote { border-color: #ea580c; background: #fff7ed; box-shadow: 0 4px 12px rgba(234,88,12,0.12); }
 
         /* Terminal Console */
-        .terminal-panel { background: #1e1e1e; border-radius: 16px; padding: 20px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #333; height: 250px; display: flex; flex-direction: column; }
-        .terminal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
+        .terminal-panel { background: #0f172a; border-radius: 16px; padding: 18px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #334155; height: 260px; display: flex; flex-direction: column; }
+        .terminal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
         .terminal-dots span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
-        .terminal-body { flex-grow: 1; overflow-y: auto; font-family: monospace; font-size: 0.9rem; color: #4ade80; line-height: 1.6; }
+        .terminal-body { flex-grow: 1; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.88rem; color: #4ade80; line-height: 1.6; }
         .log-info { color: #60a5fa; } .log-warning { color: #facc15; } .log-success { color: #4ade80; } .log-error { color: #f87171; font-weight: bold; }
         
         /* Table Sync */
@@ -87,55 +97,61 @@
         <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w100" alt="Logo" class="rounded-circle bg-white p-1 me-3" style="width: 45px; height: 45px;">
         <div class="flex-grow-1">
             <h4 class="m-0 fw-bold font-prompt text-white">ระบบแอดมิน E-POINT</h4>
-            <div class="small text-white-50">ศูนย์ควบคุมคะแนนพฤติกรรม</div>
+            <div class="small text-white-50">ศูนย์ควบคุมคะแนนพฤติกรรม และจัดการภาคเรียนครบวงจร</div>
         </div>
         <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill"><i class="bi bi-house-door"></i> ออกจากระบบ</a>
     </div>
 
     <div class="main-content" id="view-dashboard">
         
-        <div class="alert bg-white border shadow-sm rounded-4 mb-4 d-flex align-items-center">
-            <i class="bi bi-shield-lock-fill fs-1 text-primary me-3"></i>
-            <div>
-                <h5 class="fw-bold text-dark m-0 font-prompt">ยินดีต้อนรับสู่ระบบผู้ดูแล</h5>
-                <p class="text-muted small m-0">กรุณาเลือกเมนูการจัดการที่ท่านต้องการใช้งานด้านล่าง</p>
+        <div class="alert bg-white border shadow-sm rounded-4 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-shield-lock-fill fs-1 text-primary me-3"></i>
+                <div>
+                    <h5 class="fw-bold text-dark m-0 font-prompt">ยินดีต้อนรับสู่ระบบผู้ดูแล E-Point</h5>
+                    <p class="text-muted small m-0">รองรับ 12 ห้องเรียน/ระดับชั้น • สำรองข้อมูลอัตโนมัติ 2 ชั้น • ปกป้องชีตระบบ 100%</p>
+                </div>
             </div>
+            <a href="Edit_grade.html" class="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3">
+                <i class="bi bi-card-checklist me-1"></i> ไปหน้าจัดการผล มผ. (Edit Grade)
+            </a>
         </div>
 
         <!-- 🍱 Bento Grid Menu -->
         <div class="bento-grid">
             <div class="bento-card card-students" onclick="openSyncModal()">
                 <i class="bi bi-people-fill bento-icon"></i>
-                <div class="bento-title font-prompt">1. จัดการนักเรียน (Sync)</div>
-                <div class="bento-desc">เพิ่ม ลบ แก้ไข ข้อมูลนักเรียน<br>อัปเดตตรงจากฐานข้อมูลกลาง</div>
+                <div class="bento-title font-prompt">1. จัดการนักเรียนระหว่างเทอม (Sync)</div>
+                <div class="bento-desc">เพิ่ม ลบ แก้ไข ข้อมูลนักเรียนระหว่างเทอม<br>อัปเดตตรงจากฐานข้อมูลกลาง (คะแนนเดิมไม่หาย)</div>
             </div>
 
             <div class="bento-card card-semester" onclick="openSemesterModal()">
                 <i class="bi bi-arrow-repeat bento-icon"></i>
-                <div class="bento-title font-prompt">2. เริ่มภาคเรียนใหม่</div>
-                <div class="bento-desc">สำรองข้อมูล ล้างกระดาน<br>และโอนย้ายนักเรียนครบวงจร</div>
+                <div class="bento-title font-prompt">2. เริ่มภาคเรียนใหม่ / เลื่อนชั้น</div>
+                <div class="bento-desc">กวาดคนติด มผ. • สำรองข้อมูล • ล้างประวัติเทอมเก่า<br>และดึงรายชื่อพร้อมแจก 100 คะแนน (ซิงค์ IDlogin นร.)</div>
             </div>
 
             <div class="bento-card card-report" onclick="openReportModal()">
                 <i class="bi bi-pie-chart-fill bento-icon"></i>
                 <div class="bento-title font-prompt">3. สารสนเทศสิ้นภาคเรียน</div>
-                <div class="bento-desc">ประมวลผลสถิติภาพรวม 4 หมวด<br>และส่งออกรายงาน Excel คลุมทั้ง รร.</div>
+                <div class="bento-desc">ประมวลผลสถิติภาพรวม 4 หมวด (ความดี/พฤติกรรม/สาย/โดด)<br>และส่งออกรายงาน Excel คลุมทั้งโรงเรียน</div>
             </div>
 
-            <div class="bento-card card-placeholder" onclick="alert('ตั้งไว้ก่อนครับ')">
-                <i class="bi bi-grid-1x2-fill bento-icon"></i>
-                <div class="bento-title font-prompt">4. ตั้งไว้</div>
-                <div class="bento-desc">เมนูเตรียมพร้อมสำหรับการพัฒนา<br>ฟีเจอร์เพิ่มเติมในอนาคต</div>
+            <div class="bento-card card-backup" onclick="openArchiveModal()">
+                <i class="bi bi-search-heart-fill bento-icon"></i>
+                <div class="bento-title font-prompt">4. ค้นหาข้อมูลเดิมย้อนหลัง & กู้คืน</div>
+                <div class="bento-desc">เรียกดูคะแนน/ประวัติพฤติกรรมจากไฟล์สำรองทุกภาคเรียน<br>ค้นหารายบุคคล รายห้อง (1-12) หรือกู้คืนในคลิกเดียว</div>
             </div>
         </div>
 
         <div class="terminal-panel mt-4">
             <div class="terminal-header">
                 <div class="terminal-dots"><span style="background: #ef4444;"></span><span style="background: #f59e0b;"></span><span style="background: #10b981;"></span></div>
-                <div class="text-white-50 small">System Logs</div>
+                <div class="text-white-50 small"><i class="bi bi-terminal me-1"></i>กระดานสื่อสารสถานะการทำงานสด (Live System Logs)</div>
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2 text-white-50" style="font-size: 0.75rem;" onclick="clearConsole()">ล้างหน้าจอ</button>
             </div>
             <div class="terminal-body" id="console-output">
-                <div class="log-info">> ระบบพร้อมทำงาน รอคำสั่งจากผู้ดูแล...</div>
+                <div class="log-info">> ระบบแอดมิน E-Point พร้อมทำงาน รอคำสั่งจากผู้ดูแล...</div>
             </div>
         </div>
     </div>
@@ -147,14 +163,14 @@
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
                 <div class="modal-header bg-primary text-white border-0 px-4 py-3">
-                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-arrow-repeat me-2"></i>อัปเดตข้อมูลนักเรียนให้ตรงกับส่วนกลาง</h5>
+                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-arrow-repeat me-2"></i>อัปเดตข้อมูลนักเรียนระหว่างเทอมให้ตรงกับส่วนกลาง</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 
                 <div class="modal-body p-4 bg-light">
                     <div class="alert alert-info border-0 shadow-sm small rounded-3 mb-4">
                         <i class="bi bi-shield-check text-primary fs-5 me-2"></i>
-                        <b class="text-dark">ความปลอดภัย:</b> ระบบนี้จะทำการเปรียบเทียบชื่อนักเรียนกับฐานข้อมูลกลาง หากพบการเปลี่ยนแปลงจะทำการดึงมาอัปเดต โดย <b>คะแนนพฤติกรรมเดิมจะไม่สูญหาย 100%</b>
+                        <b class="text-dark">ความปลอดภัย:</b> ระบบนี้ใช้สำหรับ <b>ระหว่างภาคเรียน</b> เพื่อเปรียบเทียบรายชื่อนักเรียนกับฐานข้อมูลกลาง หากมีเด็กย้ายเข้า/ย้ายออก/เปลี่ยนห้อง ระบบจะอัปเดตโดย <b>คะแนนพฤติกรรมเดิมจะตามตัวนักเรียนไป 100%</b>
                     </div>
 
                     <div class="d-flex gap-2 mb-4">
@@ -174,9 +190,7 @@
                         <div class="table-responsive bg-white rounded-3 shadow-sm border mb-4">
                             <table class="table table-hover sync-table mb-0">
                                 <thead><tr><th width="15%">รหัส</th><th>ชื่อ-สกุล</th><th width="20%">ห้อง/เลขที่</th><th width="25%">การดำเนินการ</th></tr></thead>
-                                <tbody id="sync-tbody">
-                                    <!-- Data Fills Here -->
-                                </tbody>
+                                <tbody id="sync-tbody"></tbody>
                             </table>
                         </div>
 
@@ -196,43 +210,188 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- 🚀 หน้าต่างเริ่มภาคเรียนใหม่ (New Semester Workflow) เมนู 2 -->
+    <!-- 🚀 หน้าต่างเริ่มภาคเรียนใหม่ / เลื่อนชั้น (เมนู 2 & 4) -->
     <!-- ============================================== -->
     <div class="modal fade" id="semesterModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
                 <div class="modal-header bg-danger text-white border-0 px-4 py-3">
-                    <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-exclamation-triangle-fill me-2"></i>ระบบเริ่มภาคเรียนใหม่</h5>
+                    <div>
+                        <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-arrow-repeat me-2"></i>ศูนย์ควบคุมการเริ่มภาคเรียนใหม่ & เลื่อนชั้นปีการศึกษา (E-Point)</h5>
+                        <small class="text-white-50">ระบบสำรองข้อมูล 2 ชั้น • ปกป้องชีตระบบ 100% • สื่อสารความคืบหน้าทุกขั้นตอน</small>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="btn-close-modal"></button>
                 </div>
                 
                 <div class="modal-body p-4 bg-light">
-                    <div class="bg-white p-3 rounded-4 border shadow-sm mb-3" id="step-1-box">
-                        <h6 class="fw-bold text-danger font-prompt"><span class="badge bg-danger rounded-circle me-2">1</span>สำรองข้อมูล และ ล้างกระดาน</h6>
-                        <p class="small text-muted mb-3">ระบบจะคัดลอกไฟล์เดิมไปเก็บไว้ในโฟลเดอร์ และทำการลบข้อมูลนักเรียนเดิมทิ้งทั้งหมด (ยกเว้นชีตระบบ)</p>
-                        
-                        <div class="input-group mb-3">
-                            <span class="input-group-text fw-bold">ชื่อไฟล์สำรอง</span>
-                            <input type="text" id="backupName" class="form-control fw-bold text-primary" placeholder="เช่น Backup_เทอม1_2569">
+
+                    <!-- 📊 แถบความคืบหน้าแบบเรียลไทม์ (Real-Time Progress Bar) -->
+                    <div id="rollover-progress-box" class="bg-white p-3 rounded-4 border border-primary shadow-sm mb-4" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-primary font-prompt" id="rollover-progress-status">
+                                <span class="spinner-border spinner-border-sm me-2"></span>กำลังเริ่มต้นดำเนินการ...
+                            </span>
+                            <span class="badge bg-primary fs-6" id="rollover-progress-pct">0%</span>
                         </div>
-                        <button class="btn btn-danger w-100 fw-bold rounded-pill shadow-sm" id="btn-backup" onclick="processBackupAndClear()">
-                            <i class="bi bi-hdd-fill me-1"></i> เริ่มสำรองข้อมูลและล้างกระดาน
+                        <div class="progress" style="height: 22px; border-radius: 12px;">
+                            <div id="rollover-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary fw-bold" role="progressbar" style="width: 0%;">0%</div>
+                        </div>
+                        <div class="small text-muted mt-2" id="rollover-progress-subtext">กรุณาอย่าเพิ่งปิดหน้าต่างนี้ ระบบกำลังสื่อสารกับฐานข้อมูล...</div>
+                    </div>
+
+                    <!-- 🛡️ ขั้นตอนที่ 0 (Pre-Flight Check): กวาดรายชื่อเด็กติด มผ. ก่อนล้างกระดาน -->
+                    <div class="bg-white p-3 rounded-4 border border-warning shadow-sm mb-3">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                            <div>
+                                <h6 class="fw-bold text-dark font-prompt m-0">
+                                    <span class="badge bg-warning text-dark rounded-circle me-2">0</span>ตรวจสอบและกวาดผู้ไม่ผ่านเกณฑ์ (มผ.) ของเทอมเก่าเข้าชีตสะสม <span class="badge bg-warning text-dark">แนะนำก่อนล้างคะแนน</span>
+                                </h6>
+                                <p class="small text-muted mb-0 mt-1">
+                                    ก่อนรีเซ็ตคะแนนทุกคนกลับเป็น 100 ระบบสามารถกวาดนักเรียนที่คะแนน <b>&lt; 50 (ติด มผ)</b> และ <b>51-79 (งดออกใบรับรองฯ)</b> ไปเก็บสะสมในชีต <code>ไม่ผ่านเกณฑ์</code> ให้ทันที
+                                </p>
+                            </div>
+                            <span class="badge bg-light text-dark border px-3 py-2" id="preflight-stat-badge">
+                                <span class="spinner-border spinner-border-sm text-warning me-1"></span>กำลังสแกนคะแนนปัจจุบัน...
+                            </span>
+                        </div>
+                        <div class="row g-2 align-items-center mt-2">
+                            <div class="col-md-5">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text fw-bold bg-warning bg-opacity-25">ภาคเรียนที่เพิ่งจบ</span>
+                                    <input type="text" id="sweepTermInput" class="form-control fw-bold" placeholder="เช่น 2/2568 หรือ 1/2569">
+                                </div>
+                            </div>
+                            <div class="col-md-7 d-flex gap-2 flex-wrap">
+                                <button class="btn btn-warning btn-sm fw-bold px-3 rounded-pill shadow-sm" id="btn-sweep-fail" onclick="processSweepFailStudents()">
+                                    <i class="bi bi-funnel-fill me-1"></i> กวาดคนติด มผ. ลงชีต "ไม่ผ่านเกณฑ์" เดี๋ยวนี้
+                                </button>
+                                <button class="btn btn-outline-success btn-sm fw-bold px-3 rounded-pill" onclick="semesterModal.hide(); openReportModal();">
+                                    <i class="bi bi-file-earmark-excel me-1"></i> ออกรายงาน Excel สิ้นเทอม
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🧭 ขั้นตอนที่ 1: เลือกโหมดการเริ่มต้นภาคเรียนใหม่ (2 โหมดชัดเจน) -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm mb-3" id="step-1-box">
+                        <h6 class="fw-bold text-danger font-prompt mb-3">
+                            <span class="badge bg-danger rounded-circle me-2">1</span>เลือกรูปแบบการเริ่มต้นภาคเรียน และตั้งชื่อไฟล์สำรองข้อมูล
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="mode-option-card active-semester" id="mode-card-semester" onclick="selectRolloverMode('new_semester')">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <input class="form-check-input me-2 mt-0" type="radio" name="rolloverMode" id="radioModeSemester" value="new_semester" checked>
+                                        <h6 class="fw-bold text-primary m-0 font-prompt"><i class="bi bi-calendar2-check me-1"></i>โหมดที่ 1: เริ่มภาคเรียนใหม่ (เช่น ขึ้นเทอม 2)</h6>
+                                    </div>
+                                    <p class="small text-muted mb-0 ps-4">
+                                        • นักเรียนอยู่ระดับชั้นและห้องเดิม<br>
+                                        • สำรองข้อมูล + ล้างเฉพาะชีตประวัติพฤติกรรมเทอมเก่า (10 ชีต)<br>
+                                        • ดึงรายชื่อนักเรียนปัจจุบันเข้าห้อง <code>1/1</code>–<code>6/12</code> พร้อมรีเซ็ตคะแนนเป็น <b>100 คะแนน</b>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mode-option-card" id="mode-card-promote" onclick="selectRolloverMode('promote_grade')">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <input class="form-check-input me-2 mt-0" type="radio" name="rolloverMode" id="radioModePromote" value="promote_grade">
+                                        <h6 class="fw-bold text-warning text-dark m-0 font-prompt"><i class="bi bi-mortarboard-fill me-1 text-danger"></i>โหมดที่ 2: เลื่อนชั้นปีการศึกษาใหม่ (ขึ้นเทอม 1)</h6>
+                                    </div>
+                                    <p class="small text-muted mb-0 ps-4">
+                                        • ใช้หลังเลื่อนชั้นในเมนูหลักแอดมิน (<code>mainmenu.html</code>) แล้ว<br>
+                                        • สำรองข้อมูล + ล้างประวัติเทอมเก่า + ดึงรายชื่อชั้นใหม่พร้อมแจก <b>100 คะแนน</b><br>
+                                        • <b class="text-danger">พิเศษ:</b> อัปเดตห้องเรียนใหม่ในชีต <code>IDlogin นร.</code> อัตโนมัติ (รหัสผ่านเด็กไม่หาย)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-secondary py-2 px-3 small mb-3 border-0">
+                            <i class="bi bi-shield-fill-check text-success me-1"></i>
+                            <b>ชีตระบบที่ได้รับการปกป้อง 100% (ไม่ถูกลบเด็ดขาด):</b>
+                            <code>IDlogin นร.</code>, <code>ไม่ผ่านเกณฑ์</code>, <code>admin login</code>, <code>admin-epoint</code>, <code>sapa</code>, <code>telegram</code>, <code>GroupID</code>, <code>ประเภทความผิด</code>, <code>สถานะพิเศษ</code>, <code>ขาดเรียนนานย้ายหรือออก</code>, <code>Responses (ทะเบียนรถ)</code>, <code>count</code>, <code>visits</code>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text fw-bold">ภาคเรียนใหม่</span>
+                                    <input type="text" id="newTermLabel" class="form-control fw-bold text-dark" placeholder="เช่น 2/2569">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text fw-bold">ชื่อไฟล์สำรองข้อมูล</span>
+                                    <input type="text" id="backupName" class="form-control fw-bold text-primary" placeholder="เช่น Backup_EPoint_เทอม1_2569">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-danger w-100 py-3 fw-bold rounded-pill shadow-sm fs-6" id="btn-run-full-rollover" onclick="processFullAutoRollover()">
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i> เริ่มสำรองข้อมูล + ล้างกระดาน + ดึงรายชื่อครบทั้ง 6 ระดับชั้นอัตโนมัติ (0% ➡️ 100%)
                         </button>
                     </div>
 
-                    <div class="bg-white p-3 rounded-4 border shadow-sm" id="step-2-box" style="opacity: 0.5; pointer-events: none;">
-                        <h6 class="fw-bold text-primary font-prompt"><span class="badge bg-primary rounded-circle me-2">2</span>ดึงข้อมูลนักเรียนใหม่ (พร้อมให้คะแนน 100)</h6>
-                        <p class="small text-muted mb-3">กรุณากดดำเนินการทีละระดับชั้น เพื่อป้องกันระบบหลังบ้านทำงานหนักเกินไป</p>
+                    <!-- 🔄 ขั้นตอนที่ 2: ดึงข้อมูลแยกทีละระดับชั้น (กรณีต้องการกดซ้ำรายชั้น) -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm mb-3" id="step-2-box">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <div>
+                                <h6 class="fw-bold text-primary font-prompt m-0"><span class="badge bg-primary rounded-circle me-2">2</span>ดึงข้อมูลนักเรียนรายระดับชั้น (ตั้งต้น 100 คะแนน • รองรับชั้นละ 12 ห้อง)</h6>
+                                <p class="small text-muted mb-0">ระบบปุ่มด้านบนจะรันให้ครบทุกชั้นอัตโนมัติ หรือคุณครูสามารถกดอัปเดตรายระดับชั้นแยกตรงนี้ได้ตลอดเวลาครับ</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-dark rounded-pill fw-bold" id="btn-sync-login-rooms" onclick="processSyncLoginRoomsOnly()">
+                                <i class="bi bi-key-fill me-1"></i> ซิงค์ห้องในชีต IDlogin นร.
+                            </button>
+                        </div>
                         
-                        <div class="row g-2">
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(1, this)">ม.1</button></div>
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(2, this)">ม.2</button></div>
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(3, this)">ม.3</button></div>
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(4, this)">ม.4</button></div>
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(5, this)">ม.5</button></div>
-                            <div class="col-4"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" onclick="transferData(6, this)">ม.6</button></div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-1" onclick="transferData(1, this)">ม.1</button></div>
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-2" onclick="transferData(2, this)">ม.2</button></div>
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-3" onclick="transferData(3, this)">ม.3</button></div>
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-4" onclick="transferData(4, this)">ม.4</button></div>
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-5" onclick="transferData(5, this)">ม.5</button></div>
+                            <div class="col-4 col-md-2"><button class="btn btn-outline-primary w-100 fw-bold btn-transfer" id="btn-lvl-6" onclick="transferData(6, this)">ม.6</button></div>
                         </div>
                     </div>
+
+                    <!-- 🗂️ ขั้นตอนที่ 3: ตารางประวัติการสำรองข้อมูล & กู้คืนข้อมูล (System_Backup_Log) -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm" id="backup-history-box">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <div>
+                                <h6 class="fw-bold font-prompt m-0" style="color: var(--purple-main);">
+                                    <i class="bi bi-clock-history me-1"></i> ประวัติการสำรองข้อมูล E-Point และระบบกู้คืน (One-Click Restore)
+                                </h6>
+                                <small class="text-muted">ไฟล์สำรองทั้งหมดถูกจัดเก็บไว้ที่โฟลเดอร์กลาง (<code>1zTZGh-ojLTU_tRJwL5ta0TnoRZrJQAYl</code>)</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="https://drive.google.com/drive/folders/1zTZGh-ojLTU_tRJwL5ta0TnoRZrJQAYl" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold">
+                                    <i class="bi bi-folder2-open me-1"></i> เปิดโฟลเดอร์เก็บไฟล์สำรอง
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="loadRolloverInfo()">
+                                    <i class="bi bi-arrow-clockwise"></i> รีเฟรช
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive border rounded-3">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>วัน-เวลา</th>
+                                        <th>โหมด / ภาคเรียน</th>
+                                        <th>ชื่อไฟล์สำรอง</th>
+                                        <th>รายละเอียด</th>
+                                        <th class="text-center">จัดการ / กู้คืน</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="backup-history-tbody">
+                                    <tr><td colspan="5" class="text-center py-3 text-muted">กำลังโหลดประวัติการสำรองข้อมูล...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -253,7 +412,7 @@
                     <div class="row g-4 align-items-center mb-4">
                         <div class="col-md-6">
                             <h4 class="fw-bold text-success font-prompt mb-1">สร้างรายงานสรุป (Excel)</h4>
-                            <p class="text-muted small mb-0">ระบบจะทำการคํานวณสถิติ 4 หมวด ได้แก่ ความดี (Top 60), คะแนนพฤติกรรม (รวมห้อง/ชั้น), สถิติมาสาย และสถิติโดดเรียน พร้อมสร้างเป็นไฟล์ Excel ให้อัตโนมัติ</p>
+                            <p class="text-muted small mb-0">ระบบจะทำการคํานวณสถิติ 4 หมวด ได้แก่ ความดี (Top 60), คะแนนพฤติกรรม (รวมห้อง/ชั้น ครบ 12 ห้อง), สถิติมาสาย และสถิติโดดเรียน พร้อมสร้างเป็นไฟล์ Excel ให้อัตโนมัติ</p>
                         </div>
                         <div class="col-md-6">
                             <div class="bg-white p-3 rounded-4 border shadow-sm">
@@ -313,42 +472,174 @@
         </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- 🔎 หน้าต่างค้นหาและเรียกดูข้อมูลเดิมย้อนหลัง (เมนู 4: Archive Data Viewer) -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="archiveModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header text-white border-0 px-4 py-3" style="background: linear-gradient(135deg, #6d28d9, #4c1d95);">
+                    <div>
+                        <h5 class="fw-bold m-0 font-prompt"><i class="bi bi-search-heart-fill me-2"></i>ศูนย์ค้นหาและเรียกดูข้อมูล E-Point ย้อนหลังจากไฟล์สำรอง</h5>
+                        <small class="text-white-50">เลือกไฟล์สำรองภาคเรียนเก่า เพื่อค้นหาคะแนนรายบุคคล • ดูรายห้อง (1-12) • หรือดูประวัติการตัดคะแนนย้อนหลัง</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light">
+                    <!-- 1. เลือกไฟล์สำรองข้อมูล -->
+                    <div class="bg-white p-3 rounded-4 border shadow-sm mb-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-hdd-stack-fill text-primary me-1"></i>1. เลือกไฟล์สำรองข้อมูลภาคเรียนเก่า</label>
+                                <select id="archiveFileSelect" class="form-select fw-bold text-primary" onchange="onArchiveFileSelectChange()">
+                                    <option value="">-- กำลังโหลดรายการไฟล์สำรอง... --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1">หรือระบุ Google Sheet ID / ลิงก์ไฟล์สำรองโดยตรง</label>
+                                <input type="text" id="archiveCustomFileId" class="form-control form-control-sm fw-bold" placeholder="วางลิงก์ หรือ Sheet ID ที่นี่">
+                            </div>
+                            <div class="col-md-2 d-flex gap-1">
+                                <a id="btn-open-archive-sheet" href="https://drive.google.com/drive/folders/1zTZGh-ojLTU_tRJwL5ta0TnoRZrJQAYl" target="_blank" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                    <i class="bi bi-folder2-open"></i> โฟลเดอร์สำรอง
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. แท็บเลือกโหมดการค้นหาข้อมูลเดิม -->
+                    <ul class="nav nav-pills mb-3 gap-2" id="archiveTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-bold rounded-pill px-4" onclick="switchArchiveTab('student', this)">
+                                <i class="bi bi-person-vcard-fill me-1"></i> 1. ค้นหานักเรียนรายบุคคล (ชื่อ / รหัส)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold rounded-pill px-4" onclick="switchArchiveTab('room', this)">
+                                <i class="bi bi-building-fill me-1"></i> 2. ดูคะแนนรายห้องเรียน (ม.1 - ม.6 ครบ 12 ห้อง)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold rounded-pill px-4" onclick="switchArchiveTab('logs', this)">
+                                <i class="bi bi-journal-text me-1"></i> 3. ดูตารางประวัติประจำเทอม (หักคะแนน/ความดี/มาสาย/โดด)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- แท็บที่ 1: ค้นหานักเรียนรายบุคคล -->
+                    <div id="archive-tab-student" class="bg-white p-3 rounded-4 border shadow-sm">
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-9">
+                                <input type="text" id="archiveStudentKeyword" class="form-control fw-bold" placeholder="พิมพ์รหัสประจำตัวนักเรียน หรือ ชื่อ-นามสกุล (เช่น 12345 หรือ สมชาย)..." onkeydown="if(event.key==='Enter') searchArchiveStudent()">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100 fw-bold rounded-pill" id="btn-search-archive-std" onclick="searchArchiveStudent()">
+                                    <i class="bi bi-search me-1"></i> ค้นหาข้อมูลย้อนหลัง
+                                </button>
+                            </div>
+                        </div>
+                        <div id="archive-student-result">
+                            <div class="text-center py-4 text-muted small">พิมพ์ชื่อหรือรหัสประจำตัวนักเรียน แล้วกดค้นหาเพื่อดูคะแนนและประวัติพฤติกรรมทั้งหมดจากไฟล์สำรอง</div>
+                        </div>
+                    </div>
+
+                    <!-- แท็บที่ 2: ดูคะแนนรายห้องเรียน (12 ห้อง) -->
+                    <div id="archive-tab-room" class="bg-white p-3 rounded-4 border shadow-sm" style="display: none;">
+                        <div class="row g-2 align-items-end mb-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-1">ระดับชั้น</label>
+                                <select id="archiveLevelSelect" class="form-select fw-bold">
+                                    <option value="1">มัธยมศึกษาปีที่ 1 (ม.1)</option>
+                                    <option value="2">มัธยมศึกษาปีที่ 2 (ม.2)</option>
+                                    <option value="3">มัธยมศึกษาปีที่ 3 (ม.3)</option>
+                                    <option value="4">มัธยมศึกษาปีที่ 4 (ม.4)</option>
+                                    <option value="5">มัธยมศึกษาปีที่ 5 (ม.5)</option>
+                                    <option value="6">มัธยมศึกษาปีที่ 6 (ม.6)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-1">ห้องเรียน (1 - 12)</label>
+                                <select id="archiveRoomNumSelect" class="form-select fw-bold">
+                                    <option value="1">ห้อง 1</option><option value="2">ห้อง 2</option><option value="3">ห้อง 3</option>
+                                    <option value="4">ห้อง 4</option><option value="5">ห้อง 5</option><option value="6">ห้อง 6</option>
+                                    <option value="7">ห้อง 7</option><option value="8">ห้อง 8</option><option value="9">ห้อง 9</option>
+                                    <option value="10">ห้อง 10</option><option value="11">ห้อง 11</option><option value="12">ห้อง 12</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100 fw-bold rounded-pill" id="btn-load-archive-room" onclick="loadArchiveRoomData()">
+                                    <i class="bi bi-table me-1"></i> เรียกดูคะแนนห้องนี้
+                                </button>
+                            </div>
+                        </div>
+                        <div id="archive-room-result">
+                            <div class="text-center py-4 text-muted small">เลือกระดับชั้นและห้องเรียน (1-12) เพื่อเรียกดูตารางคะแนนพฤติกรรมจากไฟล์สำรอง</div>
+                        </div>
+                    </div>
+
+                    <!-- แท็บที่ 3: ดูตารางประวัติประจำเทอม -->
+                    <div id="archive-tab-logs" class="bg-white p-3 rounded-4 border shadow-sm" style="display: none;">
+                        <div class="row g-2 align-items-end mb-3">
+                            <div class="col-md-5">
+                                <label class="small fw-bold text-muted mb-1">เลือกชีตประวัติที่ต้องการเรียกดู</label>
+                                <select id="archiveLogSheetSelect" class="form-select fw-bold text-primary">
+                                    <option value="ประวัติการตัดคะแนน">1. ประวัติการตัดคะแนน</option>
+                                    <option value="บันทึกหัวหน้าคณะสี">2. บันทึกหัวหน้าคณะสี (ความดี)</option>
+                                    <option value="มาสายชั่วคราว">3. มาสายชั่วคราว</option>
+                                    <option value="บันทึกการเข้าเรียน">4. บันทึกการเข้าเรียน (โดดเรียน)</option>
+                                    <option value="ตักเตือน">5. ประวัติการตักเตือน</option>
+                                    <option value="ไม่ผ่านเกณฑ์">6. รายชื่อผู้ไม่ผ่านเกณฑ์ (มผ.)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-1">กรองคำค้นในตาราง</label>
+                                <input type="text" id="archiveLogFilterInput" class="form-control" placeholder="พิมพ์ชื่อ/ห้อง/รายการ เพื่อกรอง..." oninput="filterArchiveLogTable()">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100 fw-bold rounded-pill" id="btn-load-archive-logs" onclick="loadArchiveLogSheet()">
+                                    <i class="bi bi-cloud-download-fill me-1"></i> ดึงตารางประวัติ
+                                </button>
+                            </div>
+                        </div>
+                        <div id="archive-logs-result">
+                            <div class="text-center py-4 text-muted small">เลือกชีตประวัติแล้วกด "ดึงตารางประวัติ" เพื่อดูข้อมูลย้อนหลัง</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ====================================================
-        // ⚠️ ใส่ลิงก์ Web App API ที่ Deploy ใหม่ตรงนี้ ⚠️
+        // ⚙️ ลิงก์ Web App API ของ 055_AdminEpoint
         // ====================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyakYWpM-tK6_yF4k5cBmMXPCF5iy9lOQomHKOZIb_G2SbwwFpRBRVAt9VcnqFufOCAkA/exec"
+        const API_URL = "https://script.google.com/macros/s/AKfycbyakYWpM-tK6_yF4k5cBmMXPCF5iy9lOQomHKOZIb_G2SbwwFpRBRVAt9VcnqFufOCAkA/exec";
         const semesterModal = new bootstrap.Modal(document.getElementById('semesterModal'));
         const syncModal = new bootstrap.Modal(document.getElementById('syncModal'));
         const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        const archiveModal = new bootstrap.Modal(document.getElementById('archiveModal'));
+
+        let selectedRolloverMode = "new_semester";
+        let cachedBackupHistory = [];
 
         // 🌟 สร้างตัวเลือกปีการศึกษาอัตโนมัติเมื่อโหลดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             const currentYear = new Date().getFullYear() + 543;
             let yearOptions = '';
-            for(let i = 0; i < 5; i++) {
+            for (let i = 0; i < 5; i++) {
                 let y = currentYear - i;
                 yearOptions += `<option value="${y}">${y}</option>`;
             }
             const reportYearEl = document.getElementById('reportYear');
-            if(reportYearEl) reportYearEl.innerHTML = yearOptions;
+            if (reportYearEl) reportYearEl.innerHTML = yearOptions;
         });
 
-        function openSemesterModal() {
-            const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
-            document.getElementById('backupName').value = `Backup_EPoint_${dateStr}`;
-            semesterModal.show();
-        }
-
-        function openSyncModal() {
-            document.getElementById('sync-preview-container').style.display = 'none';
-            document.getElementById('syncLevelSelect').value = '';
-            syncModal.show();
-        }
-
-        function openReportModal() {
-            reportModal.show();
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '<div class="log-info">> ล้างหน้าจอกระดานข้อความเรียบร้อย พร้อมรับคำสั่งใหม่...</div>';
         }
 
         function logConsole(msg, type = "info") {
@@ -361,6 +652,7 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
+        // 🛡️ Defensive Fetching (รองรับ POST และ Fallback เป็น GET อัตโนมัติ)
         async function fetchAPI(payload) {
             try {
                 const response = await fetch(API_URL, {
@@ -368,9 +660,765 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
-                return await response.json();
-            } catch (error) {
-                return { success: false, error: "การเชื่อมต่อเซิร์ฟเวอร์ขัดข้อง" };
+                const text = await response.text();
+                return JSON.parse(text);
+            } catch (postErr) {
+                try {
+                    const params = new URLSearchParams();
+                    for (const k in payload) {
+                        params.append(k, typeof payload[k] === 'object' ? JSON.stringify(payload[k]) : payload[k]);
+                    }
+                    const resGet = await fetch(`${API_URL}?${params.toString()}`, { method: 'GET' });
+                    const textGet = await resGet.text();
+                    return JSON.parse(textGet);
+                } catch (getErr) {
+                    return { success: false, error: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือการ Deploy Web App" };
+                }
+            }
+        }
+
+        function updateRolloverProgress(pct, statusText, subText) {
+            const box = document.getElementById('rollover-progress-box');
+            const bar = document.getElementById('rollover-progress-bar');
+            const pctBadge = document.getElementById('rollover-progress-pct');
+            const statusEl = document.getElementById('rollover-progress-status');
+            const subEl = document.getElementById('rollover-progress-subtext');
+
+            box.style.display = 'block';
+            const rounded = Math.min(100, Math.max(0, Math.round(pct)));
+            bar.style.width = `${rounded}%`;
+            bar.innerText = `${rounded}%`;
+            pctBadge.innerText = `${rounded}%`;
+
+            if (rounded >= 100) {
+                bar.classList.remove('progress-bar-animated', 'bg-primary');
+                bar.classList.add('bg-success');
+                pctBadge.classList.replace('bg-primary', 'bg-success');
+                statusEl.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i>${statusText}`;
+            } else {
+                bar.classList.add('progress-bar-animated', 'bg-primary');
+                bar.classList.remove('bg-success');
+                pctBadge.classList.replace('bg-success', 'bg-primary');
+                statusEl.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${statusText}`;
+            }
+            if (subText) subEl.innerText = subText;
+        }
+
+        function selectRolloverMode(mode) {
+            selectedRolloverMode = mode;
+            const semCard = document.getElementById('mode-card-semester');
+            const proCard = document.getElementById('mode-card-promote');
+            document.getElementById('radioModeSemester').checked = (mode === 'new_semester');
+            document.getElementById('radioModePromote').checked = (mode === 'promote_grade');
+
+            if (mode === 'new_semester') {
+                semCard.classList.add('active-semester');
+                proCard.classList.remove('active-promote');
+            } else {
+                proCard.classList.add('active-promote');
+                semCard.classList.remove('active-semester');
+            }
+        }
+
+        function openSemesterModal(scrollToHistory = false) {
+            const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+            const curYear = new Date().getFullYear() + 543;
+            document.getElementById('backupName').value = `Backup_EPoint_${dateStr}`;
+            if (!document.getElementById('newTermLabel').value) {
+                document.getElementById('newTermLabel').value = `1/${curYear}`;
+            }
+            document.getElementById('rollover-progress-box').style.display = 'none';
+            semesterModal.show();
+            loadRolloverInfo(scrollToHistory);
+        }
+
+        async function loadRolloverInfo(scrollToHistory = false) {
+            const badge = document.getElementById('preflight-stat-badge');
+            const tbody = document.getElementById('backup-history-tbody');
+            badge.innerHTML = '<span class="spinner-border spinner-border-sm text-warning me-1"></span>กำลังสแกนคะแนนปัจจุบัน...';
+
+            logConsole(`> กำลังตรวจสอบสถานะคะแนนปัจจุบันและดึงประวัติการสำรองข้อมูล...`, "info");
+            const res = await fetchAPI({ action: 'getEpointRolloverInfo' });
+
+            if (res && res.success) {
+                const st = res.stats || { totalCurrentStudents: 0, failUnder50: 0, warn51to79: 0 };
+                badge.innerHTML = `นักเรียนในระบบ <b>${st.totalCurrentStudents}</b> คน | <span class="text-danger fw-bold">ติด มผ. (&lt;50): ${st.failUnder50} คน</span> | <span class="text-warning text-dark fw-bold">คะแนน 50-79: ${st.warn51to79} คน</span>`;
+
+                logConsole(`> สแกนกระดานปัจจุบันเสร็จสิ้น: นักเรียนทั้งหมด ${st.totalCurrentStudents} คน (คะแนน < 50 ติด มผ. จำนวน ${st.failUnder50} คน, คะแนน 50-79 จำนวน ${st.warn51to79} คน)`, "info");
+
+                const hist = res.history || [];
+                cachedBackupHistory = hist;
+                populateArchiveSelectDropdown(hist);
+
+                if (hist.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">ยังไม่มีประวัติการสำรองข้อมูลในชีต System_Backup_Log</td></tr>';
+                } else {
+                    let html = '';
+                    hist.forEach(h => {
+                        html += `
+                        <tr>
+                            <td class="text-nowrap fw-bold text-secondary">${h.timestamp}</td>
+                            <td><span class="badge bg-info text-dark">${h.mode}</span><br><small class="text-muted">ภาคเรียน: ${h.term}</small></td>
+                            <td class="fw-bold text-primary">${h.fileName}</td>
+                            <td class="small text-muted" style="max-width: 240px;">${h.summary}</td>
+                            <td class="text-center text-nowrap">
+                                <button class="btn btn-sm btn-primary fw-bold rounded-pill me-1" onclick="semesterModal.hide(); openArchiveModal('${h.fileId}')">
+                                    <i class="bi bi-search"></i> เรียกดูข้อมูลเดิม
+                                </button>
+                                <a href="${h.url}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill me-1"><i class="bi bi-box-arrow-up-right"></i> ชีต</a>
+                                <button class="btn btn-sm btn-warning fw-bold rounded-pill" onclick="confirmRestoreEpoint('${h.fileId}', '${h.fileName}')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> กู้คืน
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+
+                if (scrollToHistory) {
+                    setTimeout(() => {
+                        document.getElementById('backup-history-box').scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                }
+            } else {
+                badge.innerHTML = '<span class="text-danger">ยังไม่ได้อัปเดตสคริปต์หลังบ้าน (กรุณา Deploy เวอร์ชันใหม่)</span>';
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-danger">${res ? res.error : 'ไม่สามารถโหลดข้อมูลได้'}</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // 🔎 เมนู 4: ระบบค้นหาและเรียกดูข้อมูลเดิมย้อนหลังจากไฟล์สำรอง (Archive Data Viewer)
+        // ==========================================
+        function populateArchiveSelectDropdown(histList) {
+            const sel = document.getElementById('archiveFileSelect');
+            if (!sel) return;
+            if (!histList || histList.length === 0) {
+                sel.innerHTML = '<option value="">-- ยังไม่มีประวัติไฟล์สำรอง (สามารถวาง Sheet ID ในช่องด้านขวาได้) --</option>';
+                return;
+            }
+            let opts = '';
+            histList.forEach(h => {
+                opts += `<option value="${h.fileId}" data-url="${h.url}">📁 ${h.fileName} (${h.timestamp} | ภาคเรียน: ${h.term})</option>`;
+            });
+            sel.innerHTML = opts;
+        }
+
+        async function openArchiveModal(preselectFileId = "") {
+            archiveModal.show();
+            if (cachedBackupHistory.length === 0) {
+                logConsole(`> กำลังดึงรายการไฟล์สำรองข้อมูลย้อนหลัง...`, "info");
+                const res = await fetchAPI({ action: 'getEpointRolloverInfo' });
+                if (res && res.success) {
+                    cachedBackupHistory = res.history || [];
+                    populateArchiveSelectDropdown(cachedBackupHistory);
+                }
+            } else {
+                populateArchiveSelectDropdown(cachedBackupHistory);
+            }
+            if (preselectFileId) {
+                document.getElementById('archiveFileSelect').value = preselectFileId;
+                document.getElementById('archiveCustomFileId').value = '';
+            }
+            onArchiveFileSelectChange();
+        }
+
+        function extractSheetId(rawStr) {
+            if (!rawStr) return "";
+            const m = rawStr.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return m ? m[1] : rawStr.trim();
+        }
+
+        function getActiveArchiveFileId() {
+            const custom = extractSheetId(document.getElementById('archiveCustomFileId').value);
+            if (custom) return custom;
+            return document.getElementById('archiveFileSelect').value;
+        }
+
+        function onArchiveFileSelectChange() {
+            const fid = getActiveArchiveFileId();
+            const btnOpen = document.getElementById('btn-open-archive-sheet');
+            if (fid) {
+                btnOpen.href = `https://docs.google.com/spreadsheets/d/${fid}/edit`;
+                btnOpen.innerHTML = `<i class="bi bi-box-arrow-up-right"></i> เปิดชีตนี้`;
+            } else {
+                btnOpen.href = `https://drive.google.com/drive/folders/1zTZGh-ojLTU_tRJwL5ta0TnoRZrJQAYl`;
+                btnOpen.innerHTML = `<i class="bi bi-folder2-open"></i> โฟลเดอร์สำรอง`;
+            }
+        }
+
+        function switchArchiveTab(tabName, btnEl) {
+            document.querySelectorAll('#archiveTabs .nav-link').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            document.getElementById('archive-tab-student').style.display = (tabName === 'student') ? 'block' : 'none';
+            document.getElementById('archive-tab-room').style.display = (tabName === 'room') ? 'block' : 'none';
+            document.getElementById('archive-tab-logs').style.display = (tabName === 'logs') ? 'block' : 'none';
+        }
+
+        async function searchArchiveStudent() {
+            const fid = getActiveArchiveFileId();
+            const kw = document.getElementById('archiveStudentKeyword').value.trim();
+            if (!fid) return Swal.fire('ยังไม่ได้เลือกไฟล์สำรอง', 'กรุณาเลือกไฟล์สำรองจากรายการ หรือวางลิงก์/Sheet ID ของไฟล์สำรองก่อนครับ', 'warning');
+            if (!kw) return Swal.fire('กรุณาระบุคำค้นหา', 'พิมพ์รหัสประจำตัวนักเรียน หรือ ชื่อ-สกุล ที่ต้องการค้นหาครับ', 'warning');
+
+            const out = document.getElementById('archive-student-result');
+            out.innerHTML = `<div class="text-center py-4 text-primary fw-bold"><span class="spinner-border spinner-border-sm me-2"></span>กำลังสแกนค้นหา "${kw}" ในไฟล์สำรองครบทุกห้องและทุกชีตประวัติ...</div>`;
+            logConsole(`> 🔎 กำลังค้นหาข้อมูลย้อนหลังของ "${kw}" จากไฟล์สำรอง...`, "warning");
+
+            const res = await fetchAPI({ action: 'viewArchivedEpointData', backupFileId: fid, queryType: 'student_search', keyword: kw });
+            if (!res || !res.success) {
+                out.innerHTML = `<div class="alert alert-danger mb-0">${res ? res.error : 'เกิดข้อผิดพลาดในการค้นหา'}</div>`;
+                return;
+            }
+
+            logConsole(`> ✅ ${res.message}`, "success");
+            if (!res.students || res.students.length === 0) {
+                out.innerHTML = `<div class="alert alert-warning mb-0 text-center fw-bold">ไม่พบนักเรียนที่ตรงกับคำค้นหา "${kw}" ในไฟล์สำรองนี้</div>`;
+                return;
+            }
+
+            let html = `<h6 class="fw-bold text-primary mb-2"><i class="bi bi-person-check-fill me-1"></i>ผลการค้นหาคะแนนคงเหลือ (${res.students.length} คน)</h6>`;
+            html += `<div class="table-responsive mb-3"><table class="table table-bordered table-sm align-middle mb-0"><thead class="table-light"><tr><th>รหัสประจำตัว</th><th>ชื่อ-สกุล</th><th>ห้องเรียน</th><th class="text-center">คะแนนคงเหลือสิ้นเทอม</th></tr></thead><tbody>`;
+            res.students.forEach(s => {
+                let badgeColor = s.score < 50 ? 'bg-danger' : (s.score < 80 ? 'bg-warning text-dark' : 'bg-success');
+                html += `<tr><td class="fw-bold">${s.id}</td><td class="fw-bold">${s.name}</td><td><span class="badge bg-secondary">${s.room}</span></td><td class="text-center"><span class="badge ${badgeColor} fs-6 px-3">${s.score} คะแนน</span></td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            // แสดงประวัติการตัดคะแนน / ความดี / มาสาย / โดดเรียน
+            html += `<div class="row g-3">`;
+            html += `<div class="col-md-6"><div class="border rounded-3 p-2 bg-light"><div class="fw-bold text-danger small mb-1"><i class="bi bi-dash-circle-fill me-1"></i>ประวัติการถูกหักคะแนน (${(res.penalties || []).length} ครั้ง)</div>`;
+            if ((res.penalties || []).length === 0) {
+                html += `<div class="small text-muted">ไม่มีประวัติการถูกหักคะแนน</div>`;
+            } else {
+                html += `<ul class="small mb-0 ps-3">` + res.penalties.map(p => `<li><b>${p.date}</b>: ${p.detail} (<span class="text-danger fw-bold">-${p.points}</span>)</li>`).join('') + `</ul>`;
+            }
+            html += `</div></div>`;
+
+            html += `<div class="col-md-6"><div class="border rounded-3 p-2 bg-light"><div class="fw-bold text-success small mb-1"><i class="bi bi-award-fill me-1"></i>ประวัติความดี (${(res.goodDeeds || []).length} ครั้ง)</div>`;
+            if ((res.goodDeeds || []).length === 0) {
+                html += `<div class="small text-muted">ไม่มีประวัติบันทึกความดี</div>`;
+            } else {
+                html += `<ul class="small mb-0 ps-3">` + res.goodDeeds.map(g => `<li><b>${g.date}</b>: ${g.detail} (<span class="text-success fw-bold">+${g.points}</span>)</li>`).join('') + `</ul>`;
+            }
+            html += `</div></div>`;
+
+            html += `<div class="col-md-6"><div class="border rounded-3 p-2 bg-light"><div class="fw-bold text-warning text-dark small mb-1"><i class="bi bi-clock-history me-1"></i>ประวัติมาสาย (${(res.lateLogs || []).length} ครั้ง)</div>`;
+            if ((res.lateLogs || []).length === 0) {
+                html += `<div class="small text-muted">ไม่มีประวัติมาสาย</div>`;
+            } else {
+                html += `<div class="small">${res.lateLogs.map(l => `<span class="badge bg-warning text-dark me-1 mb-1">${l.date}</span>`).join('')}</div>`;
+            }
+            html += `</div></div>`;
+
+            html += `<div class="col-md-6"><div class="border rounded-3 p-2 bg-light"><div class="fw-bold text-secondary small mb-1"><i class="bi bi-door-open-fill me-1"></i>ประวัติโดดเรียน/ขาดเรียนรายวิชา (${(res.skipLogs || []).length} ครั้ง)</div>`;
+            if ((res.skipLogs || []).length === 0) {
+                html += `<div class="small text-muted">ไม่มีประวัติโดดเรียน</div>`;
+            } else {
+                html += `<ul class="small mb-0 ps-3">` + res.skipLogs.map(sk => `<li><b>${sk.date}</b>: ${sk.subject}</li>`).join('') + `</ul>`;
+            }
+            html += `</div></div></div>`;
+
+            out.innerHTML = html;
+        }
+
+        async function loadArchiveRoomData() {
+            const fid = getActiveArchiveFileId();
+            if (!fid) return Swal.fire('ยังไม่ได้เลือกไฟล์สำรอง', 'กรุณาเลือกไฟล์สำรองจากรายการ หรือวาง Sheet ID ก่อนครับ', 'warning');
+
+            const lvl = document.getElementById('archiveLevelSelect').value;
+            const rNum = document.getElementById('archiveRoomNumSelect').value;
+            const roomCode = `${lvl}/${rNum}`;
+
+            const out = document.getElementById('archive-room-result');
+            out.innerHTML = `<div class="text-center py-4 text-primary fw-bold"><span class="spinner-border spinner-border-sm me-2"></span>กำลังดึงตารางคะแนนห้อง ม.${roomCode} จากไฟล์สำรอง...</div>`;
+            logConsole(`> 🔎 กำลังดึงข้อมูลห้อง ม.${roomCode} จากไฟล์สำรอง...`, "warning");
+
+            const res = await fetchAPI({ action: 'viewArchivedEpointData', backupFileId: fid, queryType: 'room', room: roomCode });
+            if (!res || !res.success) {
+                out.innerHTML = `<div class="alert alert-danger mb-0">${res ? res.error : 'ไม่สามารถโหลดข้อมูลได้'}</div>`;
+                return;
+            }
+
+            if (!res.foundRoom || !res.students || res.students.length === 0) {
+                logConsole(`> ℹ️ ม.${roomCode}: ไม่พบห้องเรียนนี้ในไฟล์สำรอง`, "info");
+                out.innerHTML = `<div class="alert alert-secondary mb-0 text-center fw-bold py-4"><i class="bi bi-inbox fs-3 d-block mb-1"></i>ไม่พบห้องเรียนนี้ (ม.${roomCode}) ในไฟล์สำรองที่เลือก</div>`;
+                return;
+            }
+
+            logConsole(`> ✅ ${res.message}`, "success");
+            let html = `<div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-primary">ตารางคะแนนห้อง ม.${roomCode} (รวม ${res.students.length} คน)</span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 360px;">
+                        <table class="table table-hover table-bordered table-sm align-middle mb-0">
+                            <thead class="table-light sticky-top"><tr><th width="10%" class="text-center">ลำดับ</th><th width="20%">รหัสประจำตัว</th><th>ชื่อ-สกุล</th><th width="20%" class="text-center">คะแนนพฤติกรรม</th></tr></thead><tbody>`;
+            res.students.forEach(s => {
+                let badgeClass = s.score < 50 ? 'bg-danger' : (s.score < 80 ? 'bg-warning text-dark' : 'bg-success');
+                html += `<tr><td class="text-center text-muted">${s.no}</td><td class="fw-bold">${s.id}</td><td>${s.name}</td><td class="text-center"><span class="badge ${badgeClass} px-3">${s.score}</span></td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            out.innerHTML = html;
+        }
+
+        let currentArchiveLogData = null;
+
+        async function loadArchiveLogSheet() {
+            const fid = getActiveArchiveFileId();
+            if (!fid) return Swal.fire('ยังไม่ได้เลือกไฟล์สำรอง', 'กรุณาเลือกไฟล์สำรองจากรายการ หรือวาง Sheet ID ก่อนครับ', 'warning');
+
+            const sheetName = document.getElementById('archiveLogSheetSelect').value;
+            const out = document.getElementById('archive-logs-result');
+            out.innerHTML = `<div class="text-center py-4 text-primary fw-bold"><span class="spinner-border spinner-border-sm me-2"></span>กำลังโหลดชีต "${sheetName}" จากไฟล์สำรอง...</div>`;
+            logConsole(`> 🔎 กำลังดึงชีต "${sheetName}" จากไฟล์สำรอง...`, "warning");
+
+            const res = await fetchAPI({ action: 'viewArchivedEpointData', backupFileId: fid, queryType: 'log_sheet', sheetName: sheetName });
+            if (!res || !res.success) {
+                out.innerHTML = `<div class="alert alert-danger mb-0">${res ? res.error : 'ไม่สามารถโหลดข้อมูลได้'}</div>`;
+                return;
+            }
+
+            currentArchiveLogData = res;
+            logConsole(`> ✅ ${res.message}`, "success");
+            renderArchiveLogTable(res.headers || [], res.rows || [], res.totalRows || 0);
+        }
+
+        function renderArchiveLogTable(headers, rows, totalRows) {
+            const out = document.getElementById('archive-logs-result');
+            if (!rows || rows.length === 0) {
+                out.innerHTML = `<div class="alert alert-secondary mb-0 text-center py-4">ไม่มีข้อมูลบันทึกในชีตนี้ของไฟล์สำรอง</div>`;
+                return;
+            }
+            let html = `<div class="small text-muted mb-2">แสดง ${rows.length} รายการ (จากทั้งหมด ${totalRows} รายการ)</div>`;
+            html += `<div class="table-responsive" style="max-height: 360px;"><table class="table table-bordered table-hover table-sm align-middle mb-0 small"><thead class="table-light sticky-top"><tr>`;
+            headers.forEach(h => html += `<th>${h || '-'}</th>`);
+            html += `</tr></thead><tbody>`;
+            rows.forEach(r => {
+                html += `<tr>` + r.map(c => `<td>${c}</td>`).join('') + `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+            out.innerHTML = html;
+        }
+
+        function filterArchiveLogTable() {
+            if (!currentArchiveLogData) return;
+            const kw = document.getElementById('archiveLogFilterInput').value.trim().toLowerCase();
+            if (!kw) {
+                renderArchiveLogTable(currentArchiveLogData.headers, currentArchiveLogData.rows, currentArchiveLogData.totalRows);
+                return;
+            }
+            const filtered = (currentArchiveLogData.rows || []).filter(row => row.some(cell => String(cell).toLowerCase().includes(kw)));
+            renderArchiveLogTable(currentArchiveLogData.headers, filtered, currentArchiveLogData.totalRows);
+        }
+
+        // ==========================================
+        // 🧹 ขั้นตอนที่ 0: กวาดรายชื่อผู้ไม่ผ่านเกณฑ์ลงชีต "ไม่ผ่านเกณฑ์"
+        // ==========================================
+        async function processSweepFailStudents() {
+            const term = document.getElementById('sweepTermInput').value.trim();
+            if (!term) {
+                return Swal.fire('กรุณาระบุภาคเรียน', 'โปรดระบุภาคเรียนที่เพิ่งจบ (เช่น 2/2568 หรือ 1/2569) เพื่อบันทึกลงชีต "ไม่ผ่านเกณฑ์"', 'warning');
+            }
+
+            const confirm = await Swal.fire({
+                title: `กวาดรายชื่อผู้ไม่ผ่านเกณฑ์ (${term})?`,
+                html: `ระบบจะสแกนห้อง <code>1/1</code> ถึง <code>6/12</code> ทั้งโรงเรียน:<br>
+                       • คะแนน <b>&lt; 50</b> ➡️ บันทึกสถานะ <span class="badge bg-danger">มผ</span><br>
+                       • คะแนน <b>51 - 79</b> ➡️ บันทึกสถานะ <span class="badge bg-warning text-dark">ออกใบรับรองความประพฤติไม่ได้</span><br>
+                       ลงในชีต <b>"ไม่ผ่านเกณฑ์"</b> (ป้องกันรายชื่อซ้ำอัตโนมัติ)`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันกวาดรายชื่อ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#f59e0b'
+            });
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-sweep-fail');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังสแกนทุกห้องเรียน...';
+            btn.disabled = true;
+
+            logConsole(`> [Pre-Flight] กำลังสแกนและกวาดนักเรียนที่คะแนนไม่ผ่านเกณฑ์ (ภาคเรียน ${term}) ลงชีต "ไม่ผ่านเกณฑ์"...`, "warning");
+
+            const res = await fetchAPI({ action: 'sweepFailStudents', term: term });
+
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+
+            if (res && res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                Swal.fire('สำเร็จ!', res.message, 'success');
+            } else {
+                logConsole(`> [ERROR] ${res ? res.error : 'Unknown Error'}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', res ? res.error : 'ไม่สามารถกวาดรายชื่อได้', 'error');
+            }
+        }
+
+        // ==========================================
+        // 🚀 เมนู 2: รันอัตโนมัติครบวงจร (สำรองข้อมูล + ล้างประวัติ + โอน ม.1-ม.6 + ซิงค์ IDlogin นร.)
+        // ==========================================
+        async function processFullAutoRollover() {
+            const backupName = document.getElementById('backupName').value.trim();
+            const termLabel = document.getElementById('newTermLabel').value.trim() || "-";
+            if (!backupName) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาตั้งชื่อไฟล์สำรองข้อมูลก่อนเริ่มดำเนินการครับ', 'warning');
+
+            const modeTitle = selectedRolloverMode === 'promote_grade'
+                ? 'โหมดที่ 2: เลื่อนชั้นปีการศึกษาใหม่ (ขึ้นเทอม 1)'
+                : 'โหมดที่ 1: เริ่มภาคเรียนใหม่ (รีเซ็ตคะแนนเป็น 100)';
+
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการเริ่มภาคเรียนใหม่ E-Point?',
+                html: `<div class="text-start small">
+                        <div class="p-2 rounded bg-light border mb-2">
+                            <b>โหมดที่เลือก:</b> <span class="text-primary">${modeTitle}</span><br>
+                            <b>ภาคเรียนใหม่:</b> <b>${termLabel}</b><br>
+                            <b>ไฟล์สำรอง:</b> <code>${backupName}</code>
+                        </div>
+                        <ul class="mb-2 ps-3">
+                            <li>ระบบจะสร้าง <b>ไฟล์สำรองข้อมูล (Backup)</b> เก็บเข้า Google Drive ก่อนเป็นอันดับแรก</li>
+                            <li>ล้างเฉพาะ <b>ชีตประวัติพฤติกรรมประจำเทอม 10 ชีต</b> (ปกป้องชีตระบบ <code>IDlogin นร.</code>, <code>ไม่ผ่านเกณฑ์</code>, <code>GroupID</code>, <code>Responses</code> 100%)</li>
+                            <li>ดึงรายชื่อนักเรียนจากฐานข้อมูลกลางเข้าห้อง <code>1/1</code>–<code>6/12</code> พร้อมตั้งคะแนนเริ่มต้น <b>100 คะแนน</b></li>
+                            ${selectedRolloverMode === 'promote_grade' ? '<li class="text-danger fw-bold">อัปเดตห้องเรียนใหม่ในชีต <code>IDlogin นร.</code> อัตโนมัติ (รหัสผ่านเดิมไม่หาย)</li>' : ''}
+                        </ul>
+                        <div class="text-danger fw-bold text-center mt-2">พิมพ์คำว่า <code>ยืนยัน</code> หรือรหัสแอดมิน <code>kkss</code> เพื่อเริ่มดำเนินการ:</div>
+                       </div>`,
+                input: 'text',
+                inputPlaceholder: 'พิมพ์ ยืนยัน หรือ kkss',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'เริ่มดำเนินการทันที',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (val) => {
+                    if (!val || (val.trim() !== 'ยืนยัน' && val.trim().toLowerCase() !== 'kkss')) {
+                        return 'กรุณาพิมพ์คำว่า "ยืนยัน" หรือรหัส "kkss" เพื่อยืนยันความปลอดภัยครับ';
+                    }
+                }
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-run-full-rollover');
+            const origBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            document.getElementById('btn-close-modal').style.display = 'none';
+
+            try {
+                // --- STEP 1: Backup & Clear Seasonal Logs (15%) ---
+                updateRolloverProgress(5, `ขั้นตอนที่ 1/8: กำลังสร้างไฟล์สำรองข้อมูล "${backupName}" และล้างประวัติเทอมเก่า...`, `กำลังติดต่อ Google Drive และฐานข้อมูล E-Point...`);
+                logConsole(`==========================================`, "info");
+                logConsole(`> 🚀 เริ่มต้นกระบวนการ [${modeTitle}] สำหรับภาคเรียน ${termLabel}`, "warning");
+                logConsole(`> [Step 1] กำลังสำรองข้อมูลชื่อ "${backupName}" และล้างชีตประวัติประจำเทอม 10 ชีต...`, "warning");
+
+                const resInit = await fetchAPI({
+                    action: 'initEpointRollover',
+                    backupName: backupName,
+                    mode: selectedRolloverMode,
+                    termLabel: termLabel
+                });
+
+                if (!resInit || !resInit.success) {
+                    throw new Error(resInit ? resInit.error : "ไม่สามารถสำรองข้อมูลและล้างกระดานได้");
+                }
+
+                logConsole(`> ✅ [Step 1 สำเร็จ] ${resInit.message}`, "success");
+                logConsole(`> 📂 ลิงก์ไฟล์สำรองข้อมูล: <a href="${resInit.url}" target="_blank" class="text-info fw-bold">คลิกเปิดดูไฟล์สำรองบน Google Drive</a>`, "info");
+                updateRolloverProgress(20, `สำรองข้อมูลและล้างประวัติเทอมเก่าสำเร็จ! กำลังเตรียมดึงรายชื่อนักเรียน...`, `ไฟล์สำรอง: ${resInit.backupName}`);
+
+                // --- STEP 2 to 7: Transfer Level 1 to 6 (20% -> 90%) ---
+                let totalStudentsAllLevels = 0;
+                let totalRoomsAllLevels = 0;
+
+                for (let lvl = 1; lvl <= 6; lvl++) {
+                    const pctStart = 20 + ((lvl - 1) * 11);
+                    updateRolloverProgress(pctStart, `ขั้นตอนที่ ${lvl + 1}/8: กำลังดึงรายชื่อชั้น ม.${lvl} (ตรวจสอบครบ 12 ห้อง) และแจก 100 คะแนน...`, `กำลังประมวลผลห้อง ม.${lvl}/1 ถึง ม.${lvl}/12...`);
+                    logConsole(`> ⏳ [ม.${lvl}] กำลังดึงรายชื่อจากฐานข้อมูลกลางเข้าชีต ม.${lvl}/1 ถึง ม.${lvl}/12 (ตั้งคะแนน 100)...`, "warning");
+
+                    const lvlBtn = document.getElementById(`btn-lvl-${lvl}`);
+                    if (lvlBtn) {
+                        lvlBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ม.${lvl}`;
+                        lvlBtn.disabled = true;
+                    }
+
+                    const resLvl = await fetchAPI({ action: 'transferLevelData', level: lvl });
+                    if (!resLvl || !resLvl.success) {
+                        throw new Error(`ชั้น ม.${lvl}: ` + (resLvl ? resLvl.error : "เกิดข้อผิดพลาด"));
+                    }
+
+                    totalStudentsAllLevels += (resLvl.studentsProcessed || 0);
+                    totalRoomsAllLevels += (resLvl.roomsProcessed || 0);
+
+                    // แสดงรายละเอียดรายห้อง (รวมถึงห้องที่ "ไม่พบห้องเรียนนี้")
+                    let activeRoomLogs = [];
+                    let emptyRoomLogs = [];
+                    if (resLvl.roomDetails) {
+                        resLvl.roomDetails.forEach(rd => {
+                            if (rd.status === "ok") activeRoomLogs.push(`${rd.room} (${rd.count} คน)`);
+                            else emptyRoomLogs.push(`${rd.room}: ไม่พบห้องเรียนนี้`);
+                        });
+                    }
+                    logConsole(`> ✅ [ม.${lvl} สำเร็จ] โอนนักเรียน ${resLvl.studentsProcessed} คน ลงใน ${resLvl.roomsProcessed} ห้อง: ${activeRoomLogs.join(', ')}`, "success");
+                    if (emptyRoomLogs.length > 0) {
+                        logConsole(`> ℹ️ [ม.${lvl} ห้องว่าง] ${emptyRoomLogs.join(' | ')}`, "info");
+                    }
+
+                    if (lvlBtn) {
+                        lvlBtn.innerHTML = `<i class="bi bi-check2-circle"></i> ม.${lvl} (${resLvl.studentsProcessed})`;
+                        lvlBtn.classList.replace('btn-outline-primary', 'btn-success');
+                        lvlBtn.classList.add('text-white');
+                        lvlBtn.disabled = false;
+                    }
+                }
+
+                // --- STEP 8: Sync IDlogin นร. (อัปเดตห้องเรียนให้ตรงกับฐานข้อมูลกลางเสมอ ทั้งโหมดเริ่มเทอมใหม่และโหมดเลื่อนชั้น) ---
+                updateRolloverProgress(92, `ขั้นตอนที่ 8/8: กำลังตรวจสอบและซิงค์ห้องเรียนในชีต "IDlogin นร."...`, `กำลังซิงค์ห้องเรียนให้ตรงกับฐานข้อมูลกลางโดยรักษารหัสผ่านเดิมของนักเรียน 100%...`);
+                logConsole(`> 🔑 [Step 8] กำลังซิงค์ห้องเรียนในชีต "IDlogin นร." (โหมด: ${selectedRolloverMode})...`, "warning");
+
+                const resLogin = await fetchAPI({ action: 'syncStudentLoginRooms', mode: selectedRolloverMode });
+                if (resLogin && resLogin.success) {
+                    logConsole(`> ✅ [IDlogin นร.] ${resLogin.message}`, "success");
+                } else {
+                    logConsole(`> ⚠️ [IDlogin นร.] ไม่สามารถซิงค์อัตโนมัติได้: ${resLogin ? resLogin.error : 'Unknown'}`, "warning");
+                }
+
+                // --- เสร็จสมบูรณ์ 100% ---
+                updateRolloverProgress(100, `เสร็จสมบูรณ์ 100%! ระบบ E-Point พร้อมสำหรับภาคเรียน ${termLabel} แล้ว`, `โอนย้ายนักเรียนรวมทั้งสิ้น ${totalStudentsAllLevels} คน ใน ${totalRoomsAllLevels} ห้องเรียน`);
+                logConsole(`> 🎉 [COMPLETE 100%] เริ่มภาคเรียนใหม่สำเร็จ! นักเรียนรวม ${totalStudentsAllLevels} คน (${totalRoomsAllLevels} ห้อง) ได้รับ 100 คะแนนเต็มเรียบร้อย`, "success");
+                logConsole(`==========================================`, "info");
+
+                await loadRolloverInfo();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เริ่มภาคเรียนใหม่สำเร็จ 100%!',
+                    html: `ระบบได้สำรองข้อมูล ล้างประวัติเทอมเก่า และดึงรายชื่อนักเรียนทั้ง 6 ระดับชั้น (รวม <b>${totalStudentsAllLevels}</b> คน ใน <b>${totalRoomsAllLevels}</b> ห้อง) พร้อมตั้งคะแนนเริ่มต้น <b>100 คะแนน</b> เรียบร้อยแล้วครับ<br><br>
+                           <a href="${resInit.url}" target="_blank" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">
+                             <i class="bi bi-box-arrow-up-right"></i> เปิดดูไฟล์สำรองข้อมูลบน Google Drive
+                           </a>`,
+                    confirmButtonColor: '#10b981',
+                    confirmButtonText: 'ยอดเยี่ยม!'
+                });
+
+            } catch (err) {
+                logConsole(`> ❌ [ERROR] กระบวนการหยุดชะงัก: ${err.message}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+            } finally {
+                btn.innerHTML = origBtnHtml;
+                btn.disabled = false;
+                document.getElementById('btn-close-modal').style.display = 'block';
+            }
+        }
+
+        // ==========================================
+        // 🔄 กดดึงรายชื่อแยกทีละระดับชั้น (Manual Per-Level)
+        // ==========================================
+        async function transferData(level, btnElement) {
+            const origText = btnElement.innerHTML;
+            btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btnElement.disabled = true;
+            document.getElementById('btn-close-modal').style.display = 'none';
+
+            logConsole(`> ⏳ กำลังดึงรายชื่อ ม.${level} (ตรวจสอบครบ 12 ห้อง และรีเซ็ตคะแนนเป็น 100)...`, "warning");
+
+            const res = await fetchAPI({ action: 'transferLevelData', level: level });
+
+            if (res && res.success) {
+                logConsole(`> ✅ [SUCCESS] ${res.message}`, "success");
+                if (res.roomDetails) {
+                    let emptyRooms = res.roomDetails.filter(r => r.status !== "ok").map(r => `${r.room} (${r.status})`);
+                    if (emptyRooms.length > 0) {
+                        logConsole(`> ℹ️ [ม.${level}] ${emptyRooms.join(', ')}`, "info");
+                    }
+                }
+                btnElement.innerHTML = `<i class="bi bi-check2"></i> ม.${level} (${res.studentsProcessed})`;
+                btnElement.classList.replace('btn-outline-primary', 'btn-success');
+                btnElement.classList.add('text-white');
+                btnElement.disabled = false;
+            } else {
+                logConsole(`> ❌ [ERROR] ม.${level} -> ${res ? res.error : 'Unknown Error'}`, "error");
+                btnElement.innerHTML = origText;
+                btnElement.classList.replace('btn-outline-primary', 'btn-danger');
+                btnElement.disabled = false;
+            }
+            document.getElementById('btn-close-modal').style.display = 'block';
+        }
+
+        // ==========================================
+        // 🔑 กดซิงค์ห้องในชีต IDlogin นร. แยกต่างหาก
+        // ==========================================
+        async function processSyncLoginRoomsOnly() {
+            const confirm = await Swal.fire({
+                title: 'ซิงค์ห้องเรียนในชีต "IDlogin นร."?',
+                html: 'ระบบจะตรวจสอบรหัสนักเรียนในชีต <code>IDlogin นร.</code> เทียบกับฐานข้อมูลกลาง เพื่ออัปเดตคอลัมน์ <b>ห้อง</b> ให้เป็นปัจจุบัน (โดยรหัสผ่านเดิมของนักเรียนไม่หาย) และล้างเฉพาะบัญชีของพี่ ม.6 ที่จบการศึกษาไปแล้ว',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'เริ่มซิงค์ทันที',
+                cancelButtonText: 'ยกเลิก'
+            });
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-sync-login-rooms');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังซิงค์...';
+            btn.disabled = true;
+
+            logConsole(`> 🔑 กำลังซิงค์ห้องเรียนในชีต "IDlogin นร." ให้ตรงกับฐานข้อมูลกลาง...`, "warning");
+            const res = await fetchAPI({ action: 'syncStudentLoginRooms' });
+
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+
+            if (res && res.success) {
+                logConsole(`> ✅ [SUCCESS] ${res.message}`, "success");
+                Swal.fire('สำเร็จ!', res.message, 'success');
+            } else {
+                logConsole(`> ❌ [ERROR] ${res ? res.error : 'Unknown Error'}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', res ? res.error : 'ไม่สามารถซิงค์ได้', 'error');
+            }
+        }
+
+        // ==========================================
+        // ♻️ ระบบกู้คืนข้อมูลจากไฟล์สำรอง (One-Click Restore)
+        // ==========================================
+        async function confirmRestoreEpoint(fileId, fileName) {
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการกู้คืนข้อมูล (Restore)?',
+                html: `ระบบจะนำข้อมูลคะแนนนักเรียนทุกห้อง (<code>1/1</code>–<code>6/12</code>) และประวัติพฤติกรรมทั้งหมดจากไฟล์สำรอง:<br>
+                       <b class="text-primary">${fileName}</b><br>
+                       กลับมาเขียนทับลงในฐานข้อมูล E-Point ปัจจุบัน`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                confirmButtonText: 'ยืนยันกู้คืนข้อมูล',
+                cancelButtonText: 'ยกเลิก'
+            });
+            if (!confirm.isConfirmed) return;
+
+            document.getElementById('btn-close-modal').style.display = 'none';
+            try {
+                updateRolloverProgress(10, `กำลังกู้คืนชีตประวัติพฤติกรรมและ IDlogin นร. จาก "${fileName}"...`, `ขั้นตอนที่ 1/7`);
+                logConsole(`> ♻️ เริ่มต้นกู้คืนข้อมูลจากไฟล์สำรอง "${fileName}" (ID: ${fileId})...`, "warning");
+
+                const resLogs = await fetchAPI({ action: 'restoreEpointBackup', backupFileId: fileId, step: 'logs' });
+                if (!resLogs || !resLogs.success) throw new Error(resLogs ? resLogs.error : 'กู้คืนชีตประวัติไม่สำเร็จ');
+                logConsole(`> ✅ ${resLogs.message}`, "success");
+
+                for (let lvl = 1; lvl <= 6; lvl++) {
+                    const pct = 15 + (lvl * 14);
+                    updateRolloverProgress(pct, `กำลังกู้คืนคะแนนนักเรียนชั้น ม.${lvl} (ขั้นตอนที่ ${lvl + 1}/7)...`, `กำลังคัดลอกข้อมูลจากไฟล์สำรอง...`);
+                    logConsole(`> ⏳ กำลังกู้คืนคะแนนชั้น ม.${lvl}...`, "warning");
+
+                    const resLvl = await fetchAPI({ action: 'restoreEpointBackup', backupFileId: fileId, step: `level_${lvl}` });
+                    if (!resLvl || !resLvl.success) throw new Error(resLvl ? resLvl.error : `กู้คืนชั้น ม.${lvl} ไม่สำเร็จ`);
+                    logConsole(`> ✅ ${resLvl.message}`, "success");
+                }
+
+                updateRolloverProgress(100, `กู้คืนข้อมูลจาก "${fileName}" เสร็จสมบูรณ์ 100%!`, `ข้อมูลคะแนนและประวัติทั้งหมดกลับสู่สถานะเดิมเรียบร้อยแล้ว`);
+                logConsole(`> 🎉 [RESTORE COMPLETE] กู้คืนข้อมูลจาก "${fileName}" เสร็จสมบูรณ์ 100%!`, "success");
+                await loadRolloverInfo();
+                Swal.fire('กู้คืนข้อมูลสำเร็จ!', `ข้อมูลจากไฟล์ "${fileName}" ถูกนำกลับมาเรียบร้อยแล้วครับ`, 'success');
+            } catch (err) {
+                logConsole(`> ❌ [RESTORE ERROR] ${err.message}`, "error");
+                Swal.fire('เกิดข้อผิดพลาดในการกู้คืน', err.message, 'error');
+            } finally {
+                document.getElementById('btn-close-modal').style.display = 'block';
+            }
+        }
+
+        // ==========================================
+        // เมนู 1: ซิงค์ข้อมูลระหว่างเทอม (ตรวจสอบและแสดงผล)
+        // ==========================================
+        let currentSyncData = null;
+
+        function openSyncModal() {
+            document.getElementById('sync-preview-container').style.display = 'none';
+            document.getElementById('syncLevelSelect').value = '';
+            syncModal.show();
+        }
+
+        function openReportModal() {
+            reportModal.show();
+        }
+
+        async function processCheckSync() {
+            const level = document.getElementById('syncLevelSelect').value;
+            if (!level) return alert("กรุณาเลือกระดับชั้น");
+
+            const btn = document.getElementById('btn-check-sync');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> รอสักครู่...';
+            btn.disabled = true;
+
+            logConsole(`> กำลังดึงข้อมูลและเปรียบเทียบ ม.${level}...`, 'warning');
+
+            const res = await fetchAPI({ action: 'checkSyncStudents', level: level });
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (res && res.success) {
+                currentSyncData = res;
+                let html = '';
+                
+                res.toAdd.forEach(s => {
+                    html += `<tr class="table-success"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room} <small class="text-muted">(ที่ ${s.no})</small></td><td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มเป็นเด็กใหม่<br><small class="text-muted">จะได้คะแนน 100</small></td></tr>`;
+                });
+                res.toUpdate.forEach(s => {
+                    let changes = []; if(s.oldRoom !== s.newRoom) changes.push(`ย้ายจาก ม.${s.oldRoom}`); if(s.oldName !== s.newName) changes.push(`เปลี่ยนชื่อ`);
+                    html += `<tr class="table-warning"><td class="fw-bold">${s.id}</td><td>${s.newName}</td><td>ม.${s.newRoom}</td><td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดตข้อมูล<br><small class="text-muted">${changes.join(', ')} (มี ${s.score} คะแนน)</small></td></tr>`;
+                });
+                res.toRemove.forEach(s => {
+                    html += `<tr class="table-danger"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room}</td><td class="text-danger fw-bold"><i class="bi bi-trash"></i> ย้ายออกจากระบบ</td></tr>`;
+                });
+
+                if (html === '') {
+                    html = '<tr><td colspan="4" class="text-center py-4 text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ข้อมูลตรงกับส่วนกลางเป๊ะ 100% ไม่มีใครต้องอัปเดตครับ</td></tr>';
+                    document.getElementById('btn-commit-sync').disabled = true;
+                } else {
+                    document.getElementById('btn-commit-sync').disabled = false;
+                }
+
+                document.getElementById('sync-tbody').innerHTML = html;
+                document.getElementById('sync-add').innerText = res.toAdd.length;
+                document.getElementById('sync-update').innerText = res.toUpdate.length;
+                document.getElementById('sync-remove').innerText = res.toRemove.length;
+                
+                document.getElementById('sync-preview-container').style.display = 'block';
+                logConsole(`> โหลดพรีวิวสำเร็จ พบการเปลี่ยนแปลงทั้งหมด ${res.toAdd.length + res.toUpdate.length + res.toRemove.length} รายการ`, 'info');
+
+            } else {
+                alert("เกิดข้อผิดพลาด: " + (res ? res.error : 'Unknown Error'));
+                logConsole(`> [ERROR] ${res ? res.error : 'Unknown Error'}`, 'error');
+            }
+        }
+
+        async function processCommitSync() {
+            const level = document.getElementById('syncLevelSelect').value;
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการซิงค์ข้อมูล?',
+                html: `<span class="text-primary fw-bold">ระบบจะทำการเขียนทับข้อมูลในระดับชั้น ม.${level}</span><br>โดยข้อมูลจะยึดตามฐานข้อมูลกลาง และคะแนนจะถูกโอนตามไปให้ถูกคน`,
+                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันอัปเดต', confirmButtonColor: '#10b981'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            const btn = document.getElementById('btn-commit-sync');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึกข้อมูลลงฐานข้อมูล...';
+            btn.disabled = true;
+
+            logConsole(`> กำลังดึงคะแนนเก่าเก็บไว้ และจัดเรียงห้อง ม.${level} ใหม่...`, 'warning');
+
+            const res = await fetchAPI({ action: 'commitSyncStudents', level: level });
+
+            if (res && res.success) {
+                logConsole(`> [SUCCESS] ${res.message}`, "success");
+                Swal.fire('ซิงค์สำเร็จ!', res.message, 'success');
+                syncModal.hide();
+            } else {
+                logConsole(`> [ERROR] ${res ? res.error : 'Unknown Error'}`, "error");
+                Swal.fire('เกิดข้อผิดพลาด', res ? res.error : 'Unknown Error', 'error');
+                btn.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i> ยืนยันการซิงค์ข้อมูล (อัปเดตลงระบบ)';
+                btn.disabled = false;
             }
         }
 
@@ -407,165 +1455,12 @@
                     cancelButtonText: 'ปิด',
                     confirmButtonColor: '#10b981'
                 }).then((result) => {
-                    if(result.isConfirmed) { window.open(res.url, '_blank'); }
+                    if (result.isConfirmed) { window.open(res.url, '_blank'); }
                 });
             } else {
                 logConsole(`> [ERROR] ${res ? res.error : 'Unknown Error'}`, 'error');
                 Swal.fire('ข้อผิดพลาด', res ? res.error : 'ไม่สามารถประมวลผลได้', 'error');
             }
-        }
-
-        // ==========================================
-        // เมนู 1: ซิงค์ข้อมูล (ตรวจสอบและแสดงผล)
-        // ==========================================
-        let currentSyncData = null;
-
-        async function processCheckSync() {
-            const level = document.getElementById('syncLevelSelect').value;
-            if(!level) return alert("กรุณาเลือกระดับชั้น");
-
-            const btn = document.getElementById('btn-check-sync');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> รอสักครู่...';
-            btn.disabled = true;
-
-            logConsole(`> กำลังดึงข้อมูลและเปรียบเทียบ ม.${level}...`, 'warning');
-
-            const res = await fetchAPI({ action: 'checkSyncStudents', level: level });
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-
-            if (res.success) {
-                currentSyncData = res;
-                let html = '';
-                
-                res.toAdd.forEach(s => {
-                    html += `<tr class="table-success"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room} <small class="text-muted">(ที่ ${s.no})</small></td><td class="text-success fw-bold"><i class="bi bi-plus-circle"></i> เพิ่มเป็นเด็กใหม่<br><small class="text-muted">จะได้คะแนน 100</small></td></tr>`;
-                });
-                res.toUpdate.forEach(s => {
-                    let changes = []; if(s.oldRoom !== s.newRoom) changes.push(`ย้ายจาก ม.${s.oldRoom}`); if(s.oldName !== s.newName) changes.push(`เปลี่ยนชื่อ`);
-                    html += `<tr class="table-warning"><td class="fw-bold">${s.id}</td><td>${s.newName}</td><td>ม.${s.newRoom}</td><td class="text-warning text-dark fw-bold"><i class="bi bi-pencil-square"></i> อัปเดตข้อมูล<br><small class="text-muted">${changes.join(', ')} (มี ${s.score} คะแนน)</small></td></tr>`;
-                });
-                res.toRemove.forEach(s => {
-                    html += `<tr class="table-danger"><td class="fw-bold">${s.id}</td><td>${s.name}</td><td>ม.${s.room}</td><td class="text-danger fw-bold"><i class="bi bi-trash"></i> ย้ายออกจากระบบ</td></tr>`;
-                });
-
-                if(html === '') {
-                    html = '<tr><td colspan="4" class="text-center py-4 text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ข้อมูลตรงกับส่วนกลางเป๊ะ 100% ไม่มีใครต้องอัปเดตครับ</td></tr>';
-                    document.getElementById('btn-commit-sync').disabled = true;
-                } else {
-                    document.getElementById('btn-commit-sync').disabled = false;
-                }
-
-                document.getElementById('sync-tbody').innerHTML = html;
-                document.getElementById('sync-add').innerText = res.toAdd.length;
-                document.getElementById('sync-update').innerText = res.toUpdate.length;
-                document.getElementById('sync-remove').innerText = res.toRemove.length;
-                
-                document.getElementById('sync-preview-container').style.display = 'block';
-                logConsole(`> โหลดพรีวิวสำเร็จ พบการเปลี่ยนแปลงทั้งหมด ${res.toAdd.length + res.toUpdate.length + res.toRemove.length} รายการ`, 'info');
-
-            } else {
-                alert("เกิดข้อผิดพลาด: " + res.error);
-                logConsole(`> [ERROR] ${res.error}`, 'error');
-            }
-        }
-
-        async function processCommitSync() {
-            const level = document.getElementById('syncLevelSelect').value;
-            const confirm = await Swal.fire({
-                title: 'ยืนยันการซิงค์ข้อมูล?',
-                html: `<span class="text-primary fw-bold">ระบบจะทำการเขียนทับข้อมูลในระดับชั้น ม.${level}</span><br>โดยข้อมูลจะยึดตามฐานข้อมูลกลาง และคะแนนจะถูกโอนตามไปให้ถูกคน`,
-                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันอัปเดต', confirmButtonColor: '#10b981'
-            });
-
-            if (!confirm.isConfirmed) return;
-
-            const btn = document.getElementById('btn-commit-sync');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึกข้อมูลลงฐานข้อมูล...';
-            btn.disabled = true;
-
-            logConsole(`> กำลังดึงคะแนนเก่าเก็บไว้ และล้างกระดานเพื่อจัดเรียงใหม่...`, 'warning');
-
-            const res = await fetchAPI({ action: 'commitSyncStudents', level: level });
-
-            if (res.success) {
-                logConsole(`> [SUCCESS] ${res.message}`, "success");
-                Swal.fire('ซิงค์สำเร็จ!', res.message, 'success');
-                syncModal.hide();
-            } else {
-                logConsole(`> [ERROR] ${res.error}`, "error");
-                Swal.fire('เกิดข้อผิดพลาด', res.error, 'error');
-                btn.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i> ยืนยันการซิงค์ข้อมูล (อัปเดตลงระบบ)';
-                btn.disabled = false;
-            }
-        }
-
-        // ==========================================
-        // เมนู 2: สำรองและล้างกระดาน
-        // ==========================================
-        async function processBackupAndClear() {
-            const backupName = document.getElementById('backupName').value.trim();
-            if(!backupName) return alert("กรุณาตั้งชื่อไฟล์สำรองข้อมูลครับ");
-
-            const confirm = await Swal.fire({
-                title: 'ยืนยันการล้างกระดาน?',
-                html: '<span class="text-danger fw-bold">ข้อมูลนักเรียนและคะแนนเดิมทั้งหมดจะถูกลบทิ้ง!</span><br>ระบบจะทำการสำรองไฟล์เก็บไว้ให้ก่อนดำเนินการ',
-                icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'ยืนยันลบข้อมูล',
-            });
-
-            if (!confirm.isConfirmed) return;
-
-            const btn = document.getElementById('btn-backup');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังดำเนินการ... (อาจใช้เวลา 1-2 นาที)';
-            btn.disabled = true;
-            document.getElementById('btn-close-modal').style.display = 'none';
-
-            logConsole(`> กำลังสร้างไฟล์ Backup ชื่อ "${backupName}"...`, "warning");
-
-            const res = await fetchAPI({ action: 'backupAndClear', backupName: backupName });
-
-            if (res.success) {
-                logConsole(`> [SUCCESS] ${res.message}`, "success");
-                logConsole(`> ไฟล์สำรอง: <a href="${res.url}" target="_blank" class="text-info">คลิกดูไฟล์</a>`, "info");
-                
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ล้างกระดานสำเร็จ';
-                btn.classList.replace('btn-danger', 'btn-success');
-                document.getElementById('step-2-box').style.opacity = '1';
-                document.getElementById('step-2-box').style.pointerEvents = 'auto';
-                
-                Swal.fire('สำเร็จ', 'ล้างกระดานและสำรองข้อมูลเรียบร้อย เข้าสู่ขั้นตอนที่ 2 ได้เลยครับ', 'success');
-            } else {
-                logConsole(`> [ERROR] ${res.error}`, "error");
-                Swal.fire('เกิดข้อผิดพลาด', res.error, 'error');
-                btn.innerHTML = '<i class="bi bi-hdd-fill me-1"></i> เริ่มสำรองข้อมูลและล้างกระดาน';
-                btn.disabled = false;
-            }
-            document.getElementById('btn-close-modal').style.display = 'block';
-        }
-
-        async function transferData(level, btnElement) {
-            btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            btnElement.disabled = true;
-            document.getElementById('btn-close-modal').style.display = 'none';
-
-            logConsole(`> กำลังดึงรายชื่อ ม.${level} (รีเซ็ตคะแนนเป็น 100)...`, "warning");
-
-            const res = await fetchAPI({ action: 'transferLevelData', level: level });
-
-            if (res.success) {
-                logConsole(`> [SUCCESS] ${res.message}`, "success");
-                btnElement.innerHTML = '<i class="bi bi-check2"></i> สำเร็จ';
-                btnElement.classList.replace('btn-outline-primary', 'btn-success');
-                btnElement.classList.add('text-white');
-            } else {
-                logConsole(`> [ERROR] ม.${level} -> ${res.error}`, "error");
-                btnElement.innerHTML = 'ลองใหม่';
-                btnElement.classList.replace('btn-outline-primary', 'btn-danger');
-                btnElement.disabled = false;
-            }
-            document.getElementById('btn-close-modal').style.display = 'block';
         }
     </script>
 </body>
