@@ -342,7 +342,7 @@
         }
         // ====================================================================================
 
-        async function fetchAPI(payload, retries = 3) {
+        async function fetchAPI(payload, retries = 5) {
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(API_URL, { 
@@ -351,14 +351,31 @@
                         body: JSON.stringify(payload) 
                     });
                     if (!response.ok) throw new Error('Network response was not ok');
-                    return await response.json();
+                    const data = await response.json();
+
+                    // 🌟 ดักจับกรณีหลังบ้านติดคิว (เช่น หมดเวลาการล็อก หรือโควต้าพร้อมกันเกิน 30 ห้อง) ให้ส่งซ้ำอัตโนมัติ
+                    if (data && data.status === 'error' && data.message && (
+                        data.message.includes('หมดเวลาการล็อก') ||
+                        data.message.includes('Lock') ||
+                        data.message.includes('Service invoked too many times') ||
+                        data.message.includes('Simultaneous')
+                    )) {
+                        if (i < retries - 1) {
+                            const jitter = Math.floor(Math.random() * 1500) + 1200 * (i + 1);
+                            console.warn(`⏳ คิวหลังบ้านหนาแน่น กำลังส่งซ้ำอัตโนมัติครั้งที่ ${i + 1}/${retries - 1} (รอ ${jitter} ms)...`);
+                            await new Promise(res => setTimeout(res, jitter));
+                            continue;
+                        }
+                    }
+                    return data;
                 } catch (error) { 
                     if (i === retries - 1) {
                         Swal.fire('การเชื่อมต่อขัดข้อง', 'ระบบคนใช้งานเยอะหรือเน็ตช้า กรุณาลองใหม่อีกครั้งครับ', 'error'); 
                         return null; 
                     }
-                    // รอ 1 วินาทีแล้วลองใหม่ (แก้ปัญหา GAS ล่มชั่วขณะตอนครู 60 คนเข้าพร้อมกัน)
-                    await new Promise(res => setTimeout(res, 1000 * (i + 1))); 
+                    // สุ่มเวลาหน่วง (Random Jitter 1.2 - 3.5 วินาที) เพื่อกระจายคิวตอนครู 62 ห้องกดพร้อมกัน
+                    const backoffMs = 1000 * (i + 1) + Math.floor(Math.random() * 1500);
+                    await new Promise(res => setTimeout(res, backoffMs)); 
                 }
             }
         }
