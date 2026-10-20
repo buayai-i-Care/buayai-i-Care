@@ -1,859 +1,1246 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buayai I-Care School ระบบดูแลช่วยเหลือผู้เรียนดิจิทัลโรงเรียนบัวใหญ่</title>
-  
-  <!-- 📱 ตั้งค่าเป็น Web App (PWA) -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e3a8a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Buayai I-Care">
-  <link rel="apple-touch-icon" href="./app_icon.jpg">
-
-  <!-- โหลด Bootstrap 5 และ Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --primary-blue: #1e3a8a;
-      --secondary-blue: #3b82f6;
-      --teacher-green: #10b981;
-      
-      /* 🌟 ธีมสีแอดมิน */
-      --admin-purple: #d946ef; 
-      --admin-purple-dark: #a21caf;
-      --admin-light: #fdf4ff;
-
-      --student-orange: #f59e0b;
-      --board-purple: #8b5cf6;
-      --bg-color: #f8fafc;
-    }
-
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background-color: var(--bg-color);
-      color: #1e293b;
-      padding-bottom: 50px; 
-      font-size: 1.1rem; /* ขยายฟอนต์หลักให้ใหญ่อ่านง่าย */
-    }
-
-    /* Header */
-    .header-section {
-      background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
-      color: white;
-      padding: 35px 20px 20px;
-      border-radius: 0 0 30px 30px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
-    }
-
-    .header-logo img { 
-      width: 90px; 
-      height: 90px; 
-      object-fit: cover; 
-      background-color: white; 
-      border-radius: 20px; /* ขอบมนสวยงาม */
-      padding: 4px; 
-      margin-bottom: 15px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-    }
-
-    /* Tabs */
-    .nav-tabs {
-      border: none; flex-wrap: nowrap; overflow-x: auto; display: flex;
-      padding: 10px 15px 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    }
-    .nav-tabs::-webkit-scrollbar { display: none; }
-
-    .nav-link {
-      color: #64748b; background-color: transparent; border: none !important;
-      white-space: nowrap; padding: 12px 20px !important; border-radius: 25px !important;
-      font-weight: 700; margin-right: 10px; font-size: 1.05rem; transition: all 0.3s ease;
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .nav-link.active {
-      background-color: white !important; color: var(--primary-blue) !important;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08); transform: translateY(-2px);
-    }
-
-    /* Bento Grid */
-    .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 15px 25px; }
-
-    .menu-card {
-      background: white; border-radius: 18px; padding: 18px 8px; text-decoration: none;
-      color: inherit; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center; transition: all 0.2s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05);
-      min-height: 105px; position: relative; overflow: hidden; cursor: pointer;
-    }
-
-    .menu-card:active { transform: scale(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .menu-card i { font-size: 2.2rem; margin-bottom: 8px; transition: transform 0.3s ease; }
-
-    .card-title { 
-      font-weight: 700; font-size: 0.95rem; margin: 0; line-height: 1.3;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden; text-overflow: ellipsis;
-    } 
-
-    /* Colors */
-    .tab-teacher .menu-card i { color: var(--teacher-green); }
-    .tab-student .menu-card i { color: var(--student-orange); }
-    .tab-admin .menu-card i { color: var(--admin-purple); }
-    .tab-board .menu-card i { color: var(--board-purple); }
-
-    .footer-watermark { text-align: center; padding: 10px; font-size: 0.8rem; color: #cbd5e1; }
-    .section-header { padding: 15px 15px 8px; }
-    .section-header h6 { font-size: 1.1rem; }
-
-    /* ดีไซน์ปุ่มขยายเมนูวิชาการ */
-    .expand-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .expand-btn { color: white !important; border-radius: 16px; padding: 16px 5px; font-weight: 700; text-align: center; text-decoration: none; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .expand-btn:active { transform: scale(0.94); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคะแนนความประพฤติ E-Point โรงเรียนบัวใหญ่ ของ Buayai I Care School</title>
     
-    .btn-m1 { background: linear-gradient(135deg, #FF6B6B, #FF8E53); }
-    .btn-m2 { background: linear-gradient(135deg, #4FACFE, #00F2FE); }
-    .btn-m3 { background: linear-gradient(135deg, #0ba360, #3cba92); }
-    .btn-m4 { background: linear-gradient(135deg, #f093fb, #f5576c); }
-    .btn-m5 { background: linear-gradient(135deg, #FCCF31, #F55555); }
-    .btn-m6 { background: linear-gradient(135deg, #667EEA, #764BA2); }
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;700&display=swap" rel="stylesheet">
     
-    .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
-    .btn-purple-gradient { background: linear-gradient(135deg, var(--admin-purple), var(--admin-purple-dark)); }
+    <style>
+        :root {
+            --orange-main: #f97316;
+            --orange-dark: #ea580c;
+            --coral-rose: #f43f5e;
+            --orange-light: #ffedd5;
+            --orange-soft: #fff7ed;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --good-color: #10b981;
+            --bad-color: #f43f5e;
+            --sporty-gradient: linear-gradient(135deg, #f97316 0%, #f43f5e 100%);
+            --sporty-gradient-hover: linear-gradient(135deg, #ea580c 0%, #e11d48 100%);
+        }
 
-    /* Lock Screen Layouts */
-    .lock-screen-box {
-      background: white; border-radius: 28px; padding: 45px 20px; 
-      margin: 25px 15px; box-shadow: 0 4px 25px rgba(0,0,0,0.05);
-      border: 1px solid rgba(0,0,0,0.03);
-    }
-  </style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(180deg, #fbfbfe 0%, #f1f5f9 100%);
+            color: var(--text-main); 
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        .font-prompt { font-family: 'Prompt', sans-serif; }
+        
+        /* =========================================================
+           1. Vibrant Sporty Login Screen
+           ========================================================= */
+        #login-view { 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 24px 16px;
+            background: radial-gradient(circle at 10% 10%, #ffedd5 0%, #f8fafc 40%, #fce7f3 100%);
+        }
+        .login-card { 
+            background: var(--card-bg); 
+            border-radius: 30px; 
+            padding: 42px 28px; 
+            width: 100%; 
+            max-width: 420px; 
+            box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.18), 0 0 0 2px #ffedd5; 
+            position: relative; 
+            overflow: hidden; 
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .login-card::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 7px; 
+            background: linear-gradient(90deg, #f97316, #f43f5e, #ec4899); 
+        }
+        .logo-img { 
+            width: 90px; 
+            height: 90px; 
+            object-fit: contain; 
+            border-radius: 50%; 
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.15); 
+            margin-bottom: 16px; 
+            background: white; 
+            padding: 6px;
+            border: 3px solid #ffedd5;
+        }
+
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 16px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #fff7ed, #fff1f2);
+            color: #ea580c;
+            font-size: 0.82rem;
+            font-weight: 800;
+            border: 1.5px solid #fed7aa;
+            margin-bottom: 14px;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .form-control, .form-select { 
+            border-radius: 16px; 
+            padding: 13px 18px; 
+            border: 2px solid #e2e8f0; 
+            background-color: #ffffff; 
+            font-weight: 600; 
+            margin-bottom: 14px;
+            font-size: 0.98rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus { 
+            border-color: #f97316; 
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2); 
+            background-color: white; 
+            outline: none;
+        }
+        
+        .btn-orange { 
+            background: var(--sporty-gradient); 
+            color: white; 
+            border: none; 
+            border-radius: 18px; 
+            padding: 15px 20px; 
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            font-family: 'Prompt', sans-serif;
+            transition: all 0.25s ease; 
+            width: 100%; 
+            box-shadow: 0 10px 25px -4px rgba(244, 63, 94, 0.4);
+            letter-spacing: 0.3px;
+        }
+        .btn-orange:hover { 
+            background: var(--sporty-gradient-hover);
+            transform: translateY(-2px); 
+            box-shadow: 0 14px 28px -4px rgba(244, 63, 94, 0.5); 
+            color: white; 
+        }
+        .btn-orange:active {
+            transform: scale(0.98);
+        }
+
+        /* =========================================================
+           2. App Framework & Navigation
+           ========================================================= */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 66px;
+            background: var(--sporty-gradient); 
+            color: white; z-index: 1030;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; 
+            box-shadow: 0 6px 20px -2px rgba(244, 63, 94, 0.3);
+        }
+        .hamburger-btn { 
+            background: rgba(255, 255, 255, 0.2); 
+            border: none; 
+            color: white; 
+            font-size: 1.4rem; 
+            width: 42px; 
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .sidebar {
+            height: 100vh; width: 290px; position: fixed; top: 0; left: -290px; 
+            background: #ffffff; z-index: 1050; padding: 24px 20px; 
+            box-shadow: 12px 0 35px rgba(15, 23, 42, 0.1); 
+            transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sidebar.show { left: 0; }
+        #sidebar-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; 
+            background: rgba(15, 23, 42, 0.6); z-index: 1040; backdrop-filter: blur(4px); 
+        }
+        
+        .main-content { 
+            padding: 86px 16px 40px; 
+            max-width: 820px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+        }
+        
+        .nav-link { 
+            color: #475569; 
+            margin-bottom: 8px; 
+            border-radius: 16px; 
+            padding: 12px 18px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            font-weight: 700; 
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .nav-link:hover { 
+            background: #fff7ed; 
+            color: #ea580c; 
+        }
+        .nav-link.active {
+            background: linear-gradient(135deg, #fff7ed, #fee2e2);
+            color: #ea580c;
+            border-left: 5px solid #f97316;
+            font-weight: 800;
+        }
+        .nav-link i { font-size: 1.25rem; margin-right: 14px; width: 22px; text-align: center; }
+
+        /* =========================================================
+           3. Content Zoning Architecture (การแบ่งโซนที่ชัดเจน)
+           ========================================================= */
+        .zone-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 22px 0 10px;
+            padding: 0 4px;
+        }
+        .zone-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .zone-tag-orange {
+            background: #fff7ed;
+            color: #ea580c;
+            border: 1.5px solid #fed7aa;
+        }
+        .zone-tag-rose {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1.5px solid #fecdd3;
+        }
+        .zone-tag-slate {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1.5px solid #cbd5e1;
+        }
+
+        /* 📣 Zone 1: Marquee Alert */
+        .marquee-alert { 
+            background: #ffffff; 
+            border: 2px solid #fed7aa; 
+            border-radius: 18px; 
+            padding: 12px 18px; 
+            color: #9a3412; 
+            font-size: 0.92rem; 
+            font-weight: 700; 
+            margin-bottom: 18px; 
+            display: flex; 
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.08);
+        }
+
+        /* 🚨 Zone 2: Criteria Fail Card */
+        .fail-card { 
+            background: #fff1f2; 
+            border: 2px solid #fda4af; 
+            border-radius: 26px; 
+            padding: 22px; 
+            margin-bottom: 22px; 
+            box-shadow: 0 12px 25px -5px rgba(225, 29, 72, 0.12); 
+        }
+        .fail-item { 
+            background: white; 
+            border: 1.5px solid #ffe4e6; 
+            border-radius: 18px; 
+            padding: 16px 20px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.05); 
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* 🏆 Zone 3: Score Hero Zone */
+        .score-card { 
+            background: white; 
+            border-radius: 30px; 
+            padding: 28px 24px; 
+            text-align: center; 
+            border: 2px solid #fed7aa;
+            box-shadow: 0 16px 35px -8px rgba(249, 115, 22, 0.16); 
+            margin-bottom: 22px; 
+            position: relative; 
+            overflow: hidden;
+        }
+        .score-header-strip {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .score-badge-id {
+            background: #fff7ed;
+            color: #ea580c;
+            border-radius: 9999px;
+            padding: 6px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.5px solid #fed7aa;
+        }
+        .score-box-wrapper {
+            background: linear-gradient(180deg, #fffaf5 0%, #fff7ed 100%);
+            border: 2px dashed #fdba74;
+            border-radius: 24px;
+            padding: 20px 16px;
+        }
+        .score-number { 
+            font-size: clamp(3.8rem, 12vw, 5.2rem); 
+            font-weight: 900; 
+            color: #ea580c; 
+            line-height: 1; 
+            margin: 6px 0; 
+            font-family: 'Prompt', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 95px;
+            letter-spacing: -2px;
+        }
+        .score-bar-sub {
+            margin-top: 4px;
+        }
+
+        /* 📋 Zone 4: Behavioral Record Activity Cards */
+        .section-card { 
+            background: white; 
+            border-radius: 26px; 
+            padding: 24px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); 
+            transition: transform 0.2s ease;
+        }
+        .zone-card-merit {
+            border: 2px solid #a7f3d0;
+            border-top: 6px solid #10b981;
+        }
+        .zone-card-demerit {
+            border: 2px solid #fecdd3;
+            border-top: 6px solid #f43f5e;
+        }
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 18px; 
+            padding-bottom: 14px; 
+            border-bottom: 2px dashed #f1f5f9; 
+        }
+        .zone-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .total-badge { 
+            font-size: 1.25rem; 
+            font-weight: 900; 
+            font-family: 'Prompt', sans-serif;
+            padding: 5px 18px; 
+            border-radius: 9999px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+        
+        /* 📜 History List Items */
+        .history-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 18px; 
+            background: #ffffff; 
+            border-radius: 18px; 
+            margin-bottom: 12px; 
+            border: 1.5px solid #f1f5f9; 
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+            transition: all 0.2s ease;
+        }
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+        }
+        .history-icon { 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 14px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.4rem; 
+            margin-right: 14px; 
+            flex-shrink: 0; 
+        }
+        .history-details { flex-grow: 1; }
+        .history-points { 
+            font-weight: 900; 
+            font-size: 1.35rem; 
+            font-family: 'Prompt', sans-serif;
+        }
+        .img-thumbnail-custom { 
+            width: 58px; 
+            height: 58px; 
+            object-fit: cover; 
+            border-radius: 14px; 
+            margin-left: 10px; 
+            cursor: pointer; 
+            border: 2px solid #e2e8f0; 
+            transition: transform 0.2s;
+        }
+        .img-thumbnail-custom:hover { transform: scale(1.08); }
+
+        .text-good { color: #059669; }
+        .bg-good { background: #ecfdf5; color: #059669; }
+        .text-bad { color: #e11d48; }
+        .bg-bad { background: #fff1f2; color: #e11d48; }
+
+        /* 🔔 Notification Cards */
+        .ring-bell { animation: ring 1.5s infinite ease-in-out; display: inline-block; transform-origin: top center; color: #facc15; }
+        @keyframes ring { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(15deg); } 20%, 40% { transform: rotate(-15deg); } }
+        .blink-badge { animation: pulseBadge 1.2s infinite; }
+        @keyframes pulseBadge { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); } 50% { transform: scale(1.08); box-shadow: 0 0 0 5px rgba(244, 63, 94, 0); } }
+        .noti-card { 
+            background: white; 
+            border: 2px solid #e2e8f0; 
+            border-left: 6px solid #cbd5e1; 
+            border-radius: 20px; 
+            padding: 18px; 
+            margin-bottom: 14px; 
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04); 
+            transition: 0.2s;
+        }
+        .noti-card.unread { 
+            border-left: 6px solid #f43f5e; 
+            background: #fff5f5; 
+            border-color: #fecdd3;
+        }
+
+        /* 🌟 Floating Widget (FAB) */
+        .fab-warning {
+            position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; border-radius: 50%;
+            background: linear-gradient(135deg, #f43f5e, #be185d); color: white; font-size: 1.8rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1040;
+            box-shadow: 0 12px 28px rgba(244, 63, 94, 0.4); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: bounceSoft 4s infinite;
+        }
+        .fab-warning:hover { transform: scale(1.12); animation: none; }
+        .fab-warning.fab-good { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4); }
+        .fab-badge { position: absolute; top: -3px; right: -3px; background: #0f172a; color: white; border: 2.5px solid white; font-size: 0.8rem; font-weight: bold; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        @keyframes bounceSoft { 0%, 20%, 100% { transform: translateY(0); } 10% { transform: translateY(-10px); } 15% { transform: translateY(-4px); } }
+        
+        /* 🕒 Modals & Timeline */
+        .modal-warning-content { border-radius: 30px; border: none; background: #f8fafc; overflow: hidden; }
+        .modal-warning-header { background: linear-gradient(135deg, #334155, #0f172a); color: white; padding: 24px 20px; text-align: center; border-bottom: none; }
+        .timeline-card { background: white; border-radius: 20px; padding: 18px; margin-bottom: 14px; border-left: 6px solid #f43f5e; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04); }
+        .lotus-msg { background: white; border: 2px dashed #fbcfe8; border-radius: 20px; padding: 15px; text-align: center; color: #be185d; margin-bottom: 18px; font-size: 0.95rem; }
+        .tl-wrapper { padding: 16px 8px; margin-top: 14px; background: #fffcfd; border-radius: 18px; border: 1px dashed #fbcfe8; }
+        .tl-header { font-size: 1.15rem; font-weight: 700; color: #334155; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-family: 'Prompt', sans-serif;}
+        .tl-header i { color: #f472b6; font-size: 1.4rem; transform: rotate(-90deg); display: inline-block;}
+        .tl-item { position: relative; padding-left: 52px; padding-bottom: 26px; min-height: 42px;}
+        .tl-item:last-child { padding-bottom: 0; min-height: 36px;}
+        .tl-item::before { content: ''; position: absolute; left: 22px; top: 38px; bottom: -5px; width: 3px; background-color: #e2e8f0; border-radius: 2px; z-index: 1; }
+        .tl-item:last-child::before { display: none; }
+        .tl-item.completed::before { background-color: #f9a8d4; }
+        .tl-icon { position: absolute; left: 4px; top: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background-color: #e2e8f0; color: #94a3b8; border: 3px solid white; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        .tl-text { color: #64748b; font-size: 1.1rem; display: flex; align-items: center; min-height: 40px;}
+        .tl-item.completed .tl-icon { background-color: #f472b6; color: white; }
+        .tl-item.current .tl-icon { background-color: #be185d; color: white; border: 2px solid white; box-shadow: 0 0 0 2px #be185d; animation: pulse-ring-timeline 2s infinite; }
+        .tl-item.current.step-6 .tl-icon { background-color: #ef4444; box-shadow: 0 0 0 2px #ef4444;}
+        .tl-item.current .tl-text { color: #831843; font-size: 1.2rem; font-weight: 700; }
+        @keyframes pulse-ring-timeline { 0%, 100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(190, 24, 93, 0); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(190, 24, 93, 0); } }
+
+        .timeline-card-good { background: white; border-radius: 20px; padding: 18px; margin-bottom: 14px; border-left: 6px solid #10b981; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04); }
+        .lotus-msg-good { background: white; border: 2px dashed #a7f3d0; border-radius: 20px; padding: 15px; text-align: center; color: #047857; margin-bottom: 18px; font-size: 0.95rem; }
+        .tl-wrapper-good { padding: 16px 8px; margin-top: 14px; background: #f0fdf4; border-radius: 18px; border: 1px dashed #a7f3d0; }
+        .tl-header-good { font-size: 1.15rem; font-weight: 700; color: #334155; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-family: 'Prompt', sans-serif;}
+        .tl-header-good i { color: #34d399; font-size: 1.4rem; transform: rotate(-90deg); display: inline-block;}
+        .tl-item.completed-good::before { background-color: #6ee7b7; }
+        .tl-item.completed-good .tl-icon { background-color: #34d399; color: white; }
+        .tl-item.current-good .tl-icon { background-color: #059669; color: white; border: 2px solid white; box-shadow: 0 0 0 2px #059669; animation: pulse-ring-good 2s infinite; }
+        .tl-item.current-good .tl-text { color: #064e3b; font-size: 1.2rem; font-weight: 700; }
+        @keyframes pulse-ring-good { 0%, 100% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(5, 150, 105, 0); } }
+        
+        .warning-toggle-btn[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
+        .chevron-icon { transition: transform 0.25s ease-in-out; display: inline-block; }
+
+        /* 🕒 Cards สำหรับประวัติมาสาย */
+        .late-card { background: white; border-radius: 20px; border-left: 6px solid #f59e0b; padding: 18px; margin-bottom: 14px; border: 1.5px solid #fed7aa; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04); transition: 0.2s; }
+        .late-card.ack { border-left-color: #10b981; border-color: #a7f3d0; opacity: 0.9; background-color: #f8fafc; }
+        .btn-teen { background: #f1f5f9; color: #475569; border-radius: 14px; font-weight: 700; padding: 9px 16px; font-size: 0.9rem; transition: 0.2s; border: none; }
+        .btn-teen:hover { background: #e2e8f0; color: #0f172a; }
+        .btn-ack { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-radius: 14px; font-weight: 700; padding: 8px 18px; font-size: 0.9rem; border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); transition: 0.2s; }
+        .btn-ack:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35); }
+        .btn-ack:disabled { background: #10b981; box-shadow: none; transform: none; cursor: not-allowed; opacity: 0.9; }
+        
+        /* 🚨 ธีมภาคเรียนที่ผ่านมา (ไม่ผ่านเกณฑ์) */
+        .past-fail-card { background: white; border-radius: 22px; border-left: 6px solid #ef4444; border: 2px solid #fecdd3; padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(225, 29, 72, 0.06); }
+
+        /* 📱 Responsive Adjustments */
+        @media (max-width: 576px) {
+            .main-content { padding: 78px 12px 30px; }
+            .login-card { padding: 32px 18px; border-radius: 26px; }
+            .score-card { padding: 22px 16px; border-radius: 24px; }
+            .fail-card { padding: 18px 14px; }
+            .fail-item { flex-direction: column; align-items: flex-start; }
+            .section-card { padding: 18px 14px; border-radius: 22px; }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 1. Header -->
-  <div class="header-section">
-    <div class="header-logo">
-        <img src="./logos.jpg" alt="Logo">
+    <!-- ============================================== -->
+    <!-- 1. LOGIN SCREEN -->
+    <!-- ============================================== -->
+    <div id="login-view">
+        <div class="login-card">
+            <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" alt="Logo" class="logo-img">
+            <div class="portal-badge"><i class="bi bi-shield-check"></i> งานกิจการนักเรียน โรงเรียนบัวใหญ่</div>
+            <h4 class="fw-bold mb-1 font-prompt" style="color: var(--orange-dark);">ระบบคะแนนพฤติกรรม E-Point</h4>
+            <p class="text-muted small mb-4">เข้าสู่ระบบ Buayai i-Care Student Portal</p>
+            <div id="global-visitor-counter"></div>
+            
+            <div class="text-start mb-1"><small class="text-muted fw-bold ps-1"><i class="bi bi-building me-1"></i>ระดับชั้น</small></div>
+            <select id="login-room" class="form-select text-center fw-bold" onchange="loadStudents()"><option value="">-- เลือกระดับชั้น --</option></select>
+            
+            <div class="text-start mb-1"><small class="text-muted fw-bold ps-1"><i class="bi bi-person-circle me-1"></i>ชื่อนักเรียน</small></div>
+            <select id="login-student" class="form-select text-center fw-bold" disabled onchange="fillStudentId()"><option value="">-- เลือกชื่อของคุณ --</option></select>
+            <input type="hidden" id="login-id">
+            
+            <div class="text-start mb-1"><small class="text-muted fw-bold ps-1"><i class="bi bi-key-fill me-1"></i>รหัสผ่าน (5 หลัก)</small></div>
+            <input type="password" id="login-pass" class="form-control text-center fw-bold text-primary" placeholder="•••••" maxlength="5" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            
+            <button id="btn-login" class="btn btn-orange mt-2" onclick="handleLogin()">เข้าสู่ระบบ</button>
+            
+            <div class="mt-4 pt-2 border-top"><a href="appyEpoint.html" class="small text-muted text-decoration-none">ลืมรหัสผ่าน / ยังไม่สมัคร? <b style="color: var(--orange-main);">คลิกที่นี่</b></a></div>
+        </div>
     </div>
-    <h3 class="fw-bold mb-1">Buayai I-Care School</h3>
-    <p class="mb-0" style="font-weight: 400; font-size: 1rem; opacity: 0.9;">ระบบดูแลช่วยเหลือนักเรียนดิจิทัล</p>
-  </div>
 
-  <div style="background-color: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 0; color: #b45309; font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-    <marquee behavior="scroll" direction="left" scrollamount="4">
-      <span class="me-4"><i class="bi bi-info-circle-fill text-warning me-1"></i> <strong>ข้อแนะนำการใช้งาน:</strong> เพื่อป้องกันปัญหาบัญชีซ้อนทับ แนะนำให้เปิดลิงก์ผ่าน "โหมดไม่ระบุตัวตน (Incognito)" ครับ</span>
-    </marquee>
-  </div>
-
-  <div class="container-fluid px-0">
-    
-    <!-- 2. Tabs -->
-    <ul class="nav nav-tabs" id="portalTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="teacher-tab" data-bs-toggle="tab" data-bs-target="#teacher" type="button" role="tab">
-          <i class="bi bi-person-video3"></i> คุณครู
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="student-tab" data-bs-toggle="tab" data-bs-target="#student" type="button" role="tab">
-          <i class="bi bi-people-fill"></i> นักเรียน/ผู้ปกครอง
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin" type="button" role="tab">
-          <i class="bi bi-graph-up-arrow"></i> หน.ระดับ/งาน
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="board-tab" data-bs-toggle="tab" data-bs-target="#board" type="button" role="tab">
-          <i class="bi bi-megaphone-fill"></i> กก.นักเรียน
-        </button>
-      </li>
-    </ul>
-
-    <!-- 3. เนื้อหา Tabs -->
-    <div class="tab-content mt-1" id="portalTabContent">
-      
-      <!-- ============================================== -->
-      <!-- 👨‍🏫 หมวดคณะครู (Teacher Tab) -->
-      <!-- ============================================== -->
-      <div class="tab-pane fade show active tab-teacher" id="teacher" role="tabpanel">
+    <!-- ============================================== -->
+    <!-- 2. MAIN APP DASHBOARD -->
+    <!-- ============================================== -->
+    <div id="app-view" style="display: none;">
         
-        <div id="teacher-lock-screen" class="lock-screen-box text-center">
-          <img src="./logos.jpg" alt="Logo" width="80" height="80" class="mb-3 rounded-circle shadow-sm border border-3 p-1" style="border-color: var(--teacher-green) !important; object-fit: contain;">
-          <h5 class="fw-bold text-success">พื้นที่เฉพาะคณะครู</h5>
-          <p class="text-muted small mb-4">เมนูถูกซ่อนไว้ -->> สำหรับคุณครูโรงเรียนบัวใหญ๋ องค์การบริหารส่วนจังหวัดนครราชสีมาเท่านั้น <<--<br>กรุณาปลดล็อกเพื่อเข้าใช้งานแอปพลิเคชัน</p>
-          <button class="btn btn-success rounded-pill px-5 py-2 shadow-sm fw-bold" onclick="unlockTeacher()">
-            <i class="bi bi-key-fill me-2"></i>ปลดล็อกเมนูครู
-          </button>
-        </div>
-
-        <div id="teacher-content" style="display: none; transition: opacity 0.3s ease;">
-          <div class="d-flex justify-content-end mb-2 px-3">
-            <button class="btn btn-sm btn-outline-danger rounded-pill shadow-sm bg-white" onclick="lockTeacher()">
-              <i class="bi bi-lock-fill me-1"></i> ซ่อนเมนู
-            </button>
-          </div>
-
-          <!-- 🌟 หมวดกลุ่มบริหารงานวิชาการ (เพิ่มใหม่) -->
-          <div class="section-header pt-0">
-            <h6 class="fw-bold mb-0" style="color: var(--teacher-green);">
-              <i class="bi bi-journal-richtext"></i> กลุ่มบริหารงานวิชาการ
-            </h6>
-          </div>
-          
-          <div class="bento-grid">
-            <div class="menu-card shadow-sm" data-bs-toggle="collapse" data-bs-target="#academicExpand" style="grid-column: span 3; padding: 12px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: #bbf7d0;">
-              <i class="bi bi-mortarboard-fill text-success" style="font-size: 1.8rem;"></i>
-              <p class="card-title text-success fw-bold fs-6 mt-1">คลิกเลือกเมนูงานวิชาการ <i class="bi bi-chevron-down ms-1" style="font-size: 0.8rem;"></i></p>
-            </div>
-            
-            <div class="collapse" id="academicExpand" style="grid-column: span 3;">
-              <div class="p-3 mt-1 mb-0" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="expand-grid" style="grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                  <a href="https://itals.kku.ac.th/mk/site/b8e73273be0aff8e.html
-" target="_blank" class="expand-btn text-white btn-green d-flex flex-column align-items-center justify-content-center" style="font-size: 0.85rem; padding: 15px 5px; text-decoration: none;">
-                    <i class="bi bi-journal-check mb-1" style="font-size: 1.5rem;"></i> รายงานการสอน
-                  </a>
-                  <a href="https://script.google.com/a/macros/bua-yai.ac.th/s/AKfycbwoRa_UXHc9uptUYUanzg4baFo34EDWnRSl0ZGKyv7t_F1i9bB0YHMo4FhzzwiZjc5Y/exec" target="_blank" class="expand-btn text-white btn-green d-flex flex-column align-items-center justify-content-center" style="font-size: 0.85rem; padding: 15px 5px; text-decoration: none;">
-                    <i class="bi bi-file-earmark-check mb-1" style="font-size: 1.5rem;"></i> ส่งเกณฑ์ 8
-                  </a>
-                  <a href="https://itals.kku.ac.th/mk/site/1ac0c58d2a23121f.html" target="_blank" class="expand-btn text-white btn-green d-flex flex-column align-items-center justify-content-center" style="font-size: 0.85rem; padding: 15px 5px; text-decoration: none;">
-                    <i class="bi bi-people-fill mb-1" style="font-size: 1.5rem;"></i> รายงานชุมนุม
-                  </a>
-                  <a href="https://itals.kku.ac.th/mk/site/a94db2f2c201927d.html" target="_blank" class="expand-btn text-white btn-green d-flex flex-column align-items-center justify-content-center" style="font-size: 0.8rem; padding: 15px 2px; line-height: 1.2; text-decoration: none;">
-                    <i class="bi bi-activity mb-1" style="font-size: 1.5rem;"></i> กิจกรรม<br>พัฒนาผู้เรียน
-                  </a>
-                  <a href="#" class="expand-btn bg-secondary text-white opacity-50 d-flex flex-column align-items-center justify-content-center" style="font-size: 0.85rem; padding: 15px 5px; text-decoration: none;" onclick="return false;">
-                    <i class="bi bi-tools mb-1" style="font-size: 1.5rem;"></i> ตั้งไว้
-                  </a>
-                  <a href="#" class="expand-btn bg-secondary text-white opacity-50 d-flex flex-column align-items-center justify-content-center" style="font-size: 0.85rem; padding: 15px 5px; text-decoration: none;" onclick="return false;">
-                    <i class="bi bi-tools mb-1" style="font-size: 1.5rem;"></i> ตั้งไว้
-                  </a>
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <div class="d-flex align-items-center">
+                <button class="hamburger-btn me-3" onclick="toggleSidebar()"><i class="bi bi-list"></i><span id="nav-dot-noti" class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle blink-badge d-none" style="margin-left: -5px;"></span></button>
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" width="34" height="34" class="rounded-circle bg-white p-1 me-2 shadow-sm">
+                <div>
+                    <h6 class="m-0 fw-bold font-prompt" style="font-size: 0.95rem; line-height: 1.2;">E-Point Buayai</h6>
+                    <small class="opacity-75" style="font-size: 0.72rem;">ระบบตรวจสอบคะแนนความประพฤติ</small>
                 </div>
-              </div>
             </div>
-          </div>
+            <div onclick="switchMenu('noti', document.getElementById('menu-noti'))" style="cursor: pointer;" class="position-relative p-2"><i class="bi bi-bell-fill fs-5" id="nav-bell-icon"></i></div>
+        </div>
 
-          <!-- 🌈 เส้นคั่นสายตาสีชมพู-ฟ้าสดใส -->
-          <div style="height: 6px; background: linear-gradient(90deg, #ff7eb3, #ff758c, #4facfe, #00f2fe); border-radius: 10px; margin: 10px 15px 25px 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
-
-          <!-- 1. การมาเรียน -->
-          <div class="section-header pt-0"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-clipboard-check-fill"></i> 1. การมาเรียน</h6></div>
-          <div class="bento-grid">
-            <div class="menu-card" data-bs-toggle="collapse" data-bs-target="#teacherAttendanceExpand">
-              <i class="bi bi-flag-fill"></i>
-              <p class="card-title">เข้าแถว <i class="bi bi-chevron-down ms-1" style="font-size: 0.6rem; color:#94a3b8;"></i></p>
+        <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar Menu -->
+        <div class="sidebar d-flex flex-column" id="mainSidebar">
+            <div class="text-center mb-4 pb-3 border-bottom flex-shrink-0">
+                <img src="https://drive.google.com/thumbnail?id=15qRbrNRtzKrqwii83OBc8AtVywopEMlj&sz=w200" width="70" class="rounded-circle bg-light p-1 mb-2 shadow-sm border border-2 border-orange-subtle">
+                <h6 class="fw-bold text-dark m-0 font-prompt" id="side-name">ชื่อนักเรียน</h6>
+                <small class="text-muted" id="side-id">รหัส: -</small>
             </div>
-            <a href="DashboardComeSchool.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-person-check-fill"></i><p class="card-title">สถิติมาเรียนทั้งหมด</p></a>
             
-            
-            
-            
-            
-            <div class="collapse" id="teacherAttendanceExpand" style="grid-column: span 3;">
-              <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-                <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill text-primary"></i> เลือกระดับชั้นเพื่อบันทึกเช็คชื่อเข้าแถว</div>
-                <div class="expand-grid">
-                  <a href="chkFlagm2.html" class="expand-btn btn-m1" onclick="return checkTeacherPassword(event, this);">ม.1</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m2" onclick="return checkTeacherPassword(event, this);">ม.2</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m3" onclick="return checkTeacherPassword(event, this);">ม.3</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m4" onclick="return checkTeacherPassword(event, this);">ม.4</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m5" onclick="return checkTeacherPassword(event, this);">ม.5</a>
-                  <a href="chkFlagm2.html" class="expand-btn btn-m6" onclick="return checkTeacherPassword(event, this);">ม.6</a>
+            <div class="flex-grow-1 overflow-y-auto pb-3" style="scrollbar-width: thin;">
+                <div class="nav-link active" onclick="switchMenu('dashboard', this)"><i class="bi bi-star-fill text-warning"></i> คะแนนปัจจุบัน</div>
+                <div class="nav-link" onclick="switchMenu('past', this)"><i class="bi bi-clock-history"></i> ภาคเรียนที่ผ่านมา</div>
+                <div class="nav-link" onclick="switchMenu('late', this)"><i class="bi bi-person-walking text-info"></i> ประวัติมาสาย</div>
+                <div class="nav-link" onclick="switchMenu('noti', this)" id="menu-noti">
+                    <i class="bi bi-envelope-paper-fill" id="sidebar-envelope-icon"></i> กล่องข้อความ <span id="noti-badge" class="badge bg-danger rounded-pill ms-auto d-none blink-badge shadow-sm">0</span>
                 </div>
-              </div>
-             </div>
-          </div>
-          <!-- 2. ค้นหาบันทึกการเข้าเรียน -->
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-search"></i> 2. ค้นหาบันทึกการเข้าเรียน</h6></div>
-          <div class="bento-grid">
-            <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRWVYDGrsQeJ9h_jqV24X6BP6HjWq7h0lTUBwVcbfyILbLzW_Y1BMKdNdqRMphFshBNF8BDOblSYJww/pubhtml" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2567</p></a>
-            <a href="https://script.google.com/macros/s/AKfycbxw3Zx2zM8X4ZyjMhz4iu4bu_poCnkNWlmzQD_kWD3hJMWlkDyFPfIBBXOb-xsM99p-/exec" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-folder2-open"></i><p class="card-title">เวลา 1/2568</p></a>
-            <a href="https://script.google.com/macros/s/AKfycbwY7KMRq07VvE5YgxaTQPJbfEMmZ-RgFGfGeZpoijHf5kstPbENSrvyoJFPVPHPNbBHJg/exec" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-folder-check"></i><p class="card-title">เวลา 2/2568</p></a>
-            <a href="Admin/find_dailyAttendace.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-folder-plus"></i><p class="card-title">เวลา 1/2569</p></a>
-          </div>
-
-          <!-- 3. E-Point พฤติกรรม -->
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-star-fill"></i> 3. E-Point พฤติกรรม</h6></div>
-          <div class="bento-grid">
-            <a href="warning_Epoint.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clock-history"></i><p class="card-title">บันทึกตักเตือน/ชมเชย นักเรียน</p></a>
-            <a href="Std_dashboard_info.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clipboard-heart-fill"></i><p class="card-title">ตรวจสอบประวัตินักเรียนในที่ปรึกษา</p></a>
-            <a href="E-POINT/All-Point-In-Class.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">คะแนนพฤติกรรม </p></a>
-             <a href="E-POINT/goodness.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">สารสนเทศการแก้ไขพฤติกรรม(บันทึกความดี)</p></a>
-            <a href="E-POINT/chk_std_app_epoint.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ตรวจสอบผู้สมัคร E-Point</p></a>
-            <a href="Admin/dailydue_System.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ระบบเวรประจำวัน</p></a>
-           
-          </div>
-
-          <!-- 4. ระบบดูแลช่วยเหลือ -->
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--teacher-green);"><i class="bi bi-heart-pulse-fill"></i> 4. ระบบดูแลช่วยเหลือ</h6></div>
-          <div class="bento-grid">
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-person-bounding-box"></i><p class="card-title">อัพโหลดภาพ</p></a>
-            <a href="vihicle1.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-bicycle"></i><p class="card-title">รถพาหนะ</p></a>
-            <a href="https://drive.google.com/drive/folders/1FZll8X2fFN5JgqytXYcu5w972LntfDSj?usp=sharing" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-file-person-fill"></i><p class="card-title">ใบรายชื่อ1-69(มิย)</p></a>
-            <a href="advice/sdq.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clipboard2-pulse"></i><p class="card-title">SDQ</p></a>
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-house-heart-fill"></i><p class="card-title">เยี่ยมบ้าน</p></a>
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-piggy-bank-fill"></i><p class="card-title">ประวัติให้ทุน</p></a>
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-award-fill"></i><p class="card-title">คนดี ศรีบัวใหญ่</p></a>
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-journal-x"></i><p class="card-title">0 ร มส.</p></a>
-            <a href="#" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-diagram-3-fill"></i><p class="card-title">เครือข่าย ผปค.</p></a>
-
-            <a href="homeroom.html" class="menu-card" onclick="openTeacherHomeroom(event)">
-              <i class="bi bi-journal-bookmark-fill"></i>
-              <p class="card-title">โฮมรูมออนไลน์</p>
-            </a>
-
-   <a href="usermanual.html" class="menu-card" onclick="usermanual(event)">
-              <i class="bi bi-journal-bookmark-fill"></i>
-              <p class="card-title">คู่มือการใช้งานระบบ Buayai I Care School</p>
-            </a>
-
-   <a href="buayai/DocHub.html" class="menu-card" onclick="dochub(event)">
-              <i class="bi bi-journal-bookmark-fill"></i>
-              <p class="card-title">คลังเอกสารดิจิทัล</p>
-            </a>
-
-
-
-
-            
-          </div>
-
-        </div> 
-      </div>
-
-      <!-- ============================================== -->
-      <!-- 👨‍🎓 หมวดนักเรียน/ผู้ปกครอง (Student/Parent Tab) -->
-      <!-- ============================================== -->
-      <div class="tab-pane fade tab-student" id="student" role="tabpanel">
-        
-        <div class="text-center mt-4 mb-3">
-             <img src="./logos.jpg" alt="Logo" width="60" height="60" class="rounded-circle shadow-sm border p-1 bg-white mb-2" style="object-fit: contain;">
-             <h6 class="fw-bold m-0" style="color: var(--student-orange);">ระบบบริการนักเรียนและผู้ปกครอง</h6>
-        </div>
-
-        <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-mortarboard-fill"></i> 1. ผลการเรียน</h6></div>
-        <div class="bento-grid">
-          <a href="https://www.buayai.ac.th/login" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-laptop"></i><p class="card-title">ดูผลการเรียน (SGS)</p></a>
-        </div>
-
-        <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-star-fill"></i> 2. ระบบ E-Point/ระบบดูแลช่วยเหลือผู้เรียนดิจิทัล</h6></div>
-        <div class="bento-grid">
-          <a href="appyEpoint.html" class="menu-card"><i class="bi bi-person-plus-fill"></i><p class="card-title">สมัคร E-Point/ลืมรหัสผ่าน</p></a>
-          <a href="loginEpoint.html" class="menu-card"><i class="bi bi-box-arrow-in-right"></i><p class="card-title">ตรวจสอบคะแนนความประพฤติ</p></a>
-          <!-- ทำดีออนไลน์: ปิดระบบชั่วคราว (เปิดใหม่: คืน href เป็น https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec และลบ onclick/style ที่ปิดไว้) -->
-          <a href="#" class="menu-card" onclick="alert('ปิดระบบ/เปิดเมื่อมีประกาศ'); return false;" aria-disabled="true" style="opacity: 0.5; filter: grayscale(1); cursor: not-allowed;"><i class="bi bi-heart-fill"></i><p class="card-title">ทำดีออนไลน์<br><small style="font-size:0.65rem; color:#dc2626;">ปิดระบบ/เปิดเมื่อมีประกาศ</small></p></a>
-          <a href="advice/sdq.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ระบบคัดกรอง SDQ </p></a>
-           <a href="Dev.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ระบบข้อมูลนักเรียน:Buayai I Care School</p></a>
-       <a href="vihicle1.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ฐานข้อมูลยานพาหนะ</p></a>
-
-      
-        </div>
-
-        <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-clock-history"></i> 3. การมาเรียน</h6></div>
-        <div class="bento-grid">
-          <div class="menu-card" data-bs-toggle="collapse" data-bs-target="#studentAttendanceExpand"><i class="bi bi-flag-fill"></i><p class="card-title">เข้าแถว <i class="bi bi-chevron-down ms-1" style="font-size: 0.6rem; color:#94a3b8;"></i></p></div>
-          <a href="#" class="menu-card"><i class="bi bi-stopwatch-fill"></i><p class="card-title">เวลาเรียน</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-envelope-paper-fill"></i><p class="card-title">ลาออนไลน์</p></a>
-          
-          <div class="collapse" id="studentAttendanceExpand" style="grid-column: span 3;">
-            <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-              <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill text-primary"></i> เลือกระดับชั้นเพื่อดูประวัติเข้าแถว</div>
-              <div class="expand-grid">
-                <a href="ParentChkm1.html" class="expand-btn btn-m1">ม.1</a>
-                <a href="ParentChkm1.html" class="expand-btn btn-m2">ม.2</a>
-                <a href="ParentChkm1.html" class="expand-btn btn-m3">ม.3</a>
-                <a href="ParentChkm1.html" class="expand-btn btn-m4">ม.4</a>
-                <a href="ParentChkm1.html" class="expand-btn btn-m5">ม.5</a>
-                <a href="ParentChkm1.html" class="expand-btn btn-m6">ม.6</a>
-              </div>
+                <div class="nav-link" onclick="openAttendancePage()"><i class="bi bi-calendar2-check-fill text-primary"></i> การมาเรียน</div>
+                <div class="nav-link text-muted"><i class="bi bi-gear"></i> ตั้งค่า</div>
             </div>
-          </div>
+            <button class="btn btn-outline-danger w-100 rounded-pill mt-auto flex-shrink-0 fw-bold" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</button>
         </div>
 
-        <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--student-orange);"><i class="bi bi-telephone-outbound-fill"></i> 4. ช่องทางติดต่อ</h6></div>
-        <div class="bento-grid">
-
-
-          
-          <a href="parentmanual.html" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-chat-dots-fill"></i><p class="card-title">คู่มือการใช้งานระบบ Buayai I Care School</p></a>
-          <a href="#" class="menu-card" style="grid-column: span 3; padding: 12px;"><i class="bi bi-chat-dots-fill"></i><p class="card-title">ติดต่อคุณครูที่ปรึกษา</p></a>
-          <a href="#" class="menu-card" style="background-color: #f0f9ff; border-color: #bae6fd;"><i class="bi bi-facebook" style="color: #0ea5e9;"></i><p class="card-title">เพจ รร.บัวใหญ่</p></a>
-          <a href="https://sites.google.com/bua-yai.ac.th/by-std-beh/home" class="menu-card" style="background-color: #fff1f2; border-color: #fecdd3;"><i class="bi bi-globe2" style="color: #e11d48;"></i><p class="card-title">แก้ไขพฤติกรรม</p></a>
-          <a href="Libraly/Lib_by.html" class="menu-card"><i class="bi bi-calculator-fill"></i><p class="card-title">เข้าใช้ห้องสมุดมีชีวิต</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-chat-quote-fill"></i><p class="card-title">ภาษาอังกฤษ</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-rocket-takeoff-fill"></i><p class="card-title">วิทยาศาสตร์</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-signpost-split-fill"></i><p class="card-title">แนะแนว</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-journal-text"></i><p class="card-title">ภาษาไทย</p></a>
-        </div>
-
-      </div>
-
-      <!-- ============================================== -->
-      <!-- 👑 หมวดหัวหน้าระดับ/งาน (Admin Tab) -->
-      <!-- ============================================== -->
-      <div class="tab-pane fade tab-admin" id="admin" role="tabpanel">
-        
-        <!-- หน้าล็อคสกรีนแอดมิน -->
-        <div id="admin-lock-screen" class="lock-screen-box text-center">
-          <img src="./logos.jpg" alt="Logo" width="80" height="80" class="mb-3 rounded-circle shadow-sm border border-3 p-1" style="border-color: var(--admin-purple) !important; object-fit: contain;">
-          <h5 class="fw-bold" style="color: var(--admin-purple);">พื้นที่เฉพาะผู้ดูแลระบบ</h5>
-          <p class="text-muted small mb-4">**เมนูถูกซ่อนไว้เพื่อรักษาความปลอดภัยของข้อมูลสูงสุด **<br>กรุณาเลือกหมวดที่ต้องการเพื่อปลดล็อก</p>
-          
-          <div class="d-flex flex-column gap-2 align-items-center">
-            <button class="btn rounded-pill px-4 py-2 shadow-sm fw-bold w-100 text-white" style="background-color: var(--admin-purple); max-width: 250px;" onclick="unlockAdmin()">
-              <i class="bi bi-key-fill me-2"></i>ปลดล็อก หัวหน้าระดับ/งาน
-            </button>
-            <button class="btn btn-dark rounded-pill px-4 py-2 shadow-sm fw-bold w-100" style="max-width: 250px;" onclick="unlockSuperAdmin()">
-              <i class="bi bi-pc-display-horizontal me-2"></i>ปลดล็อก Admin ส่วนกลาง
-            </button>
-          </div>
-        </div>
-
-        <!-- เนื้อหา หัวหน้าระดับ (Level Head) -->
-        <div id="admin-content" style="display: none; transition: opacity 0.3s ease;">
-          <div class="d-flex justify-content-between align-items-center mb-2 px-3">
-            <span class="badge rounded-pill text-white" style="background-color: var(--admin-purple);"><i class="bi bi-person-badge"></i> หัวหน้าระดับ</span>
-            <button class="btn btn-sm btn-outline-danger rounded-pill shadow-sm bg-white" onclick="lockAdmin()">
-              <i class="bi bi-lock-fill me-1"></i> ซ่อนเมนู
-            </button>
-          </div>
-
-          <div class="section-header pt-0"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-bar-chart-fill"></i> 1. สถิติและการจัดการระดับชั้น</h6></div>
-          <div class="bento-grid">
-            <div class="menu-card" data-bs-toggle="collapse" data-bs-target="#adminLevelHeadExpand" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pie-chart-fill"></i>
-              <p class="card-title">หน้าหลักหัวหน้าระดับชั้น <i class="bi bi-chevron-down ms-1" style="font-size: 0.6rem; color:#94a3b8;"></i></p>
-            </div>
+        <!-- Main Content -->
+        <div class="main-content">
             
-            <div class="collapse" id="adminLevelHeadExpand" style="grid-column: span 3;">
-              <div class="p-3 mt-1 mb-2" style="background: #ffffff; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-                <div class="text-center small text-muted fw-bold mb-2"><i class="bi bi-cursor-fill" style="color: var(--admin-purple);"></i> เลือกระดับชั้นเพื่อเข้าสู่ระบบหัวหน้าระดับชั้น/งาน</div>
-                <div class="expand-grid">
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm1')">ม.1</a>
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm2')">ม.2</a>
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm3')">ม.3</a>
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm4')">ม.4</a>
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm5')">ม.5</a>
-                  <a href="Level_Head/level_head.html" class="expand-btn text-white btn-purple-gradient" onclick="openLevelHead(event, 'm6')">ม.6</a>
+            <!-- 📍 เมนู: คะแนนพฤติกรรมปัจจุบัน -->
+            <div id="view-dashboard">
+                <!-- 📣 โซนที่ 1: แถบประกาศสำคัญ -->
+                <div class="marquee-alert">
+                    <i class="bi bi-megaphone-fill text-danger me-2 blink-badge" style="font-size: 1.25rem;"></i>
+                    <marquee behavior="scroll" direction="left" scrollamount="5" class="w-100">
+                        <strong>ประกาศสำคัญ:</strong> โปรดตรวจสอบ <span class="text-danger text-decoration-underline">"กล่องข้อความ"</span> ที่เมนูแถบด้านซ้ายมือทุกครั้ง เพื่อไม่ให้พลาดการแจ้งเตือนพฤติกรรมครับ/ค่ะ
+                    </marquee>
                 </div>
-              </div>
+
+                <!-- 🚨 โซนที่ 2: ผลประเมิน มผ / ติดเงื่อนไข (แสดงอัตโนมัติเมื่อมีข้อมูล) -->
+                <div id="fail-section" class="fail-card" style="display: none;">
+                    <div class="zone-label-wrap mb-2">
+                        <span class="zone-tag zone-tag-rose"><i class="bi bi-shield-x me-1"></i> โซนแจ้งเตือนเงื่อนไขพฤติกรรม</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 border-bottom border-danger-subtle pb-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-3 me-2 blink-badge"></i>
+                        <h5 class="fw-bold text-danger m-0 font-prompt">ผลการประเมินพฤติกรรม / ไม่ผ่านเกณฑ์</h5>
+                    </div>
+                    <div id="fail-list-container"></div>
+                    <div class="alert alert-danger border-0 small mt-3 mb-0 shadow-sm" style="background: #fee2e2; color: #991b1b; border-left: 4px solid #b91c1c !important; border-radius: 16px;">
+                        <i class="bi bi-info-circle-fill"></i> <b>คำแนะนำที่ต้องปฏิบัติ:</b><br>
+                        ให้นักเรียนรีบติดต่อ <u>คุณครูที่ปรึกษา หรือ หัวหน้าระดับชั้น</u> เพื่อทำบันทึกความดี และนำส่งสมุดบันทึกความดีได้ที่ <b>กล่องหน้าห้องกิจการนักเรียน</b><br>
+                        <span class="text-danger mt-1 d-block"><i class="bi bi-clock-history"></i> (คะแนนจะอัปเดตเข้าระบบทุกวันศุกร์ของสัปดาห์)</span>
+                    </div>
+                </div>
+
+                <!-- 🏆 โซนที่ 3: ข้อมูลนักเรียน & คะแนนสะสมปัจจุบัน (Hero Score Zone) -->
+                <div class="zone-header">
+                    <span class="zone-tag zone-tag-orange"><i class="bi bi-person-badge-fill me-1"></i> โซนข้อมูลนักเรียน & คะแนนปัจจุบัน</span>
+                    <span class="small fw-bold text-success"><i class="bi bi-shield-check"></i> ข้อมูลเรียลไทม์</span>
+                </div>
+                <div class="score-card">
+                    <div class="score-header-strip">
+                        <span class="score-badge-id"><i class="bi bi-person-vcard text-orange-dark"></i> รหัส: <span id="display-id">-</span></span>
+                        <span class="score-badge-id"><i class="bi bi-door-open text-orange-dark"></i> ชั้น ม.<span id="display-room">-</span></span>
+                    </div>
+                    <h4 class="fw-bold text-dark mt-3 mb-1 font-prompt" id="display-name">กำลังโหลดข้อมูล...</h4>
+                    <div class="score-box-wrapper my-3">
+                        <div class="text-muted small fw-bold text-uppercase tracking-wider">คะแนนพฤติกรรมสะสมคงเหลือ</div>
+                        <div class="score-number" id="display-score"><div class="spinner-border text-primary" role="status" style="width: 2.8rem; height: 2.8rem;"></div></div>
+                        <div class="score-bar-sub"><span class="badge bg-white text-orange-dark border border-orange-subtle px-3 py-1 rounded-pill"><i class="bi bi-star-fill text-warning me-1"></i> เกณฑ์ตัดสิน: 100 คะแนนเต็ม</span></div>
+                    </div>
+                    <div class="small fw-bold text-success d-flex align-items-center justify-content-center gap-1" id="sync-status"><i class="bi bi-check-circle-fill"></i> กำลังดึงข้อมูลจากระบบ...</div>
+                </div>
+
+                <!-- 📋 โซนที่ 4: บันทึกรายการพฤติกรรม (แยกหมวดหมู่ ความดี vs หักคะแนน) -->
+                <div class="zone-header mt-4">
+                    <span class="zone-tag zone-tag-slate"><i class="bi bi-journal-bookmark-fill me-1"></i> โซนบันทึกประวัติพฤติกรรม</span>
+                    <span class="small text-muted fw-bold">ภาคเรียนปัจจุบัน</span>
+                </div>
+
+                <div class="section-card zone-card-merit">
+                    <div class="section-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="zone-icon-box bg-good"><i class="bi bi-award-fill"></i></div>
+                            <div>
+                                <h5 class="fw-bold m-0 text-dark font-prompt">ประวัติทำความดี</h5>
+                                <small class="text-muted">รายการเสริมสร้างพฤติกรรมเชิงบวก</small>
+                            </div>
+                        </div>
+                        <div class="total-badge bg-good">+<span id="display-good-total">0</span></div>
+                    </div>
+                    <div id="good-list-container"><div class="text-center py-4 text-muted small"><div class="spinner-border spinner-border-sm mb-2 text-warning"></div><br>กำลังโหลดประวัติ...</div></div>
+                </div>
+
+                <div class="section-card zone-card-demerit">
+                    <div class="section-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="zone-icon-box bg-bad"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                            <div>
+                                <h5 class="fw-bold m-0 text-dark font-prompt">ประวัติโดนหักคะแนน</h5>
+                                <small class="text-muted">รายการละเมิดกฎระเบียบวินัย</small>
+                            </div>
+                        </div>
+                        <div class="total-badge bg-bad">-<span id="display-bad-total">0</span></div>
+                    </div>
+                    <div id="bad-list-container"><div class="text-center py-4 text-muted small"><div class="spinner-border spinner-border-sm mb-2 text-danger"></div><br>กำลังโหลดประวัติ...</div></div>
+                </div>
             </div>
-          </div>
 
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-clipboard-data-fill"></i> 2. สถิติพฤติกรรม</h6></div>
-          <div class="bento-grid">
-            <a href="DashboardComeSchool.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-clock-history"></i><p class="card-title">สถิติเข้าแถว</p></a>
-            <a href="late_dashboard.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-door-open-fill"></i><p class="card-title">สถิติความประพฤติทั้งหมด(มาสาย/หนเีเรียน/ฯลฯ</p></a>
-            <a href="E-POINT/chk_std_app_epoint.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">สถิตินักเรียนสมัครระบบ E-POint</p></a>
-            <a href="advice/dashboardSdq.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">สารสนเทศ SDQ</p></a>
-           <a href="E-POINT/reportlate.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">รายงานผู้มาสาย</p></a>
-            
-          </div>
-
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-search"></i> 3. ค้นหา/บันทึก (E-Point)</h6></div>
-          <div class="bento-grid">
-            <a href="https://script.google.com/macros/s/AKfycbwwcK0fvvDMbuvRP4q-Th4ZwATRNWTE1lz_4R9s7CV_bj952csHJQGeDCKVvLQNDGrJ/exec" class="menu-card" onclick="return checkAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-x-circle-fill text-danger"></i><p class="card-title">3.1 ผู้มีคะแนนไม่ผ่านเกณฑ์</p>
-            </a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-emoji-smile-fill text-success"></i><p class="card-title">3.2 ทำความดีทุกภาคเรียน</p>
-            </a>
-          </div>
-
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-book-half"></i> 4. กฏหมาย/ระเบียบ</h6></div>
-          <div class="bento-grid">
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-journal-bookmark-fill"></i><p class="card-title">คู่มือนักเรียน 67</p></a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-shield-check"></i><p class="card-title">พรบ.เด็ก</p></a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-shield-lock-fill"></i><p class="card-title">PDPA</p></a>
-          </div>
-
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-send-exclamation-fill"></i> 5. ติดตาม/รายงาน</h6></div>
-          <div class="bento-grid">
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-envelope-exclamation-fill"></i><p class="card-title">แจ้ง ผปค. (1)</p></a>
-            <a href="#" class="menu-card" onclick="openAdminHomeroom(event)"><i class="bi bi-journal-bookmark-fill text-primary"></i><p class="card-title text-primary">บันทึกโฮมรูม</p></a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-houses-fill"></i><p class="card-title">เข้าค่าย (1)</p></a>
-            <a href="teacherjoinflag.html" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ระบบลงเวลาคุณครูหน้าเสาธง</p></a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.1)</p></a>
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ตั้งไว้ (6.2)</p></a>
-          </div>
-
-          <div class="section-header"><h6 class="fw-bold mb-0" style="color: var(--admin-purple);"><i class="bi bi-cloud-arrow-up-fill"></i> 9. ข้อมูลระบบ</h6></div>
-          <div class="bento-grid">
-            <a href="#" class="menu-card" onclick="return checkAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-file-earmark-arrow-up-fill"></i><p class="card-title">อัพโหลดสมุดบันทึกเวลาเรียน</p>
-            </a>
-          </div>
-
-        </div> 
-        
-        <!-- เนื้อหา Admin ส่วนกลาง (Super Admin) -->
-        <div id="superadmin-content" style="display: none; transition: opacity 0.3s ease;">
-          <div class="d-flex justify-content-between align-items-center mb-2 px-3">
-            <span class="badge bg-dark rounded-pill"><i class="bi bi-pc-display-horizontal"></i> Admin ส่วนกลาง</span>
-            <button class="btn btn-sm btn-outline-danger rounded-pill shadow-sm bg-white" onclick="lockAdmin()">
-              <i class="bi bi-lock-fill me-1"></i> ซ่อนเมนู
-            </button>
-          </div>
-
-          <div class="section-header pt-0">
-            <h6 class="fw-bold mb-0" style="color: var(--admin-purple);">
-              <i class="bi bi-person-workspace"></i> 7. Admin Panel
-            </h6>
-          </div>
-          <div class="bento-grid">
-            <a href="https://script.google.com/macros/s/AKfycbxHy8BcRtFMEMfhgB_RKShilDnqXRic6FEeuDtrMuTxpqQNOG20XKOdvkcpBTNgZcb6/exec" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลาง</p>
-            </a>
-            <a href="Admin/mainmenu.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินส่วนกลาง ฐานข้อมูลหลักใหม่</p>
-            </a>
-             <a href="E-POINT/AdminEpoint.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมิน ระบบ E-Point</p>
-            </a>
-            <a href="main_Std_info.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">หน้าแอดมินข้อมูลนักเรียนระบบดูแลช่วยเหลือ</p>
-            </a>
-
-            <a href="
-admin_Edit_Std_joinFlag.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px;">
-              <i class="bi bi-pc-display-horizontal"></i><p class="card-title">แก้ไข เชคชื่อเข้าแถวของนักเรียน</p>
-            </a>
-
-
-
-            
-            <a href="E-POINT/Delete_undo_Epoint.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-dash-circle-fill text-danger"></i><p class="card-title">หัก/คืนคะแนน</p>
-            </a>
-            <a href="E-POINT/AddPoint.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-plus-circle-fill text-success"></i><p class="card-title">เพิ่มคะแนน</p>
-            </a>
-            <a href="E-POINT/Edit_grade.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-plus-circle-fill text-success"></i><p class="card-title">แก้ไขผลการเรียน มผ.</p>
-            </a>
-
-        <a href="E-POINT/prt_Cer.html " class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">ออกใบรับรองความประพฤติ</p>
-            </a>
-            
-            <a href="E-POINT/prt_Cer.html" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">ออกใบรับรองความประพฤติ</p>
-            </a>
-             <a href="https://script.google.com/macros/s/AKfycbwmXaD9AXMSxMmwH8Z-o7YzA1rIu2if-goeH0hLO5OcZ0qEDrer2alXEb-o-VibhoKC/exec" class="menu-card" onclick="return checkSuperAdminPassword(event, this);">
-              <i class="bi bi-award-fill" style="color: #f59e0b;"></i><p class="card-title">อัพโหลดบันทึกเข้าเรียนรายคาบ</p>
-            </a>
-            <div style="grid-column: span 3; padding: 5px 0 0px;">
-              <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-search"></i> 7.5 ค้นหาคะแนนพฤติกรรม</span>
+            <!-- 📍 เมนู: ภาคเรียนที่ผ่านมา -->
+            <div id="view-past" style="display: none;">
+                <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #fff1f2);">
+                    <h4 class="fw-bold text-dark m-0"><i class="bi bi-clock-history text-danger me-2"></i>ประวัติภาคเรียนที่ผ่านมา</h4>
+                    <p class="text-muted small mt-2 mb-0">ข้อมูลจากระบบ: รายชื่อนักเรียนที่มีผลการประเมิน <b>"ไม่ผ่านเกณฑ์"</b> (มผ) ในภาคเรียนก่อนหน้า</p>
+                </div>
+                <div id="past-list-container">
+                    <!-- ข้อมูลจะถูกดึงมาจาก Cache ตอน Login ทันที -->
+                </div>
             </div>
-            <a href="#" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2567</p></a>
-            <a href="#" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2567</p></a>
-            <a href="#" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">1/2568</p></a>
-            <a href="#" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="min-height: 60px; padding: 10px;"><p class="card-title mb-0">2/2568</p></a>
 
-            <a href="https://script.google.com/macros/s/AKfycbxuddNzqzZjruNZYeD1arvuhvKsEify-bm8R_haRyZzQ-J_4wXVSXW8pET_kCLkfVDc/exec" class="menu-card" onclick="return checkSuperAdminPassword(event, this);" style="grid-column: span 3; padding: 12px; background-color: #fef2f2; border-color: #fca5a5;">
-              <i class="bi bi-key-fill text-danger"></i><p class="card-title text-danger">รีเซตรหัสผ่าน</p>
-            </a>
-          </div>
+            <!-- 📍 เมนู: ประวัติมาสาย -->
+            <div id="view-late" style="display: none;">
+                <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #f0f9ff);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="fw-bold text-dark m-0"><i class="bi bi-person-walking text-info me-2"></i>ประวัติมาสาย</h4>
+                            <p class="text-muted small mt-1 mb-0">บันทึกจากประตู 1 หรือ 2 ของโรงเรียน</p>
+                        </div>
+                        <div class="text-center bg-white p-2 rounded-3 border shadow-sm">
+                            <div class="small fw-bold text-muted">มาสายทั้งหมด</div>
+                            <h3 class="fw-bold text-info m-0" id="late-total"><div class="spinner-border spinner-border-sm text-info"></div></h3>
+                        </div>
+                    </div>
+                </div>
+                <div id="late-list-container">
+                    <div class="text-center py-5 text-muted"><span class="spinner-border text-info"></span><br>กำลังดึงข้อมูล...</div>
+                </div>
+            </div>
 
-        </div> 
-      </div>
+            <!-- 📍 เมนู: กล่องข้อความ -->
+            <div id="view-noti" style="display: none;">
+                <div class="section-card shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #fff7ed);">
+                    <h4 class="fw-bold text-dark m-0"><i class="bi bi-envelope-paper-fill text-primary me-2"></i>กล่องข้อความ</h4>
+                    <p class="text-muted small mt-2 mb-0" style="line-height: 1.5;">ข้อความแจ้งเตือน จาก <b>คุณครูที่ปรึกษา</b> หรือ <b>ฝ่ายกิจการนักเรียน</b></p>
+                </div>
+                <div class="row g-2 mb-3 text-center">
+                    <div class="col-4"><div class="p-2 bg-white rounded-3 border shadow-sm h-100 d-flex flex-column justify-content-center"><div class="small text-muted fw-bold">ทั้งหมด</div><div class="fw-bold fs-4 text-primary" id="noti-total">0</div></div></div>
+                    <div class="col-4"><div class="p-2 bg-white border-success border-bottom border-3 rounded-3 shadow-sm h-100 d-flex flex-column justify-content-center"><div class="small text-muted fw-bold">รับทราบแล้ว</div><div class="fw-bold fs-4 text-success" id="noti-read">0</div></div></div>
+                    <div class="col-4"><div class="p-2 bg-danger text-white rounded-3 shadow-sm h-100 d-flex flex-column justify-content-center" style="border: 2px solid #b91c1c;"><div class="small fw-bold">ยังไม่เปิดอ่าน</div><div class="fw-bold fs-4" id="noti-unread">0</div></div></div>
+                </div>
+                <h6 class="fw-bold text-dark mb-3 mt-4"><i class="bi bi-chat-left-text-fill text-warning"></i> รายการข้อความ</h6>
+                <div id="noti-list-container"><div class="text-center py-5 text-muted"><span class="spinner-border text-primary"></span><br>กำลังดึงข้อความจากระบบ...</div></div>
+            </div>
 
-      <!-- ============================================== -->
-      <!-- 🗣️ หมวด กก.นักเรียน (Board Tab) -->
-      <!-- ============================================== -->
-      <div class="tab-pane fade tab-board" id="board" role="tabpanel">
-        
-        <div class="text-center mt-4 mb-3">
-             <img src="./logos.jpg" alt="Logo" width="60" height="60" class="rounded-circle shadow-sm border p-1 bg-white mb-2" style="object-fit: contain;">
-             <h6 class="fw-bold m-0" style="color: var(--board-purple);">ระบบสำหรับคณะกรรมการสภานักเรียน</h6>
         </div>
 
-        <div class="section-header">
-          <h6 class="fw-bold mb-0" style="color: var(--board-purple);"><i class="bi bi-person-vcard-fill"></i> 8. แอพสำหรับกรรมการนักเรียน</h6>
+        <!-- 🌟🌟 ปุ่มลอย: วิดเจ็ตเช็คประวัติตักเตือนพฤติกรรม 🌟🌟 -->
+        <div id="fab-warning-widget" class="fab-warning" style="display: none;" onclick="showWarningModal()">
+            <i id="fab-main-icon" class="bi bi-shield-exclamation"></i>
+            <span id="fab-warning-badge" class="fab-badge d-none">0</span>
         </div>
-        <div class="bento-grid">
-          <a href="#" class="menu-card"><i class="bi bi-car-front-fill"></i><p class="card-title">นำเข้ายานพาหนะ</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-bicycle"></i><p class="card-title">มาสาย (รถ)</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-person-badge-fill"></i><p class="card-title">มาสาย (รหัส)</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-journal-x"></i><p class="card-title">โดดเรียน (สมุด)</p></a>
-          <a href="#" class="menu-card"><i class="bi bi-journal-minus"></i><p class="card-title">ขาดเรียน (สมุด)</p></a>
-          <a href="E-POINT/De_Late_Epoint.html" class="menu-card" style="background-color: #f5f3ff; border-color: #ddd6fe;"><i class="bi bi-line" style="color: #06c755;"></i><p class="card-title">บันทึกมาสายประตู1</p></a>
-        </div>
-      </div>
 
     </div>
-  </div>
 
-  <div class="footer-watermark">
-    &copy; 2026 Buayai I Care School 
-  </div>
+    <!-- 🌟🌟 Modal: ประวัติตักเตือนพฤติกรรม -->
+    <div class="modal fade" id="warningWidgetModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content modal-warning-content">
+                <div id="modal-warning-header" class="modal-header modal-warning-header flex-column position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                    <i id="modal-main-icon" class="bi bi-shield-exclamation display-3 mb-2"></i>
+                    <h4 class="modal-title fw-bold font-prompt">ประวัติบันทึกพฤติกรรม</h4>
+                    <p class="mb-0 small opacity-75">ข้อมูลจากระบบ E-Point Buayai I Care School</p>
+                </div>
+                <div class="modal-body p-4" id="warning-widget-body">
+                    <div class="text-center py-5"><span class="spinner-border text-primary"></span><br><small class="text-muted">กำลังเตรียมข้อมูล...</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div id="popup-container"></div>
+    <!-- Modal ดูรูปภาพขยาย -->
+    <div class="modal fade" id="imgModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius: 15px; border: none;"><div class="modal-header bg-dark text-white border-0 py-2"><h6 class="modal-title fs-6"><i class="bi bi-image"></i> ภาพหลักฐาน</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body text-center bg-dark"><img id="full-image" src="" alt="Proof" style="width:100%;"></div></div></div></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // --- สคริปต์ประกาศแจ้งเตือน Popup ---
-    window.addEventListener('DOMContentLoaded', async function() {
-        try {
-            const response = await fetch('popup.html');
-            const html = await response.text();
-            document.getElementById('popup-container').innerHTML = html;
-            
-            if (!localStorage.getItem('hasSeenAnnouncementPopup_2_2569')) {
-                setTimeout(() => {
-                    const modalEl = document.getElementById('announcementModal');
-                    if(modalEl) {
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                        localStorage.setItem('hasSeenAnnouncementPopup_2_2569', 'true');
-                    }
-                }, 1000);
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // =========================================================
+        // 1. ตั้งค่า API หลัก
+        // =========================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbxhZC6lm7qbEB8d5elWF69noSJNpEFyeurkKHlsG934aPTPXG05VfiRpMG4WYA1vBm5lA/exec"; 
+        const WARNING_API_URL = 'https://script.google.com/macros/s/AKfycbwhkiyhx9nD7yN0Dp9f2cHIqK7QDywRl0IZxH4gdTyPdbQDSVAk8iGCnV1NnIJ8CRFkgA/exec';
+
+        let currentUser = { room: "", id: "" };
+        let preRenderedModalHtml = ""; 
+        let warningDataCache = []; 
+        let cachedPastFailRecords = []; // 🌟 เก็บข้อมูล มผ. ไว้ใช้ข้ามเมนูโดยไม่ต้องโหลดใหม่
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let optionsHtml = '<option value="">-- เลือกระดับชั้น --</option>';
+            for (let m = 1; m <= 6; m++) {
+                let maxRooms = 12; // รองรับมาตรฐาน 12 ห้องเรียน
+                for (let r = 1; r <= maxRooms; r++) { optionsHtml += `<option value="${m}/${r}">ม.${m}/${r}</option>`; }
             }
-        } catch (error) {
-            console.error('Error loading popup:', error);
-        }
-    });
+            document.getElementById('login-room').innerHTML = optionsHtml;
 
-    // --- สคริปต์ล็อกอินและเข้าสู่ระบบต่างๆ ---
-    function openLevelHead(event, levelStr) {
-        event.preventDefault();
-        
-        let pw = sessionStorage.getItem('admin_pw_auto');
-        if (!pw) {
-            unlockAdmin();
-            pw = sessionStorage.getItem('admin_pw_auto');
-            if(!pw) return; 
-        }
+            // 🌟 ตรวจสอบเซสชันที่เคยบันทึกไว้ในเครื่อง (Auto-restore)
+            try {
+                const saved = localStorage.getItem('epoint_saved_session');
+                if (saved) {
+                    const session = JSON.parse(saved);
+                    if (session.room && session.id) {
+                        document.getElementById('login-room').value = session.room;
+                        loadStudents().then(() => {
+                            document.getElementById('login-student').value = session.id;
+                            document.getElementById('login-id').value = session.id;
+                            if (session.pass) {
+                                document.getElementById('login-pass').value = session.pass;
+                            }
+                        });
+                    }
+                }
+            } catch (e) {}
+        });
 
-        let levelNumber = levelStr.replace('m', '');
-        const userData = {
-            username: pw, 
-            name: "หัวหน้าระดับชั้นมัธยมศึกษาปีที่" + levelNumber,
-            role: "หัวหน้าระดับ",
-            level: levelStr 
-        };
-        localStorage.setItem('buayai_user', JSON.stringify(userData));
-
-        window.open('level_head.html', '_self'); 
-    }
-
-    function openAdminHomeroom(event) {
-        event.preventDefault();
-        let pw = sessionStorage.getItem('admin_pw_auto');
-        if (pw && pw.startsWith('m')) {
-            window.open('homeroom.html?user=' + pw, '_blank');
-        } else {
-            unlockAdmin();
-        }
-    }
-
-    function openTeacherHomeroom(event) {
-        event.preventDefault();
-        let pw = sessionStorage.getItem('teacher_pw_auto');
-        if (pw) {
-            window.open('homeroom.html?user=' + pw, '_blank');
-        } else {
-            unlockTeacher();
-        }
-    }
-
-    function dochub(event) {
-        event.preventDefault();
-        let pw = sessionStorage.getItem('teacher_pw_auto');
-        if (pw) {
-            window.open('buayai/DocHub.html?user=' + pw, '_blank');
-        } else {
-            unlockTeacher();
-        }
-    }
-
-
-    
-
-
-
-    
-    function usermanual(event) {
-        event.preventDefault();
-        let pw = sessionStorage.getItem('teacher_pw_auto');
-        if (pw) {
-            window.open('usermanual.html?user=' + pw, '_blank');
-        } else {
-            unlockTeacher();
-        }
-    }
-
-
-
-
-
-
-    
-
-    
-    
-    let isTeacherUnlocked = false;
-    let isAdminUnlocked = false; 
-    let isSuperAdminUnlocked = false;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (sessionStorage.getItem('teacher_pw_auto')) {
-            document.getElementById('teacher-lock-screen').style.display = 'none';
-            document.getElementById('teacher-content').style.display = 'block';
-            isTeacherUnlocked = true;
-        }
-        if (sessionStorage.getItem('admin_pw_auto')) {
-            document.getElementById('admin-lock-screen').style.display = 'none';
-            document.getElementById('admin-content').style.display = 'block';
-            isAdminUnlocked = true;
-        }
-        if (sessionStorage.getItem('superadmin_pw_auto')) {
-            document.getElementById('admin-lock-screen').style.display = 'none';
-            document.getElementById('superadmin-content').style.display = 'block';
-            isSuperAdminUnlocked = true;
-        }
-    });
-
-    function unlockTeacher() {
-        let pw = prompt("🔒 พื้นที่เฉพาะคณะครู\nกรุณากรอกรหัสผ่านประจำตัวครู  เพื่อเข้าใช้งาน:");
-        if (pw === null || pw.trim() === "") return;
-        
-        pw = pw.toLowerCase();
-        const isTeacherValid = /^t\d{1,3}$/.test(pw);
-        
-        if (isTeacherValid) {
-            sessionStorage.setItem('teacher_pw_auto', pw);
-            isTeacherUnlocked = true;
-            document.getElementById('teacher-lock-screen').style.display = 'none';
+        // 🛡️ Defensive Fetching (พยายาม POST พร้อม Timeout ถ้าติดขัดจะ Fallback เป็น GET อัตโนมัติ)
+        async function fetchAPI(payload, btnId) {
+            const btn = btnId ? document.getElementById(btnId) : null;
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) { btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> รอสักครู่...'; btn.disabled = true; }
             
-            const content = document.getElementById('teacher-content');
-            content.style.opacity = '0';
-            content.style.display = 'block';
-            setTimeout(() => content.style.opacity = '1', 50);
-        } else {
-            alert("❌ รหัสผ่านไม่ถูกต้อง!");
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 9000);
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const text = await response.text();
+                return JSON.parse(text);
+            } catch (postErr) {
+                // Fallback เป็น GET
+                try {
+                    const params = new URLSearchParams();
+                    for (const k in payload) {
+                        params.append(k, typeof payload[k] === 'object' ? JSON.stringify(payload[k]) : payload[k]);
+                    }
+                    const resGet = await fetch(`${API_URL}?${params.toString()}`, { method: 'GET' });
+                    const textGet = await resGet.text();
+                    return JSON.parse(textGet);
+                } catch (getErr) {
+                    return { success: false, error: "การเชื่อมต่อล่าช้า กรุณาตรวจสอบอินเทอร์เน็ตหรือลองใหม่อีกครั้ง" };
+                }
+            } finally {
+                if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+            }
         }
-    }
 
-    function unlockAdmin() {
-        let pw = prompt("🔒 พื้นที่เฉพาะหัวหน้าระดับ/งาน\nกรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน:");
-        if (pw === null || pw.trim() === "") return;
-        
-        pw = pw.toLowerCase();
-        const isAdminValid = /^m[1-6]$/.test(pw) || pw === "p";
-        
-        if (isAdminValid) {
-            sessionStorage.setItem('admin_pw_auto', pw);
-            isAdminUnlocked = true;
-            document.getElementById('admin-lock-screen').style.display = 'none';
+        async function loadStudents() {
+            const room = document.getElementById('login-room').value;
+            const selectStd = document.getElementById('login-student');
+            if(!room) { selectStd.innerHTML = '<option value="">-- โปรดเลือกห้องก่อน --</option>'; selectStd.disabled = true; return; }
+            selectStd.innerHTML = '<option value="">กำลังโหลด...</option>'; selectStd.disabled = true;
+
+            const res = await fetchAPI({ action: 'getStudents', room: room }, 'btn-login');
+            if(res.success) {
+                let options = '<option value="">-- เลือกชื่อของคุณ --</option>';
+                res.data.forEach(std => options += `<option value="${std.id}">${std.name}</option>`);
+                selectStd.innerHTML = options; selectStd.disabled = false;
+            } else { selectStd.innerHTML = '<option value="">ไม่พบข้อมูล</option>'; alert(res.error || "ไม่พบข้อมูลห้องเรียนนี้"); }
+        }
+
+        function fillStudentId() { document.getElementById('login-id').value = document.getElementById('login-student').value; }
+
+        function formatThaiDateFull(dateString) {
+            if(!dateString) return "";
+            let d = new Date(dateString);
+            if (isNaN(d.getTime()) && dateString.includes('/')) {
+                const datePart = dateString.split(/[\s,]+/)[0];
+                const parts = datePart.split('/');
+                if (parts.length === 3) d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            }
+            if(isNaN(d.getTime())) return dateString; 
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const thaiDays = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+            let year = d.getFullYear(); if (year < 2400) year += 543;
+            return `วัน${thaiDays[d.getDay()]}ที่ ${d.getDate()} ${thaiMonths[d.getMonth()]} ${year}`;
+        }
+
+        async function handleLogin() {
+            const room = document.getElementById('login-room').value;
+            const id = document.getElementById('login-id').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if(!room || !id || !pass) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+            const btn = document.getElementById('btn-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังเข้าสู่ระบบ...';
+            btn.disabled = true;
+
+            // ⚡ เข้าสู่ระบบโดยตรง ไม่ต้องรอเว็บภายนอก (เร็วขึ้นทันที 2-10 เท่า)
+            const browserInfo = navigator.userAgent;
+            const res = await fetchAPI({ action: 'loginEpoint', room: room, id: id, password: pass, browser: browserInfo }, null);
             
-            const content = document.getElementById('admin-content');
-            content.style.opacity = '0';
-            content.style.display = 'block';
-            setTimeout(() => content.style.opacity = '1', 50);
-        } else {
-            alert("❌ รหัสผ่านไม่ถูกต้อง!");
-        }
-    }
+            btn.innerHTML = originalText; btn.disabled = false;
 
-    function unlockSuperAdmin() {
-        let pw = prompt("🔐 พื้นที่เฉพาะผู้ดูแลระบบส่วนกลาง\nกรุณากรอกรหัสผ่านพิเศษเพื่อเข้าใช้งาน:");
-        if (pw === null || pw.trim() === "") return;
-        
-        if (btoa(pw.toLowerCase()) === "a2tzcw==") {
-            sessionStorage.setItem('superadmin_pw_auto', pw);
-            isSuperAdminUnlocked = true;
-            document.getElementById('admin-lock-screen').style.display = 'none';
+            if(res.success) {
+                currentUser = { room: room, id: id };
+                // 💾 จดจำการล็อกอินไว้ในเครื่องเพื่อความสะดวกรวดเร็ว
+                try {
+                    localStorage.setItem('epoint_saved_session', JSON.stringify({ room: room, id: id, pass: pass }));
+                } catch(e) {}
+
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('app-view').style.display = 'block';
+                
+                // 🚀 โหลดข้อมูลหลักทันที เพื่อให้เด็กเห็นคะแนนใน 1 วินาที
+                await loadDashboardData(); 
+
+                // 🕒 ทยอยโหลดกล่องข้อความและวิดเจ็ตในพื้นหลัง (Background) ไม่ให้หน่วงหน้าจอ
+                setTimeout(() => {
+                    fetchStudentNotifications(); 
+                    fetchBackgroundWarningData(id, pass);
+                }, 200);
+
+            } else { alert("❌ " + res.error); }
+        }
+
+        // =========================================================
+        // โหลดข้อมูล Dashboard และดึงข้อมูล "ไม่ผ่านเกณฑ์" มาเก็บไว้
+        // =========================================================
+        async function loadDashboardData() {
+            const res = await fetchAPI({ action: 'getDashboardData', room: currentUser.room, id: currentUser.id }, null);
+            if(res.success) {
+                const data = res.data;
+                document.getElementById('side-name').innerText = data.name || "ไม่ระบุชื่อ";
+                document.getElementById('side-id').innerText = "รหัส: " + currentUser.id;
+                document.getElementById('display-name').innerText = data.name || "ไม่ระบุชื่อ";
+                document.getElementById('display-id').innerText = currentUser.id;
+                document.getElementById('display-room').innerText = currentUser.room;
+                document.getElementById('display-score').innerHTML = data.score;
+                document.getElementById('sync-status').innerHTML = '<i class="bi bi-check-circle-fill"></i> ดึงข้อมูลสำเร็จ อัปเดตล่าสุดวันนี้';
+                document.getElementById('display-good-total').innerText = data.goodTotal;
+                document.getElementById('display-bad-total').innerText = data.badTotal;
+
+                const failSection = document.getElementById('fail-section');
+                const failContainer = document.getElementById('fail-list-container');
+                
+                // 🌟 เก็บข้อมูลไม่ผ่านเกณฑ์ทุกภาคเรียน และแสดงผลแยกตามสถานะ
+                if (data.failRecords && data.failRecords.length > 0) {
+                    cachedPastFailRecords = data.failRecords;
+                    failSection.style.display = 'block';
+                    failContainer.innerHTML = data.failRecords.map(f => {
+                        const isFail = f.status.includes('มผ');
+                        const isNoCert = f.status.includes('ออกใบรับรอง');
+                        const displayStatus = isNoCert 
+                            ? 'ออกใบรับรองความประพฤติไม่ได้ /(80 คะแนนขึ้นไปจึงออกได้)' 
+                            : f.status;
+                        const badgeClass = isFail ? 'bg-danger' : 'bg-warning text-dark';
+                        const icon = isFail ? 'bi-x-circle-fill' : 'bi-exclamation-triangle-fill';
+                        return `
+                        <div class="fail-item">
+                            <div>
+                                <div class="fw-bold text-dark font-prompt" style="font-size: 1.1rem;"><i class="bi bi-calendar-check me-1 text-primary"></i>ภาคเรียนที่ ${f.term}</div>
+                                <div class="small text-muted mt-1">คะแนนคงเหลือ: <span class="fw-bold text-danger fs-6">${f.remainScore}</span> คะแนน</div>
+                            </div>
+                            <span class="badge ${badgeClass} fs-6 px-3 py-2 shadow-sm rounded-pill"><i class="bi ${icon} me-1"></i>${displayStatus}</span>
+                        </div>`;
+                    }).join('');
+                } else { 
+                    cachedPastFailRecords = [];
+                    failSection.style.display = 'none'; 
+                }
+
+                const goodContainer = document.getElementById('good-list-container');
+                if(data.goodList.length === 0) { goodContainer.innerHTML = '<div class="text-center py-3 text-muted small"><i class="bi bi-info-circle"></i> ยังไม่มีประวัติการทำความดี</div>'; } 
+                else { goodContainer.innerHTML = data.goodList.map(item => `<div class="history-item"><div class="history-icon bg-good"><i class="bi bi-star-fill"></i></div><div class="history-details"><div class="fw-bold text-dark">${item.type}</div><div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(item.date)}</div></div><div class="history-points text-good">+${item.points}</div>${item.img ? `<img src="${item.img}" class="img-thumbnail-custom" onclick="openImage('${item.img.replace('w300', 'w1000')}')" onerror="this.style.display='none'">` : ''}</div>`).join(''); }
+
+                const badContainer = document.getElementById('bad-list-container');
+                if(data.badList.length === 0) { badContainer.innerHTML = '<div class="text-center py-3 text-success small"><i class="bi bi-shield-check"></i> ยอดเยี่ยม! ไม่มีประวัติถูกหักคะแนน</div>'; } 
+                else { badContainer.innerHTML = data.badList.map(item => `<div class="history-item border-danger" style="border-opacity: 0.3;"><div class="history-icon bg-bad"><i class="bi bi-dash-circle-fill"></i></div><div class="history-details"><div class="fw-bold text-dark">${item.type}</div><div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(item.date)}</div></div><div class="history-points text-bad">-${item.points}</div></div>`).join(''); }
+            } else {
+                document.getElementById('display-name').innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+                document.getElementById('display-score').innerHTML = "-";
+                document.getElementById('sync-status').innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> โหลดข้อมูลล้มเหลว';
+            }
+        }
+
+        // =========================================================
+        // 📍 แสดงข้อมูลภาคเรียนที่ผ่านมา (ดึงจาก Cache ทันทีโดยไม่ต้องต่อ API ใหม่!)
+        // =========================================================
+        function loadPastRecords() {
+            const container = document.getElementById('past-list-container');
             
-            const content = document.getElementById('superadmin-content');
-            content.style.opacity = '0';
-            content.style.display = 'block';
-            setTimeout(() => content.style.opacity = '1', 50);
-        } else {
-            alert("❌ รหัสผ่านพิเศษไม่ถูกต้อง!");
+            if(!cachedPastFailRecords || cachedPastFailRecords.length === 0) {
+                container.innerHTML = `<div class="text-center py-5"><i class="bi bi-emoji-sunglasses display-1 text-success mb-3 d-block"></i><h5 class="fw-bold text-success">สุดยอดมาก!</h5><p class="text-muted">ไม่มีประวัติ <b>"ไม่ผ่านเกณฑ์"</b> ในภาคเรียนที่ผ่านมา</p></div>`;
+                return;
+            }
+            
+            let html = '';
+            cachedPastFailRecords.forEach(item => {
+                const isFail = item.status.includes('มผ');
+                const isNoCert = item.status.includes('ออกใบรับรอง');
+                const displayStatus = isNoCert 
+                    ? 'ออกใบรับรองความประพฤติไม่ได้ /(80 คะแนนขึ้นไปจึงออกได้)' 
+                    : item.status;
+                const badgeClass = isFail ? 'bg-danger' : 'bg-warning text-dark';
+                const icon = isFail ? 'bi-x-circle-fill' : 'bi-exclamation-triangle-fill';
+                html += `
+                <div class="past-fail-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-dark fs-6 px-3 py-2 rounded-pill"><i class="bi bi-calendar-event me-1"></i>ภาคเรียนที่ ${item.term}</span>
+                        <span class="badge ${badgeClass} fs-6 px-3 py-2 shadow-sm rounded-pill"><i class="bi ${icon} me-1"></i>${displayStatus}</span>
+                    </div>
+                    <div class="mt-3 p-3 bg-light rounded-3 border text-center">
+                        <div class="small text-muted fw-bold mb-1">คะแนนคงเหลือในระบบ</div>
+                        <h2 class="fw-bold text-danger m-0 font-prompt">${item.remainScore} <span class="fs-6 text-muted font-sarabun">คะแนน</span></h2>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
         }
-    }
 
-    function lockTeacher() {
-        sessionStorage.removeItem('teacher_pw_auto');
-        isTeacherUnlocked = false;
-        document.getElementById('teacher-content').style.display = 'none';
-        document.getElementById('teacher-lock-screen').style.display = 'block';
-    }
-
-    function lockAdmin() {
-        sessionStorage.removeItem('admin_pw_auto');
-        sessionStorage.removeItem('superadmin_pw_auto');
-        isAdminUnlocked = false;
-        isSuperAdminUnlocked = false;
-        document.getElementById('admin-content').style.display = 'none';
-        document.getElementById('superadmin-content').style.display = 'none';
-        document.getElementById('admin-lock-screen').style.display = 'block';
-    }
-
-    function checkTeacherPassword(event, element) {
-      if (event) event.preventDefault();
-      let targetUrl = element ? element.href : null;
-      if (targetUrl && (targetUrl.includes("javascript:void(0)") || targetUrl.endsWith("#"))) { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); return false; }
-      
-      let pw = sessionStorage.getItem('teacher_pw_auto');
-      if (targetUrl && pw) {
-        if (targetUrl.includes("script.google.com")) {
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            targetUrl = targetUrl + separator + "uid=" + encodeURIComponent(pw);
+        // =========================================================
+        // 📍 ดึงข้อมูลประวัติมาสาย (ใชั API ใหม่ - getLateRecords)
+        // =========================================================
+        async function loadLateRecords() {
+            const container = document.getElementById('late-list-container');
+            document.getElementById('late-total').innerHTML = '<div class="spinner-border spinner-border-sm text-info"></div>';
+            container.innerHTML = '<div class="text-center py-5 text-muted"><span class="spinner-border text-info"></span><br>กำลังดึงข้อมูล...</div>';
+            
+            const res = await fetchAPI({ action: 'getLateRecords', id: currentUser.id }, null);
+            
+            if(res.success) {
+                const records = res.data; 
+                document.getElementById('late-total').innerText = records.length;
+                
+                if(!records || records.length === 0) {
+                    container.innerHTML = `<div class="text-center py-5"><i class="bi bi-emoji-smile display-1 text-success mb-3 d-block"></i><h5 class="fw-bold text-success">เยี่ยมมาก!</h5><p class="text-muted">ไม่มีประวัติมาสายเลย (รักษาเวลาได้ดีมาก 👍)</p></div>`;
+                    return;
+                }
+                
+                records.sort((a, b) => new Date(b.date) - new Date(a.date));
+                let html = '';
+                records.forEach((item, idx) => {
+                    const isAck = item.ackStatus && item.ackStatus.includes('รับทราบ');
+                    const cardClass = isAck ? 'late-card ack' : 'late-card';
+                    const collapseId = `late-collapse-${idx}`;
+                    
+                    html += `
+                    <div class="${cardClass}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-dark fs-5"><i class="bi bi-calendar2-x text-warning me-2"></i>${formatThaiDateFull(item.date)}</div>
+                                <div class="small text-muted mt-1">ผู้บันทึก: ${item.recorder}</div>
+                            </div>
+                            <div>
+                                ${isAck ? 
+                                `<button class="btn-ack" disabled><i class="bi bi-check2-all me-1"></i>รับทราบแล้ว</button>` : 
+                                `<button class="btn-ack" onclick="ackLateRecord(${item.rowIdx}, this)"><i class="bi bi-hand-index-thumb me-1"></i>รับทราบ</button>`
+                                }
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn-teen w-100" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                                ดูรายละเอียดเพิ่มเติม <i class="bi bi-chevron-down ms-1"></i>
+                            </button>
+                        </div>
+                        <div class="collapse mt-2" id="${collapseId}">
+                            <div class="p-3 bg-light rounded-3 small text-muted border text-start">
+                                <b>สถานะ:</b> ${isAck ? `<span class="text-success">${item.ackStatus}</span>` : '<span class="text-danger">ยังไม่กดยืนยันรับทราบ</span>'}<br>
+                                <b>หมายเหตุ:</b> การมาสายมีผลต่อคะแนนความประพฤติ โปรดรักษาเวลาและมาถึงโรงเรียนก่อนเวลาเคารพธงชาตินะครับ
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-x-circle fs-1"></i><br>โหลดข้อมูลล้มเหลว</div>';
+                document.getElementById('late-total').innerText = '-';
+            }
         }
-        window.location.href = targetUrl;
-      } else {
-          unlockTeacher(); 
-      }
-      return true; 
-    }
 
-    function checkAdminPassword(event, element) {
-      if (event) event.preventDefault();
-      let targetUrl = element ? element.href : null;
-      if (targetUrl && (targetUrl.includes("javascript:void(0)") || targetUrl.endsWith("#"))) { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); return false; }
-
-      let pw = sessionStorage.getItem('admin_pw_auto');
-      if (targetUrl && pw) {
-        if (targetUrl.includes("script.google.com")) {
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            targetUrl = targetUrl + separator + "uid=" + encodeURIComponent(pw);
+        // =========================================================
+        // 📍 ยืนยันการรับทราบมาสาย (ใช้ API ใหม่ - acknowledgeLate)
+        // =========================================================
+        async function ackLateRecord(rowIdx, btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>...';
+            btn.disabled = true;
+            
+            try {
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} น.`;
+                const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}`;
+                const ackText = `รับทราบ วันที่ ${dateStr} เวลา ${timeStr}`;
+                
+                const res = await fetchAPI({ action: 'acknowledgeLate', id: currentUser.id, rowIdx: rowIdx, ackText: ackText }, null);
+                
+                if(res.success) {
+                    btn.innerHTML = '<i class="bi bi-check2-all me-1"></i>รับทราบแล้ว';
+                    btn.classList.add('bg-success');
+                    setTimeout(() => loadLateRecords(), 800);
+                } else {
+                    alert("❌ " + res.error);
+                    btn.innerHTML = originalHtml; btn.disabled = false;
+                }
+            } catch(e) { alert("เกิดข้อผิดพลาด"); btn.innerHTML = originalHtml; btn.disabled = false; }
         }
-        window.location.href = targetUrl;
-      } else {
-          unlockAdmin();
-      }
-      return true; 
-    }
 
-    function checkSuperAdminPassword(event, element) {
-      if (event) event.preventDefault();
-      let targetUrl = element ? element.href : null;
-      if (targetUrl && (targetUrl.includes("javascript:void(0)") || targetUrl.endsWith("#"))) { alert("🛠️ ขออภัยครับ ระบบนี้กำลังอยู่ในช่วงพัฒนา"); return false; }
-
-      let pw = sessionStorage.getItem('superadmin_pw_auto');
-      if (targetUrl && pw) {
-        if (targetUrl.includes("script.google.com")) {
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            targetUrl = targetUrl + separator + "uid=" + encodeURIComponent(pw);
+        // =========================================================
+        // ส่วนดึงข้อมูล Widget (โค้ดเดิม)
+        // =========================================================
+        async function fetchBackgroundWarningData(sid, spass) {
+            try {
+                const res = await fetch(WARNING_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'studentLogin', studentId: sid, password: spass }) });
+                const result = await res.json();
+                
+                if(result.status === 'success') {
+                    const allData = result.data.warnings;
+                    const praises = allData.filter(w => w.violation && w.violation.includes('ชมเชย'));
+                    const warnings = allData.filter(w => !w.violation || !w.violation.includes('ชมเชย'));
+                    
+                    const fabWidget = document.getElementById('fab-warning-widget');
+                    const badge = document.getElementById('fab-warning-badge');
+                    fabWidget.style.display = 'flex';
+                    
+                    if(allData.length > 0) {
+                        badge.innerText = allData.length; badge.classList.remove('d-none');
+                        if(praises.length > 0 && warnings.length === 0) {
+                            fabWidget.classList.add('fab-good'); document.getElementById('fab-main-icon').className = 'bi bi-award-fill';
+                            document.getElementById('modal-warning-header').style.background = 'linear-gradient(135deg, #10b981, #047857)';
+                            document.getElementById('modal-main-icon').className = 'bi bi-award-fill display-3 mb-2';
+                        }
+                    }
+                    preRenderedModalHtml = generateCombinedHtml(praises, warnings);
+                    document.getElementById('warning-widget-body').innerHTML = preRenderedModalHtml;
+                }
+            } catch(e) { document.getElementById('warning-widget-body').innerHTML = '<div class="text-center text-danger py-4">ไม่สามารถโหลดข้อมูลได้</div>'; }
         }
-        window.location.href = targetUrl;
-      } else {
-          unlockSuperAdmin();
-      }
-      return true;
-    }
 
-  </script>
+        function generateCombinedHtml(praises, warnings) {
+            let finalHtml = '';
+            if(praises.length === 0 && warnings.length === 0) return `<div class="text-center py-4"><i class="bi bi-flower1 display-1 text-pink-400" style="color: #f472b6;"></i><h4 class="fw-bold mt-3" style="color: #be185d;">ยินดีด้วย! ลูกประพฤติดีเยี่ยม</h4><p class="text-muted">ดอกบัวของลูกยังเบ่งบาน ไร้ประวัติการถูกตักเตือน</p></div>`;
+
+            if(praises.length > 0) {
+                finalHtml += `<div class="lotus-msg-good"><b>🌟 ข้อความชื่นชม:</b> การทำความดีของนักเรียน เป็นแบบอย่างที่น่าภูมิใจ ขอให้รักษาความดีนี้ไว้ตลอดไปครับ/ค่ะ</div>`;
+                praises.forEach((w, idx) => {
+                    let stepId = "praise-collapse-" + idx;
+                    let step = 1; 
+                    if (w.status) {
+                        if (w.status.includes('มอบคะแนน') || w.status.includes('บวกคะแนน') || w.status.includes('เพิ่มคะแนน')) step = 4;
+                        else if (w.status.includes('หัวหน้าระดับ')) step = 3; else if (w.status.includes('ครูที่ปรึกษา')) step = 2;
+                    }
+                    finalHtml += `<div class="timeline-card-good p-0 overflow-hidden"><div class="p-3 d-flex justify-content-between align-items-center warning-toggle-btn" data-bs-toggle="collapse" data-bs-target="#${stepId}" aria-expanded="false" style="cursor: pointer; background: #f0fdf4;"><div class="pe-2"><div class="mb-1"><span class="badge bg-success rounded-pill px-3 py-1 me-2 shadow-sm">ประวัติความดี</span><span class="small text-muted"><i class="bi bi-calendar2-event"></i> ${w.date}</span></div><h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem; line-height: 1.4;">✨ ${w.violation}</h6></div><div class="flex-shrink-0"><button class="btn btn-sm btn-light text-success rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 1px solid #a7f3d0;"><i class="bi bi-chevron-down chevron-icon fs-5"></i></button></div></div><div class="collapse border-top" id="${stepId}" style="border-color: #d1fae5 !important;"><div class="p-3 pt-2"><p class="small text-muted mb-2" style="background: #f8fafc; padding: 12px; border-radius: 12px; border-left: 4px solid #10b981;"><b>รายละเอียด:</b> ${w.notes || 'บันทึกการทำความดี'}</p><div class="tl-wrapper-good mt-3"><div class="tl-header-good"><i class="bi bi-diagram-3-fill"></i> ขั้นตอนบันทึกความดี :</div>${generateGoodStepsHtml(step)}</div></div></div></div>`;
+                });
+            }
+
+            if(warnings.length > 0) {
+                if(praises.length > 0) finalHtml += `<hr class="my-4" style="border-color: #cbd5e1; border-width: 2px; border-style: dashed;">`;
+                finalHtml += `<div class="lotus-msg"><b>ข้อคิดจากสระบัว:</b> การถูกตักเตือนเปรียบเสมือน กระจกที่สะท้อนตัวเรา ให้เราได้เป็นไปในทางที่ดีขึ้นเสมอ!</div>`;
+                warnings.forEach((w, idx) => {
+                    let stepId = "warn-collapse-" + idx;
+                    let step = 3; 
+                    if(w.status.includes('ครูที่ปรึกษารับทราบ')) step = 4; else if(w.status.includes('หัวหน้าระดับรับทราบ')) step = 5; else if(w.status.includes('หักคะแนน') || w.status.includes('ตัดคะแนน')) step = 6;
+                    finalHtml += `<div class="timeline-card p-0 overflow-hidden"><div class="p-3 d-flex justify-content-between align-items-center warning-toggle-btn" data-bs-toggle="collapse" data-bs-target="#${stepId}" aria-expanded="false" style="cursor: pointer; background: #fffcfd;"><div class="pe-2"><div class="mb-1"><span class="badge bg-danger rounded-pill px-3 py-1 me-2 shadow-sm">ตักเตือนครั้งที่ ${idx + 1}</span><span class="small text-muted"><i class="bi bi-calendar2-event"></i> ${w.date}</span></div><h6 class="fw-bold text-dark m-0" style="font-size: 1.05rem; line-height: 1.4;">⚠️ ${w.violation}</h6></div><div class="flex-shrink-0"><button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 1px solid #fbcfe8;"><i class="bi bi-chevron-down chevron-icon fs-5"></i></button></div></div><div class="collapse border-top" id="${stepId}" style="border-color: #fce7f3 !important;"><div class="p-3 pt-2"><p class="small text-muted mb-2" style="background: #f8fafc; padding: 12px; border-radius: 12px; border-left: 4px solid #f43f5e;"><b>เหตุการณ์:</b> ${w.notes}</p><div class="tl-wrapper mt-3"><div class="tl-header"><i class="bi bi-diagram-3-fill"></i> ลำดับขั้นตอนการดำเนินการ :</div>${generateWarningStepsHtml(step)}</div></div></div></div>`;
+                });
+            }
+            return finalHtml;
+        }
+
+        function generateGoodStepsHtml(activeStep) {
+            const labels = ["บันทึกความดี", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับชื่นชม", "มอบคะแนนบวก"]; const icons = ["bi-pencil-square", "bi-check-circle", "bi-emoji-smile", "bi-award"];
+            let html = ''; labels.forEach((label, index) => { const i = index + 1; let stateClass = "pending"; if (i < activeStep) stateClass = "completed-good"; else if (i === activeStep) stateClass = "current-good"; html += `<div class="tl-item tl-item-good ${stateClass}"><div class="tl-icon"><i class="bi ${icons[index]}"></i></div><div class="tl-text">${label}</div></div>`; }); return html;
+        }
+
+        function generateWarningStepsHtml(activeStep) {
+            const labels = ["เริ่มบันทึก", "แจ้งครูที่ปรึกษา", "แจ้งหัวหน้าระดับ", "ครูที่ปรึกษารับทราบ", "หัวหน้าระดับรับทราบ", "หักคะแนนพฤติกรรม"]; const icons = ["bi-file-earmark-text", "bi-bell", "bi-megaphone", "bi-check-circle", "bi-check-square", "bi-exclamation-octagon"];
+            let html = ''; labels.forEach((label, index) => { const i = index + 1; let stateClass = "pending"; if (i < activeStep) stateClass = "completed"; else if (i === activeStep) stateClass = "current" + (i === 6 ? " step-6" : ""); html += `<div class="tl-item ${stateClass}"><div class="tl-icon"><i class="bi ${icons[index]}"></i></div><div class="tl-text">${label}</div></div>`; }); return html;
+        }
+
+        function showWarningModal() { new bootstrap.Modal(document.getElementById('warningWidgetModal')).show(); }
+
+        // =========================================================
+        // การสลับเมนู และเรียกข้อมูล
+        // =========================================================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar'); const overlay = document.getElementById('sidebar-overlay');
+            if(sidebar.classList.contains('show')) { sidebar.classList.remove('show'); overlay.style.display = 'none'; } 
+            else { sidebar.classList.add('show'); overlay.style.display = 'block'; }
+        }
+
+        function switchMenu(menuId, el) {
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); 
+            ['dashboard', 'past', 'late', 'noti'].forEach(m => { const view = document.getElementById(`view-${m}`); if(view) view.style.display = (m === menuId) ? 'block' : 'none'; });
+
+            // 🌟 ภาคเรียนที่ผ่านมา ไม่ต้องต่อ API ใหม่แล้ว โหลดเร็วปรู๊ดปร๊าดเลย!
+            if (menuId === 'past') loadPastRecords(); 
+            // 🌟 ประวัติมาสาย (ใชั API getLateRecords)
+            if (menuId === 'late') loadLateRecords();
+
+            toggleSidebar();
+        }
+
+        async function fetchStudentNotifications() {
+            try {
+                const res = await fetchAPI({ action: 'getStudentNotifications', room: currentUser.room, id: currentUser.id }, null);
+                if(res && res.success) renderNotifications(res.data); else document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อความล้มเหลว</div>';
+            } catch(e) { document.getElementById('noti-list-container').innerHTML = '<div class="text-center py-4 text-danger">เชื่อมต่อล้มเหลว</div>'; }
+        }
+
+        function renderNotifications(data) {
+            const container = document.getElementById('noti-list-container');
+            let read = 0; let unread = 0;
+            if(data.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-envelope-check display-1"></i><br>ไม่มีข้อความใหม่ครับ</div>';
+                document.getElementById('noti-total').innerText = '0'; document.getElementById('noti-read').innerText = '0'; document.getElementById('noti-unread').innerText = '0';
+                return;
+            }
+            let html = '';
+            data.forEach(msg => {
+                let isUnread = !msg.status.includes('รับทราบ'); if(!isUnread) read++; else unread++;
+                let actionHtml = isUnread ? `<button class="btn btn-danger w-100 mt-3 fw-bold rounded-pill shadow-sm" onclick="acknowledgeMessage(${msg.rowIdx}, this)"><i class="bi bi-check2-circle me-1"></i> รับทราบแล้ว</button>` : `<div class="text-success small fw-bold mt-2"><i class="bi bi-check2-all"></i> รับทราบแล้ว</div>`;
+                let detailHtml = msg.detail;
+                if(detailHtml.includes('⭐ [ชมเชย]')) detailHtml = detailHtml.replace('⭐ [ชมเชย]:', '<span class="badge bg-success mb-2 fs-6"><i class="bi bi-star-fill text-warning"></i> ข้อความชื่นชม</span><br>');
+                else if(detailHtml.includes('🚨 [ติดตามพฤติกรรม]')) detailHtml = detailHtml.replace('🚨 [ติดตามพฤติกรรม]:', '<span class="badge bg-danger mb-2 fs-6"><i class="bi bi-exclamation-triangle-fill"></i> แจ้งเตือนพฤติกรรม</span><br>');
+                
+                html += `<div class="${isUnread ? 'noti-card unread' : 'noti-card'}"><div class="d-flex justify-content-between align-items-start mb-2"><div class="small text-muted"><i class="bi bi-calendar-event"></i> ${formatThaiDateFull(msg.date)}</div>${isUnread ? '<span class="badge bg-danger">NEW</span>' : ''}</div><div class="fw-bold text-dark mt-1" style="font-size: 1rem; line-height: 1.5;">${detailHtml}</div>${actionHtml}</div>`;
+            });
+            container.innerHTML = html; 
+            document.getElementById('noti-total').innerText = data.length; document.getElementById('noti-read').innerText = read; document.getElementById('noti-unread').innerText = unread;
+            
+            const badge = document.getElementById('noti-badge'); const navDot = document.getElementById('nav-dot-noti');
+            if (unread > 0) { badge.innerText = unread; badge.classList.remove('d-none'); navDot.classList.remove('d-none'); } 
+            else { badge.classList.add('d-none'); navDot.classList.add('d-none'); }
+        }
+
+        async function acknowledgeMessage(rowIdx, btnElement) {
+            let originalHtml = btnElement.innerHTML; btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span>...'; btnElement.disabled = true;
+            try {
+                const res = await fetchAPI({ action: 'acknowledgeNotification', room: currentUser.room, id: currentUser.id, rowIdx: rowIdx }, null);
+                if(res.success) { fetchStudentNotifications(); } else { alert("❌ " + res.error); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+            } catch(e) { alert("เกิดข้อผิดพลาด"); btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+        }
+
+        function openAttendancePage() {
+            if(currentUser && currentUser.id) window.open(`ParentChkm1.html?id=${currentUser.id}`, '_blank');
+            else alert("กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้");
+        }
+
+        function openImage(url) { document.getElementById('full-image').src = url; new bootstrap.Modal(document.getElementById('imgModal')).show(); }
+
+        function logout() {
+            try {
+                localStorage.removeItem('epoint_saved_session');
+            } catch(e) {}
+            document.getElementById('login-pass').value = '';
+            document.getElementById('app-view').style.display = 'none';
+            document.getElementById('fab-warning-widget').style.display = 'none'; 
+            document.getElementById('login-view').style.display = 'flex';
+            toggleSidebar();
+        }
+    </script>
+    <script type="module" src="global-counter.js"></script>
 </body>
 </html>
