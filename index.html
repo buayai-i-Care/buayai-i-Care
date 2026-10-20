@@ -189,7 +189,7 @@
         <div id="teacher-lock-screen" class="lock-screen-box text-center">
           <img src="./logos.jpg" alt="Logo" width="80" height="80" class="mb-3 rounded-circle shadow-sm border border-3 p-1" style="border-color: var(--teacher-green) !important; object-fit: contain;">
           <h5 class="fw-bold text-success">พื้นที่เฉพาะคณะครู</h5>
-          <p class="text-muted small mb-4">เมนูถูกซ่อนไว้ -->> สำหรับคุณครูโรงเรียนบัวใหญ๋ องค์การบริหารส่วนจังหวัดนครราชสีมาเท่านั้น <<--<br>กรุณาปลดล็อกเพื่อเข้าใช้งานแอปพลิเคชัน</p>
+          <p class="text-muted small mb-4">เมนูถูกซ่อนไว้ -->> สำหรับคุณครูโรงเรียนบัวใหญ่ องค์การบริหารส่วนจังหวัดนครราชสีมาเท่านั้น <<--<br>กรุณาปลดล็อกเพื่อเข้าใช้งานแอปพลิเคชัน</p>
           <button class="btn btn-success rounded-pill px-5 py-2 shadow-sm fw-bold" onclick="unlockTeacher()">
             <i class="bi bi-key-fill me-2"></i>ปลดล็อกเมนูครู
           </button>
@@ -287,7 +287,7 @@
             <a href="warning_Epoint.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clock-history"></i><p class="card-title">บันทึกตักเตือน/ชมเชย นักเรียน</p></a>
             <a href="Std_dashboard_info.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-clipboard-heart-fill"></i><p class="card-title">ตรวจสอบประวัตินักเรียนในที่ปรึกษา</p></a>
             <a href="E-POINT/All-Point-In-Class.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">คะแนนพฤติกรรม </p></a>
-             <a href="E-POINT/goodness.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">สารสนเทศการแก้ไขพฤติกรรม(บันทึกความดี)</p></a>
+            <a href="E-POINT/goodness.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">สารสนเทศการแก้ไขพฤติกรรม(บันทึกความดี)</p></a>
             <a href="E-POINT/chk_std_app_epoint.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ตรวจสอบผู้สมัคร E-Point</p></a>
             <a href="Admin/dailydue_System.html" class="menu-card" onclick="return checkTeacherPassword(event, this);"><i class="bi bi-gear-fill"></i><p class="card-title">ระบบเวรประจำวัน</p></a>
            
@@ -316,7 +316,7 @@
               <p class="card-title">คู่มือการใช้งานระบบ Buayai I Care School</p>
             </a>
 
-   <a href="/buayai/DocHub.html" class="menu-card" onclick="dochub(event)">
+   <a href="buayai/DocHub.html" class="menu-card" onclick="dochub(event)">
               <i class="bi bi-journal-bookmark-fill"></i>
               <p class="card-title">คลังเอกสารดิจิทัล</p>
             </a>
@@ -349,7 +349,8 @@
         <div class="bento-grid">
           <a href="appyEpoint.html" class="menu-card"><i class="bi bi-person-plus-fill"></i><p class="card-title">สมัคร E-Point/ลืมรหัสผ่าน</p></a>
           <a href="loginEpoint.html" class="menu-card"><i class="bi bi-box-arrow-in-right"></i><p class="card-title">ตรวจสอบคะแนนความประพฤติ</p></a>
-          <a href="https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec" class="menu-card"><i class="bi bi-heart-fill"></i><p class="card-title">ทำดีออนไลน์</p></a>
+          <!-- ทำดีออนไลน์: ปิดระบบชั่วคราว (เปิดใหม่: คืน href เป็น https://script.google.com/macros/s/AKfycbwrV8UG2DCSDlIFg-eykFLueInZNFhXLQbNuVDEvJ5iutAEYZ7qAVwxmjltThZrWhMK/exec และลบ onclick/style ที่ปิดไว้) -->
+          <a href="#" class="menu-card" onclick="alert('ปิดระบบ/จะเปิดระบบโปรดติดตามประกาศจากทาง งานกิจการนักเรียน'); return false;" aria-disabled="true" style="opacity: 0.5; filter: grayscale(1); cursor: not-allowed;"><i class="bi bi-heart-fill"></i><p class="card-title">ทำดีออนไลน์<br><small style="font-size:0.65rem; color:#dc2626; line-height: 1.2; display: block; margin-top: 2px;">ปิดระบบ/จะเปิดระบบโปรดติดตามประกาศจากทาง งานกิจการนักเรียน</small></p></a>
           <a href="advice/sdq.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ระบบคัดกรอง SDQ </p></a>
            <a href="Dev.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ระบบข้อมูลนักเรียน:Buayai I Care School</p></a>
        <a href="vihicle1.html" class="menu-card"><i class="bi bi-gear-fill"></i><p class="card-title"> ฐานข้อมูลยานพาหนะ</p></a>
@@ -607,13 +608,13 @@ admin_Edit_Std_joinFlag.html" class="menu-card" onclick="return checkSuperAdminP
             const html = await response.text();
             document.getElementById('popup-container').innerHTML = html;
             
-            if (!localStorage.getItem('hasSeenAnnouncementPopup')) {
+            if (!localStorage.getItem('hasSeenAnnouncementPopup_2_2569')) {
                 setTimeout(() => {
                     const modalEl = document.getElementById('announcementModal');
                     if(modalEl) {
                         const modal = new bootstrap.Modal(modalEl);
                         modal.show();
-                        localStorage.setItem('hasSeenAnnouncementPopup', 'true');
+                        localStorage.setItem('hasSeenAnnouncementPopup_2_2569', 'true');
                     }
                 }, 1000);
             }
