@@ -56,7 +56,11 @@ var cleanTeacherName = raw => {
   if (!raw) return ``;
   let s = String(raw).replace(/[\u00A0\s]+/g, ` `).trim();
   let prefixRegex = /^(?:(?:ว่าที่\s*ร้อยตรี\s*หญิง|ว่าที่\s*ร้อยตรี|ว่าที่\s*ร\.?\s*ต\.?\s*หญิง|ว่าที่\s*ร\.?\s*ต\.?|ส\.?\s*ต\.?\s*[ทอต]\.?|จ\.?\s*ส\.?\s*[ตทอ]\.?|ร\.?\s*ต\.?\s*[อทต]\.?|ผู้ช่วยศาสตราจารย์|รองศาสตราจารย์|ศาสตราจารย์|ผศ\.?\s*ดร\.?|รศ\.?\s*ดร\.?|ผศ\.?|รศ\.?|ดร\.?|นางสาว|น\.?\s*ส\.?|นาง|นาย|คุณครู|ครู|อาจารย์|ผอ\.?|Miss\.?|Mrs\.?|Mr\.?|Ms\.?|Dr\.?|Teacher)\s*)+/i;
-  s = s.replace(prefixRegex, ``).replace(/[\u00A0\s]+/g, ` `).trim();
+  s = s.replace(prefixRegex, ``)
+       .replace(/\u0E34\u0E31|\u0E31\u0E34/g, `\u0E31`)
+       .replace(/([\u0E31\u0E34-\u0E3A\u0E47-\u0E4E])\1+/g, `$1`)
+       .replace(/[\u00A0\s]+/g, ` `)
+       .trim();
   return s || String(raw).trim();
 };
 
@@ -227,11 +231,58 @@ var saveAliases = async (grade, newAliases) => {
   return merged;
 };
 
-// 5. แปลงข้อมูลเช็คชื่อจาก Firebase ให้ตรงกับ "ชื่อ นามสกุล" ปัจจุบัน พร้อมตรวจจับรายการที่ควรคลีน
-var resolveAttendanceRecords = (rosterTeachers, rawRecords = {}, aliasMap = {}, dateKey = ``) => {
+// 5. ตารางอ้างอิงลำดับแถวเดิม (t0..t22) ก่อนการแก้ไขเพิ่ม/ลบแถวใน Google Sheet (ป้องกันประวัติเก่าสลับคน 100%)
+var HISTORICAL_LEGACY_MAP = {
+  m1: {
+    t0: `เนาวรัตน์ โตประศรี`, t1: `จินตนา โพธิ์น้ำคำ`, t2: `นารี แก้วหานาท`, t3: `ศันสนีย์ วัชรชวนะ`,
+    t4: `เสวต ขนันไทย`, t5: `จิตติกา ชัยภักดี`, t6: `ศรีประภา ขอขันกลาง`, t7: `เอื้อมเดือน เฮงสวัสดิ์`,
+    t8: `วรรณภา ลันไธสง`, t9: `ใจเพ็ชร เจริญใจ`, t10: `อุดม หวังมวนกลาง`, t11: `นิตยา พรมกอง`,
+    t12: `เศวตพล วรชัย`, t13: `จุรีรัตน์ จัดนอก`, t14: `อรเกษม ศรีเวียง`, t15: `นฤมล ทองพันธ์`,
+    t16: `รัชวุฒิ ดุมกลาง`, t17: `ธรรมรัตน์ เลิศเกษม`, t18: `ไพบูลย์ บัวจันอัฐ`
+  },
+  m2: {
+    t0: `บัญชา ชุมหิรัญ`, t1: `ยุวณี เซ่นพิมาย`, t2: `ณรงค์ชัย สัมพันธ์`, t3: `Atem Maldin Tabe`,
+    t4: `เงินขาว ศิลป์ประกอบ`, t5: `สมพร ทับอาสา`, t6: `Shirley Ann Mangallab`, t7: `วริฎฐา โคตรพจน์`,
+    t8: `กฤตบุญ กันสิงห์`, t9: `นิคม วุฒิยา`, t10: `มัณฑนา วังพฤกษ์`, t11: `ศศินันท์ อุทารสวัสดิ์`,
+    t12: `แพรทอง มูลเทพ`, t13: `เจนจิรา อินภู่`, t14: `อนงค์ ภูหัวตลาด`, t15: `ณัฐพล ผสมญาติ`,
+    t16: `ธง อินภู่`, t17: `สุมาลี อุดารักษ์`
+  },
+  m3: {
+    t0: `พรทิพย์ เจริญใจ`, t1: `ภาวินี ศรีพูน`, t2: `จุฑาทิพย์ ชัยภพ`, t3: `ธีระพงษ์ สวนดี`,
+    t4: `สุภัทรวดี ศรีนามบุรี`, t5: `สุรศักดิ์ แสนคำ`, t6: `กาญจณ์พิชชา บารมี`, t7: `นิรันด์ สารรัมย์`,
+    t8: `อุรชา อินภู่`, t9: `พบพร จิตรักษา`, t10: `นุชจรี กองเกิด`, t11: `เทียนเทียน แก้วมูล`,
+    t12: `สุวรรณชัย แก้วหานาท`, t13: `กรรณิการ์ โพธิ์ทอง`, t14: `ณัฐพงษ์ เจริญปรุ`, t15: `รุ่งนภา จิตรีมิตร์`
+  },
+  m4: {
+    t0: `นิตยา ภูสำเภา`, t1: `มงคล เปลี่ยนเอก`, t2: `ภณ อัพกาญจน์`, t3: `ขวัญชนก มูลศรี`,
+    t4: `ธนาพร ศิริมั่น`, t5: `นุสรา เพ็งพล`, t6: `กาญจนา สงสุระ`, t7: `เสรี เขียนดี`,
+    t8: `นพพร เสนีย์คุปต์`, t9: `ปราโมทย์ พิมพิค่อ`, t10: `กรรณิกา อัครปทุม`, t11: `ฉัตราพร คำเพราะ`,
+    t12: `สำอาง โม้ลา`, t13: `ดิษยา ยอดนครจง`, t14: `อุดมศรี อุตส่าห์`, t15: `จิรภา เซียนพิมาย`,
+    t16: `ธันยนันท์ จันทรแสน`, t17: `ลภน ลุนไธสง`, t18: `เวชยันต์ ศรีเพ็ง`, t19: `นวรัตน์ ร่มเย็น`,
+    t20: `กฤษฏิ์ ศรีพูน`, t21: `ณัฐนี คร่อมกระโทก`, t22: `ศิรากร คำสีทา`
+  },
+  m5: {
+    t0: `ณิชัชฌา อาโยวงษ์`, t1: `ศศิฤทัย ด่านกลาง`, t2: `กนกกาญจน์ สังแก้ว`, t3: `ลัดดา เชื้อฉ่ำหลวง`,
+    t4: `ดวงใจ เหลืองเพิ่มพูล`, t5: `อุดม ไชยนอก`, t6: `ลำดวน บุญมา`, t7: `รชนิกร ศิริมั่น`,
+    t8: `ชุติกาญจน์ แพ่งศรีสาร`, t9: `เตือนใจ เจริญตา`, t10: `ธิติมา ชัยปัญหา`, t11: `จิราภรณ์ แสงอ่อน`,
+    t12: `วิลาวรรณ ดีเรือก`, t13: `บัวเรือน สิงหร`, t14: `เมตตา ทับศรีแก้ว`, t15: `กิตติศักดิ์ ปิ่นแก้ว`,
+    t16: `ฐิติตาพร พุฒขุนทด`, t17: `วิเชท แก้วไพฑูรย์`, t18: `ปิยะวัฒน์ มงคลพงษ์`
+  },
+  m6: {
+    t0: `ณัฐพิมล ด่านกลาง`, t1: `ธนพร ภาบับภา`, t2: `สุวิมล ซื่อสัตย์`, t3: `ลีลนันต์ จารุวงศ์วานิช`,
+    t4: `เนตรดาว วรเท่า`, t5: `สุกัญญา แจ้งหมื่นไวย์`, t6: `ศรีวรรณ แฉขุนทด`, t7: `จตุรงค์ แฉขุนทด`,
+    t8: `สันชัย สร้อยสิลา`, t9: `แสงจันทร์ ชาญชาติ`, t10: `ณฑสัน คำวงษ์`, t11: `จิรพรรณ จัดนอก`,
+    t12: `สุนทรี บุญแซม`, t13: `กานต์ บุญแซม`, t14: `นพวัลย์ บุบผา`, t15: `ขจรภพ วรรณพงษ์`,
+    t16: `จวนทิพย์ แสนใจ`, t17: `ปรารถนา รักศิลป์`
+  }
+};
+
+// แปลงข้อมูลเช็คชื่อจาก Firebase ให้ตรงกับ "ชื่อ นามสกุล" ปัจจุบัน พร้อมตรวจจับรายการที่ควรคลีน
+var resolveAttendanceRecords = (rosterTeachers, rawRecords = {}, aliasMap = {}, dateKey = ``, grade = ``) => {
   let resolved = {};
   let issues = [];
   let exactTeacherIds = new Set(rosterTeachers.map(t => t.id));
+  let gradeLegacyMap = HISTORICAL_LEGACY_MAP[grade] || {};
 
   // รอบที่ 1: ดึงรายการที่ตรงกับชื่อคลีนปัจจุบันเป๊ะๆ ก่อน
   Object.keys(rawRecords).forEach(k => {
@@ -247,23 +298,39 @@ var resolveAttendanceRecords = (rosterTeachers, rawRecords = {}, aliasMap = {}, 
     let val = rawRecords[k];
     if (!val || exactTeacherIds.has(k)) return;
 
-    // เช็คว่าเป็นรหัสลำดับแถวแบบเก่า (t0, t1, ...) หรือไม่
+    // เช็คว่าเป็นรหัสลำดับแถวแบบเก่า (t0, t1, ...) หรือไม่ -> อ้างอิงจากตารางก่อนแก้ไข Sheet เท่านั้น!
     if (/^t\d+$/.test(k)) {
-      let legacyTeacher = rosterTeachers.find(t => t.legacyId === k);
-      if (legacyTeacher) {
-        if (!resolved[legacyTeacher.id]) {
-          resolved[legacyTeacher.id] = val;
+      let historicalName = gradeLegacyMap[k];
+      if (historicalName) {
+        let matchedCurrent = findFuzzyTeacherMatch(historicalName, rosterTeachers, aliasMap);
+        if (matchedCurrent && matchedCurrent.teacher) {
+          if (!resolved[matchedCurrent.teacher.id]) {
+            resolved[matchedCurrent.teacher.id] = val;
+          }
+          issues.push({
+            dateKey,
+            rawKey: k,
+            cleanedKey: matchedCurrent.teacher.id,
+            targetTeacherId: matchedCurrent.teacher.id,
+            statusValue: val,
+            matchType: `LEGACY_ID`,
+            similarity: 100,
+            reason: `รหัสแถวเดิม (${k} = ${historicalName}) ➔ แปลงเป็นชื่อจริงโดยไม่เลื่อนตามแถวใหม่`
+          });
+        } else {
+          // ครูคนเดิมในรหัสแถวนี้ย้ายออกไปแล้ว (เช่น สุรศักดิ์ แสนคำ t5 หรือ ณัฐพงษ์ เจริญปรุ t14 ใน ม.3)
+          // ห้ามนำประวัติไปสวมให้ครูคนอื่นที่เลื่อนมาอยู่แถวนี้เด็ดขาด!
+          issues.push({
+            dateKey,
+            rawKey: k,
+            cleanedKey: historicalName,
+            targetTeacherId: historicalName,
+            statusValue: val,
+            matchType: `TRANSFERRED_OUT_LEGACY`,
+            similarity: 100,
+            reason: `รหัสแถวเดิม (${k}) เป็นของ "${historicalName}" (ย้ายออกแล้ว - แยกเก็บเป็นชื่อจริงเพื่อไม่ให้สวมทับครูคนอื่น)`
+          });
         }
-        issues.push({
-          dateKey,
-          rawKey: k,
-          cleanedKey: legacyTeacher.id,
-          targetTeacherId: legacyTeacher.id,
-          statusValue: val,
-          matchType: `LEGACY_ID`,
-          similarity: 100,
-          reason: `รหัสลำดับแถวแบบเก่า (${k}) ➔ แปลงเป็นชื่อ-นามสกุลจริง`
-        });
       }
       return;
     }
@@ -293,7 +360,7 @@ var resolveAttendanceRecords = (rosterTeachers, rawRecords = {}, aliasMap = {}, 
         statusValue: val,
         matchType: `UNMATCHED`,
         similarity: 0,
-        reason: `ไม่พบชื่อที่ตรงกันใน Sheet ปัจจุบัน (อาจย้ายออก หรือสะกดต่างกันมาก)`
+        reason: `ไม่พบชื่อใน Sheet ปัจจุบัน (ครูย้ายออกแล้ว หรือสะกดต่างกันมาก)`
       });
     }
   });
@@ -828,7 +895,7 @@ function nO() {
       if (snap.exists()) {
         let rawRecs = snap.data().records || {};
         setRawDayRecords(rawRecs);
-        let { resolved, issues } = resolveAttendanceRecords(roster, rawRecs, loadedAliases, dateStr);
+        let { resolved, issues } = resolveAttendanceRecords(roster, rawRecs, loadedAliases, dateStr, grade);
         setDetectedIssues(issues);
         let checkedIds = [];
         Object.keys(resolved).forEach(teacherId => {
@@ -1243,7 +1310,7 @@ function rO() {
         let snap = await RD(docRef);
         if (snap.exists()) {
           let rawRecs = snap.data().records || {};
-          let { resolved, issues } = resolveAttendanceRecords(roster, rawRecs, loadedAliases, dateStr);
+          let { resolved, issues } = resolveAttendanceRecords(roster, rawRecs, loadedAliases, dateStr, grade);
           resolvedWeek[dateStr] = resolved;
           issues.forEach(iss => allIssues.push(iss));
         } else {

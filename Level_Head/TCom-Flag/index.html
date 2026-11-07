@@ -9,7 +9,27 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./assets/index-DbMemLeC.js"></script>
+    <script>
+      (function(){
+        var VER = 'v20261107_clean_v2';
+        try {
+          if (localStorage.getItem('tcom_app_ver') !== VER) {
+            localStorage.setItem('tcom_app_ver', VER);
+            if ('caches' in window) {
+              caches.keys().then(function(names){
+                names.forEach(function(n){ caches.delete(n); });
+              });
+            }
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(regs){
+                regs.forEach(function(r){ r.update(); });
+              });
+            }
+          }
+        } catch(e){}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-DbMemLeC.js?v=20261107_clean_v2"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-oDnd2Cpq.css">
   <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
   <body>
