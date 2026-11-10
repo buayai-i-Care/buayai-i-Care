@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>บันทึกคะแนนรายวิชาเทคโนโลยี ม.3</title>
+<title>คะแนนงาน ม.3</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,"Sarabun",sans-serif;background:#f3f5f9;color:#222}
 header{background:#3b5bdb;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
@@ -18,7 +18,7 @@ th{background:#eef1ff;position:sticky;top:0}td.n{text-align:left}.ok{color:#2b8a
 .row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}.row .nm{flex:1;min-width:0}.row input{width:70px;text-align:center;font-size:18px}
 .q{padding:8px 10px;border-radius:8px;border:1px solid #ccd;background:#fff}.saved{background:#d3f9d8!important}.err{background:#ffe3e3!important}
 dialog{border:0;border-radius:14px;width:min(92vw,420px)}dialog label{display:block;margin:8px 0 2px;font-size:14px}.hide{display:none}
-.msg{color:#c92a2a;min-height:20px}
+.msg{color:#c92a2a;min-height:20px}#busy{display:flex}#busy.hide{display:none}
 </style>
 </head>
 <body>
@@ -32,6 +32,7 @@ dialog{border:0;border-radius:14px;width:min(92vw,420px)}dialog label{display:bl
 </div>
 
 <main id="app" class="hide"></main>
+<div id="busy" class="hide" style="position:fixed;inset:0;background:#fff9;align-items:center;justify-content:center;z-index:99;font-size:20px">⏳ กำลังบันทึก...</div>
 
 <dialog id="dlgNew"><h3>สร้างงานใหม่</h3>
   <label>ชื่องาน</label><input id="nTitle">
@@ -57,7 +58,15 @@ async function load(r) {
 }
 async function post(body) {
   const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code, ...body }) });
-  return res.json();
+  const t = await res.text();
+  let j; try { j = JSON.parse(t); } catch (e) { throw new Error('เซิร์ฟเวอร์ตอบผิดรูปแบบ (ต้อง Deploy เวอร์ชันใหม่ / ตั้งสิทธิ์ Anyone)'); }
+  if (!j.ok) throw new Error(j.error || 'ผิดพลาด');
+  return j;
+}
+function busy(on) { $('busy').classList.toggle('hide', !on); }
+async function run(fn) {
+  busy(true);
+  try { await fn(); } catch (e) { alert('ไม่สำเร็จ: ' + e.message); } finally { busy(false); }
 }
 
 async function login(c) {
@@ -118,11 +127,11 @@ function renderTeacher() {
   $('app').innerHTML = h;
 
   document.querySelectorAll('[data-room]').forEach(b => b.onclick = async () => { room = b.dataset.room; data = (await load(room)).data; render(); });
-  $('bNew').onclick = () => $('dlgNew').showModal();
+  $('bNew').onclick = () => { $('nRooms').options[0].textContent = 'ม.' + room + ' (ห้องนี้เท่านั้น)'; $('nRooms').value = 'cur'; $('dlgNew').showModal(); };
   $('bImp').onclick = () => $('dlgImp').showModal();
   if (!a) return;
   $('selA').onchange = e => { curAssign = e.target.value; render(); };
-  $('bDel').onclick = async () => { if (confirm('ลบงานนี้ (คะแนนจะไม่แสดง)?')) { await post({ action: 'deleteAssignment', id: a.id }); data = (await load()).data; render(); } };
+  $('bDel').onclick = () => { if (confirm('ลบงานนี้ (คะแนนจะไม่แสดง)?')) run(async () => { await post({ action: 'deleteAssignment', id: a.id }); data = (await load()).data; render(); }); };
   $('q').oninput = e => document.querySelectorAll('.row').forEach(r => r.classList.toggle('hide', !r.dataset.s.includes(e.target.value)));
   document.querySelectorAll('.row input').forEach(inp => inp.onchange = () => save(inp, inp.value));
   document.querySelectorAll('button.q').forEach(b => b.onclick = () => { const inp = document.querySelector(`input[data-n="${b.dataset.n}"]`); inp.value = b.dataset.v; save(inp, b.dataset.v); });
@@ -146,18 +155,25 @@ $('code').onkeydown = e => { if (e.key === 'Enter') login($('code').value); };
 $('logout').onclick = () => { localStorage.removeItem('code'); location.reload(); };
 $('nCancel').onclick = () => $('dlgNew').close();
 $('iCancel').onclick = () => $('dlgImp').close();
-$('nOk').onclick = async () => {
-  const title = $('nTitle').value.trim(); if (!title) return;
-  await post({ action: 'createAssignment', title, max: Number($('nMax').value) || 10, rooms: $('nRooms').value === 'all' ? 'all' : room });
-  $('dlgNew').close(); $('nTitle').value = ''; data = (await load()).data; curAssign = data.assignments.at(-1)?.id; render();
+$('nOk').onclick = () => {
+  const title = $('nTitle').value.trim(); if (!title) return alert('กรุณาใส่ชื่องาน');
+  const max = Number($('nMax').value) || 10, rooms = $('nRooms').value === 'all' ? 'all' : room;
+  $('dlgNew').close();
+  run(async () => {
+    await post({ action: 'createAssignment', title, max, rooms });
+    $('nTitle').value = ''; data = (await load()).data; curAssign = data.assignments.at(-1)?.id; render();
+  });
 };
-$('iOk').onclick = async () => {
+$('iOk').onclick = () => {
   const list = $('iText').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
     const m = /^(\d+)[\s\t.]+(.+)$/.exec(l); return m ? { number: Number(m[1]), name: m[2].trim() } : null;
   }).filter(Boolean);
-  if (!list.length) return alert('รูปแบบไม่ถูกต้อง');
-  await post({ action: 'importStudents', room, list });
-  $('dlgImp').close(); $('iText').value = ''; data = (await load()).data; render();
+  if (!list.length) return alert('รูปแบบไม่ถูกต้อง (ต้องเป็น: เลขที่ ชื่อ-สกุล)');
+  $('dlgImp').close();
+  run(async () => {
+    await post({ action: 'importStudents', room, list });
+    $('iText').value = ''; data = (await load()).data; render();
+  });
 };
 const saved = localStorage.getItem('code'); if (saved) { $('code').value = saved; login(saved); }
 </script>
