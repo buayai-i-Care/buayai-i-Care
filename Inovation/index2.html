@@ -19,6 +19,14 @@ th{background:#eef1ff;position:sticky;top:0}td.n{text-align:left}.ok{color:#2b8a
 .q{padding:8px 10px;border-radius:8px;border:1px solid #ccd;background:#fff}.saved{background:#d3f9d8!important}.err{background:#ffe3e3!important}
 dialog{border:0;border-radius:14px;width:min(92vw,420px)}dialog label{display:block;margin:8px 0 2px;font-size:14px}.hide{display:none}
 .msg{color:#c92a2a;min-height:20px}#busy{display:flex}#busy.hide{display:none}
+#sg{display:flex;flex-direction:column;gap:4px;margin-top:6px}.sgi{text-align:left;padding:10px;border:1px solid #cfd6f5;border-radius:8px;background:#f8f9ff}
+.detail{margin-top:10px;background:#f8f9ff;border-radius:10px;padding:10px}.detail table{margin-top:6px}
+.qi{border:1px solid #e1e5f7;border-radius:10px;padding:10px;margin-bottom:8px}.qi.new{background:#fff9db;border-color:#fcc419}.qi small{color:#666;display:block}.qi div{margin:6px 0;white-space:pre-wrap}
+#qList{max-height:60vh;overflow:auto}
+.pv table{border:1px solid #cfd6f5}.pv th,.pv td{border:1px solid #e1e5f7}.pv thead th{background:#3b5bdb;color:#fff;top:0}
+.pv thead tr:nth-child(2) th{background:#5c7cfa;font-weight:400;font-size:12px;top:38px}
+.pv tbody tr:nth-child(even){background:#f8f9ff}.pv .c1,.pv .c2{position:sticky;background:#fff;z-index:2}.pv .c1{left:0;min-width:36px}.pv .c2{left:36px;min-width:130px;box-shadow:2px 0 3px #0001}
+.pv thead .c1,.pv thead .c2{background:#3b5bdb;z-index:3}.pv small{color:#888}.pv .mx{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -44,6 +52,15 @@ dialog{border:0;border-radius:14px;width:min(92vw,420px)}dialog label{display:bl
   <p style="font-size:13px">วางจาก Excel: <b>เลขที่ [Tab/เว้นวรรค] ชื่อ-สกุล</b> บรรทัดละคน (จะแทนที่รายชื่อห้องนี้)</p>
   <textarea id="iText" rows="10"></textarea>
   <p><button class="btn" id="iOk">นำเข้า</button> <button class="btn light" id="iCancel">ยกเลิก</button></p></dialog>
+
+<dialog id="dlgAsk"><h3>❓ สงสัยคะแนน / ถามครู</h3>
+  <label>ชื่อของฉัน</label><select id="aWho"></select>
+  <label>เกี่ยวกับงาน</label><select id="aAssign"></select>
+  <label>ข้อความ</label><textarea id="aMsg" rows="5" maxlength="500" placeholder="เช่น หนูส่งงานแล้วแต่ยังไม่มีคะแนนค่ะ"></textarea>
+  <p><button class="btn" id="aOk">ส่งถึงครู</button> <button class="btn light" id="aCancel">ยกเลิก</button></p></dialog>
+
+<dialog id="dlgQ"><h3>💬 คำถามจากนักเรียน</h3><div id="qList"></div>
+  <p><button class="btn light" id="qClose">ปิด</button></p></dialog>
 
 <script>
 // ===== ตั้งค่า: วาง URL Web App ของ Apps Script ที่นี่ =====
@@ -96,16 +113,82 @@ function render() {
 function renderStudent() {
   const { students, assignments, scores } = data;
   if (!students.length) { $('app').innerHTML = '<div class="card">ยังไม่มีรายชื่อ</div>'; return; }
-  let h = `<div class="card"><input id="q" placeholder="ค้นหาชื่อหรือเลขที่"><div class="tbl"><table><tr><th>ที่</th><th>ชื่อ</th>` +
-    assignments.map(a => `<th>${a.title}<br><small>/${a.max}</small></th>`).join('') + '<th>รวม</th></tr>';
+  const totalMax = assignments.reduce((s, a) => s + a.max, 0);
+  let h = `<div class="card"><input id="q" placeholder="🔍 ค้นหาชื่อ เช่น สุมาลี" autocomplete="off"><div id="sg"></div><div id="detail"></div>
+  <p style="margin:10px 0 0"><button class="btn red" id="bAsk">❓ สงสัยคะแนน / ถามครู</button></p></div>
+  <div class="card"><h3 style="margin:0 0 8px">ตารางคะแนน ม.${room}</h3>
+  <div class="tbl pv"><table><thead><tr><th rowspan="2" class="c1">ที่</th><th rowspan="2" class="c2">ชื่อ-สกุล</th>` +
+    assignments.map(a => `<th>${a.title}</th>`).join('') + `<th rowspan="2">รวม</th><th rowspan="2">%</th></tr><tr>` +
+    assignments.map(a => `<th class="mx">เต็ม ${a.max}</th>`).join('') + '</tr></thead><tbody>';
   students.forEach(s => {
     let sum = 0;
     const cells = assignments.map(a => { const v = scores[s.number + '|' + a.id]; if (typeof v === 'number') sum += v; return `<td>${fmt(v, a.max)}</td>`; }).join('');
-    h += `<tr data-s="${s.number} ${s.name}"><td>${s.number}</td><td class="n">${s.name}</td>${cells}<td><b>${sum}</b></td></tr>`;
+    const pct = totalMax ? Math.round(sum * 100 / totalMax) : 0;
+    h += `<tr data-s="${s.number} ${s.name}"><td class="c1">${s.number}</td><td class="n c2">${s.name}</td>${cells}<td><b>${sum}</b><small>/${totalMax}</small></td><td>${pct}%</td></tr>`;
   });
-  $('app').innerHTML = h + '</table></div></div>';
-  $('q').oninput = e => document.querySelectorAll('tr[data-s]').forEach(tr => tr.classList.toggle('hide', !tr.dataset.s.includes(e.target.value)));
+  $('app').innerHTML = h + '</tbody></table></div></div>';
+  let picked = null;
+  const filterRows = v => document.querySelectorAll('tr[data-s]').forEach(tr => tr.classList.toggle('hide', !tr.dataset.s.toLowerCase().includes(v.toLowerCase())));
+  const showDetail = s => {
+    let sum = 0;
+    const rows = assignments.map(a => { const v = scores[s.number + '|' + a.id]; if (typeof v === 'number') sum += v; return `<tr><td class="n">${esc(a.title)}</td><td>${fmt(v, a.max)}</td><td>${a.max}</td></tr>`; }).join('');
+    $('detail').innerHTML = `<div class="detail"><b>${s.number}. ${esc(s.name)}</b> — รวม <b>${sum}</b>/${totalMax}
+      <table><tr><th>งาน</th><th>ได้</th><th>เต็ม</th></tr>${rows}</table></div>`;
+  };
+  $('q').oninput = e => {
+    const v = e.target.value.trim(); picked = null; $('detail').innerHTML = '';
+    filterRows(v);
+    const m = v ? students.filter(s => (s.number + ' ' + s.name).toLowerCase().includes(v.toLowerCase())).slice(0, 8) : [];
+    $('sg').innerHTML = m.map(s => `<button class="sgi" data-n="${s.number}">${s.number}. ${esc(s.name)}</button>`).join('');
+    document.querySelectorAll('.sgi').forEach(b => b.onclick = () => {
+      picked = students.find(s => s.number === Number(b.dataset.n));
+      $('q').value = picked.name; $('sg').innerHTML = ''; filterRows(picked.number + ' ' + picked.name); showDetail(picked);
+    });
+  };
+  $('bAsk').onclick = () => openAsk(picked, students, assignments);
 }
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function openAsk(picked, students, assignments) {
+  $('aWho').innerHTML = '<option value="">— เลือกชื่อของฉัน —</option>' + students.map(s => `<option value="${s.number}" ${picked && picked.number === s.number ? 'selected' : ''}>${s.number}. ${esc(s.name)}</option>`).join('');
+  $('aAssign').innerHTML = '<option value="">ทั่วไป / ไม่ระบุงาน</option>' + assignments.map(a => `<option>${esc(a.title)}</option>`).join('');
+  $('aMsg').value = ''; $('dlgAsk').showModal();
+}
+$('aCancel').onclick = () => $('dlgAsk').close();
+$('aOk').onclick = () => {
+  const message = $('aMsg').value.trim(); if (!message) return alert('กรุณาพิมพ์ข้อความ');
+  const sel = $('aWho').selectedOptions[0];
+  const number = $('aWho').value, name = number ? sel.textContent.replace(/^\d+\.\s*/, '') : '';
+  const assignment = $('aAssign').value;
+  $('dlgAsk').close();
+  run(async () => { await post({ action: 'ask', number, name, assignment, message }); alert('ส่งข้อความถึงคุณครูแล้ว ✅'); });
+};
+
+// ===== ฝั่งครู: ดูคำถามจากนักเรียน =====
+async function openQuestions() {
+  $('qList').innerHTML = 'กำลังโหลด...'; $('dlgQ').showModal();
+  try {
+    const res = await fetch(`${API}?code=${encodeURIComponent(code)}&action=questions`); const j = await res.json();
+    if (!j.ok) throw new Error(j.error);
+    $('qList').innerHTML = j.questions.length ? j.questions.map(q => `<div class="qi ${q.status === 'ใหม่' ? 'new' : ''}">
+      <small>${new Date(q.time).toLocaleString('th-TH')} • ม.${esc(q.room)} ${q.number ? '• ' + esc(q.number + '. ' + q.name) : ''} ${q.assignment ? '• ' + esc(q.assignment) : ''}</small>
+      <div>${esc(q.message)}</div>
+      <button class="q" data-id="${q.id}" data-st="${q.status === 'ใหม่' ? 'ตอบแล้ว' : 'ใหม่'}">${q.status === 'ใหม่' ? '✔ ทำเครื่องหมายว่าตอบแล้ว' : '↩ ตอบแล้ว (กดเพื่อเปิดใหม่)'}</button></div>`).join('') : 'ยังไม่มีคำถาม';
+    document.querySelectorAll('#qList button').forEach(b => b.onclick = async () => {
+      b.disabled = true; try { await post({ action: 'markQuestion', id: b.dataset.id, status: b.dataset.st }); } catch (e) { alert(e.message); }
+      openQuestions(); countQuestions();
+    });
+  } catch (e) { $('qList').textContent = 'โหลดไม่สำเร็จ: ' + e.message; }
+}
+async function countQuestions() {
+  try {
+    const j = await (await fetch(`${API}?code=${encodeURIComponent(code)}&action=questions`)).json();
+    const n = j.questions.filter(q => q.status === 'ใหม่').length;
+    const b = $('bQ'); if (b) b.textContent = '💬 คำถามนักเรียน' + (n ? ` (${n})` : '');
+  } catch (e) {}
+}
+$('qClose').onclick = () => $('dlgQ').close();
 
 function renderTeacher() {
   const { students, assignments, scores } = data;
@@ -113,7 +196,7 @@ function renderTeacher() {
   const a = assignments.find(x => x.id === curAssign);
   let h = '<div class="card"><div class="chips">' + Array.from({ length: 10 }, (_, i) => `3/${i + 1}`)
     .map(r => `<button class="chip ${r === room ? 'on' : ''}" data-room="${r}">${r}</button>`).join('') + '</div>' +
-    `<p><button class="btn" id="bNew">+ สร้างงาน</button> <button class="btn light" id="bImp">นำเข้ารายชื่อ</button></p>` +
+    `<p><button class="btn" id="bNew">+ สร้างงาน</button> <button class="btn light" id="bImp">นำเข้ารายชื่อ</button> <button class="btn light" id="bQ">💬 คำถามนักเรียน</button></p>` +
     `<select id="selA">${assignments.map(x => `<option value="${x.id}" ${x.id === curAssign ? 'selected' : ''}>${x.title} (เต็ม ${x.max})</option>`).join('')}</select>` +
     (a ? ` <p><button class="btn red" id="bDel">ลบงานนี้</button></p>` : '') + '</div>';
   if (a) {
@@ -129,6 +212,7 @@ function renderTeacher() {
   document.querySelectorAll('[data-room]').forEach(b => b.onclick = async () => { room = b.dataset.room; data = (await load(room)).data; render(); });
   $('bNew').onclick = () => { $('nRooms').options[0].textContent = 'ม.' + room + ' (ห้องนี้เท่านั้น)'; $('nRooms').value = 'cur'; $('dlgNew').showModal(); };
   $('bImp').onclick = () => $('dlgImp').showModal();
+  $('bQ').onclick = openQuestions; countQuestions();
   if (!a) return;
   $('selA').onchange = e => { curAssign = e.target.value; render(); };
   $('bDel').onclick = () => { if (confirm('ลบงานนี้ (คะแนนจะไม่แสดง)?')) run(async () => { await post({ action: 'deleteAssignment', id: a.id }); data = (await load()).data; render(); }); };
@@ -141,6 +225,14 @@ async function save(inp, raw) {
   raw = String(raw).trim();
   const score = raw === '' ? '' : (isNaN(Number(raw)) ? raw : Number(raw));
   const number = Number(inp.dataset.n);
+  const max = data.assignments.find(a => a.id === curAssign)?.max;
+  if (typeof score === 'number' && (score > max || score < 0)) {
+    alert(`⚠️ คะแนน ${score} ไม่ถูกต้อง\nคะแนนต้องอยู่ระหว่าง 0 – ${max} (คะแนนเต็ม ${max})`);
+    inp.value = data.scores[number + '|' + curAssign] ?? '';
+    inp.classList.add('err');
+    inp.focus();
+    return;
+  }
   inp.classList.remove('saved', 'err');
   try {
     const j = await post({ action: 'setScore', room, number, assignmentId: curAssign, score });
