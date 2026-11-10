@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>บันทึกคะแนนรายวิชาเทคโนโลยี ม.3</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Sarabun",sans-serif;background:#f3f5f9;color:#222}
+header{background:#3b5bdb;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+header h1{font-size:18px;margin:0}button{font:inherit;cursor:pointer}
+.btn{background:#3b5bdb;color:#fff;border:0;border-radius:10px;padding:10px 14px}.btn.light{background:#e7ebff;color:#3b5bdb}.btn.red{background:#e03131}
+main{padding:12px;max-width:900px;margin:auto}.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 4px #0001;margin-bottom:12px}
+input,select,textarea{font:inherit;padding:10px;border:1px solid #ccd;border-radius:10px;width:100%}
+#login{max-width:340px;margin:18vh auto;text-align:center}#login input{font-size:24px;text-align:center;margin:12px 0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}.chip{flex:none;border:1px solid #3b5bdb;color:#3b5bdb;background:#fff;border-radius:20px;padding:6px 12px}.chip.on{background:#3b5bdb;color:#fff}
+.tbl{overflow:auto;max-height:75vh}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;white-space:nowrap}
+th{background:#eef1ff;position:sticky;top:0}td.n{text-align:left}.ok{color:#2b8a3e;font-weight:600}.late{color:#e8590c;font-weight:600}.miss{color:#c92a2a}
+.row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}.row .nm{flex:1;min-width:0}.row input{width:70px;text-align:center;font-size:18px}
+.q{padding:8px 10px;border-radius:8px;border:1px solid #ccd;background:#fff}.saved{background:#d3f9d8!important}.err{background:#ffe3e3!important}
+dialog{border:0;border-radius:14px;width:min(92vw,420px)}dialog label{display:block;margin:8px 0 2px;font-size:14px}.hide{display:none}
+.msg{color:#c92a2a;min-height:20px}
+</style>
+</head>
+<body>
+<header><h1 id="title">คะแนนงาน ม.3</h1><button class="btn light hide" id="logout">ออก</button></header>
+
+<div id="login" class="card">
+  <h2>กรอกรหัสเข้าใช้งาน</h2>
+  <input id="code" inputmode="text" placeholder="เช่น 31" autocomplete="off">
+  <button class="btn" id="go" style="width:100%">เข้าสู่ระบบ</button>
+  <div class="msg" id="lmsg"></div>
+</div>
+
+<main id="app" class="hide"></main>
+
+<dialog id="dlgNew"><h3>สร้างงานใหม่</h3>
+  <label>ชื่องาน</label><input id="nTitle">
+  <label>คะแนนเต็ม</label><input id="nMax" type="number" inputmode="numeric" value="10">
+  <label>ห้อง</label><select id="nRooms"><option value="cur">ห้องที่เลือกอยู่</option><option value="all">ทุกห้อง</option></select>
+  <p><button class="btn" id="nOk">สร้าง</button> <button class="btn light" id="nCancel">ยกเลิก</button></p></dialog>
+
+<dialog id="dlgImp"><h3>นำเข้ารายชื่อ</h3>
+  <p style="font-size:13px">วางจาก Excel: <b>เลขที่ [Tab/เว้นวรรค] ชื่อ-สกุล</b> บรรทัดละคน (จะแทนที่รายชื่อห้องนี้)</p>
+  <textarea id="iText" rows="10"></textarea>
+  <p><button class="btn" id="iOk">นำเข้า</button> <button class="btn light" id="iCancel">ยกเลิก</button></p></dialog>
+
+<script>
+// ===== ตั้งค่า: วาง URL Web App ของ Apps Script ที่นี่ =====
+const API = 'https://script.google.com/macros/s/AKfycbz1jaxNrV66tOCv6BUDaMEO0BuwY4nfO8NVM9gnbB1ldQ3RNiPii9mNcIXQSNsJTcMi3Q/exec';
+
+const $ = id => document.getElementById(id);
+let code = '', role = '', room = '3/1', data = null, curAssign = null;
+
+async function load(r) {
+  const res = await fetch(`${API}?code=${encodeURIComponent(code)}&room=${encodeURIComponent(r || room)}`);
+  return res.json();
+}
+async function post(body) {
+  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ code, ...body }) });
+  return res.json();
+}
+
+async function login(c) {
+  $('lmsg').textContent = 'กำลังโหลด...';
+  code = c.trim();
+  try {
+    const j = await load();
+    if (!j.ok) { $('lmsg').textContent = j.error; return; }
+    role = j.role; data = j.data; room = data.room;
+    localStorage.setItem('code', code);
+    $('login').classList.add('hide'); $('app').classList.remove('hide'); $('logout').classList.remove('hide');
+    render();
+  } catch (e) { $('lmsg').textContent = 'เชื่อมต่อไม่ได้ (ตรวจสอบ URL API)'; }
+}
+
+function fmt(v, max) {
+  if (v === '' || v === undefined) return '<span class="miss">-</span>';
+  if (typeof v === 'number') return `<span class="${v >= max * 0.5 ? 'ok' : 'late'}">${v}</span>`;
+  return `<span class="miss">${v}</span>`;
+}
+
+function render() {
+  $('title').textContent = role === 'teacher' ? 'โหมดครู' : 'คะแนนห้อง ม.' + room;
+  role === 'teacher' ? renderTeacher() : renderStudent();
+}
+
+function renderStudent() {
+  const { students, assignments, scores } = data;
+  if (!students.length) { $('app').innerHTML = '<div class="card">ยังไม่มีรายชื่อ</div>'; return; }
+  let h = `<div class="card"><input id="q" placeholder="ค้นหาชื่อหรือเลขที่"><div class="tbl"><table><tr><th>ที่</th><th>ชื่อ</th>` +
+    assignments.map(a => `<th>${a.title}<br><small>/${a.max}</small></th>`).join('') + '<th>รวม</th></tr>';
+  students.forEach(s => {
+    let sum = 0;
+    const cells = assignments.map(a => { const v = scores[s.number + '|' + a.id]; if (typeof v === 'number') sum += v; return `<td>${fmt(v, a.max)}</td>`; }).join('');
+    h += `<tr data-s="${s.number} ${s.name}"><td>${s.number}</td><td class="n">${s.name}</td>${cells}<td><b>${sum}</b></td></tr>`;
+  });
+  $('app').innerHTML = h + '</table></div></div>';
+  $('q').oninput = e => document.querySelectorAll('tr[data-s]').forEach(tr => tr.classList.toggle('hide', !tr.dataset.s.includes(e.target.value)));
+}
+
+function renderTeacher() {
+  const { students, assignments, scores } = data;
+  if (!curAssign || !assignments.find(a => a.id === curAssign)) curAssign = assignments[0]?.id || null;
+  const a = assignments.find(x => x.id === curAssign);
+  let h = '<div class="card"><div class="chips">' + Array.from({ length: 10 }, (_, i) => `3/${i + 1}`)
+    .map(r => `<button class="chip ${r === room ? 'on' : ''}" data-room="${r}">${r}</button>`).join('') + '</div>' +
+    `<p><button class="btn" id="bNew">+ สร้างงาน</button> <button class="btn light" id="bImp">นำเข้ารายชื่อ</button></p>` +
+    `<select id="selA">${assignments.map(x => `<option value="${x.id}" ${x.id === curAssign ? 'selected' : ''}>${x.title} (เต็ม ${x.max})</option>`).join('')}</select>` +
+    (a ? ` <p><button class="btn red" id="bDel">ลบงานนี้</button></p>` : '') + '</div>';
+  if (a) {
+    h += '<div class="card"><input id="q" placeholder="ค้นหา"><div id="list">' + students.map(s => {
+      const v = scores[s.number + '|' + a.id];
+      return `<div class="row" data-s="${s.number} ${s.name}"><div class="nm">${s.number}. ${s.name}</div>
+      <input inputmode="decimal" data-n="${s.number}" value="${v ?? ''}" placeholder="-">
+      <button class="q" data-n="${s.number}" data-v="${a.max}">เต็ม</button><button class="q" data-n="${s.number}" data-v="ขาด">ขาด</button></div>`;
+    }).join('') + '</div></div>';
+  } else h += '<div class="card">ยังไม่มีงาน กด "+ สร้างงาน"</div>';
+  $('app').innerHTML = h;
+
+  document.querySelectorAll('[data-room]').forEach(b => b.onclick = async () => { room = b.dataset.room; data = (await load(room)).data; render(); });
+  $('bNew').onclick = () => $('dlgNew').showModal();
+  $('bImp').onclick = () => $('dlgImp').showModal();
+  if (!a) return;
+  $('selA').onchange = e => { curAssign = e.target.value; render(); };
+  $('bDel').onclick = async () => { if (confirm('ลบงานนี้ (คะแนนจะไม่แสดง)?')) { await post({ action: 'deleteAssignment', id: a.id }); data = (await load()).data; render(); } };
+  $('q').oninput = e => document.querySelectorAll('.row').forEach(r => r.classList.toggle('hide', !r.dataset.s.includes(e.target.value)));
+  document.querySelectorAll('.row input').forEach(inp => inp.onchange = () => save(inp, inp.value));
+  document.querySelectorAll('button.q').forEach(b => b.onclick = () => { const inp = document.querySelector(`input[data-n="${b.dataset.n}"]`); inp.value = b.dataset.v; save(inp, b.dataset.v); });
+}
+
+async function save(inp, raw) {
+  raw = String(raw).trim();
+  const score = raw === '' ? '' : (isNaN(Number(raw)) ? raw : Number(raw));
+  const number = Number(inp.dataset.n);
+  inp.classList.remove('saved', 'err');
+  try {
+    const j = await post({ action: 'setScore', room, number, assignmentId: curAssign, score });
+    if (!j.ok) throw 0;
+    data.scores[number + '|' + curAssign] = score;
+    inp.classList.add('saved');
+  } catch (e) { inp.classList.add('err'); }
+}
+
+$('go').onclick = () => login($('code').value);
+$('code').onkeydown = e => { if (e.key === 'Enter') login($('code').value); };
+$('logout').onclick = () => { localStorage.removeItem('code'); location.reload(); };
+$('nCancel').onclick = () => $('dlgNew').close();
+$('iCancel').onclick = () => $('dlgImp').close();
+$('nOk').onclick = async () => {
+  const title = $('nTitle').value.trim(); if (!title) return;
+  await post({ action: 'createAssignment', title, max: Number($('nMax').value) || 10, rooms: $('nRooms').value === 'all' ? 'all' : room });
+  $('dlgNew').close(); $('nTitle').value = ''; data = (await load()).data; curAssign = data.assignments.at(-1)?.id; render();
+};
+$('iOk').onclick = async () => {
+  const list = $('iText').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const m = /^(\d+)[\s\t.]+(.+)$/.exec(l); return m ? { number: Number(m[1]), name: m[2].trim() } : null;
+  }).filter(Boolean);
+  if (!list.length) return alert('รูปแบบไม่ถูกต้อง');
+  await post({ action: 'importStudents', room, list });
+  $('dlgImp').close(); $('iText').value = ''; data = (await load()).data; render();
+};
+const saved = localStorage.getItem('code'); if (saved) { $('code').value = saved; login(saved); }
+</script>
+</body>
+</html>
